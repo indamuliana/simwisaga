@@ -32,7 +32,9 @@ class ChatApiController extends Controller
         ]);
 
         $userMessage = $request->input('message');
-        $apiKey = env('GEMINI_API_KEY');
+        // $apiKey = env('GEMINI_API_KEY');
+        $apiKey = config('services.gemini.api_key', env('GEMINI_API_KEY'));
+
 
         if (empty($apiKey)) {
             return response()->json([
