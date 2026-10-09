@@ -64,7 +64,7 @@
  </button>
  @endcan
  @can('kesiswaan.siswa.tambah')
- <a href="{{ route('kesiswaan.siswa.create') }}" class="btn btn-primary inline-flex items-center gap-1.5 bg-emerald-600 hover:bg-emerald-700 text-white">
+ <a href="{{ \Illuminate\Support\Facades\Route::has('kesiswaan.siswa.create') ? route('kesiswaan.siswa.create') : url('/kesiswaan/siswa/create') }}" class="btn btn-primary inline-flex items-center gap-1.5 bg-emerald-600 hover:bg-emerald-700 text-white">
  <svg class="w-4 h-4" fill="none" viewBox="0 0 24 24" stroke="currentColor">
  <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M18 9v3m0 0v3m0-3h3m-3 0h-3m-2-5a4 4 0 11-8 0 4 4 0 018 0zM3 20a6 6 0 0112 0v1H3v-1z" />
  </svg>
