@@ -71,7 +71,8 @@
                             {{ $p->deskripsi ?: '-' }}
                         </td>
                         <td class="px-4 py-3 text-center">
-                            <span class="inline-flex items-center px-2.5 py-0.5 rounded-full text-xs font-semibold bg-slate-100 dark:bg-slate-800 text-text-main border border-slate-200 dark:border-slate-700">
+                            <!-- <span class="inline-flex items-center px-2.5 py-0.5 rounded-full text-xs font-semibold bg-slate-100 dark:bg-slate-800 text-text-main border border-slate-200 dark:border-slate-700"> -->
+                                <span class="inline-flex items-center font-semibold dark:bg-slate-800 text-text-main">
                                 {{ number_format($p->siswas_count, 0, ',', '.') }} Siswa
                             </span>
                         </td>
@@ -83,7 +84,7 @@
                                 <span>{{ $p->is_active ? 'Aktif' : 'Nonaktif' }}</span>
                             </button>
                             @else
-                            <span class="inline-flex items-center gap-1.5 px-2.5 py-1 rounded-full text-xs font-semibold {{ $p->is_active ? 'bg-emerald-100 dark:bg-emerald-950/60 text-emerald-700 dark:text-emerald-400' : 'bg-slate-200 dark:bg-slate-700 text-slate-600 dark:text-slate-400' }}">
+                            <span class="inline-flex items-center text-xs font-semibold {{ $p->is_active ? 'bg-emerald-100 dark:bg-emerald-950/60 text-emerald-700 dark:text-emerald-400' : 'bg-slate-200 dark:bg-slate-700 text-slate-600 dark:text-slate-400' }}">
                                 <span class="h-1.5 w-1.5 rounded-full {{ $p->is_active ? 'bg-emerald-500' : 'bg-slate-400' }}"></span>
                                 <span>{{ $p->is_active ? 'Aktif' : 'Nonaktif' }}</span>
                             </span>
