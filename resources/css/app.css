@@ -1,0 +1,99 @@
+@import 'tailwindcss';
+
+@source '../../vendor/laravel/framework/src/Illuminate/Pagination/resources/views/*.blade.php';
+@source '../../storage/framework/views/*.php';
+@source "../**/*.blade.php";
+@source "../../app/**/*.blade.php";
+@source "../**/*.js";
+
+:root {
+    color-scheme: dark;
+}
+
+@theme {
+    --font-sans: 'Inter', ui-sans-serif, system-ui, sans-serif, 'Apple Color Emoji', 'Segoe UI Emoji', 'Segoe UI Symbol', 'Noto Color Emoji';
+    
+    /* Desain.md Colors */
+    --color-bg: #070F1E;
+    --color-sidebar: #081326;
+    --color-surface: #0D1B30;
+    --color-surface-raised: #11233D;
+    --color-surface-hover: #172B49;
+    --color-border: #203653;
+
+    --color-text-main: #F3F6FC;
+    --color-text-secondary: #B2C0D5;
+    --color-text-muted: #8294AF;
+
+    --color-primary: #247BFF;
+    --color-primary-hover: #1767E8;
+    --color-primary-soft: #102F60;
+
+    --color-success: #10B981;
+    --color-success-soft: #073D35;
+    --color-warning: #F59E0B;
+    --color-warning-soft: #4B3010;
+    --color-danger: #F04452;
+    --color-danger-soft: #4A1E2A;
+    --color-info: #38BDF8;
+    --color-info-soft: #12384F;
+    --color-accent-purple: #A78BFA;
+
+    --radius-sm: 6px;
+    --radius-md: 10px;
+    --radius-lg: 14px;
+    --radius-xl: 18px;
+}
+
+@layer components {
+    /* Form Elements */
+    .input, 
+    input[type="text"], input[type="password"], input[type="email"], input[type="number"], input[type="search"],
+    textarea, select {
+        @apply block w-full rounded-[var(--radius-md)] border border-text-muted/60 bg-surface px-3 py-2 text-sm text-text-main shadow-sm
+            transition-all duration-200
+            focus:border-primary focus:outline-none focus:ring-2 focus:ring-primary/80;
+    }
+    
+    select {
+        @apply pr-8 appearance-none bg-no-repeat bg-[position:right_0.75rem_center] bg-[length:16px_16px];
+        background-image: url("data:image/svg+xml,%3csvg xmlns='http://www.w3.org/2000/svg' fill='none' viewBox='0 0 20 20'%3e%3cpath stroke='%23B2C0D5' stroke-linecap='round' stroke-linejoin='round' stroke-width='1.5' d='M6 8l4 4 4-4'/%3e%3c/svg%3e");
+    }
+
+    /* Buttons */
+    .btn {
+        @apply inline-flex items-center justify-center rounded-[var(--radius-lg)] px-4 py-2 text-sm font-medium transition-all duration-200
+            focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-offset-bg disabled:opacity-50 shadow-sm hover:shadow-md;
+    }
+    
+    .btn-primary {
+        @apply bg-primary text-white border-t border-white/20 hover:bg-primary-hover focus:ring-primary;
+    }
+    
+    .btn-secondary {
+        @apply border border-text-muted bg-surface text-text-main hover:bg-surface-hover focus:ring-primary/60;
+    }
+    
+    .btn-danger {
+        @apply bg-danger text-white border-t border-white/20 hover:bg-red-600 focus:ring-danger;
+    }
+
+    /* Tables */
+    thead th {
+        @apply text-text-main font-semibold tracking-wider;
+    }
+
+    .card {
+        @apply relative rounded-[var(--radius-lg)] border border-border bg-surface p-5 shadow-lg overflow-hidden;
+    }
+    
+    .label {
+        @apply mb-1 block text-sm font-medium text-text-secondary;
+    }
+    
+    .error {
+        @apply mt-1 text-xs text-danger;
+    }
+}
+
+[x-cloak] { display: none !important; }
