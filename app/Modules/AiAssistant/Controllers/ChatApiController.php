@@ -57,7 +57,10 @@ class ChatApiController extends Controller
             $sqlPrompt .= "Buatkan SATU query SQL (hanya perintah SELECT) untuk menjawab pertanyaan tersebut berdasarkan skema di atas. ";
             $sqlPrompt .= "Perhatikan relasi antar tabel. Kembalikan HANYA teks query SQL-nya saja, tanpa markdown block (```sql) dan tanpa penjelasan tambahan.";
 
-            $sqlResponse = $this->callGemini($apiKey, $sqlPrompt);
+            $sqlResponse = $this->callGemini($apiKey, $sqlPrompt, [
+                'maxOutputTokens' => 300,
+                'temperature' => 0.1,
+            ]);
             
             // Bersihkan hasil response dari markdown jika ada
             $sqlQuery = trim(str_replace(['```sql', '```'], '', $sqlResponse));
@@ -89,9 +92,17 @@ class ChatApiController extends Controller
 
         } catch (\Exception $e) {
             Log::error("AI Chat Error: " . $e->getMessage());
+
+            $message = $e->getMessage();
+            if (str_contains($message, 'quota') || str_contains($message, '429') || str_contains($message, 'RESOURCE_EXHAUSTED') || str_contains($message, 'Batas kuota')) {
+                $friendlyMessage = 'Maaf, batas kuota gratis Gemini API (Free Tier) untuk hari ini telah tercapai. Silakan coba kembali dalam beberapa jam atau gunakan Google AI API Key lain di file .env.';
+            } else {
+                $friendlyMessage = 'Maaf, terjadi kesalahan saat memproses permintaan Anda: ' . $message;
+            }
+
             return response()->json([
                 'success' => false,
-                'message' => 'Maaf, terjadi kesalahan saat memproses permintaan Anda: ' . $e->getMessage()
+                'message' => $friendlyMessage
             ], 500);
         }
     }
@@ -112,7 +123,10 @@ class ChatApiController extends Controller
             $finalPrompt .= "Tugasmu: Berikan jawaban yang alami dan mudah dibaca (dalam format teks biasa atau markdown) berdasarkan data JSON di atas untuk menjawab pertanyaan pengguna. Jika data terlalu banyak, buatlah kesimpulan atau rekapitulasinya.";
         }
 
-        $answer = $this->callGemini($apiKey, $finalPrompt);
+        $answer = $this->callGemini($apiKey, $finalPrompt, [
+            'maxOutputTokens' => 1200,
+            'temperature' => 0.7,
+        ]);
 
         return response()->json([
             'success' => true,
@@ -140,13 +154,20 @@ class ChatApiController extends Controller
         return $schema;
     }
 
-    private function callGemini($apiKey, $prompt)
+    private function callGemini($apiKey, $prompt, array $generationConfig = [])
     {
-        $url = 'https://generativelanguage.googleapis.com/v1beta/models/gemini-3.5-flash:generateContent';
+        $primaryModel = config('services.gemini.model', env('GEMINI_MODEL', 'gemini-flash-lite-latest'));
+        $fallbackModels = [
+            'gemini-flash-lite-latest',
+            'gemini-3.5-flash-lite',
+            'gemini-3.1-flash-lite',
+            'gemini-3.8-flash',
+        ];
+        
+        $modelsToTry = array_values(array_unique(array_merge([$primaryModel], $fallbackModels)));
+        $lastError = null;
 
-        $response = Http::withHeaders([
-            'X-goog-api-key' => $apiKey
-        ])->post($url, [
+        $payload = [
             'contents' => [
                 [
                     'parts' => [
@@ -154,15 +175,50 @@ class ChatApiController extends Controller
                     ]
                 ]
             ]
-        ]);
+        ];
 
-        if ($response->successful()) {
-            $data = $response->json();
-            if (isset($data['candidates'][0]['content']['parts'][0]['text'])) {
-                return $data['candidates'][0]['content']['parts'][0]['text'];
+        if (!empty($generationConfig)) {
+            $payload['generationConfig'] = $generationConfig;
+        }
+
+        foreach ($modelsToTry as $model) {
+            $url = "https://generativelanguage.googleapis.com/v1beta/models/{$model}:generateContent";
+
+            try {
+                $response = Http::timeout(45)->withHeaders([
+                    'X-goog-api-key' => $apiKey
+                ])->post($url, $payload);
+
+                if ($response->successful()) {
+                    $data = $response->json();
+                    if (isset($data['candidates'][0]['content']['parts'][0]['text'])) {
+                        return $data['candidates'][0]['content']['parts'][0]['text'];
+                    }
+                }
+
+                $status = $response->status();
+                $body = $response->json();
+
+                // Jika batas kuota habis (429) atau server sibuk (503), coba model cadangan
+                if ($status === 429 || $status === 503 || (isset($body['error']['status']) && in_array($body['error']['status'], ['RESOURCE_EXHAUSTED', 'UNAVAILABLE']))) {
+                    Log::warning("Gemini model {$model} mencapai batas kuota atau sibuk (HTTP {$status}). Mencoba model cadangan...");
+                    $lastError = "Batas kuota harian atau beban tinggi pada model {$model}.";
+                    continue;
+                }
+
+                // Error lain
+                $errorMsg = $body['error']['message'] ?? $response->body();
+                throw new \Exception("Gagal menghubungi API Gemini ({$model}): " . $errorMsg);
+
+            } catch (\Exception $e) {
+                if (str_contains($e->getMessage(), 'kuota') || str_contains($e->getMessage(), '429') || str_contains($e->getMessage(), '503') || str_contains($e->getMessage(), 'high demand')) {
+                    $lastError = $e->getMessage();
+                    continue;
+                }
+                throw $e;
             }
         }
-        
-        throw new \Exception("Gagal menghubungi API Gemini: " . $response->body());
+
+        throw new \Exception($lastError ?? "Batas kuota Gemini API (Free Tier) telah habis untuk semua model.");
     }
 }
