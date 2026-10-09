@@ -3,8 +3,13 @@
  <head>
  <meta charset="utf-8">
  <meta name="viewport" content="width=device-width, initial-scale=1">
-
- <title>Laravel</title>
+ @php
+     $sekolah = \App\Modules\Sistem\Models\School::current();
+     $faviconUrl = $sekolah->logoAplikasiUrl() ?: $sekolah->logoSekolahUrl() ?: asset('favicon.ico');
+ @endphp
+ <title>{{ $sekolah->nama_aplikasi ?? 'SIRAGA' }}</title>
+ <link rel="icon" href="{{ $faviconUrl }}">
+ <link rel="shortcut icon" href="{{ $faviconUrl }}">
 
  <!-- Fonts -->
  <link rel="preconnect" href="https://fonts.bunny.net">

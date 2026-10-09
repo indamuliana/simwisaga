@@ -4,7 +4,13 @@
     <meta charset="utf-8">
     <meta name="viewport" content="width=device-width, initial-scale=1">
     <meta name="csrf-token" content="{{ csrf_token() }}">
-    <title>{{ $title ?? 'SIRAGA' }} - {{ config('app.name') }}</title>
+    @php
+        $sekolah = \App\Modules\Sistem\Models\School::current();
+        $faviconUrl = $sekolah->logoAplikasiUrl() ?: $sekolah->logoSekolahUrl() ?: asset('favicon.ico');
+    @endphp
+    <title>{{ $title ?? $sekolah->nama_aplikasi ?? 'SIRAGA' }} - {{ config('app.name') }}</title>
+    <link rel="icon" href="{{ $faviconUrl }}">
+    <link rel="shortcut icon" href="{{ $faviconUrl }}">
     @vite(['resources/css/app.css', 'resources/js/app.js'])
     <script src="https://cdn.jsdelivr.net/npm/apexcharts"></script>
     @stack('styles')
@@ -15,9 +21,6 @@
       x-init="$watch('pinned', val => localStorage.setItem('sidebar_pinned', val))">
 
     {{-- Sidebar --}}
-    @php
-        $sekolah = \App\Modules\Sistem\Models\School::current();
-    @endphp
     <!-- Overlay -->
     <div x-show="sidebar" x-cloak @click="sidebar = false" class="fixed inset-0 z-30 bg-black/40"
          :class="pinned ? 'lg:hidden' : ''"></div>
