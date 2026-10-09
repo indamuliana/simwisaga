@@ -58,8 +58,8 @@
  <label class="block text-xs font-semibold text-text-secondary uppercase tracking-wider mb-1">Filter Program Saat Ini</label>
  <select wire:model.live="filterCurrentProgram" class="w-full text-sm rounded-lg border-border bg-surface text-text-main">
  <option value="">-- Semua Program --</option>
- @foreach($programs as $pr)
- <option value="{{ $pr->id }}">{{ $pr->nama }}</option>
+ @foreach($allPrograms as $pr)
+ <option value="{{ $pr->id }}">{{ $pr->nama }} {{ !$pr->is_active ? '(Nonaktif)' : '' }}</option>
  @endforeach
  </select>
  </div>

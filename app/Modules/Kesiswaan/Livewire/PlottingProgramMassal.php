@@ -196,12 +196,14 @@ class PlottingProgramMassal extends Component
         $siswas = $query->orderBy('rombel_id')->orderBy('nama')->paginate(25);
 
         $programs = Program::where('is_active', true)->orderBy('nama')->get();
+        $allPrograms = Program::orderBy('nama')->get();
         $rombels = Rombel::orderBy('tingkat')->orderBy('nama')->get();
         $rayons = Rayon::orderBy('nama')->get();
 
         return view('kesiswaan::livewire.plotting-program-massal', [
             'siswas' => $siswas,
             'programs' => $programs,
+            'allPrograms' => $allPrograms,
             'rombels' => $rombels,
             'rayons' => $rayons,
         ]);

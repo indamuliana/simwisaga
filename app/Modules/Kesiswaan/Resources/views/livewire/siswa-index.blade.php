@@ -64,8 +64,17 @@
  </button>
  @endcan
  @can('kesiswaan.siswa.tambah')
- <a href="{{ route('kesiswaan.import') }}" class="btn btn-primary">
- + Import File DAPODIK
+ <a href="{{ route('kesiswaan.siswa.create') }}" class="btn btn-primary inline-flex items-center gap-1.5 bg-emerald-600 hover:bg-emerald-700 text-white">
+ <svg class="w-4 h-4" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+ <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M18 9v3m0 0v3m0-3h3m-3 0h-3m-2-5a4 4 0 11-8 0 4 4 0 018 0zM3 20a6 6 0 0112 0v1H3v-1z" />
+ </svg>
+ <span>+ Tambah Siswa</span>
+ </a>
+ <a href="{{ route('kesiswaan.import') }}" class="btn btn-secondary inline-flex items-center gap-1.5">
+ <svg class="w-4 h-4" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+ <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M4 16v1a3 3 0 003 3h10a3 3 0 003-3v-1m-4-8l-4-4m0 0L8 8m4-4v12" />
+ </svg>
+ <span>+ Import File DAPODIK</span>
  </a>
  @endcan
  </div>
