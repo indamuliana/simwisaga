@@ -7,17 +7,20 @@ use App\Modules\Akademik\Models\Rayon;
 use App\Modules\Akademik\Models\Rombel;
 use App\Modules\Kesiswaan\Models\Program;
 use App\Modules\Kesiswaan\Models\Siswa;
+use App\Modules\Kesiswaan\Services\PlottingProgramExcelService;
 use Illuminate\Support\Facades\DB;
 use Livewire\Attributes\Layout;
 use Livewire\Attributes\Title;
 use Livewire\Component;
+use Livewire\WithFileUploads;
 use Livewire\WithPagination;
+use PhpOffice\PhpSpreadsheet\Writer\Xlsx;
 
 #[Layout('components.layouts.app')]
 #[Title('Plotting Program Siswa (Unggulan / Reguler)')]
 class PlottingProgramMassal extends Component
 {
-    use GuardsPermission, WithPagination;
+    use GuardsPermission, WithPagination, WithFileUploads;
 
     // Filters
     public ?int $filterCurrentProgram = null;
@@ -29,8 +32,14 @@ class PlottingProgramMassal extends Component
     public array $selectedSiswaIds = [];
     public bool $selectAll = false;
 
-    // Target Program
+    // Target Program Manual
     public ?int $targetProgramId = null;
+
+    // Import Excel Modal
+    public bool $showImportModal = false;
+    public ?int $importTargetProgramId = null;
+    public $fileExcel = null;
+    public ?array $importResult = null;
 
     public function updatedFilterCurrentProgram(): void
     {
@@ -115,6 +124,70 @@ class PlottingProgramMassal extends Component
 
         $this->reset(['selectedSiswaIds', 'selectAll']);
         session()->flash('status', "Berhasil! Sebanyak {$count} siswa berhasil dialokasikan ke Program {$program->nama}.");
+    }
+
+    public function openImportModal(): void
+    {
+        $this->guard('kesiswaan.siswa.edit');
+        $this->reset(['fileExcel', 'importResult']);
+        $this->importTargetProgramId = $this->targetProgramId;
+        $this->showImportModal = true;
+    }
+
+    public function closeImportModal(): void
+    {
+        $this->reset(['fileExcel', 'importResult']);
+        $this->showImportModal = false;
+    }
+
+    public function downloadTemplate(string $type = 'kosong')
+    {
+        $this->guard('kesiswaan.siswa.lihat');
+        $service = new PlottingProgramExcelService();
+
+        if ($type === 'prefill') {
+            $siswas = $this->getQuery()->with(['rombel', 'rayon', 'program'])->orderBy('rombel_id')->orderBy('nama')->get();
+            $spreadsheet = $service->generateTemplatePrefill($siswas);
+            $filename = 'Template_Plotting_Siswa_Filtered_' . date('Ymd_His') . '.xlsx';
+        } else {
+            $spreadsheet = $service->generateTemplateKosong();
+            $filename = 'Template_Plotting_Program_Kosong.xlsx';
+        }
+
+        return response()->streamDownload(function () use ($spreadsheet) {
+            $writer = new Xlsx($spreadsheet);
+            $writer->save('php://output');
+        }, $filename, [
+            'Content-Type' => 'application/vnd.openxmlformats-officedocument.spreadsheetml.sheet',
+            'Cache-Control' => 'max-age=0',
+        ]);
+    }
+
+    public function importExcel(): void
+    {
+        $this->guard('kesiswaan.siswa.edit');
+
+        $this->validate([
+            'importTargetProgramId' => ['required', 'exists:programs,id'],
+            'fileExcel' => ['required', 'file', 'mimes:xlsx,xls,csv', 'max:10240'],
+        ], [
+            'importTargetProgramId.required' => 'Pilih program tujuan terlebih dahulu.',
+            'importTargetProgramId.exists' => 'Program tujuan tidak valid.',
+            'fileExcel.required' => 'Unggah berkas Excel terlebih dahulu.',
+            'fileExcel.mimes' => 'Berkas harus berformat .xlsx, .xls, atau .csv.',
+        ]);
+
+        $service = new PlottingProgramExcelService();
+        $path = $this->fileExcel->getRealPath();
+
+        $result = $service->importAndPlot($path, (int) $this->importTargetProgramId);
+        $this->importResult = $result;
+
+        $this->reset('fileExcel');
+
+        if ($result['updated_count'] > 0) {
+            session()->flash('status', "Berhasil! {$result['updated_count']} siswa dialokasikan ke Program {$result['program_nama']}.");
+        }
     }
 
     public function render()

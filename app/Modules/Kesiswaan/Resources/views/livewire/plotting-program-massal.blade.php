@@ -4,9 +4,17 @@
  <h1 class="text-2xl font-bold tracking-tight text-text-main">Plotting Program Siswa</h1>
  <p class="text-sm text-text-secondary">Pengelompokan siswa ke Program Unggulan atau Reguler secara massal.</p>
  </div>
- <a href="{{ route('kesiswaan.siswa') }}" class="inline-flex items-center text-sm font-semibold text-text-secondary hover:text-primary transition">
+ <div class="flex flex-wrap items-center gap-2">
+ <button type="button" wire:click="openImportModal" class="inline-flex items-center gap-1.5 px-3.5 py-2 text-sm font-semibold text-white bg-emerald-600 hover:bg-emerald-700 rounded-lg shadow-sm transition">
+ <svg class="w-4 h-4" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+ <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M4 16v1a3 3 0 003 3h10a3 3 0 003-3v-1m-4-8l-4-4m0 0L8 8m4-4v12" />
+ </svg>
+ <span>+ Import Excel</span>
+ </button>
+ <a href="{{ route('kesiswaan.siswa') }}" class="inline-flex items-center text-sm font-semibold text-text-secondary hover:text-primary transition px-3 py-2">
  &larr; Kembali ke Data Siswa
  </a>
+ </div>
  </div>
 
  @if (session('status'))
@@ -137,4 +145,121 @@
  {{ $siswas->links() }}
  </div>
  </div>
+
+ <!-- Modal Import Excel Plotting Program -->
+ @if($showImportModal)
+ <div class="fixed inset-0 z-50 flex items-center justify-center p-4 bg-slate-900/60 backdrop-blur-xs overflow-y-auto">
+     <div class="w-full max-w-xl bg-surface rounded-2xl shadow-2xl border border-border overflow-hidden my-8">
+         <!-- Modal Header -->
+         <div class="px-6 py-4 border-b border-border flex justify-between items-center bg-surface-hover/50">
+             <div class="flex items-center gap-2.5">
+                 <span class="p-2 rounded-lg bg-emerald-100 text-emerald-700 dark:bg-emerald-950/60 dark:text-emerald-400">
+                     <svg class="w-5 h-5" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                         <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9 12h6m-6 4h6m2 5H7a2 2 0 01-2-2V5a2 2 0 012-2h5.5L19 7.5V19a2 2 0 01-2 2z" />
+                     </svg>
+                 </span>
+                 <div>
+                     <h2 class="text-lg font-bold text-text-main">Import Plotting Program via Excel</h2>
+                     <p class="text-xs text-text-secondary">Alokasikan siswa ke program tertentu menggunakan berkas spreadsheet.</p>
+                 </div>
+             </div>
+             <button type="button" wire:click="closeImportModal" class="text-slate-400 hover:text-text-main text-2xl font-bold">&times;</button>
+         </div>
+
+         <!-- Modal Body -->
+         <div class="p-6 space-y-5 text-sm">
+             <!-- Langkah 1: Pilih Program Tujuan -->
+             <div class="space-y-1.5">
+                 <label class="block text-xs font-bold uppercase tracking-wider text-text-main">
+                     1. Pilih Program Tujuan <span class="text-rose-500">*</span>
+                 </label>
+                 <select wire:model="importTargetProgramId" class="w-full text-sm font-semibold rounded-lg border-border bg-surface text-text-main">
+                     <option value="">-- Pilih Program Tujuan --</option>
+                     @foreach($programs as $pr)
+                         <option value="{{ $pr->id }}">{{ $pr->nama }} ({{ $pr->kode }})</option>
+                     @endforeach
+                 </select>
+                 @error('importTargetProgramId')
+                     <p class="text-xs text-rose-500 mt-1">{{ $message }}</p>
+                 @enderror
+             </div>
+
+             <!-- Langkah 2: Unduh Template -->
+             <div class="p-4 bg-slate-50 dark:bg-slate-800/40 rounded-xl border border-slate-200 dark:border-slate-700/60 space-y-2">
+                 <div class="flex items-center justify-between">
+                     <span class="text-xs font-bold uppercase tracking-wider text-text-main">2. Unduh Format Template</span>
+                     <span class="text-[11px] text-text-secondary">Kolom wajib: <b>Kolom A (NIS)</b></span>
+                 </div>
+                 <p class="text-xs text-text-secondary">
+                     Sistem mencocokkan data secara ketat berdasarkan <b>NIS (NIPD)</b> siswa. Anda dapat memilih template kosong atau yang sudah terisi otomatis sesuai rombel/filter aktif.
+                 </p>
+                 <div class="flex flex-wrap items-center gap-2 pt-1">
+                     <button type="button" wire:click="downloadTemplate('kosong')" class="px-3 py-1.5 text-xs font-semibold rounded-md border border-slate-300 dark:border-slate-600 bg-surface hover:bg-surface-hover text-text-main shadow-2xs transition">
+                         &darr; Unduh Template Kosong
+                     </button>
+                     <button type="button" wire:click="downloadTemplate('prefill')" class="px-3 py-1.5 text-xs font-semibold rounded-md border border-indigo-200 dark:border-indigo-800 bg-indigo-50 dark:bg-indigo-950/50 hover:bg-indigo-100 text-indigo-700 dark:text-indigo-300 shadow-2xs transition">
+                         &darr; Unduh Sesuai Filter/Rombel Aktif
+                     </button>
+                 </div>
+             </div>
+
+             <!-- Langkah 3: Unggah Berkas -->
+             <div class="space-y-1.5">
+                 <label class="block text-xs font-bold uppercase tracking-wider text-text-main">
+                     3. Unggah Berkas Excel (.xlsx, .xls, .csv) <span class="text-rose-500">*</span>
+                 </label>
+                 <input type="file" wire:model="fileExcel" accept=".xlsx,.xls,.csv" class="w-full text-xs text-text-main file:mr-3 file:py-2 file:px-4 file:rounded-lg file:border-0 file:text-xs file:font-semibold file:bg-primary file:text-white hover:file:bg-primary-hover border border-border rounded-lg p-1.5 bg-surface cursor-pointer">
+                 
+                 <div wire:loading wire:target="fileExcel" class="text-xs text-primary flex items-center gap-1.5 pt-1">
+                     <svg class="animate-spin h-3.5 w-3.5 text-primary" xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24">
+                         <circle class="opacity-25" cx="12" cy="12" r="10" stroke="currentColor" stroke-width="4"></circle>
+                         <path class="opacity-75" fill="currentColor" d="M4 12a8 8 0 018-8v8H4z"></path>
+                     </svg>
+                     <span>Sedang membaca dan mengunggah berkas...</span>
+                 </div>
+
+                 @error('fileExcel')
+                     <p class="text-xs text-rose-500 mt-1">{{ $message }}</p>
+                 @enderror
+             </div>
+
+             <!-- Ringkasan Hasil Import -->
+             @if($importResult)
+                 <div class="p-4 rounded-xl border {{ $importResult['updated_count'] > 0 ? 'bg-emerald-50 dark:bg-emerald-950/40 border-emerald-200 dark:border-emerald-800' : 'bg-amber-50 dark:bg-amber-950/40 border-amber-200 dark:border-amber-800' }} space-y-2">
+                     <div class="flex items-center justify-between">
+                         <span class="text-xs font-bold uppercase tracking-wider {{ $importResult['updated_count'] > 0 ? 'text-emerald-800 dark:text-emerald-300' : 'text-amber-800 dark:text-amber-300' }}">
+                             Hasil Import Terakhir:
+                         </span>
+                         <span class="text-xs font-mono font-bold">Total NIS: {{ $importResult['total_nis'] }}</span>
+                     </div>
+                     <p class="text-xs text-text-main">
+                         &bull; <b>{{ $importResult['updated_count'] }}</b> siswa berhasil dialokasikan ke Program <b>{{ $importResult['program_nama'] }}</b>.
+                     </p>
+                     @if(!empty($importResult['unmatched_nis']))
+                         <div class="pt-2 border-t border-amber-200 dark:border-amber-800/80">
+                             <p class="text-xs text-rose-600 dark:text-rose-400 font-semibold mb-1">
+                                 ⚠️ {{ count($importResult['unmatched_nis']) }} NIS tidak ditemukan di sistem:
+                             </p>
+                             <div class="max-h-24 overflow-y-auto p-2 bg-surface rounded border border-border text-[11px] font-mono text-text-secondary">
+                                 {{ implode(', ', $importResult['unmatched_nis']) }}
+                             </div>
+                         </div>
+                     @endif
+                 </div>
+             @endif
+         </div>
+
+         <!-- Modal Footer -->
+         <div class="px-6 py-3.5 bg-surface-hover/50 border-t border-border flex justify-end items-center gap-3">
+             <button type="button" wire:click="closeImportModal" class="px-4 py-2 text-sm text-text-secondary hover:bg-slate-200 dark:hover:bg-slate-800 rounded-lg transition">
+                 Tutup
+             </button>
+             <button type="button" wire:click="importExcel" wire:loading.attr="disabled" class="inline-flex items-center gap-1.5 px-4 py-2 text-sm font-bold text-white bg-emerald-600 hover:bg-emerald-700 rounded-lg shadow-sm transition disabled:opacity-50">
+                 <span wire:loading.remove wire:target="importExcel">Proses Alokasi Program</span>
+                 <span wire:loading wire:target="importExcel">Memproses...</span>
+             </button>
+         </div>
+     </div>
+ </div>
+ @endif
 </div>
