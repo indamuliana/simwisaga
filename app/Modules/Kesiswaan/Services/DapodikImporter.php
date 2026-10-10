@@ -15,6 +15,7 @@ use App\Modules\Kesiswaan\Models\SiswaOrangTua;
 use Illuminate\Support\Carbon;
 use Illuminate\Support\Facades\DB;
 use Illuminate\Support\Facades\Hash;
+use Illuminate\Support\Facades\Schema;
 use PhpOffice\PhpSpreadsheet\Cell\Coordinate;
 use PhpOffice\PhpSpreadsheet\IOFactory;
 use PhpOffice\PhpSpreadsheet\Shared\Date as ExcelDate;
@@ -44,9 +45,13 @@ class DapodikImporter
     /**
      * Memproses file Excel DAPODIK (66 kolom)
      */
-    public function import(string $filePath): array
+    /**
+     * Memproses file Excel DAPODIK (66 kolom)
+     */
+    public function import(string $filePath, ?callable $onProgress = null): array
     {
         set_time_limit(0);
+        ini_set('memory_limit', '512M');
 
         $reader = IOFactory::createReaderForFile($filePath);
         $reader->setReadDataOnly(true);
@@ -57,6 +62,7 @@ class DapodikImporter
         $imported = 0;
         $updated = 0;
         $errors = [];
+        $hashCache = [];
 
         // Deteksi kolom 'Rombel' dan 'Rayon' secara dinamis dari baris header 1 dan 2
         $colRombel = null;
@@ -95,8 +101,12 @@ class DapodikImporter
                 continue;
             }
 
+            if ($onProgress) {
+                $onProgress($r, $highestRow, $nama, $nisn);
+            }
+
             try {
-                DB::transaction(function () use ($sheet, $r, $nama, $nisn, $colRombel, $colRayon, &$imported, &$updated) {
+                DB::transaction(function () use ($sheet, $r, $nama, $nisn, $colRombel, $colRayon, &$imported, &$updated, &$hashCache) {
                     $nipd = trim((string) $sheet->getCell('C' . $r)->getValue());
                     $jk = strtoupper(trim((string) $sheet->getCell('D' . $r)->getValue())) === 'P' ? 'P' : 'L';
                     $tempatLahir = trim((string) $sheet->getCell('F' . $r)->getValue());
@@ -171,32 +181,40 @@ class DapodikImporter
                     $programDefault = \App\Modules\Kesiswaan\Models\Program::where('kode', 'REG')->first();
 
                     // Buat Akun Siswa Otomatis
-                    $userSiswa = User::firstOrCreate(
-                        ['username' => $usernameSiswa],
-                        [
+                    $userSiswa = User::where('username', $usernameSiswa)->first();
+                    if (!$userSiswa) {
+                        if (!isset($hashCache[$defaultPassword])) {
+                            $hashCache[$defaultPassword] = Hash::make($defaultPassword);
+                        }
+                        $userSiswa = User::create([
+                            'username' => $usernameSiswa,
                             'name' => $nama,
                             'email' => $email ?: "{$usernameSiswa}@siswa.wikrama.sch.id",
-                            'password' => Hash::make($defaultPassword),
+                            'password' => $hashCache[$defaultPassword],
                             'is_active' => true,
                             'must_change_password' => true,
-                        ]
-                    );
+                        ]);
+                    }
                     if (!$userSiswa->hasRole('Siswa')) {
                         $userSiswa->assignRole('Siswa');
                     }
 
                     // Buat Akun Orang Tua Otomatis: ortu_[NIS]
                     $usernameOrtu = 'ortu_' . $usernameSiswa;
-                    $userOrtu = User::firstOrCreate(
-                        ['username' => $usernameOrtu],
-                        [
+                    $userOrtu = User::where('username', $usernameOrtu)->first();
+                    if (!$userOrtu) {
+                        if (!isset($hashCache[$defaultPassword])) {
+                            $hashCache[$defaultPassword] = Hash::make($defaultPassword);
+                        }
+                        $userOrtu = User::create([
+                            'username' => $usernameOrtu,
                             'name' => 'Orang Tua dari ' . $nama,
                             'email' => "{$usernameOrtu}@ortu.wikrama.sch.id",
-                            'password' => Hash::make($defaultPassword),
+                            'password' => $hashCache[$defaultPassword],
                             'is_active' => true,
                             'must_change_password' => false,
-                        ]
-                    );
+                        ]);
+                    }
                     if (!$userOrtu->hasRole('Orang Tua')) {
                         $userOrtu->assignRole('Orang Tua');
                     }
@@ -422,5 +440,65 @@ class DapodikImporter
         } catch (\Throwable) {
             return null;
         }
+    }
+
+    /**
+     * Membersihkan seluruh data siswa, relasi kelas/rayon/ortu/nilai,
+     * dan akun user bertipe Siswa & Orang Tua.
+     * Master data (Rombel, Rayon, Jurusan, dll) dan Akun Admin/Guru/Staff TIDAK disentuh.
+     */
+    public static function cleanSiswaData(): array
+    {
+        Schema::disableForeignKeyConstraints();
+
+        $countSiswa = Siswa::count();
+
+        // Truncate tabel relasi yang bergantung pada siswa jika ada
+        $tablesToTruncate = [
+            'absensi_mapels',
+            'absensi_harians',
+            'catatan_wali_kelas',
+            'nilai_sumatif',
+            'nilai_formatif',
+            'nilai_akhir',
+            'ekstrakurikuler_anggotas',
+            'rayon_siswa',
+            'rombel_siswa',
+            'siswa_orang_tuas',
+            'siswas',
+        ];
+
+        foreach ($tablesToTruncate as $tbl) {
+            if (Schema::hasTable($tbl)) {
+                DB::table($tbl)->truncate();
+            }
+        }
+
+        // Hapus akun user dengan role Siswa & Orang Tua beserta relasi role-nya
+        $siswaUserIds = DB::table('model_has_roles')
+            ->join('roles', 'model_has_roles.role_id', '=', 'roles.id')
+            ->whereIn('roles.name', ['Siswa', 'Orang Tua'])
+            ->where('model_has_roles.model_type', User::class)
+            ->pluck('model_has_roles.model_id')
+            ->unique()
+            ->toArray();
+
+        $countUsers = count($siswaUserIds);
+
+        if (!empty($siswaUserIds)) {
+            DB::table('model_has_roles')
+                ->where('model_type', User::class)
+                ->whereIn('model_id', $siswaUserIds)
+                ->delete();
+
+            DB::table('users')->whereIn('id', $siswaUserIds)->delete();
+        }
+
+        Schema::enableForeignKeyConstraints();
+
+        return [
+            'siswas' => $countSiswa,
+            'users' => $countUsers,
+        ];
     }
 }

@@ -23,5 +23,7 @@ yarn-error.log
 *.xlsx
 *.xls
 ~$*
+!database/seeders/data/*.xlsx
 /storage/app/private
 /storage/app/backups
+
