@@ -2,38 +2,44 @@
 
 namespace App\Modules\Absensi\Livewire;
 
-use Livewire\Component;
-use App\Modules\Absensi\Models\AbsensiMapel;
+use App\Enums\StatusAbsensi;
 use App\Modules\Absensi\Models\AbsensiHarian;
+use App\Modules\Absensi\Models\AbsensiMapel;
+use App\Modules\Akademik\Models\Rayon;
 use App\Modules\Kepegawaian\Models\PenugasanMengajar;
 use App\Modules\Kesiswaan\Models\Siswa;
-use App\Enums\StatusAbsensi;
+use Illuminate\Support\Facades\DB;
+use Livewire\Component;
 
 class AbsensiMapelIndex extends Component
 {
     public $tanggal;
     public $penugasan_id;
+    public $gender = '';
+    public $rayon_id = '';
+
     public $penugasans = [];
-    public $siswas = [];
+    public $rayons = [];
     public $absensiMapelData = [];
     public $absensiHarianStatus = [];
 
     public function mount()
     {
         $this->tanggal = date('Y-m-d');
-        
+        $this->rayons = Rayon::orderBy('nama')->get();
+
         $user = auth()->user();
         $query = PenugasanMengajar::with(['rombel', 'mapel']);
 
-        if (!$user->isSuperAdmin()) {
+        if ($user && !$user->isSuperAdmin()) {
             $pegawai = \App\Modules\Kepegawaian\Models\Pegawai::where('user_id', $user->id)->first();
             if ($pegawai) {
                 $query->where('pegawai_id', $pegawai->id);
             } else {
-                $query->where('id', 0); // User is not a teacher
+                $query->where('id', 0); // User bukan guru
             }
         }
-        
+
         $this->penugasans = $query->get();
     }
 
@@ -50,7 +56,6 @@ class AbsensiMapelIndex extends Component
     public function loadData()
     {
         if (!$this->penugasan_id || !$this->tanggal) {
-            $this->siswas = [];
             $this->absensiMapelData = [];
             $this->absensiHarianStatus = [];
             return;
@@ -59,8 +64,8 @@ class AbsensiMapelIndex extends Component
         $penugasan = PenugasanMengajar::find($this->penugasan_id);
         if (!$penugasan) return;
 
-        $this->siswas = Siswa::where('rombel_id', $penugasan->rombel_id)->orderBy('nama')->get();
-        
+        $allSiswas = $this->getAllPenugasanSiswas();
+
         $harian = AbsensiHarian::where('tanggal', $this->tanggal)
             ->where('rombel_id', $penugasan->rombel_id)
             ->get()
@@ -74,15 +79,91 @@ class AbsensiMapelIndex extends Component
         $this->absensiMapelData = [];
         $this->absensiHarianStatus = [];
 
-        foreach ($this->siswas as $siswa) {
+        foreach ($allSiswas as $siswa) {
             $harianStatus = $harian[$siswa->id]->status->value ?? null;
             $this->absensiHarianStatus[$siswa->id] = $harianStatus;
 
-            $isHadirHarian = ($harianStatus === StatusAbsensi::HADIR->value || $harianStatus === null);
+            $existingMapelStatus = $mapel[$siswa->id]->status->value ?? null;
+            $defaultStatus = $existingMapelStatus ?? ($harianStatus ?? StatusAbsensi::HADIR->value);
 
             $this->absensiMapelData[$siswa->id] = [
-                'status' => $mapel[$siswa->id]->status->value ?? ($isHadirHarian ? StatusAbsensi::HADIR->value : $harianStatus),
+                'status' => $defaultStatus,
+                'keterangan' => $mapel[$siswa->id]->keterangan ?? '',
             ];
+        }
+    }
+
+    public function getAllPenugasanSiswas()
+    {
+        if (!$this->penugasan_id) {
+            return collect();
+        }
+
+        $penugasan = PenugasanMengajar::find($this->penugasan_id);
+        if (!$penugasan) {
+            return collect();
+        }
+
+        return Siswa::with('rayon')
+            ->where('rombel_id', $penugasan->rombel_id)
+            ->orderBy('nama')
+            ->get();
+    }
+
+    public function getFilteredSiswas()
+    {
+        $all = $this->getAllPenugasanSiswas();
+
+        return $all->filter(function ($s) {
+            if ($this->gender !== '' && strtoupper($s->jk) !== strtoupper($this->gender)) {
+                return false;
+            }
+            if ($this->rayon_id !== '' && (int) $s->rayon_id !== (int) $this->rayon_id) {
+                return false;
+            }
+            return true;
+        });
+    }
+
+    public function getStatistikProperty(): array
+    {
+        $all = $this->getAllPenugasanSiswas();
+        $total = $all->count();
+
+        $counts = [
+            'total' => $total,
+            'hadir' => 0,
+            'sakit' => 0,
+            'izin' => 0,
+            'alpa' => 0,
+            'dispen_cbt_plh' => 0,
+            'dispen_cbt_kwh' => 0,
+            'dispen_lainnya' => 0,
+            'belum_absen' => 0,
+        ];
+
+        foreach ($all as $siswa) {
+            $status = $this->absensiMapelData[$siswa->id]['status'] ?? null;
+            match ($status) {
+                StatusAbsensi::HADIR->value => $counts['hadir']++,
+                StatusAbsensi::SAKIT->value => $counts['sakit']++,
+                StatusAbsensi::IZIN->value => $counts['izin']++,
+                StatusAbsensi::ALPA->value => $counts['alpa']++,
+                StatusAbsensi::DISPEN_CBT_PLH->value => $counts['dispen_cbt_plh']++,
+                StatusAbsensi::DISPEN_CBT_KWH->value => $counts['dispen_cbt_kwh']++,
+                StatusAbsensi::DISPEN_LAINNYA->value => $counts['dispen_lainnya']++,
+                default => $counts['belum_absen']++,
+            };
+        }
+
+        return $counts;
+    }
+
+    public function tandaiSemuaHadir()
+    {
+        $filtered = $this->getFilteredSiswas();
+        foreach ($filtered as $siswa) {
+            $this->absensiMapelData[$siswa->id]['status'] = StatusAbsensi::HADIR->value;
         }
     }
 
@@ -91,32 +172,41 @@ class AbsensiMapelIndex extends Component
         $this->validate([
             'tanggal' => 'required|date',
             'penugasan_id' => 'required|exists:penugasan_mengajars,id',
+            'absensiMapelData.*.status' => 'nullable|string',
+            'absensiMapelData.*.keterangan' => 'nullable|string|max:255',
         ]);
 
-        foreach ($this->absensiMapelData as $siswaId => $data) {
-            $harianStatus = $this->absensiHarianStatus[$siswaId] ?? null;
-            $isHadirHarian = ($harianStatus === StatusAbsensi::HADIR->value || $harianStatus === null);
-            
-            $statusToSave = $isHadirHarian ? ($data['status'] ?? StatusAbsensi::HADIR->value) : $harianStatus;
+        DB::transaction(function () {
+            foreach ($this->absensiMapelData as $siswaId => $data) {
+                if (empty($data['status'])) {
+                    continue;
+                }
 
-            AbsensiMapel::updateOrCreate(
-                [
-                    'tanggal' => $this->tanggal,
-                    'siswa_id' => $siswaId,
-                    'penugasan_mengajar_id' => $this->penugasan_id,
-                ],
-                [
-                    'status' => $statusToSave,
-                    'diinput_oleh' => auth()->id(),
-                ]
-            );
-        }
+                AbsensiMapel::updateOrCreate(
+                    [
+                        'tanggal' => $this->tanggal,
+                        'siswa_id' => $siswaId,
+                        'penugasan_mengajar_id' => $this->penugasan_id,
+                    ],
+                    [
+                        'status' => $data['status'],
+                        'keterangan' => $data['keterangan'] ?? null,
+                        'diinput_oleh' => auth()->id(),
+                    ]
+                );
+            }
+        });
 
         session()->flash('message', 'Absensi mapel berhasil disimpan.');
     }
 
     public function render()
     {
-        return view('absensi::livewire.absensi-mapel-index');
+        $statuses = StatusAbsensi::cases();
+        $siswas = $this->getFilteredSiswas();
+        $penugasan = $this->penugasan_id ? PenugasanMengajar::with(['rombel', 'mapel'])->find($this->penugasan_id) : null;
+        $statistik = $this->statistik;
+
+        return view('absensi::livewire.absensi-mapel-index', compact('statuses', 'siswas', 'penugasan', 'statistik'));
     }
 }
