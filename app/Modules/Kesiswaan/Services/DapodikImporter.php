@@ -15,6 +15,7 @@ use App\Modules\Kesiswaan\Models\SiswaOrangTua;
 use Illuminate\Support\Carbon;
 use Illuminate\Support\Facades\DB;
 use Illuminate\Support\Facades\Hash;
+use PhpOffice\PhpSpreadsheet\Cell\Coordinate;
 use PhpOffice\PhpSpreadsheet\IOFactory;
 use PhpOffice\PhpSpreadsheet\Shared\Date as ExcelDate;
 
@@ -57,15 +58,29 @@ class DapodikImporter
         $updated = 0;
         $errors = [];
 
-        // Deteksi apakah ada kolom tambahan 'Rayon' di kolom BO atau sekitarnya
+        // Deteksi kolom 'Rombel' dan 'Rayon' secara dinamis dari baris header 1 dan 2
+        $colRombel = null;
         $colRayon = null;
-        for ($c = 'BN'; $c !== 'BU'; $c++) {
-            $h1 = strtoupper(trim((string) $sheet->getCell($c . '1')->getValue()));
-            $h2 = strtoupper(trim((string) $sheet->getCell($c . '2')->getValue()));
-            if (str_contains($h1, 'RAYON') || str_contains($h2, 'RAYON')) {
-                $colRayon = $c;
-                break;
+
+        $highestCol = $sheet->getHighestColumn();
+        $highestColIndex = Coordinate::columnIndexFromString($highestCol);
+
+        for ($i = 1; $i <= $highestColIndex; $i++) {
+            $colLetter = Coordinate::stringFromColumnIndex($i);
+            $h1 = strtoupper(trim((string) $sheet->getCell($colLetter . '1')->getValue()));
+            $h2 = strtoupper(trim((string) $sheet->getCell($colLetter . '2')->getValue()));
+
+            if (!$colRombel && (str_contains($h1, 'ROMBEL') || str_contains($h2, 'ROMBEL'))) {
+                $colRombel = $colLetter;
             }
+            if (!$colRayon && (str_contains($h1, 'RAYON') || str_contains($h2, 'RAYON'))) {
+                $colRayon = $colLetter;
+            }
+        }
+
+        // Fallback default kolom AQ untuk Rombel jika tidak terdeteksi via nama header
+        if (!$colRombel && $highestColIndex >= 43) {
+            $colRombel = 'AQ';
         }
 
         for ($r = 3; $r <= $highestRow; $r++) {
@@ -81,7 +96,7 @@ class DapodikImporter
             }
 
             try {
-                DB::transaction(function () use ($sheet, $r, $nama, $nisn, $colRayon, &$imported, &$updated) {
+                DB::transaction(function () use ($sheet, $r, $nama, $nisn, $colRombel, $colRayon, &$imported, &$updated) {
                     $nipd = trim((string) $sheet->getCell('C' . $r)->getValue());
                     $jk = strtoupper(trim((string) $sheet->getCell('D' . $r)->getValue())) === 'P' ? 'P' : 'L';
                     $tempatLahir = trim((string) $sheet->getCell('F' . $r)->getValue());
@@ -108,9 +123,9 @@ class DapodikImporter
                     $penerimaKps = strtolower(trim((string) $sheet->getCell('W' . $r)->getValue())) === 'ya';
                     $noKps = trim((string) $sheet->getCell('X' . $r)->getValue());
 
-                    // Rombel Saat Ini (Kolom AQ)
-                    $rawRombel = trim((string) $sheet->getCell('AQ' . $r)->getValue());
-                    $rombel = $this->resolveRombel($rawRombel);
+                    // Rombel Saat Ini (jika ada dan terisi)
+                    $rawRombel = $colRombel ? trim((string) $sheet->getCell($colRombel . $r)->getValue()) : '';
+                    $rombel = $rawRombel !== '' ? $this->resolveRombel($rawRombel) : null;
 
                     // Rayon (jika ada kolom Rayon di Excel)
                     $rayon = null;
@@ -188,7 +203,6 @@ class DapodikImporter
 
                     $siswaData = [
                         'user_id' => $userSiswa->id,
-                        'rombel_id' => $rombel?->id,
                         'rayon_id' => $rayon?->id,
                         'program_id' => $programDefault?->id,
                         'nama' => $nama,
@@ -242,10 +256,19 @@ class DapodikImporter
 
                     $existing = Siswa::where('nisn', $nisn)->first();
                     if ($existing) {
+                        // Jika di Excel rombel terisi, update rombel_id.
+                        // Jika di Excel rombel kosong, pertahankan rombel_id lama agar tidak terhapus.
+                        if ($rombel) {
+                            $siswaData['rombel_id'] = $rombel->id;
+                        } else {
+                            $siswaData['rombel_id'] = $existing->rombel_id;
+                        }
                         $existing->update($siswaData);
                         $siswa = $existing;
                         $updated++;
                     } else {
+                        // Siswa baru: jika rombel terisi gunakan id-nya, jika kosong biarkan NULL (siap untuk Plotting Rombel)
+                        $siswaData['rombel_id'] = $rombel?->id;
                         $siswa = Siswa::create($siswaData);
                         $imported++;
                     }
@@ -339,6 +362,14 @@ class DapodikImporter
         }
 
         if (!$tingkat || !$kodeJurusan) {
+            if ($this->tahunAjaran) {
+                $exact = Rombel::where('tahun_ajaran_id', $this->tahunAjaran->id)
+                    ->where('nama', trim($raw))
+                    ->first();
+                if ($exact) {
+                    return $exact;
+                }
+            }
             return null;
         }
 

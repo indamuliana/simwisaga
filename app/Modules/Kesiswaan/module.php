@@ -7,7 +7,8 @@ return [
     'menu' => [
         ['label' => 'Data Siswa', 'route' => 'kesiswaan.siswa', 'permission' => 'kesiswaan.siswa.lihat'],
         ['label' => 'Cetak Absensi', 'route' => 'kesiswaan.cetak-absensi', 'permission' => 'kesiswaan.siswa.lihat'],
-        ['label' => 'Import DAPODIK', 'route' => 'kesiswaan.import', 'permission' => 'kesiswaan.siswa.tambah'],
+        ['label' => 'Import & Export DAPODIK', 'route' => 'kesiswaan.import', 'permission' => 'kesiswaan.siswa.tambah'],
+        ['label' => 'Plotting Rombel (Kelas)', 'route' => 'kesiswaan.plotting-rombel', 'permission' => 'kesiswaan.siswa.edit'],
         ['label' => 'Plotting Program (Unggulan/Reguler)', 'route' => 'kesiswaan.plotting-program', 'permission' => 'kesiswaan.siswa.edit'],
         ['label' => 'Plotting Rayon Massal', 'route' => 'kesiswaan.plotting-rayon', 'permission' => 'kesiswaan.siswa.edit'],
     ],

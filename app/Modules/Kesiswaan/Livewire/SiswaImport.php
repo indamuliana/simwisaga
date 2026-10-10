@@ -3,11 +3,14 @@
 namespace App\Modules\Kesiswaan\Livewire;
 
 use App\Core\Concerns\GuardsPermission;
+use App\Modules\Kesiswaan\Models\Siswa;
 use App\Modules\Kesiswaan\Services\DapodikImporter;
+use App\Modules\Kesiswaan\Services\SiswaExporter;
 use Livewire\Attributes\Layout;
 use Livewire\Attributes\Title;
 use Livewire\Component;
 use Livewire\WithFileUploads;
+use PhpOffice\PhpSpreadsheet\Writer\Xlsx;
 
 #[Layout('components.layouts.app')]
 #[Title('Import Data Siswa DAPODIK')]
@@ -54,6 +57,47 @@ class SiswaImport extends Component
         $importer = new DapodikImporter();
         $this->resultSummary = $importer->import($samplePath);
         session()->flash('status', "Import Sample Berhasil! {$this->resultSummary['imported']} siswa berhasil diimpor.");
+    }
+
+    /**
+     * Mengunduh Template Resmi DAPODIK (66-67 kolom + baris contoh panduan)
+     */
+    public function downloadTemplate()
+    {
+        $this->guard('kesiswaan.siswa.tambah');
+
+        $exporter = new SiswaExporter();
+        $spreadsheet = $exporter->downloadTemplate();
+
+        return response()->streamDownload(function () use ($spreadsheet) {
+            $writer = new Xlsx($spreadsheet);
+            $writer->save('php://output');
+        }, 'Template_Import_Dapodik_Siswa.xlsx', [
+            'Content-Type' => 'application/vnd.openxmlformats-officedocument.spreadsheetml.sheet',
+            'Cache-Control' => 'max-age=0',
+        ]);
+    }
+
+    /**
+     * Mengekspor seluruh data siswa aktif dalam format resmi DAPODIK
+     */
+    public function exportDapodik()
+    {
+        $this->guard('kesiswaan.siswa.lihat');
+
+        $siswas = Siswa::with(['rombel', 'rayon', 'program', 'orangTuas'])->orderBy('nama')->get();
+
+        $exporter = new SiswaExporter();
+        $spreadsheet = $exporter->exportDapodik($siswas);
+        $timestamp = now()->format('Ymd_His');
+
+        return response()->streamDownload(function () use ($spreadsheet) {
+            $writer = new Xlsx($spreadsheet);
+            $writer->save('php://output');
+        }, "Data_Siswa_DAPODIK_{$timestamp}.xlsx", [
+            'Content-Type' => 'application/vnd.openxmlformats-officedocument.spreadsheetml.sheet',
+            'Cache-Control' => 'max-age=0',
+        ]);
     }
 
     public function render()
