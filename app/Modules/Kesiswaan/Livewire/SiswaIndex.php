@@ -9,6 +9,7 @@ use App\Modules\Akademik\Models\Rayon;
 use App\Modules\Akademik\Models\Rombel;
 use App\Modules\Kesiswaan\Models\Program;
 use App\Modules\Kesiswaan\Models\Siswa;
+use App\Modules\Kesiswaan\Services\DapodikImporter;
 use App\Modules\Kesiswaan\Services\SingleSiswaDocumentExporter;
 use App\Modules\Kesiswaan\Services\SiswaExporter;
 use Livewire\Attributes\Layout;
@@ -236,6 +237,19 @@ class SiswaIndex extends Component
             'excel' => $exporter->downloadExcel($siswa),
             default => $exporter->downloadPdf($siswa),
         };
+    }
+
+    /**
+     * Menghapus seluruh data siswa dan akun user siswa & orang tua
+     */
+    public function resetAllSiswa(): void
+    {
+        $this->guard('kesiswaan.siswa.hapus');
+
+        $cleaned = DapodikImporter::cleanSiswaData();
+        $this->resetPage();
+
+        session()->flash('status', "Seluruh data siswa ({$cleaned['siswas']} siswa) dan {$cleaned['users']} akun pengguna (Siswa & Orang Tua) telah berhasil dihapus bersih dari sistem.");
     }
 
     public function render()

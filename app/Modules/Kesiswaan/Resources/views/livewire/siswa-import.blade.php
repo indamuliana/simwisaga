@@ -20,6 +20,19 @@
                 <span>Download Template (.xlsx)</span>
             </button>
 
+            @can('kesiswaan.siswa.hapus')
+            <button type="button" 
+                    wire:click="resetAllSiswa" 
+                    wire:confirm="PERINGATAN KRUSIAL: Apakah Anda yakin ingin MENGHAPUS SELURUH DATA SISWA beserta SELURUH AKUN PENGGUNA SISWA DAN ORANG TUA? Tindakan ini akan mengosongkan database siswa dan TIDAK DAPAT DIBATALKAN!" 
+                    class="btn inline-flex items-center gap-1.5 bg-rose-600 hover:bg-rose-700 text-white shadow-xs"
+                    title="Hapus seluruh data siswa dan akun siswa & orang tua">
+                <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                    <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M19 7l-.867 12.142A2 2 0 0116.138 21H7.862a2 2 0 01-1.995-1.858L5 7m5 4v6m4-6v6m1-10V4a1 1 0 00-1-1h-4a1 1 0 00-1 1v3M4 7h16" />
+                </svg>
+                <span>Reset Data Siswa</span>
+            </button>
+            @endcan
+
             <a href="{{ route('kesiswaan.siswa') }}" class="btn btn-secondary inline-flex items-center gap-1.5 text-text-secondary hover:text-text-main">
                 &larr; Kembali
             </a>
@@ -152,4 +165,32 @@
             </ul>
         </div>
     </div>
+
+    {{-- Zona Bahaya: Reset Seluruh Data Siswa & Akun --}}
+    @can('kesiswaan.siswa.hapus')
+    <div class="card p-5 border border-rose-200 dark:border-rose-900/60 bg-rose-50/50 dark:bg-rose-950/20 rounded-xl">
+        <div class="flex flex-col sm:flex-row sm:items-center sm:justify-between gap-4">
+            <div class="flex items-start gap-3.5">
+                <div class="flex h-10 w-10 shrink-0 items-center justify-center rounded-lg bg-rose-100 dark:bg-rose-900/40 text-rose-600 dark:text-rose-400">
+                    <svg class="w-5 h-5" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                        <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 9v2m0 4h.01m-6.938 4h13.856c1.54 0 2.502-1.667 1.732-3L13.732 4c-.77-1.333-2.694-1.333-3.464 0L3.34 16c-.77 1.333.192 3 1.732 3z"/>
+                    </svg>
+                </div>
+                <div>
+                    <h4 class="text-sm font-bold text-rose-800 dark:text-rose-300">Zona Bahaya: Reset Seluruh Data Siswa & Akun</h4>
+                    <p class="text-xs text-rose-700/85 dark:text-rose-400">Menghapus seluruh rekaman siswa, riwayat kelas & rayon, data orang tua, serta <strong>seluruh akun login Siswa dan Orang Tua</strong> dari database. Akun Admin, Guru, dan Master Data tetap aman.</p>
+                </div>
+            </div>
+            <button type="button" 
+                    wire:click="resetAllSiswa" 
+                    wire:confirm="PERINGATAN KRUSIAL: Apakah Anda yakin ingin MENGHAPUS SELURUH DATA SISWA beserta SELURUH AKUN PENGGUNA SISWA DAN ORANG TUA? Tindakan ini akan mengosongkan database siswa dan TIDAK DAPAT DIBATALKAN!" 
+                    class="btn inline-flex items-center justify-center gap-2 bg-rose-600 hover:bg-rose-700 text-white text-xs font-semibold px-4 py-2.5 rounded-lg shrink-0 shadow-xs transition">
+                <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                    <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M19 7l-.867 12.142A2 2 0 0116.138 21H7.862a2 2 0 01-1.995-1.858L5 7m5 4v6m4-6v6m1-10V4a1 1 0 00-1-1h-4a1 1 0 00-1 1v3M4 7h16" />
+                </svg>
+                <span>Reset Seluruh Data Siswa</span>
+            </button>
+        </div>
+    </div>
+    @endcan
 </div>

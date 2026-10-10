@@ -100,6 +100,19 @@ class SiswaImport extends Component
         ]);
     }
 
+    /**
+     * Menghapus seluruh data siswa dan akun user siswa & orang tua
+     */
+    public function resetAllSiswa(): void
+    {
+        $this->guard('kesiswaan.siswa.hapus');
+
+        $cleaned = DapodikImporter::cleanSiswaData();
+        $this->resultSummary = null;
+
+        session()->flash('status', "Seluruh data siswa ({$cleaned['siswas']} siswa) dan {$cleaned['users']} akun pengguna (Siswa & Orang Tua) telah berhasil dihapus bersih dari sistem.");
+    }
+
     public function render()
     {
         return view('kesiswaan::livewire.siswa-import');
