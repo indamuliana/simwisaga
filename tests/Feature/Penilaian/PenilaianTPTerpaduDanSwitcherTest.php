@@ -218,7 +218,18 @@ class PenilaianTPTerpaduDanSwitcherTest extends TestCase
             ->test(PenilaianInput::class, ['penugasan_id' => $this->pmGanjil->id])
             ->call('switchTab', 'formatif');
 
-        // Di Ganjil: kolom TP 1, TP 2 serta sumatif STS 1 dan SAS
+        // Pada mode default 1 tahun penuh, seluruh asesmen ganjil & genap tampil berdampingan
+        $test->assertSee('TP 1')
+            ->assertSee('TP 2')
+            ->assertSee('STS 1')
+            ->assertSee('SAS')
+            ->assertSee('TP 3')
+            ->assertSee('TP 4')
+            ->assertSee('STS 2')
+            ->assertSee('SAT');
+
+        // Filter Semester Ganjil saja
+        $test->call('setTabelMode', 'ganjil');
         $test->assertSee('TP 1')
             ->assertSee('TP 2')
             ->assertSee('STS 1')
@@ -228,10 +239,8 @@ class PenilaianTPTerpaduDanSwitcherTest extends TestCase
             ->assertDontSee('STS 2')
             ->assertDontSee('SAT');
 
-        // Beralih ke Semester Genap
-        $test->call('switchNilaiSemester', $this->semGenap->id);
-
-        // Di Genap: kolom TP 3, TP 4 serta sumatif STS 2 dan SAT
+        // Filter Semester Genap saja
+        $test->call('setTabelMode', 'genap');
         $test->assertSee('TP 3')
             ->assertSee('TP 4')
             ->assertSee('STS 2')

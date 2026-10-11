@@ -24,7 +24,7 @@
             <span class="text-xs px-2 py-0.5 rounded-full {{ $activeTab === 'tp' ? 'bg-primary/10 text-primary' : 'bg-surface-hover text-text-secondary' }}">{{ count($allTps) }}</span>
         </button>
         <button wire:click="switchTab('formatif')" class="px-4 py-2.5 border-b-2 font-medium text-sm whitespace-nowrap transition-colors flex items-center gap-2 {{ $activeTab === 'formatif' ? 'border-primary text-primary font-semibold' : 'border-transparent text-text-secondary hover:text-text-main' }}">
-            <span>2. Input Nilai Akademik</span>
+            <span>2. Input Nilai Akademik (1 Tahun)</span>
         </button>
         <button wire:click="switchTab('rekap')" class="px-4 py-2.5 border-b-2 font-medium text-sm whitespace-nowrap transition-colors flex items-center gap-2 {{ $activeTab === 'rekap' ? 'border-emerald-500 text-emerald-600 font-semibold' : 'border-transparent text-text-secondary hover:text-text-main' }}">
             <span>3. Rekap & Capaian Rapor</span>
@@ -182,24 +182,29 @@
     </div>
     @endif
 
-    <!-- TAB 2: INPUT NILAI AKADEMIK (KRONOLOGIS AH & SUMATIF) -->
+    <!-- TAB 2: INPUT NILAI AKADEMIK (1 TAHUN PENUH DENGAN KOLOM NAMA FREEZE) -->
     @if($activeTab === 'formatif')
     <div class="card mb-6">
-        <!-- Switcher Semester Penilaian -->
+        <!-- Filter Mode Tampilan & Tombol Simpan -->
         <div class="flex flex-col sm:flex-row justify-between sm:items-center gap-4 mb-4 p-3 bg-surface-hover/70 rounded-xl border border-border">
             <div class="flex flex-wrap items-center gap-3">
-                <span class="text-xs font-semibold uppercase tracking-wider text-text-secondary">Pilih Semester Penilaian:</span>
+                <span class="text-xs font-semibold uppercase tracking-wider text-text-secondary">Tampilan Tabel:</span>
                 <div class="inline-flex rounded-lg border border-border p-1 bg-surface shadow-xs">
-                    @foreach($semesters as $s)
                     <button type="button"
-                        wire:click="switchNilaiSemester({{ $s['id'] }})"
-                        class="px-3.5 py-1.5 rounded-md text-xs font-semibold transition-all flex items-center gap-1.5 {{ (int)$activeNilaiSemesterId === (int)$s['id'] ? 'bg-primary text-white shadow-xs' : 'text-text-secondary hover:text-text-main' }}">
-                        <span>{{ $s['nama'] }}</span>
-                        @if($s['is_current_penugasan'])
-                        <span class="text-[10px] px-1 py-0.2 rounded {{ (int)$activeNilaiSemesterId === (int)$s['id'] ? 'bg-white/20 text-white' : 'bg-surface-hover text-text-secondary' }}">Asal</span>
-                        @endif
+                        wire:click="setTabelMode('semua')"
+                        class="px-3.5 py-1.5 rounded-md text-xs font-semibold transition-all flex items-center gap-1.5 {{ $tabelTahunMode === 'semua' ? 'bg-primary text-white shadow-xs' : 'text-text-secondary hover:text-text-main' }}">
+                        <span>🗓️ 1 Tahun Penuh (Sepanjang Tahun)</span>
                     </button>
-                    @endforeach
+                    <button type="button"
+                        wire:click="setTabelMode('ganjil')"
+                        class="px-3 py-1.5 rounded-md text-xs font-semibold transition-all flex items-center gap-1.5 {{ $tabelTahunMode === 'ganjil' ? 'bg-blue-600 text-white shadow-xs' : 'text-text-secondary hover:text-text-main' }}">
+                        <span>📘 Semester Ganjil</span>
+                    </button>
+                    <button type="button"
+                        wire:click="setTabelMode('genap')"
+                        class="px-3 py-1.5 rounded-md text-xs font-semibold transition-all flex items-center gap-1.5 {{ $tabelTahunMode === 'genap' ? 'bg-emerald-600 text-white shadow-xs' : 'text-text-secondary hover:text-text-main' }}">
+                        <span>📗 Semester Genap</span>
+                    </button>
                 </div>
             </div>
 
@@ -229,42 +234,56 @@
 
         <div class="mb-3 px-3 py-2 bg-blue-50/60 dark:bg-blue-950/30 border border-blue-200/80 dark:border-blue-900/50 rounded-lg text-xs text-text-secondary flex items-center justify-between">
             <div class="flex items-center gap-2">
-                <span class="font-bold text-primary">💡 Alur Penilaian Kronologis:</span>
-                <span>Nilai diinput berdasarkan sesi <strong>Asesmen Harian (AH)</strong> per 2 pekan. Nilai AH otomatis menduplikasi nilai ke seluruh TP yang dinaungi.</span>
+                <span class="font-bold text-primary">📌 Buku Nilai 1 Tahun:</span>
+                <span>Kolom nama siswa terkunci (freeze). Anda dapat menginput nilai sepanjang tahun dari Semester Ganjil hingga Semester Genap secara kronologis.</span>
             </div>
-            <span class="text-[11px] text-text-secondary italic">{{ $this->labelSts }} & {{ $this->labelSas }} memiliki porsi 25% masing-masing</span>
+            <span class="text-[11px] text-text-secondary italic">Asesmen Harian (AH 1 s.d AH 8), Sumatif Tengah & Akhir Semester</span>
         </div>
 
         @php
-            $ahList = $this->activeAhList;
-            $ah1 = $ahList[0];
-            $ah2 = $ahList[1];
-            $ah3 = $ahList[2];
-            $ah4 = $ahList[3];
-
             $mapping = $this->ahTpsMapping;
-            $tps1 = $mapping[$ah1] ?? collect();
-            $tps2 = $mapping[$ah2] ?? collect();
-            $tps3 = $mapping[$ah3] ?? collect();
-            $tps4 = $mapping[$ah4] ?? collect();
+            $showGanjil = ($tabelTahunMode === 'semua' || $tabelTahunMode === 'ganjil');
+            $showGenap = ($tabelTahunMode === 'semua' || $tabelTahunMode === 'genap');
+
+            $tps1 = $mapping['AH 1'] ?? collect();
+            $tps2 = $mapping['AH 2'] ?? collect();
+            $tps3 = $mapping['AH 3'] ?? collect();
+            $tps4 = $mapping['AH 4'] ?? collect();
+            $tps5 = $mapping['AH 5'] ?? collect();
+            $tps6 = $mapping['AH 6'] ?? collect();
+            $tps7 = $mapping['AH 7'] ?? collect();
+            $tps8 = $mapping['AH 8'] ?? collect();
         @endphp
 
-        <div class="overflow-x-auto">
-            <table class="w-full text-sm text-left border border-border rounded-lg overflow-hidden">
-                <thead class="bg-surface-hover">
+        <div class="overflow-x-auto relative max-h-[750px] border border-border rounded-xl shadow-xs">
+            <table class="w-full text-sm text-left border-collapse">
+                <thead class="bg-surface-hover sticky top-0 z-20">
                     <tr>
-                        <th rowspan="2" class="p-3 border-b border-r dark:border-gray-600 sticky left-0 bg-surface-hover z-10 w-60 text-text-main font-semibold">Nama Siswa</th>
-                        <th colspan="3" class="p-2 border-b border-r text-center dark:border-gray-600 bg-blue-50/80 dark:bg-blue-900/30 text-blue-900 dark:text-blue-200 font-bold">
-                            Periode Pra-Tengah Semester ({{ $ah1 }}, {{ $ah2 }} & {{ $this->labelSts }})
+                        <th rowspan="2" class="p-3 border-b-2 border-r-2 border-border dark:border-gray-600 sticky left-0 bg-surface dark:bg-surface-card z-30 min-w-[220px] max-w-[260px] text-text-main font-bold shadow-[4px_0_8px_-2px_rgba(0,0,0,0.15)]">
+                            <div class="flex items-center gap-1.5">
+                                <svg class="w-4 h-4 text-primary" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M16 7a4 4 0 11-8 0 4 4 0 018 0zM12 14a7 7 0 00-7 7h14a7 7 0 00-7-7z"></path></svg>
+                                <span>Nama Siswa</span>
+                                <span class="text-[10px] px-1.5 py-0.5 rounded bg-blue-100 text-blue-700 dark:bg-blue-950 dark:text-blue-300 font-normal ml-auto">Freeze</span>
+                            </div>
                         </th>
-                        <th colspan="3" class="p-2 border-b text-center dark:border-gray-600 bg-amber-50/80 dark:bg-amber-900/30 text-amber-900 dark:text-amber-200 font-bold">
-                            Periode Pra-Akhir Semester ({{ $ah3 }}, {{ $ah4 }} & {{ $this->labelSas }})
+
+                        @if($showGanjil)
+                        <th colspan="6" class="p-2.5 border-b {{ $showGenap ? 'border-r-4 border-slate-300 dark:border-slate-600' : 'border-r-2 border-border' }} text-center bg-blue-100/90 dark:bg-blue-900/40 text-blue-900 dark:text-blue-100 font-black tracking-wider uppercase text-xs">
+                            📘 Semester Ganjil (STS 1 & SAS)
                         </th>
+                        @endif
+
+                        @if($showGenap)
+                        <th colspan="6" class="p-2.5 border-b text-center dark:border-gray-600 bg-emerald-100/90 dark:bg-emerald-900/40 text-emerald-900 dark:text-emerald-100 font-black tracking-wider uppercase text-xs">
+                            📗 Semester Genap (STS 2 & SAT)
+                        </th>
+                        @endif
                     </tr>
                     <tr>
-                        <!-- AH 1 / AH 5 -->
+                        @if($showGanjil)
+                        <!-- AH 1 -->
                         <th class="p-2 border-b border-r text-center dark:border-gray-600 min-w-[95px] bg-blue-50/40 dark:bg-blue-900/10">
-                            <div class="font-mono font-bold text-text-main">{{ $ah1 }}</div>
+                            <div class="font-mono font-bold text-text-main">AH 1</div>
                             @if($tps1->isNotEmpty())
                             <div class="flex flex-wrap gap-1 justify-center mt-1">
                                 @foreach($tps1 as $tp)
@@ -276,9 +295,9 @@
                             @endif
                         </th>
 
-                        <!-- AH 2 / AH 6 -->
+                        <!-- AH 2 -->
                         <th class="p-2 border-b border-r text-center dark:border-gray-600 min-w-[95px] bg-blue-50/40 dark:bg-blue-900/10">
-                            <div class="font-mono font-bold text-text-main">{{ $ah2 }}</div>
+                            <div class="font-mono font-bold text-text-main">AH 2</div>
                             @if($tps2->isNotEmpty())
                             <div class="flex flex-wrap gap-1 justify-center mt-1">
                                 @foreach($tps2 as $tp)
@@ -290,19 +309,19 @@
                             @endif
                         </th>
 
-                        <!-- STS -->
-                        <th class="p-2 border-b border-r text-center dark:border-gray-600 min-w-[85px] bg-blue-100/60 dark:bg-blue-900/40" title="{{ $this->labelSts === 'STS 2' ? 'Sumatif Tengah Semester 2' : 'Sumatif Tengah Semester 1' }}">
-                            <div class="font-mono font-bold text-blue-900 dark:text-blue-200">{{ $this->labelSts }}</div>
+                        <!-- STS 1 -->
+                        <th class="p-2 border-b border-r text-center dark:border-gray-600 min-w-[85px] bg-blue-100/60 dark:bg-blue-900/40" title="Sumatif Tengah Semester 1">
+                            <div class="font-mono font-bold text-blue-900 dark:text-blue-200">STS 1</div>
                             <div class="text-[10px] text-blue-700 dark:text-blue-300 font-normal">Tengah Sem.</div>
                         </th>
 
-                        <!-- AH 3 / AH 7 -->
-                        <th class="p-2 border-b border-r text-center dark:border-gray-600 min-w-[95px] bg-amber-50/40 dark:bg-amber-900/10">
-                            <div class="font-mono font-bold text-text-main">{{ $ah3 }}</div>
+                        <!-- AH 3 -->
+                        <th class="p-2 border-b border-r text-center dark:border-gray-600 min-w-[95px] bg-blue-50/40 dark:bg-blue-900/10">
+                            <div class="font-mono font-bold text-text-main">AH 3</div>
                             @if($tps3->isNotEmpty())
                             <div class="flex flex-wrap gap-1 justify-center mt-1">
                                 @foreach($tps3 as $tp)
-                                <span class="text-[10px] px-1.5 py-0.2 rounded bg-amber-100 text-amber-800 dark:bg-amber-950 dark:text-amber-300 font-medium" title="{{ $tp->deskripsi }}">{{ $tp->kode }}</span>
+                                <span class="text-[10px] px-1.5 py-0.2 rounded bg-blue-100 text-blue-800 dark:bg-blue-950 dark:text-blue-300 font-medium" title="{{ $tp->deskripsi }}">{{ $tp->kode }}</span>
                                 @endforeach
                             </div>
                             @else
@@ -310,13 +329,13 @@
                             @endif
                         </th>
 
-                        <!-- AH 4 / AH 8 -->
-                        <th class="p-2 border-b border-r text-center dark:border-gray-600 min-w-[95px] bg-amber-50/40 dark:bg-amber-900/10">
-                            <div class="font-mono font-bold text-text-main">{{ $ah4 }}</div>
+                        <!-- AH 4 -->
+                        <th class="p-2 border-b border-r text-center dark:border-gray-600 min-w-[95px] bg-blue-50/40 dark:bg-blue-900/10">
+                            <div class="font-mono font-bold text-text-main">AH 4</div>
                             @if($tps4->isNotEmpty())
                             <div class="flex flex-wrap gap-1 justify-center mt-1">
                                 @foreach($tps4 as $tp)
-                                <span class="text-[10px] px-1.5 py-0.2 rounded bg-amber-100 text-amber-800 dark:bg-amber-950 dark:text-amber-300 font-medium" title="{{ $tp->deskripsi }}">{{ $tp->kode }}</span>
+                                <span class="text-[10px] px-1.5 py-0.2 rounded bg-blue-100 text-blue-800 dark:bg-blue-950 dark:text-blue-300 font-medium" title="{{ $tp->deskripsi }}">{{ $tp->kode }}</span>
                                 @endforeach
                             </div>
                             @else
@@ -324,65 +343,187 @@
                             @endif
                         </th>
 
-                        <!-- Sumatif Akhir -->
-                        <th class="p-2 border-b text-center dark:border-gray-600 min-w-[85px] bg-amber-100/60 dark:bg-amber-900/40" title="{{ $this->labelSas === 'SAT' ? 'Sumatif Akhir Tahun' : 'Sumatif Akhir Semester' }}">
-                            <div class="font-mono font-bold text-amber-900 dark:text-amber-200">{{ $this->labelSas }}</div>
-                            <div class="text-[10px] text-amber-700 dark:text-amber-300 font-normal">Akhir Sem.</div>
+                        <!-- SAS -->
+                        <th class="p-2 border-b {{ $showGenap ? 'border-r-4 border-slate-300 dark:border-slate-600' : 'border-r-2 border-border' }} text-center dark:border-gray-600 min-w-[85px] bg-blue-100/60 dark:bg-blue-900/40" title="Sumatif Akhir Semester">
+                            <div class="font-mono font-bold text-blue-900 dark:text-blue-200">SAS</div>
+                            <div class="text-[10px] text-blue-700 dark:text-blue-300 font-normal">Akhir Sem.</div>
                         </th>
+                        @endif
+
+                        @if($showGenap)
+                        <!-- AH 5 -->
+                        <th class="p-2 border-b border-r text-center dark:border-gray-600 min-w-[95px] bg-emerald-50/40 dark:bg-emerald-900/10">
+                            <div class="font-mono font-bold text-text-main">AH 5</div>
+                            @if($tps5->isNotEmpty())
+                            <div class="flex flex-wrap gap-1 justify-center mt-1">
+                                @foreach($tps5 as $tp)
+                                <span class="text-[10px] px-1.5 py-0.2 rounded bg-emerald-100 text-emerald-800 dark:bg-emerald-950 dark:text-emerald-300 font-medium" title="{{ $tp->deskripsi }}">{{ $tp->kode }}</span>
+                                @endforeach
+                            </div>
+                            @else
+                            <div class="text-[10px] text-rose-500 font-normal mt-0.5 italic">Belum ada TP</div>
+                            @endif
+                        </th>
+
+                        <!-- AH 6 -->
+                        <th class="p-2 border-b border-r text-center dark:border-gray-600 min-w-[95px] bg-emerald-50/40 dark:bg-emerald-900/10">
+                            <div class="font-mono font-bold text-text-main">AH 6</div>
+                            @if($tps6->isNotEmpty())
+                            <div class="flex flex-wrap gap-1 justify-center mt-1">
+                                @foreach($tps6 as $tp)
+                                <span class="text-[10px] px-1.5 py-0.2 rounded bg-emerald-100 text-emerald-800 dark:bg-emerald-950 dark:text-emerald-300 font-medium" title="{{ $tp->deskripsi }}">{{ $tp->kode }}</span>
+                                @endforeach
+                            </div>
+                            @else
+                            <div class="text-[10px] text-rose-500 font-normal mt-0.5 italic">Belum ada TP</div>
+                            @endif
+                        </th>
+
+                        <!-- STS 2 -->
+                        <th class="p-2 border-b border-r text-center dark:border-gray-600 min-w-[85px] bg-emerald-100/60 dark:bg-emerald-900/40" title="Sumatif Tengah Semester 2">
+                            <div class="font-mono font-bold text-emerald-900 dark:text-emerald-200">STS 2</div>
+                            <div class="text-[10px] text-emerald-700 dark:text-emerald-300 font-normal">Tengah Sem.</div>
+                        </th>
+
+                        <!-- AH 7 -->
+                        <th class="p-2 border-b border-r text-center dark:border-gray-600 min-w-[95px] bg-emerald-50/40 dark:bg-emerald-900/10">
+                            <div class="font-mono font-bold text-text-main">AH 7</div>
+                            @if($tps7->isNotEmpty())
+                            <div class="flex flex-wrap gap-1 justify-center mt-1">
+                                @foreach($tps7 as $tp)
+                                <span class="text-[10px] px-1.5 py-0.2 rounded bg-emerald-100 text-emerald-800 dark:bg-emerald-950 dark:text-emerald-300 font-medium" title="{{ $tp->deskripsi }}">{{ $tp->kode }}</span>
+                                @endforeach
+                            </div>
+                            @else
+                            <div class="text-[10px] text-rose-500 font-normal mt-0.5 italic">Belum ada TP</div>
+                            @endif
+                        </th>
+
+                        <!-- AH 8 -->
+                        <th class="p-2 border-b border-r text-center dark:border-gray-600 min-w-[95px] bg-emerald-50/40 dark:bg-emerald-900/10">
+                            <div class="font-mono font-bold text-text-main">AH 8</div>
+                            @if($tps8->isNotEmpty())
+                            <div class="flex flex-wrap gap-1 justify-center mt-1">
+                                @foreach($tps8 as $tp)
+                                <span class="text-[10px] px-1.5 py-0.2 rounded bg-emerald-100 text-emerald-800 dark:bg-emerald-950 dark:text-emerald-300 font-medium" title="{{ $tp->deskripsi }}">{{ $tp->kode }}</span>
+                                @endforeach
+                            </div>
+                            @else
+                            <div class="text-[10px] text-rose-500 font-normal mt-0.5 italic">Belum ada TP</div>
+                            @endif
+                        </th>
+
+                        <!-- SAT -->
+                        <th class="p-2 border-b text-center dark:border-gray-600 min-w-[85px] bg-emerald-100/60 dark:bg-emerald-900/40" title="Sumatif Akhir Tahun">
+                            <div class="font-mono font-bold text-emerald-900 dark:text-emerald-200">SAT</div>
+                            <div class="text-[10px] text-emerald-700 dark:text-emerald-300 font-normal">Akhir Tahun</div>
+                        </th>
+                        @endif
                     </tr>
                 </thead>
                 <tbody class="divide-y divide-border">
                     @foreach($siswas as $siswa)
-                    <tr class="hover:bg-surface-hover/50">
-                        <td class="p-3 border-r dark:border-gray-600 sticky left-0 bg-surface font-medium text-text-main">
+                    <tr class="hover:bg-surface-hover/60 transition-colors">
+                        <!-- Frozen Name Column -->
+                        <td class="p-3 border-r-2 border-border dark:border-gray-600 sticky left-0 bg-surface dark:bg-surface-card font-semibold text-text-main z-10 whitespace-nowrap shadow-[4px_0_8px_-2px_rgba(0,0,0,0.15)]">
                             {{ $siswa->nama }}
                         </td>
-                        
-                        <!-- AH 1 / 5 -->
+
+                        @if($showGanjil)
+                        <!-- AH 1 -->
                         <td class="p-2 border-r dark:border-gray-600 text-center {{ $tps1->isEmpty() ? 'bg-gray-50/70 dark:bg-gray-800/40' : '' }}">
                             @if($tps1->isEmpty())
-                                <input type="text" disabled value="-" title="Belum dialokasikan TP pada {{ $ah1 }}" class="w-16 md:w-20 text-center border border-border/50 dark:border-gray-700 rounded-lg px-2 py-1 bg-surface-hover text-text-secondary cursor-not-allowed text-xs">
+                                <input type="text" disabled value="-" title="Belum dialokasikan TP pada AH 1" class="w-16 md:w-20 text-center border border-border/50 dark:border-gray-700 rounded-lg px-2 py-1 bg-surface-hover text-text-secondary cursor-not-allowed text-xs">
                             @else
-                                <input type="number" min="0" max="100" wire:model="ahData.{{ $siswa->id }}.{{ $ah1 }}" placeholder="{{ $ah1 }}" class="w-16 md:w-20 text-center border border-border dark:border-gray-600 rounded-lg px-2 py-1 bg-surface text-text-main focus:outline-none focus:border-primary focus:ring-1 focus:ring-primary font-medium">
+                                <input type="number" min="0" max="100" wire:model="ahData.{{ $siswa->id }}.AH 1" placeholder="AH 1" class="w-16 md:w-20 text-center border border-border dark:border-gray-600 rounded-lg px-2 py-1 bg-surface text-text-main focus:outline-none focus:border-primary focus:ring-1 focus:ring-primary font-medium">
                             @endif
                         </td>
 
-                        <!-- AH 2 / 6 -->
+                        <!-- AH 2 -->
                         <td class="p-2 border-r dark:border-gray-600 text-center {{ $tps2->isEmpty() ? 'bg-gray-50/70 dark:bg-gray-800/40' : '' }}">
                             @if($tps2->isEmpty())
-                                <input type="text" disabled value="-" title="Belum dialokasikan TP pada {{ $ah2 }}" class="w-16 md:w-20 text-center border border-border/50 dark:border-gray-700 rounded-lg px-2 py-1 bg-surface-hover text-text-secondary cursor-not-allowed text-xs">
+                                <input type="text" disabled value="-" title="Belum dialokasikan TP pada AH 2" class="w-16 md:w-20 text-center border border-border/50 dark:border-gray-700 rounded-lg px-2 py-1 bg-surface-hover text-text-secondary cursor-not-allowed text-xs">
                             @else
-                                <input type="number" min="0" max="100" wire:model="ahData.{{ $siswa->id }}.{{ $ah2 }}" placeholder="{{ $ah2 }}" class="w-16 md:w-20 text-center border border-border dark:border-gray-600 rounded-lg px-2 py-1 bg-surface text-text-main focus:outline-none focus:border-primary focus:ring-1 focus:ring-primary font-medium">
+                                <input type="number" min="0" max="100" wire:model="ahData.{{ $siswa->id }}.AH 2" placeholder="AH 2" class="w-16 md:w-20 text-center border border-border dark:border-gray-600 rounded-lg px-2 py-1 bg-surface text-text-main focus:outline-none focus:border-primary focus:ring-1 focus:ring-primary font-medium">
                             @endif
                         </td>
 
-                        <!-- STS -->
+                        <!-- STS 1 -->
                         <td class="p-2 border-r text-center bg-blue-50/30 dark:bg-blue-950/20">
-                            <input type="number" min="0" max="100" wire:model="sumatifData.{{ $siswa->id }}.sts" placeholder="{{ $this->labelSts }}" class="w-16 md:w-20 text-center border border-blue-200 dark:border-blue-800 rounded-lg px-2 py-1 bg-surface text-text-main focus:outline-none focus:border-primary focus:ring-1 focus:ring-primary font-bold text-blue-700 dark:text-blue-300">
+                            <input type="number" min="0" max="100" wire:model="sumatifDataGanjil.{{ $siswa->id }}.sts" placeholder="STS 1" class="w-16 md:w-20 text-center border border-blue-200 dark:border-blue-800 rounded-lg px-2 py-1 bg-surface text-text-main focus:outline-none focus:border-primary focus:ring-1 focus:ring-primary font-bold text-blue-700 dark:text-blue-300">
                         </td>
 
-                        <!-- AH 3 / 7 -->
+                        <!-- AH 3 -->
                         <td class="p-2 border-r dark:border-gray-600 text-center {{ $tps3->isEmpty() ? 'bg-gray-50/70 dark:bg-gray-800/40' : '' }}">
                             @if($tps3->isEmpty())
-                                <input type="text" disabled value="-" title="Belum dialokasikan TP pada {{ $ah3 }}" class="w-16 md:w-20 text-center border border-border/50 dark:border-gray-700 rounded-lg px-2 py-1 bg-surface-hover text-text-secondary cursor-not-allowed text-xs">
+                                <input type="text" disabled value="-" title="Belum dialokasikan TP pada AH 3" class="w-16 md:w-20 text-center border border-border/50 dark:border-gray-700 rounded-lg px-2 py-1 bg-surface-hover text-text-secondary cursor-not-allowed text-xs">
                             @else
-                                <input type="number" min="0" max="100" wire:model="ahData.{{ $siswa->id }}.{{ $ah3 }}" placeholder="{{ $ah3 }}" class="w-16 md:w-20 text-center border border-border dark:border-gray-600 rounded-lg px-2 py-1 bg-surface text-text-main focus:outline-none focus:border-primary focus:ring-1 focus:ring-primary font-medium">
+                                <input type="number" min="0" max="100" wire:model="ahData.{{ $siswa->id }}.AH 3" placeholder="AH 3" class="w-16 md:w-20 text-center border border-border dark:border-gray-600 rounded-lg px-2 py-1 bg-surface text-text-main focus:outline-none focus:border-primary focus:ring-1 focus:ring-primary font-medium">
                             @endif
                         </td>
 
-                        <!-- AH 4 / 8 -->
+                        <!-- AH 4 -->
                         <td class="p-2 border-r dark:border-gray-600 text-center {{ $tps4->isEmpty() ? 'bg-gray-50/70 dark:bg-gray-800/40' : '' }}">
                             @if($tps4->isEmpty())
-                                <input type="text" disabled value="-" title="Belum dialokasikan TP pada {{ $ah4 }}" class="w-16 md:w-20 text-center border border-border/50 dark:border-gray-700 rounded-lg px-2 py-1 bg-surface-hover text-text-secondary cursor-not-allowed text-xs">
+                                <input type="text" disabled value="-" title="Belum dialokasikan TP pada AH 4" class="w-16 md:w-20 text-center border border-border/50 dark:border-gray-700 rounded-lg px-2 py-1 bg-surface-hover text-text-secondary cursor-not-allowed text-xs">
                             @else
-                                <input type="number" min="0" max="100" wire:model="ahData.{{ $siswa->id }}.{{ $ah4 }}" placeholder="{{ $ah4 }}" class="w-16 md:w-20 text-center border border-border dark:border-gray-600 rounded-lg px-2 py-1 bg-surface text-text-main focus:outline-none focus:border-primary focus:ring-1 focus:ring-primary font-medium">
+                                <input type="number" min="0" max="100" wire:model="ahData.{{ $siswa->id }}.AH 4" placeholder="AH 4" class="w-16 md:w-20 text-center border border-border dark:border-gray-600 rounded-lg px-2 py-1 bg-surface text-text-main focus:outline-none focus:border-primary focus:ring-1 focus:ring-primary font-medium">
                             @endif
                         </td>
 
-                        <!-- Sumatif Akhir -->
-                        <td class="p-2 text-center bg-amber-50/30 dark:bg-amber-950/20">
-                            <input type="number" min="0" max="100" wire:model="sumatifData.{{ $siswa->id }}.sas" placeholder="{{ $this->labelSas }}" class="w-16 md:w-20 text-center border border-amber-200 dark:border-amber-800 rounded-lg px-2 py-1 bg-surface text-text-main focus:outline-none focus:border-amber-500 focus:ring-1 focus:ring-amber-500 font-bold text-amber-700 dark:text-amber-300">
+                        <!-- SAS -->
+                        <td class="p-2 {{ $showGenap ? 'border-r-4 border-slate-300 dark:border-slate-600' : 'border-r-2 border-border' }} text-center bg-blue-50/30 dark:bg-blue-950/20">
+                            <input type="number" min="0" max="100" wire:model="sumatifDataGanjil.{{ $siswa->id }}.sas" placeholder="SAS" class="w-16 md:w-20 text-center border border-blue-200 dark:border-blue-800 rounded-lg px-2 py-1 bg-surface text-text-main focus:outline-none focus:border-primary focus:ring-1 focus:ring-primary font-bold text-blue-700 dark:text-blue-300">
                         </td>
+                        @endif
+
+                        @if($showGenap)
+                        <!-- AH 5 -->
+                        <td class="p-2 border-r dark:border-gray-600 text-center {{ $tps5->isEmpty() ? 'bg-gray-50/70 dark:bg-gray-800/40' : '' }}">
+                            @if($tps5->isEmpty())
+                                <input type="text" disabled value="-" title="Belum dialokasikan TP pada AH 5" class="w-16 md:w-20 text-center border border-border/50 dark:border-gray-700 rounded-lg px-2 py-1 bg-surface-hover text-text-secondary cursor-not-allowed text-xs">
+                            @else
+                                <input type="number" min="0" max="100" wire:model="ahData.{{ $siswa->id }}.AH 5" placeholder="AH 5" class="w-16 md:w-20 text-center border border-border dark:border-gray-600 rounded-lg px-2 py-1 bg-surface text-text-main focus:outline-none focus:border-primary focus:ring-1 focus:ring-primary font-medium">
+                            @endif
+                        </td>
+
+                        <!-- AH 6 -->
+                        <td class="p-2 border-r dark:border-gray-600 text-center {{ $tps6->isEmpty() ? 'bg-gray-50/70 dark:bg-gray-800/40' : '' }}">
+                            @if($tps6->isEmpty())
+                                <input type="text" disabled value="-" title="Belum dialokasikan TP pada AH 6" class="w-16 md:w-20 text-center border border-border/50 dark:border-gray-700 rounded-lg px-2 py-1 bg-surface-hover text-text-secondary cursor-not-allowed text-xs">
+                            @else
+                                <input type="number" min="0" max="100" wire:model="ahData.{{ $siswa->id }}.AH 6" placeholder="AH 6" class="w-16 md:w-20 text-center border border-border dark:border-gray-600 rounded-lg px-2 py-1 bg-surface text-text-main focus:outline-none focus:border-primary focus:ring-1 focus:ring-primary font-medium">
+                            @endif
+                        </td>
+
+                        <!-- STS 2 -->
+                        <td class="p-2 border-r text-center bg-emerald-50/30 dark:bg-emerald-950/20">
+                            <input type="number" min="0" max="100" wire:model="sumatifDataGenap.{{ $siswa->id }}.sts" placeholder="STS 2" class="w-16 md:w-20 text-center border border-emerald-200 dark:border-emerald-800 rounded-lg px-2 py-1 bg-surface text-text-main focus:outline-none focus:border-emerald-500 focus:ring-1 focus:ring-emerald-500 font-bold text-emerald-700 dark:text-emerald-300">
+                        </td>
+
+                        <!-- AH 7 -->
+                        <td class="p-2 border-r dark:border-gray-600 text-center {{ $tps7->isEmpty() ? 'bg-gray-50/70 dark:bg-gray-800/40' : '' }}">
+                            @if($tps7->isEmpty())
+                                <input type="text" disabled value="-" title="Belum dialokasikan TP pada AH 7" class="w-16 md:w-20 text-center border border-border/50 dark:border-gray-700 rounded-lg px-2 py-1 bg-surface-hover text-text-secondary cursor-not-allowed text-xs">
+                            @else
+                                <input type="number" min="0" max="100" wire:model="ahData.{{ $siswa->id }}.AH 7" placeholder="AH 7" class="w-16 md:w-20 text-center border border-border dark:border-gray-600 rounded-lg px-2 py-1 bg-surface text-text-main focus:outline-none focus:border-primary focus:ring-1 focus:ring-primary font-medium">
+                            @endif
+                        </td>
+
+                        <!-- AH 8 -->
+                        <td class="p-2 border-r dark:border-gray-600 text-center {{ $tps8->isEmpty() ? 'bg-gray-50/70 dark:bg-gray-800/40' : '' }}">
+                            @if($tps8->isEmpty())
+                                <input type="text" disabled value="-" title="Belum dialokasikan TP pada AH 8" class="w-16 md:w-20 text-center border border-border/50 dark:border-gray-700 rounded-lg px-2 py-1 bg-surface-hover text-text-secondary cursor-not-allowed text-xs">
+                            @else
+                                <input type="number" min="0" max="100" wire:model="ahData.{{ $siswa->id }}.AH 8" placeholder="AH 8" class="w-16 md:w-20 text-center border border-border dark:border-gray-600 rounded-lg px-2 py-1 bg-surface text-text-main focus:outline-none focus:border-primary focus:ring-1 focus:ring-primary font-medium">
+                            @endif
+                        </td>
+
+                        <!-- SAT -->
+                        <td class="p-2 text-center bg-emerald-50/30 dark:bg-emerald-950/20">
+                            <input type="number" min="0" max="100" wire:model="sumatifDataGenap.{{ $siswa->id }}.sas" placeholder="SAT" class="w-16 md:w-20 text-center border border-emerald-200 dark:border-emerald-800 rounded-lg px-2 py-1 bg-surface text-text-main focus:outline-none focus:border-emerald-500 focus:ring-1 focus:ring-emerald-500 font-bold text-emerald-700 dark:text-emerald-300">
+                        </td>
+                        @endif
                     </tr>
                     @endforeach
                 </tbody>
