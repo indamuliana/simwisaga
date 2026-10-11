@@ -15,7 +15,7 @@ class TujuanPembelajaran extends Model
 
     public function penugasanMengajar()
     {
-        return $this->belongsTo('App\Modules\Akademik\Models\PenugasanMengajar');
+        return $this->belongsTo(\App\Modules\Kepegawaian\Models\PenugasanMengajar::class);
     }
 
     public function nilaiFormatifs()

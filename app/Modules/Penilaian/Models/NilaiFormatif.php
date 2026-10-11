@@ -14,7 +14,7 @@ class NilaiFormatif extends Model
 
     public function siswa()
     {
-        return $this->belongsTo('App\Modules\Akademik\Models\Siswa');
+        return $this->belongsTo(\App\Modules\Kesiswaan\Models\Siswa::class);
     }
 
     public function tujuanPembelajaran()
