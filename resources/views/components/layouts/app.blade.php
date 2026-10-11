@@ -15,19 +15,53 @@
     <script src="https://cdn.jsdelivr.net/npm/apexcharts"></script>
     @stack('styles')
     @livewireStyles
+    <script>
+        if (localStorage.getItem('theme') === 'dark') {
+            document.documentElement.classList.add('dark');
+        } else {
+            document.documentElement.classList.remove('dark');
+        }
+    </script>
 </head>
 <body class="min-h-screen bg-bg font-sans text-text-main antialiased"
-      x-data="{ sidebar: false, pinned: localStorage.getItem('sidebar_pinned') !== 'false' }"
-      x-init="$watch('pinned', val => localStorage.setItem('sidebar_pinned', val))">
+      x-data="{ 
+          mobileOpen: false, 
+          pinned: localStorage.getItem('sidebar_pinned') !== 'false',
+          darkMode: localStorage.getItem('theme') === 'dark',
+          toggleTheme() {
+              this.darkMode = !this.darkMode;
+              localStorage.setItem('theme', this.darkMode ? 'dark' : 'light');
+              if (this.darkMode) {
+                  document.documentElement.classList.add('dark');
+              } else {
+                  document.documentElement.classList.remove('dark');
+              }
+          }
+      }"
+      x-init="$watch('pinned', val => localStorage.setItem('sidebar_pinned', val))"
+      @keydown.escape.window="mobileOpen = false">
 
     {{-- Sidebar --}}
-    <!-- Overlay -->
-    <div x-show="sidebar" x-cloak @click="sidebar = false" class="fixed inset-0 z-30 bg-black/40"
-         :class="pinned ? 'lg:hidden' : ''"></div>
+    <!-- Backdrop Overlay Mobile -->
+    <div x-show="mobileOpen" 
+         x-cloak 
+         @click="mobileOpen = false" 
+         x-transition:enter="transition-opacity ease-linear duration-300"
+         x-transition:enter-start="opacity-0"
+         x-transition:enter-end="opacity-100"
+         x-transition:leave="transition-opacity ease-linear duration-300"
+         x-transition:leave-start="opacity-100"
+         x-transition:leave-end="opacity-0"
+         class="fixed inset-0 z-30 bg-black/60 backdrop-blur-xs lg:hidden"></div>
          
     <!-- Sidebar -->
-    <aside class="fixed inset-y-0 left-0 z-40 w-64 -translate-x-full overflow-y-auto border-r border-border bg-sidebar transition-transform duration-300"
-           :class="(sidebar || pinned) ? 'translate-x-0' : '-translate-x-full'">
+    <aside class="fixed inset-y-0 left-0 z-40 w-64 overflow-y-auto border-r border-border bg-sidebar transition-transform duration-300 ease-in-out"
+           :class="{
+               'translate-x-0': mobileOpen,
+               '-translate-x-full': !mobileOpen,
+               'lg:translate-x-0': pinned,
+               'lg:-translate-x-full': !pinned
+           }">
         <div class="flex h-16 items-center justify-between border-b border-border px-4 gap-2">
             <div class="flex items-center gap-2 min-w-0 flex-1">
                 @if($sekolah->logoAplikasiUrl())
@@ -35,14 +69,28 @@
                 @endif
                 <a href="{{ route('dashboard') }}" class="text-lg font-bold text-primary truncate block" title="{{ $sekolah->nama_aplikasi }}">{{ $sekolah->nama_aplikasi }}</a>
             </div>
-            <button @click="pinned = !pinned; if(!pinned) sidebar = false" class="hidden lg:flex p-1.5 rounded-md text-text-muted hover:text-text-main hover:bg-surface-hover transition-colors flex-shrink-0" title="Toggle Sidebar">
+            <!-- Desktop Pin/Unpin Toggle Button -->
+            <button type="button" 
+                    @click="pinned = !pinned" 
+                    class="hidden lg:flex p-1.5 rounded-md text-text-muted hover:text-text-main hover:bg-surface-hover transition-colors flex-shrink-0" 
+                    title="Toggle Pin Sidebar">
                 <svg class="w-5 h-5 transition-transform duration-300" :class="!pinned ? 'rotate-180' : ''" fill="none" stroke="currentColor" viewBox="0 0 24 24">
                     <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M11 19l-7-7 7-7m8 14l-7-7 7-7" />
+                </svg>
+            </button>
+            <!-- Mobile Close Button -->
+            <button type="button" 
+                    @click="mobileOpen = false" 
+                    class="flex lg:hidden p-1.5 rounded-md text-text-muted hover:text-text-main hover:bg-surface-hover transition-colors flex-shrink-0" 
+                    title="Tutup Menu">
+                <svg class="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                    <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M6 18L18 6M6 6l12 12" />
                 </svg>
             </button>
         </div>
         <nav class="space-y-2 p-4 text-sm">
             <a href="{{ route('dashboard') }}"
+               @click="if (window.innerWidth < 1024) mobileOpen = false"
                class="flex items-center justify-between rounded-lg px-3 py-2 font-medium transition-colors {{ request()->routeIs('dashboard') ? 'bg-primary-soft text-primary font-semibold' : 'text-text-secondary hover:bg-surface-hover hover:text-text-main' }}">
                 <span class="flex items-center gap-2">
                     <svg class="h-4 w-4 {{ request()->routeIs('dashboard') ? 'text-primary' : 'text-text-muted' }}" fill="none" viewBox="0 0 24 24" stroke="currentColor">
@@ -82,6 +130,7 @@
                                 $isActive = $hasRoute && request()->routeIs($item['route'].'*');
                             @endphp
                             <a href="{{ $url }}"
+                               @click="if (window.innerWidth < 1024) mobileOpen = false"
                                class="flex items-center justify-between rounded-lg px-3 py-1.5 text-xs transition-colors {{ $isActive ? 'bg-primary-soft font-semibold text-primary' : 'text-text-secondary hover:bg-surface-hover hover:text-text-main' }}">
                                 <span class="truncate">{{ $item['label'] }}</span>
                                 @if (! $hasRoute)
@@ -97,33 +146,53 @@
 
     <div class="transition-all duration-300" :class="pinned ? 'lg:pl-64' : 'lg:pl-0'">
         {{-- Topbar --}}
-        <header class="sticky top-0 z-20 flex h-16 items-center justify-between border-b border-border bg-surface/90 px-4 backdrop-blur">
-            <div class="flex items-center gap-3">
-                <button class="rounded-lg p-2 text-text-secondary hover:bg-surface-hover"
-                        :class="pinned ? 'lg:hidden' : 'block'"
-                        @click="sidebar = true" aria-label="Buka menu">
+        <header class="sticky top-0 z-20 flex h-16 items-center justify-between border-b border-border bg-surface/90 px-3 sm:px-4 backdrop-blur">
+            <div class="flex items-center gap-2 sm:gap-3 min-w-0">
+                <button type="button"
+                        class="rounded-lg p-2 text-text-secondary hover:bg-surface-hover hover:text-text-main transition-colors flex-shrink-0"
+                        :class="pinned ? 'lg:hidden' : 'flex'"
+                        @click="if (window.innerWidth >= 1024) { pinned = !pinned } else { mobileOpen = !mobileOpen }" 
+                        aria-label="Toggle menu">
                     <svg class="w-6 h-6" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M4 6h16M4 12h16M4 18h16" /></svg>
                 </button>
                 @foreach(app(\App\Core\Modules\ModuleRegistry::class)->topbarWidgets() as $widget)
                     @livewire($widget)
                 @endforeach
-                <div class="hidden text-xs text-text-muted lg:block ml-2">
+                <div class="hidden text-xs text-text-muted lg:block ml-2 whitespace-nowrap">
                     {{ now()->translatedFormat('l, d F Y') }}
                 </div>
             </div>
-            <div class="flex items-center gap-3">
+            <div class="flex items-center gap-2 sm:gap-3 flex-shrink-0">
+                <!-- Theme Toggle Button -->
+                <button type="button" 
+                        @click="toggleTheme()" 
+                        class="rounded-lg p-2 text-text-secondary hover:bg-surface-hover hover:text-text-main transition-colors flex-shrink-0" 
+                        :title="darkMode ? 'Beralih ke Mode Terang' : 'Beralih ke Mode Gelap'"
+                        :aria-label="darkMode ? 'Beralih ke Mode Terang' : 'Beralih ke Mode Gelap'">
+                    <span x-show="darkMode" x-cloak>
+                        <svg class="w-5 h-5 text-amber-400" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 3v1m0 16v1m9-9h-1M4 12H3m15.364 6.364l-.707-.707M6.343 6.343l-.707-.707m12.728 0l-.707.707M6.343 17.657l-.707.707M16 12a4 4 0 11-8 0 4 4 0 018 0z" />
+                        </svg>
+                    </span>
+                    <span x-show="!darkMode">
+                        <svg class="w-5 h-5 text-slate-600 hover:text-primary transition-colors" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M20.354 15.354A9 9 0 018.646 3.646 9.003 9.003 0 0012 21a9.003 9.003 0 008.354-5.646z" />
+                        </svg>
+                    </span>
+                </button>
+
                 <div class="hidden text-right text-sm leading-tight sm:block">
                     <p class="font-medium text-text-main">{{ auth()->user()->name }}</p>
                     <p class="text-xs text-text-muted">{{ auth()->user()->getRoleNames()->join(', ') ?: 'Tanpa role' }}</p>
                 </div>
                 <form method="POST" action="{{ route('logout') }}">
                     @csrf
-                    <button class="btn btn-secondary">Keluar</button>
+                    <button class="btn btn-secondary px-3 py-1.5 sm:px-4 sm:py-2 text-xs sm:text-sm">Keluar</button>
                 </form>
             </div>
         </header>
 
-        <main class="p-4 lg:p-6">
+        <main class="p-3 sm:p-4 lg:p-6">
             @if (session('status'))
                 <div class="mb-4 rounded-lg border border-success/30 bg-success-soft px-4 py-3 text-sm text-success">
                     {{ session('status') }}

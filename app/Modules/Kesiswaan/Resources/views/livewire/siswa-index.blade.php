@@ -1,10 +1,33 @@
 <div class="space-y-6">
- <div class="flex flex-col sm:flex-row sm:items-center sm:justify-between gap-4">
- <div>
- <h1 class="text-2xl font-bold tracking-tight text-text-main">Data Induk Siswa</h1>
- <p class="text-sm text-text-secondary">Database profil siswa lengkap 66 kolom format standar DAPODIK SMK Wikrama 1 Garut.</p>
- </div>
- <div class="flex flex-wrap items-center gap-2">
+    <div>
+        <h1 class="text-2xl font-bold tracking-tight text-text-main">Data Induk Siswa</h1>
+        <p class="text-sm text-text-secondary mt-1">Database profil siswa lengkap 66 kolom format standar DAPODIK SMK Wikrama 1 Garut.</p>
+    </div>
+
+    <!-- Toolbar Aksi Minimalis (2 Sisi) -->
+    <div class="flex flex-col sm:flex-row sm:items-center sm:justify-between gap-3 pt-1">
+        <!-- Sisi Kiri: Aksi Data Pokok -->
+        <div class="flex flex-wrap items-center gap-2">
+            @can('kesiswaan.siswa.tambah')
+            <a href="{{ \Illuminate\Support\Facades\Route::has('kesiswaan.siswa.create') ? route('kesiswaan.siswa.create') : url('/kesiswaan/siswa/create') }}" 
+               class="btn btn-primary inline-flex items-center gap-1.5 shadow-sm">
+                <svg class="w-4 h-4" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                    <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 4v16m8-8H4" />
+                </svg>
+                <span>Siswa</span>
+            </a>
+            <a href="{{ route('kesiswaan.import') }}" 
+               class="btn btn-secondary inline-flex items-center gap-1.5">
+                <svg class="w-4 h-4 text-text-muted" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                    <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M4 16v1a3 3 0 003 3h10a3 3 0 003-3v-1m-4-8l-4-4m0 0L8 8m4-4v12" />
+                </svg>
+                <span>Dapodik</span>
+            </a>
+            @endcan
+        </div>
+
+        <!-- Sisi Kanan: Ekspor & Dokumen -->
+        <div class="flex flex-wrap items-center gap-2">
  <!-- Dropdown Download Excel -->
  <div class="relative" x-data="{ openExcel: false }" @click.outside="openExcel = false">
  <button type="button" @click="openExcel = !openExcel"
@@ -12,7 +35,7 @@
  <svg class="w-4 h-4 text-emerald-600 dark:text-emerald-400" viewBox="0 0 24 24" fill="currentColor">
  <path d="M14 2H6a2 2 0 0 0-2 2v16a2 2 0 0 0 2 2h12a2 2 0 0 0 2-2V8l-6-6zm-1 2l5 5h-5V4zM6 20V4h5v6h6v10H6zm2-8h2v2H8v-2zm0 3h2v2H8v-2zm3-3h5v2h-5v-2zm0 3h5v2h-5v-2z"/>
  </svg>
- <span>Download Excel</span>
+ <span>Excel</span>
  <svg class="w-3.5 h-3.5 text-slate-400 transition-transform duration-200" :class="{ 'rotate-180': openExcel }" fill="none" viewBox="0 0 24 24" stroke="currentColor">
  <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M19 9l-7 7-7-7" />
  </svg>
@@ -52,45 +75,22 @@
  </div>
  </div>
 
- @can('kesiswaan.siswa.cetak')
- <a href="{{ route('kesiswaan.cetak-absensi') }}" class="inline-flex items-center gap-1.5 px-3 py-2 text-sm font-medium text-indigo-700 dark:text-indigo-300 bg-indigo-50 dark:bg-indigo-950/50 border border-indigo-200 dark:border-indigo-800 rounded-md hover:bg-indigo-100 dark:hover:bg-indigo-900/60 shadow-xs transition" title="Cetak Lembar Presensi / Daftar Hadir">
- <svg class="w-4 h-4 text-primary dark:text-indigo-400" fill="none" viewBox="0 0 24 24" stroke="currentColor">
- <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9 5H7a2 2 0 00-2 2v12a2 2 0 002 2h10a2 2 0 002-2V7a2 2 0 00-2-2h-2M9 5a2 2 0 002 2h2a2 2 0 002-2M9 5a2 2 0 012-2h2a2 2 0 012 2" />
- </svg>
- <span>Cetak Absensi</span>
- </a>
- <button wire:click="cetakDaftar" class="btn btn-secondary">
- <span>&#128424;</span> Cetak PDF
- </button>
- @endcan
- @can('kesiswaan.siswa.tambah')
- <a href="{{ \Illuminate\Support\Facades\Route::has('kesiswaan.siswa.create') ? route('kesiswaan.siswa.create') : url('/kesiswaan/siswa/create') }}" class="btn btn-primary inline-flex items-center gap-1.5 bg-emerald-600 hover:bg-emerald-700 text-white">
- <svg class="w-4 h-4" fill="none" viewBox="0 0 24 24" stroke="currentColor">
- <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M18 9v3m0 0v3m0-3h3m-3 0h-3m-2-5a4 4 0 11-8 0 4 4 0 018 0zM3 20a6 6 0 0112 0v1H3v-1z" />
- </svg>
- <span>+ Tambah Siswa</span>
- </a>
- <a href="{{ route('kesiswaan.import') }}" class="btn btn-secondary inline-flex items-center gap-1.5">
- <svg class="w-4 h-4" fill="none" viewBox="0 0 24 24" stroke="currentColor">
- <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M4 16v1a3 3 0 003 3h10a3 3 0 003-3v-1m-4-8l-4-4m0 0L8 8m4-4v12" />
- </svg>
- <span>+ Import File DAPODIK</span>
- </a>
- @endcan
- @can('kesiswaan.siswa.hapus')
- <button type="button" 
-         wire:click="resetAllSiswa" 
-         wire:confirm="PERINGATAN KRUSIAL: Apakah Anda yakin ingin MENGHAPUS SELURUH DATA SISWA beserta SELURUH AKUN PENGGUNA SISWA DAN ORANG TUA? Tindakan ini akan mengosongkan database siswa dan TIDAK DAPAT DIBATALKAN!" 
-         class="btn inline-flex items-center gap-1.5 bg-rose-600 hover:bg-rose-700 text-white shadow-xs"
-         title="Hapus seluruh data siswa dan akun siswa & orang tua">
-     <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-         <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M19 7l-.867 12.142A2 2 0 0116.138 21H7.862a2 2 0 01-1.995-1.858L5 7m5 4v6m4-6v6m1-10V4a1 1 0 00-1-1h-4a1 1 0 00-1 1v3M4 7h16" />
-     </svg>
-     <span>Reset Data Siswa</span>
- </button>
- @endcan
- </div>
- </div>
+            @can('kesiswaan.siswa.cetak')
+            <button type="button" wire:click="cetakDaftar" class="btn btn-secondary inline-flex items-center gap-1.5 shadow-xs">
+                <svg class="w-4 h-4 text-text-muted" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                    <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M17 17h2a2 2 0 002-2v-4a2 2 0 00-2-2H5a2 2 0 00-2 2v4a2 2 0 002 2h2m2 4h6a2 2 0 002-2v-4a2 2 0 00-2-2H9a2 2 0 00-2 2v4a2 2 0 002 2zm8-12V5a2 2 0 00-2-2H9a2 2 0 00-2 2v4h10z" />
+                </svg>
+                <span>PDF</span>
+            </button>
+            <a href="{{ route('kesiswaan.cetak-absensi') }}" class="btn btn-secondary inline-flex items-center gap-1.5 shadow-xs" title="Cetak Lembar Presensi / Daftar Hadir">
+                <svg class="w-4 h-4 text-text-muted" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                    <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M17 17h2a2 2 0 002-2v-4a2 2 0 00-2-2H5a2 2 0 00-2 2v4a2 2 0 002 2h2m2 4h6a2 2 0 002-2v-4a2 2 0 00-2-2H9a2 2 0 00-2 2v4a2 2 0 002 2zm8-12V5a2 2 0 00-2-2H9a2 2 0 00-2 2v4h10z" />
+                </svg>
+                <span>Absensi</span>
+            </a>
+            @endcan
+        </div>
+    </div>
 
  <div wire:loading wire:target="exportExcel" class="p-3.5 bg-success-soft dark:bg-emerald-950/40 border border-success rounded-xl text-success text-xs flex items-center gap-2.5 shadow-xs">
  <svg class="animate-spin h-4 w-4 text-emerald-600 dark:text-emerald-400 shrink-0" xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24">
@@ -153,8 +153,9 @@
  </div>
 
  <!-- Table Card: Urutan Header Resmi No, NIS, Nama, JK, Rombel, Rayon, Program -->
- <div class="card overflow-hidden">
- <table class="min-w-full divide-y divide-slate-200 dark:divide-slate-800 text-left text-sm">
+    <div class="card p-0 overflow-hidden">
+        <div class="overflow-x-auto">
+            <table class="min-w-full divide-y divide-slate-200 dark:divide-slate-800 text-left text-sm">
  <thead class="bg-surface-hover bg-surface/50 text-text-secondary font-medium">
  <tr>
  <x-table.sortable-th field="id" :sortField="$sortField" :sortDirection="$sortDirection" class="px-4 py-3 w-12 text-center">No</x-table.sortable-th>
@@ -168,90 +169,102 @@
  </tr>
  </thead>
  <tbody class="divide-y divide-slate-200 dark:divide-slate-800 text-text-main">
- @forelse($siswas as $idx => $s)
- <tr class="{{ $s->is_active ? 'hover:bg-surface-hover/50 dark:hover:bg-slate-800/30' : 'bg-pink-50 hover:bg-pink-100 dark:bg-pink-950/40 dark:hover:bg-pink-900/50' }} transition">
- <td class="px-4 py-4 text-center text-xs text-slate-400 font-mono">
- {{ $siswas->firstItem() + $idx }}
- </td>
- <td class="px-5 py-4 font-mono font-bold text-text-main text-xs">
- {{ $s->nipd ?: $s->nisn }}
- </td>
- <td class="px-6 py-4">
- <div>
- <div class="font-bold text-text-main">{{ $s->nama }}</div>
- <div class="text-[11px] text-slate-400 font-mono">NISN: {{ \App\Core\Support\DataMasker::maskNisn($s->nisn) }}</div>
- </div>
- </td>
- <td class="px-4 py-4 text-center">
- <span class="inline-flex items-center px-2 py-0.5 rounded text-xs font-bold {{ $s->jk === 'L' ? 'text-blue-700 bg-blue-50 dark:bg-blue-950/60 dark:text-blue-300' : 'text-pink-700 bg-pink-50 dark:bg-pink-950/60 dark:text-pink-300' }}">
- {{ $s->jk }}
- </span>
- </td>
- <td class="px-5 py-4">
- @if($s->rombel)
- <span class="inline-flex items-center px-2.5 py-1 rounded-md text-xs font-bold bg-indigo-50 text-indigo-700 dark:bg-indigo-950/60 dark:text-indigo-300 border border-indigo-200 dark:border-indigo-800">
- {{ $s->rombel->nama }}
- </span>
- @else
- <span class="text-xs italic text-amber-600 dark:text-amber-400">Belum Ada</span>
- @endif
- </td>
- <td class="px-5 py-4">
- @if($s->rayon)
- <span class="inline-flex items-center px-2 py-0.5 rounded text-xs font-semibold bg-success-soft text-emerald-700 dark:bg-emerald-950/60 text-success border border-success">
- {{ $s->rayon->nama }}
- </span>
- @else
- <span class="text-xs italic text-rose-500">Belum di-plot</span>
- @endif
- </td>
- <td class="px-5 py-4 text-center">
- @php
- $cIdx = $s->program ? ($s->program->id % 6) : -1;
- $cClass = match($cIdx) {
- 0 => 'bg-blue-50 text-blue-700 border-blue-200 dark:bg-blue-950/60 dark:text-blue-300 dark:border-blue-800',
- 1 => 'bg-success-soft text-emerald-700 border-success dark:bg-emerald-950/60 text-success border-success',
- 2 => 'bg-amber-50 text-amber-800 border-amber-300 dark:bg-amber-950/60 dark:text-amber-300 dark:border-amber-800',
- 3 => 'bg-purple-50 text-purple-700 border-purple-200 dark:bg-purple-950/60 dark:text-purple-300 dark:border-purple-800',
- 4 => 'bg-rose-50 text-rose-700 border-rose-200 dark:bg-rose-950/60 dark:text-rose-300 dark:border-rose-800',
- 5 => 'bg-cyan-50 text-cyan-700 border-cyan-200 dark:bg-cyan-950/60 dark:text-cyan-300 dark:border-cyan-800',
- default => 'bg-surface-hover text-text-main border-border bg-surface text-text-secondary border-border',
- };
- @endphp
- <span class="inline-flex items-center px-2.5 py-1 rounded-md text-xs font-bold border {{ $cClass }}">
- {{ $s->program?->nama ?? 'Reguler' }}
- </span>
- </td>
- <td class="px-6 py-4 text-right space-x-2 whitespace-nowrap">
- <!-- WA Dropdown -->
- <div x-data="{ open: false }" class="relative inline-block text-left">
- <button @click="open = !open" @click.away="open = false" class="text-emerald-500 hover:text-emerald-700" title="Hubungi">
- <svg class="w-5 h-5 inline" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M3 5a2 2 0 012-2h3.28a1 1 0 01.948.684l1.498 4.493a1 1 0 01-.502 1.21l-2.257 1.13a11.042 11.042 0 005.516 5.516l1.13-2.257a1 1 0 011.21-.502l4.493 1.498a1 1 0 01.684.949V19a2 2 0 01-2 2h-1C9.716 21 3 14.284 3 6V5z"></path></svg>
- </button>
- <div x-show="open" class="origin-top-right absolute right-0 mt-2 w-48 rounded-md shadow-lg bg-surface ring-1 ring-black ring-opacity-5 z-[50]" style="display: none;">
- <div class="py-1">
- @php
- $formatWa = function($no) {
- if (!$no) return null;
- $no = preg_replace('/[^0-9]/', '', $no);
- if (str_starts_with($no, '0')) $no = '62' . substr($no, 1);
- return $no;
- };
- $waSiswa = $formatWa($s->hp);
- $waAyah = $formatWa($s->ayah?->no_hp);
- $waIbu = $formatWa($s->ibu?->no_hp);
- $waWali = $formatWa($s->wali?->no_hp);
- @endphp
- @if($waSiswa) <a href="https://wa.me/{{ $waSiswa }}" target="_blank" class="block px-4 py-2 text-sm text-text-main hover:bg-slate-100 hover:bg-surface-hover text-left">Hubungi Siswa</a> @endif
- @if($waAyah) <a href="https://wa.me/{{ $waAyah }}" target="_blank" class="block px-4 py-2 text-sm text-text-main hover:bg-slate-100 hover:bg-surface-hover text-left">Hubungi Ayah</a> @endif
- @if($waIbu) <a href="https://wa.me/{{ $waIbu }}" target="_blank" class="block px-4 py-2 text-sm text-text-main hover:bg-slate-100 hover:bg-surface-hover text-left">Hubungi Ibu</a> @endif
- @if($waWali) <a href="https://wa.me/{{ $waWali }}" target="_blank" class="block px-4 py-2 text-sm text-text-main hover:bg-slate-100 hover:bg-surface-hover text-left">Hubungi Wali</a> @endif
- @if(!$waSiswa && !$waAyah && !$waIbu && !$waWali)
- <span class="block px-4 py-2 text-sm text-slate-400 italic text-left">Tidak ada kontak</span>
- @endif
- </div>
- </div>
- </div>
+                    @forelse($siswas as $idx => $s)
+                    <tr class="{{ $s->is_active ? 'hover:bg-surface-hover/50' : 'bg-danger-soft/20 text-text-muted hover:bg-danger-soft/40' }} transition">
+                        <td class="px-4 py-4 text-center text-xs text-text-muted font-mono">
+                            {{ $siswas->firstItem() + $idx }}
+                        </td>
+                        <td class="px-5 py-4 font-mono text-text-main text-sm font-medium">
+                            {{ $s->nipd ?: $s->nisn }}
+                        </td>
+                        <td class="px-6 py-4">
+                            <div>
+                                <div class="text-text-main font-semibold text-sm">{{ $s->nama }}</div>
+                            </div>
+                        </td>
+                        <td class="px-4 py-4 text-center">
+                            <span class="inline-flex items-center text-xs font-semibold {{ $s->jk === 'L' ? 'text-primary' : 'text-pink-500' }}">
+                                {{ $s->jk }}
+                            </span>
+                        </td>
+                        <td class="px-5 py-4">
+                            @if($s->rombel)
+                                <span class="inline-flex items-center text-xs text-text-main">
+                                    {{ $s->rombel->nama }}
+                                </span>
+                            @else
+                                <span class="text-xs italic text-amber-500">Belum Ada</span>
+                            @endif
+                        </td>
+                        <td class="px-5 py-4">
+                            @if($s->rayon)
+                                <span class="inline-flex items-center text-xs text-text-main">
+                                    {{ $s->rayon->nama }}
+                                </span>
+                            @else
+                                <span class="text-xs italic text-rose-500">Belum di-plot</span>
+                            @endif
+                        </td>
+                        <td class="px-5 py-4 text-center">
+                            @php
+                                $cIdx = $s->program ? ($s->program->id % 6) : -1;
+                                $cClass = match($cIdx) {
+                                    0 => 'badge-primary',
+                                    1 => 'badge-success',
+                                    2 => 'badge-warning',
+                                    3 => 'badge-danger',
+                                    4 => 'badge-info',
+                                    default => 'badge-neutral',
+                                };
+                            @endphp
+                            <span class="badge {{ $cClass }}">
+                                {{ $s->program?->nama ?? 'Reguler' }}
+                            </span>
+                        </td>
+                        <td class="px-6 py-4 whitespace-nowrap">
+                            <div class="flex items-center justify-end gap-2">
+                                <!-- WA Dropdown -->
+                                <div x-data="{ open: false }" class="relative inline-block text-left">
+                                    <button @click="open = !open" @click.away="open = false" class="text-emerald-500 hover:text-emerald-700" title="Hubungi">
+                                        <svg class="w-5 h-5 inline" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M3 5a2 2 0 012-2h3.28a1 1 0 01.948.684l1.498 4.493a1 1 0 01-.502 1.21l-2.257 1.13a11.042 11.042 0 005.516 5.516l1.13-2.257a1 1 0 011.21-.502l4.493 1.498a1 1 0 01.684.949V19a2 2 0 01-2 2h-1C9.716 21 3 14.284 3 6V5z"></path></svg>
+                                    </button>
+                                    <div x-show="open" class="origin-top-right absolute right-0 mt-2 w-48 rounded-md shadow-lg bg-surface border border-border z-[50]" style="display: none;">
+                                        <div class="py-1">
+                                            @php
+                                                $formatWa = function($no) {
+                                                    if (!$no) return null;
+                                                    $no = preg_replace('/[^0-9]/', '', $no);
+                                                    if (str_starts_with($no, '0')) $no = '62' . substr($no, 1);
+                                                    return $no;
+                                                };
+                                                $waSiswa = $formatWa($s->hp);
+                                                $waAyah = $formatWa($s->ayah?->no_hp);
+                                                $waIbu = $formatWa($s->ibu?->no_hp);
+                                                $waWali = $formatWa($s->wali?->no_hp);
+                                            @endphp
+                                            @if($waSiswa)
+                                                <a href="https://wa.me/{{ $waSiswa }}" target="_blank" class="block px-4 py-2 text-sm text-text-main hover:bg-surface-hover text-left transition">Hubungi Siswa</a>
+                                            @else
+                                                <span class="block px-4 py-2 text-sm text-text-muted/60 cursor-not-allowed select-none text-left" title="Nomor tidak tersedia">Hubungi Siswa</span>
+                                            @endif
+                                            @if($waAyah)
+                                                <a href="https://wa.me/{{ $waAyah }}" target="_blank" class="block px-4 py-2 text-sm text-text-main hover:bg-surface-hover text-left transition">Hubungi Ayah</a>
+                                            @else
+                                                <span class="block px-4 py-2 text-sm text-text-muted/60 cursor-not-allowed select-none text-left" title="Nomor tidak tersedia">Hubungi Ayah</span>
+                                            @endif
+                                            @if($waIbu)
+                                                <a href="https://wa.me/{{ $waIbu }}" target="_blank" class="block px-4 py-2 text-sm text-text-main hover:bg-surface-hover text-left transition">Hubungi Ibu</a>
+                                            @else
+                                                <span class="block px-4 py-2 text-sm text-text-muted/60 cursor-not-allowed select-none text-left" title="Nomor tidak tersedia">Hubungi Ibu</span>
+                                            @endif
+                                            @if($waWali)
+                                                <a href="https://wa.me/{{ $waWali }}" target="_blank" class="block px-4 py-2 text-sm text-text-main hover:bg-surface-hover text-left transition">Hubungi Wali</a>
+                                            @else
+                                                <span class="block px-4 py-2 text-sm text-text-muted/60 cursor-not-allowed select-none text-left" title="Nomor tidak tersedia">Hubungi Wali</span>
+                                            @endif
+                                        </div>
+                                    </div>
+                                </div>
 
  <button wire:click="showDetail({{ $s->id }})" class="text-blue-500 hover:text-blue-700" title="Profil">
  <svg class="w-5 h-5 inline" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M15 12a3 3 0 11-6 0 3 3 0 016 0z"></path><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M2.458 12C3.732 7.943 7.523 5 12 5c4.478 0 8.268 2.943 9.542 7-1.274 4.057-5.064 7-9.542 7-4.477 0-8.268-2.943-9.542-7z"></path></svg>
@@ -266,6 +279,7 @@
  <svg class="w-5 h-5 inline" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M19 7l-.867 12.142A2 2 0 0116.138 21H7.862a2 2 0 01-1.995-1.858L5 7m5 4v6m4-6v6m1-10V4a1 1 0 00-1-1h-4a1 1 0 00-1 1v3M4 7h16"></path></svg>
  </button>
  @endcan
+ </div>
  </td>
  </tr>
  @empty
@@ -275,6 +289,7 @@
  @endforelse
  </tbody>
  </table>
+ </div>
 
  <div class="px-6 py-4 border-t border-border">
  {{ $siswas->links() }}
@@ -334,18 +349,29 @@
  <!-- Data Orang Tua -->
  <div class="space-y-3 pb-4 border-b border-slate-100 border-border">
  <h4 class="text-xs font-bold uppercase tracking-wider text-slate-400">Data Orang Tua / Wali</h4>
- <div class="grid grid-cols-1 sm:grid-cols-2 gap-4">
+ <div class="grid grid-cols-1 sm:grid-cols-3 gap-4">
  <div class="p-3 bg-surface-hover bg-surface/40 rounded-md">
  <span class="text-xs font-bold text-primary dark:text-indigo-400 block">Data Ayah Kandung</span>
  <div class="font-semibold text-text-main">{{ $selectedSiswa->ayah?->nama ?? '-' }}</div>
- <div class="text-xs text-text-secondary mt-1">Pekerjaan: {{ $selectedSiswa->ayah?->pekerjaan ?? '-' }}</div>
+ <div class="text-xs text-text-secondary mt-1">Status: {{ $selectedSiswa->ayah?->status_hidup ?? 'Hidup' }}</div>
+ <div class="text-xs text-text-secondary">Kontak: {{ $selectedSiswa->ayah?->no_hp ?? '-' }}</div>
+ <div class="text-xs text-text-secondary">Pekerjaan: {{ $selectedSiswa->ayah?->pekerjaan ?? '-' }}</div>
  <div class="text-xs text-text-secondary">Penghasilan: {{ $selectedSiswa->ayah?->penghasilan ?? '-' }}</div>
  </div>
  <div class="p-3 bg-surface-hover bg-surface/40 rounded-md">
  <span class="text-xs font-bold text-pink-600 dark:text-pink-400 block">Data Ibu Kandung</span>
  <div class="font-semibold text-text-main">{{ $selectedSiswa->ibu?->nama ?? '-' }}</div>
- <div class="text-xs text-text-secondary mt-1">Pekerjaan: {{ $selectedSiswa->ibu?->pekerjaan ?? '-' }}</div>
+ <div class="text-xs text-text-secondary mt-1">Status: {{ $selectedSiswa->ibu?->status_hidup ?? 'Hidup' }}</div>
+ <div class="text-xs text-text-secondary">Kontak: {{ $selectedSiswa->ibu?->no_hp ?? '-' }}</div>
+ <div class="text-xs text-text-secondary">Pekerjaan: {{ $selectedSiswa->ibu?->pekerjaan ?? '-' }}</div>
  <div class="text-xs text-text-secondary">Penghasilan: {{ $selectedSiswa->ibu?->penghasilan ?? '-' }}</div>
+ </div>
+ <div class="p-3 bg-surface-hover bg-surface/40 rounded-md">
+ <span class="text-xs font-bold text-emerald-600 dark:text-emerald-400 block">Data Wali</span>
+ <div class="font-semibold text-text-main">{{ $selectedSiswa->wali?->nama ?? '-' }}</div>
+ <div class="text-xs text-text-secondary mt-1">Kontak: {{ $selectedSiswa->wali?->no_hp ?? '-' }}</div>
+ <div class="text-xs text-text-secondary">Pekerjaan: {{ $selectedSiswa->wali?->pekerjaan ?? '-' }}</div>
+ <div class="text-xs text-text-secondary">Penghasilan: {{ $selectedSiswa->wali?->penghasilan ?? '-' }}</div>
  </div>
  </div>
  </div>

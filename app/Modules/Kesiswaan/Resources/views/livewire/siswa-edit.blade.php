@@ -331,7 +331,7 @@ Keaktifan</label>
  <h3 class="text-sm font-bold text-primary dark:text-indigo-400 uppercase tracking-wider">
  Data Ayah Kandung
  </h3>
- <div class="grid grid-cols-1 sm:grid-cols-3 gap-4">
+ <div class="grid grid-cols-1 sm:grid-cols-4 gap-4">
  <div class="sm:col-span-2">
  <label class="block text-xs font-semibold text-text-main text-text-secondary mb-1">Nama Ayah Kandung</label>
  <input type="text" wire:model="ayah_nama" class="w-full text-sm rounded-md border-border bg-surface text-text-main">
@@ -340,8 +340,15 @@ Keaktifan</label>
  <label class="block text-xs font-semibold text-text-main text-text-secondary mb-1">Tahun Lahir</label>
  <input type="number" wire:model="ayah_tahun_lahir" placeholder="Contoh: 1975" class="w-full text-sm rounded-md border-border bg-surface text-text-main">
  </div>
+ <div>
+ <label class="block text-xs font-semibold text-text-main text-text-secondary mb-1">Status Hidup</label>
+ <select wire:model="ayah_status_hidup" class="w-full text-sm rounded-md border-border bg-surface text-text-main">
+ <option value="Hidup">Masih Hidup</option>
+ <option value="Wafat">Meninggal/Wafat</option>
+ </select>
  </div>
- <div class="grid grid-cols-1 sm:grid-cols-3 gap-4">
+ </div>
+ <div class="grid grid-cols-1 sm:grid-cols-4 gap-4">
  <div>
  <label class="block text-xs font-semibold text-text-main text-text-secondary mb-1">Jenjang Pendidikan</label>
  <input type="text" wire:model="ayah_jenjang_pendidikan" placeholder="SMA / S1 / SMP" class="w-full text-sm rounded-md border-border bg-surface text-text-main">
@@ -353,6 +360,10 @@ Keaktifan</label>
  <div>
  <label class="block text-xs font-semibold text-text-main text-text-secondary mb-1">Penghasilan</label>
  <input type="text" wire:model="ayah_penghasilan" placeholder="Rentang penghasilan bulanan" class="w-full text-sm rounded-md border-border bg-surface text-text-main">
+ </div>
+ <div>
+ <label class="block text-xs font-semibold text-text-main text-text-secondary mb-1">No. Kontak / HP</label>
+ <input type="text" wire:model="ayah_no_hp" placeholder="08xxxxxxxx" class="w-full text-sm rounded-md border-border bg-surface text-text-main">
  </div>
  </div>
  <div>
@@ -366,7 +377,7 @@ Keaktifan</label>
  <h3 class="text-sm font-bold text-pink-600 dark:text-pink-400 uppercase tracking-wider">
  Data Ibu Kandung
  </h3>
- <div class="grid grid-cols-1 sm:grid-cols-3 gap-4">
+ <div class="grid grid-cols-1 sm:grid-cols-4 gap-4">
  <div class="sm:col-span-2">
  <label class="block text-xs font-semibold text-text-main text-text-secondary mb-1">Nama Ibu Kandung</label>
  <input type="text" wire:model="ibu_nama" class="w-full text-sm rounded-md border-border bg-surface text-text-main">
@@ -375,8 +386,15 @@ Keaktifan</label>
  <label class="block text-xs font-semibold text-text-main text-text-secondary mb-1">Tahun Lahir</label>
  <input type="number" wire:model="ibu_tahun_lahir" placeholder="Contoh: 1980" class="w-full text-sm rounded-md border-border bg-surface text-text-main">
  </div>
+ <div>
+ <label class="block text-xs font-semibold text-text-main text-text-secondary mb-1">Status Hidup</label>
+ <select wire:model="ibu_status_hidup" class="w-full text-sm rounded-md border-border bg-surface text-text-main">
+ <option value="Hidup">Masih Hidup</option>
+ <option value="Wafat">Meninggal/Wafat</option>
+ </select>
  </div>
- <div class="grid grid-cols-1 sm:grid-cols-3 gap-4">
+ </div>
+ <div class="grid grid-cols-1 sm:grid-cols-4 gap-4">
  <div>
  <label class="block text-xs font-semibold text-text-main text-text-secondary mb-1">Jenjang Pendidikan</label>
  <input type="text" wire:model="ibu_jenjang_pendidikan" class="w-full text-sm rounded-md border-border bg-surface text-text-main">
@@ -388,6 +406,10 @@ Keaktifan</label>
  <div>
  <label class="block text-xs font-semibold text-text-main text-text-secondary mb-1">Penghasilan</label>
  <input type="text" wire:model="ibu_penghasilan" class="w-full text-sm rounded-md border-border bg-surface text-text-main">
+ </div>
+ <div>
+ <label class="block text-xs font-semibold text-text-main text-text-secondary mb-1">No. Kontak / HP</label>
+ <input type="text" wire:model="ibu_no_hp" placeholder="08xxxxxxxx" class="w-full text-sm rounded-md border-border bg-surface text-text-main">
  </div>
  </div>
  <div>
@@ -411,7 +433,7 @@ Keaktifan</label>
  <input type="number" wire:model="wali_tahun_lahir" class="w-full text-sm rounded-md border-border bg-surface text-text-main">
  </div>
  </div>
- <div class="grid grid-cols-1 sm:grid-cols-3 gap-4">
+ <div class="grid grid-cols-1 sm:grid-cols-4 gap-4">
  <div>
  <label class="block text-xs font-semibold text-text-main text-text-secondary mb-1">Jenjang Pendidikan</label>
  <input type="text" wire:model="wali_jenjang_pendidikan" class="w-full text-sm rounded-md border-border bg-surface text-text-main">
@@ -423,6 +445,10 @@ Keaktifan</label>
  <div>
  <label class="block text-xs font-semibold text-text-main text-text-secondary mb-1">Penghasilan</label>
  <input type="text" wire:model="wali_penghasilan" class="w-full text-sm rounded-md border-border bg-surface text-text-main">
+ </div>
+ <div>
+ <label class="block text-xs font-semibold text-text-main text-text-secondary mb-1">No. Kontak / HP</label>
+ <input type="text" wire:model="wali_no_hp" placeholder="08xxxxxxxx" class="w-full text-sm rounded-md border-border bg-surface text-text-main">
  </div>
  </div>
  <div>

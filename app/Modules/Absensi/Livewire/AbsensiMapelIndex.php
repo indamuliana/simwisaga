@@ -6,6 +6,7 @@ use App\Enums\StatusAbsensi;
 use App\Modules\Absensi\Models\AbsensiHarian;
 use App\Modules\Absensi\Models\AbsensiMapel;
 use App\Modules\Akademik\Models\Rayon;
+use App\Modules\Akademik\Support\AcademicContext;
 use App\Modules\Kepegawaian\Models\PenugasanMengajar;
 use App\Modules\Kesiswaan\Models\Siswa;
 use Illuminate\Support\Facades\DB;
@@ -29,7 +30,11 @@ class AbsensiMapelIndex extends Component
         $this->rayons = Rayon::orderBy('nama')->get();
 
         $user = auth()->user();
+        $currentSem = AcademicContext::currentSemester();
         $query = PenugasanMengajar::with(['rombel', 'mapel']);
+        if ($currentSem) {
+            $query->where('semester_id', $currentSem->id);
+        }
 
         if ($user && !$user->isSuperAdmin()) {
             $pegawai = \App\Modules\Kepegawaian\Models\Pegawai::where('user_id', $user->id)->first();
@@ -105,7 +110,7 @@ class AbsensiMapelIndex extends Component
         }
 
         return Siswa::with('rayon')
-            ->where('rombel_id', $penugasan->rombel_id)
+            ->inRombel($penugasan->rombel_id)
             ->orderBy('nama')
             ->get();
     }

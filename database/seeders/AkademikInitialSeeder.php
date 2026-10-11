@@ -3,6 +3,7 @@
 namespace Database\Seeders;
 
 use App\Modules\Akademik\Models\Jurusan;
+use App\Modules\Akademik\Models\KelompokMapel;
 use App\Modules\Akademik\Models\Mapel;
 use App\Modules\Akademik\Models\Rayon;
 use App\Modules\Akademik\Models\Rombel;
@@ -109,7 +110,19 @@ class AkademikInitialSeeder extends Seeder
             ['kode' => 'PKL', 'nama' => 'Praktik Kerja Lapangan (PKL)', 'kelompok' => 'p5_pkl', 'urutan' => 21],
         ];
 
+        $kelompokMapels = KelompokMapel::pluck('id', 'kode')->toArray();
+        $kodeMap = [
+            'umum' => 'A',
+            'kejuruan' => 'B',
+            'muatan_lokal' => 'C',
+            'p5_pkl' => 'D',
+        ];
+
         foreach ($mapels as $m) {
+            $kodeGroup = $kodeMap[$m['kelompok']] ?? null;
+            if ($kodeGroup && isset($kelompokMapels[$kodeGroup])) {
+                $m['kelompok_mapel_id'] = $kelompokMapels[$kodeGroup];
+            }
             Mapel::updateOrCreate(['kode' => $m['kode']], $m);
         }
 

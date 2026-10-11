@@ -27,4 +27,5 @@ yarn-error.log
 !database/seeders/data/*.xlsx
 /storage/app/private
 /storage/app/backups
+/scratch
 

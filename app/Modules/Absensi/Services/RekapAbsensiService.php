@@ -62,7 +62,7 @@ class RekapAbsensiService
             ->where('status', 'aktif');
 
         if (!empty($rombelId)) {
-            $querySiswa->where('rombel_id', $rombelId);
+            $querySiswa->inRombel((int) $rombelId);
         }
 
         if (!empty($rayonId)) {

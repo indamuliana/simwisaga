@@ -1,12 +1,28 @@
 <div>
- <h2 class="mb-2 text-2xl font-bold">Manajemen Rapor Siswa</h2>
- 
- @if(!$rombel_id)
- <div class="card p-8 text-center text-text-secondary">
- Anda belum ditugaskan sebagai Wali Kelas pada semester ini.
- </div>
- @else
- <p class="mb-6 text-text-secondary">Kelas Binaan: <strong>{{ $rombel->nama }}</strong></p>
+    <div class="flex flex-col sm:flex-row sm:items-center sm:justify-between gap-4 mb-6">
+        <div>
+            <h2 class="text-2xl font-bold text-text-main">Manajemen Rapor Siswa</h2>
+            <p class="text-xs text-text-secondary mt-1">Pengisian catatan wali kelas dan pencetakan buku rapor semester.</p>
+        </div>
+        @if($canSelectRombel)
+        <div class="flex items-center gap-2">
+            <label class="text-xs font-semibold text-text-secondary whitespace-nowrap">Pilih Rombel:</label>
+            <select wire:model.live="rombel_id" class="input text-xs font-semibold min-w-[200px]">
+                <option value="">-- Pilih Rombel --</option>
+                @foreach($availableRombels as $r)
+                <option value="{{ $r->id }}">Kelas {{ $r->tingkat }} - {{ $r->nama }}</option>
+                @endforeach
+            </select>
+        </div>
+        @endif
+    </div>
+    
+    @if(!$rombel_id)
+    <div class="card p-8 text-center text-text-secondary">
+        Anda belum ditugaskan sebagai Wali Kelas pada semester ini, atau belum memilih rombel.
+    </div>
+    @else
+    <p class="mb-4 text-xs text-text-secondary">Kelas Binaan / Aktif: <strong class="text-text-main">{{ $rombel->nama }} (Kelas {{ $rombel->tingkat }})</strong></p>
 
  <div class="card overflow-x-auto">
  <div class="flex justify-between items-center mb-4">
@@ -55,8 +71,19 @@
  </div>
  <div class="p-6">
  <div class="mb-4">
- <label class="label">Tanggal Cetak (Titi Mangsa)</label>
- <input type="date" wire:model="printTanggal" class="input">
+ @if(count($availablePeriodes) > 0)
+ <label class="label block text-xs font-semibold text-text-main mb-1">Periode Rapor</label>
+ <select wire:model.live="selectedPeriodeId" class="w-full text-sm rounded-lg border-border bg-surface text-text-main mb-3">
+ @foreach($availablePeriodes as $p)
+ <option value="{{ $p->id }}">{{ $p->nama }} ({{ $p->sebutan }})</option>
+ @endforeach
+ </select>
+ @endif
+ <label class="label block text-xs font-semibold text-text-main mb-1">Tanggal Cetak (Titi Mangsa)</label>
+ <input type="date" wire:model="printTanggal" class="input w-full text-sm rounded-lg border-border bg-surface text-text-main">
+ @if($selectedPeriodeId && ($curP = collect($availablePeriodes)->firstWhere('id', $selectedPeriodeId)))
+ <p class="text-[11px] text-text-secondary mt-1">Tempat Penerbitan: <strong>{{ $curP->tempat }}</strong></p>
+ @endif
  </div>
  
  <div class="flex flex-col gap-3 mt-6">
@@ -66,7 +93,7 @@
  <a href="{{ route('rapor.cetak.identitas', ['siswa_id' => $printSiswaId]) }}" target="_blank" class="btn border border-google-blue text-primary hover:bg-blue-50 dark:hover:bg-blue-900/30 w-full justify-center">
  2. Cetak Identitas Siswa
  </a>
- <a href="{{ route('rapor.cetak.nilai', ['siswa_id' => $printSiswaId, 'tanggal' => $printTanggal]) }}" target="_blank" class="btn btn-primary w-full justify-center">
+ <a href="{{ route('rapor.cetak.nilai', ['siswa_id' => $printSiswaId, 'tanggal' => $printTanggal, 'periode_id' => $selectedPeriodeId]) }}" target="_blank" class="btn btn-primary w-full justify-center">
  3. Cetak Rapor Semester (Nilai)
  </a>
  </div>

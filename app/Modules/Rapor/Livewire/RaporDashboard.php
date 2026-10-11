@@ -8,6 +8,8 @@ use App\Modules\Kepegawaian\Models\Pegawai;
 use App\Modules\Kesiswaan\Models\Siswa;
 use App\Modules\Rapor\Models\CatatanWaliKelas;
 use App\Modules\Akademik\Models\Semester;
+use App\Modules\Akademik\Support\AcademicContext;
+use App\Modules\Sistem\Models\PeriodeRapor;
 use Livewire\Attributes\Layout;
 
 class RaporDashboard extends Component
@@ -17,10 +19,16 @@ class RaporDashboard extends Component
     public $catatans = []; // [siswa_id => catatan]
     public $semester_id;
     
+    // For Rombel Selection (Super Admin / Kurikulum)
+    public bool $canSelectRombel = false;
+    public $availableRombels = [];
+
     // For Print Modal
     public $showPrintModal = false;
     public $printSiswaId = null;
     public $printTanggal = '';
+    public $availablePeriodes = [];
+    public ?int $selectedPeriodeId = null;
 
     public function mount()
     {
@@ -30,17 +38,28 @@ class RaporDashboard extends Component
             $this->semester_id = $semester->id;
         }
 
+        $activeTa = \App\Modules\Akademik\Support\AcademicContext::currentTahunAjaran();
         $user = auth()->user();
-        if ($user->isSuperAdmin()) {
-            // Can select rombel? Just take first for now or let them select.
-            $rombel = Rombel::first();
-            $this->rombel_id = $rombel ? $rombel->id : null;
+
+        if ($user && ($user->isSuperAdmin() || $user->hasRole('Super Admin') || $user->hasRole('Admin') || $user->hasRole('Kepala Sekolah'))) {
+            $this->canSelectRombel = true;
+            $this->availableRombels = Rombel::where('tahun_ajaran_id', $activeTa?->id)
+                ->orderBy('tingkat')
+                ->orderBy('nama')
+                ->get();
+
+            if ($this->availableRombels->isNotEmpty()) {
+                $this->rombel_id = $this->availableRombels->first()->id;
+            }
         } else {
-            $pegawai = Pegawai::where('user_id', $user->id)->first();
+            $pegawai = Pegawai::where('user_id', $user?->id)->first();
             if ($pegawai) {
-                // Assuming Pegawai has a 'wali_kelas_rombel' or similar relation.
-                // In S4, we didn't explicitly create wali kelas relation, let's assume it's in Rombel (wali_kelas_id).
-                $rombel = Rombel::where('wali_kelas_id', $pegawai->id)->first();
+                $rombel = Rombel::where('wali_kelas_id', $pegawai->id)
+                    ->where('tahun_ajaran_id', $activeTa?->id)
+                    ->first();
+                if (!$rombel) {
+                    $rombel = Rombel::where('wali_kelas_id', $pegawai->id)->first();
+                }
                 $this->rombel_id = $rombel ? $rombel->id : null;
             }
         }
@@ -50,12 +69,24 @@ class RaporDashboard extends Component
         }
     }
 
+    public function updatedRombelId()
+    {
+        $this->loadSiswas();
+    }
+
     public function loadSiswas()
     {
-        $this->siswas = Siswa::where('rombel_id', $this->rombel_id)->orderBy('nama')->get();
+        if (!$this->rombel_id) {
+            $this->siswas = collect();
+            $this->catatans = [];
+            return;
+        }
+
+        $this->siswas = Siswa::inRombel($this->rombel_id)->orderBy('nama')->get();
         $cat = CatatanWaliKelas::where('semester_id', $this->semester_id)
             ->whereIn('siswa_id', $this->siswas->pluck('id'))->get()->keyBy('siswa_id');
             
+        $this->catatans = [];
         foreach ($this->siswas as $siswa) {
             $this->catatans[$siswa->id] = $cat[$siswa->id]->catatan ?? '';
         }
@@ -75,7 +106,43 @@ class RaporDashboard extends Component
     public function openPrintModal($siswaId)
     {
         $this->printSiswaId = $siswaId;
+
+        $currentSem = AcademicContext::currentSemester();
+        $semName = $currentSem ? (str_contains(strtolower($currentSem->semester), 'genap') ? 'genap' : 'ganjil') : 'ganjil';
+        $currentTa = AcademicContext::currentTahunAjaran();
+
+        if ($currentTa) {
+            $this->availablePeriodes = PeriodeRapor::where('tahun_ajaran_id', $currentTa->id)
+                ->where('semester', $semName)
+                ->orderBy('urutan')
+                ->get();
+
+            // Default ke periode aktif, atau yang pertama
+            $activePeriode = $this->availablePeriodes->firstWhere('is_active', true) ?? $this->availablePeriodes->first();
+            if ($activePeriode) {
+                $this->selectedPeriodeId = $activePeriode->id;
+                $this->printTanggal = $activePeriode->tanggal_bagi ? $activePeriode->tanggal_bagi->format('Y-m-d') : date('Y-m-d');
+            } else {
+                $this->selectedPeriodeId = null;
+                $this->printTanggal = date('Y-m-d');
+            }
+        } else {
+            $this->availablePeriodes = collect();
+            $this->selectedPeriodeId = null;
+            $this->printTanggal = date('Y-m-d');
+        }
+
         $this->showPrintModal = true;
+    }
+
+    public function updatedSelectedPeriodeId($value): void
+    {
+        if ($value) {
+            $periode = PeriodeRapor::find($value);
+            if ($periode && $periode->tanggal_bagi) {
+                $this->printTanggal = $periode->tanggal_bagi->format('Y-m-d');
+            }
+        }
     }
 
     public function closePrintModal()

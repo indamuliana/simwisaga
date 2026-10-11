@@ -30,15 +30,26 @@ class Index extends Component
 
     public function render()
     {
+        $currentTa = \App\Modules\Akademik\Support\AcademicContext::currentTahunAjaran();
+
         $jurusans = Jurusan::withCount([
-            'rombels as total_siswa' => function($query) {
-                $query->join('siswas', 'rombels.id', '=', 'siswas.rombel_id');
+            'rombels as total_siswa' => function($query) use ($currentTa) {
+                if ($currentTa) {
+                    $query->where('tahun_ajaran_id', $currentTa->id);
+                }
+                $query->join('siswas', 'rombels.id', '=', 'siswas.rombel_id')->where('siswas.status', 'aktif');
             },
-            'rombels as siswa_l' => function($query) {
-                $query->join('siswas', 'rombels.id', '=', 'siswas.rombel_id')->where('siswas.jk', 'L');
+            'rombels as siswa_l' => function($query) use ($currentTa) {
+                if ($currentTa) {
+                    $query->where('tahun_ajaran_id', $currentTa->id);
+                }
+                $query->join('siswas', 'rombels.id', '=', 'siswas.rombel_id')->where('siswas.status', 'aktif')->where('siswas.jk', 'L');
             },
-            'rombels as siswa_p' => function($query) {
-                $query->join('siswas', 'rombels.id', '=', 'siswas.rombel_id')->where('siswas.jk', 'P');
+            'rombels as siswa_p' => function($query) use ($currentTa) {
+                if ($currentTa) {
+                    $query->where('tahun_ajaran_id', $currentTa->id);
+                }
+                $query->join('siswas', 'rombels.id', '=', 'siswas.rombel_id')->where('siswas.status', 'aktif')->where('siswas.jk', 'P');
             }
         ])
         ->when($this->search, function ($query) {

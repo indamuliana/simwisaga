@@ -87,9 +87,10 @@
  </div>
  </div>
 
- <!-- Table Card -->
- <div class="card overflow-hidden">
- <table class="min-w-full divide-y divide-slate-200 dark:divide-slate-800 text-left text-sm">
+    <!-- Table Card -->
+    <div class="card p-0 overflow-hidden">
+        <div class="overflow-x-auto">
+            <table class="min-w-full divide-y divide-slate-200 dark:divide-slate-800 text-left text-sm">
  <thead class="bg-surface-hover bg-surface/50 text-text-secondary font-medium">
  <tr>
  <th class="px-4 py-3 w-10 text-center">
@@ -140,6 +141,7 @@
  @endforelse
  </tbody>
  </table>
+ </div>
 
  <div class="px-6 py-4 border-t border-border">
  {{ $siswas->links() }}

@@ -31,11 +31,32 @@ Route::middleware(['web', 'auth'])->group(function () {
         $semester = Semester::where('is_active', true)->first();
         $sekolah = School::current();
         $tanggal = request('tanggal', date('Y-m-d'));
+        $periodeId = request('periode_id');
+        $periode = $periodeId ? \App\Modules\Sistem\Models\PeriodeRapor::find($periodeId) : null;
+        if (! $periode && $semester) {
+            $semName = str_contains(strtolower($semester->semester), 'genap') ? 'genap' : 'ganjil';
+            $periode = \App\Modules\Sistem\Models\PeriodeRapor::where('tahun_ajaran_id', $semester->tahun_ajaran_id)
+                ->where('semester', $semName)
+                ->where('is_active', true)
+                ->first();
+        }
         
         // Ambil Nilai Akademik
-        $nilaiAkademiks = \App\Modules\Penilaian\Models\NilaiAkhir::with(['penugasanMengajar.mapel'])
+        $nilaiAkademiks = \App\Modules\Penilaian\Models\NilaiAkhir::with(['penugasanMengajar.mapel.kelompokMapel'])
             ->where('siswa_id', $siswa_id)
             ->get();
+
+        $groupedNilaiAkademiks = $nilaiAkademiks->sortBy(function ($na) {
+            $kmUrutan = $na->penugasanMengajar?->mapel?->kelompokMapel?->urutan ?? 99;
+            $mapelUrutan = $na->penugasanMengajar?->mapel?->urutan ?? 999;
+            return sprintf('%04d-%04d', $kmUrutan, $mapelUrutan);
+        })->groupBy(function ($na) {
+            $km = $na->penugasanMengajar?->mapel?->kelompokMapel;
+            if ($km) {
+                return $km->kode . '. ' . $km->nama;
+            }
+            return 'Lainnya';
+        });
             
         // Ambil Ekstrakurikuler
         $ekskuls = \App\Modules\Ekstrakurikuler\Models\EkstrakurikulerAnggota::with('ekstrakurikuler')
@@ -60,7 +81,7 @@ Route::middleware(['web', 'auth'])->group(function () {
             ->where('semester_id', $semester->id)
             ->first()?->catatan ?? '';
         
-        $pdf = Pdf::loadView('rapor::pdf.nilai', compact('siswa', 'semester', 'sekolah', 'tanggal', 'nilaiAkademiks', 'ekskuls', 'rekapAbsen', 'catatan'))
+        $pdf = Pdf::loadView('rapor::pdf.nilai', compact('siswa', 'semester', 'sekolah', 'tanggal', 'periode', 'nilaiAkademiks', 'groupedNilaiAkademiks', 'ekskuls', 'rekapAbsen', 'catatan'))
             ->setPaper('A4', 'portrait');
             
         return $pdf->stream('Rapor_Nilai_'.$siswa->nisn.'.pdf');

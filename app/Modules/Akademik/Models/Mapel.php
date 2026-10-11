@@ -3,6 +3,7 @@
 namespace App\Modules\Akademik\Models;
 
 use Illuminate\Database\Eloquent\Model;
+use Illuminate\Database\Eloquent\Relations\BelongsTo;
 use Illuminate\Database\Eloquent\Relations\HasMany;
 use OwenIt\Auditing\Contracts\Auditable;
 
@@ -26,6 +27,7 @@ class Mapel extends Model implements Auditable
         'kode',
         'nama',
         'kelompok',
+        'kelompok_mapel_id',
         'kkm_default',
         'urutan',
         'is_active',
@@ -35,7 +37,13 @@ class Mapel extends Model implements Auditable
         'is_active' => 'boolean',
         'kkm_default' => 'integer',
         'urutan' => 'integer',
+        'kelompok_mapel_id' => 'integer',
     ];
+
+    public function kelompokMapel(): BelongsTo
+    {
+        return $this->belongsTo(KelompokMapel::class, 'kelompok_mapel_id');
+    }
 
     public function strukturKurikulums(): HasMany
     {
@@ -44,6 +52,10 @@ class Mapel extends Model implements Auditable
 
     public function getKelompokLabelAttribute(): string
     {
-        return self::DAFTAR_KELOMPOK[$this->kelompok] ?? ucfirst($this->kelompok);
+        if ($this->kelompokMapel) {
+            return $this->kelompokMapel->nama;
+        }
+
+        return self::DAFTAR_KELOMPOK[$this->kelompok] ?? ucfirst($this->kelompok ?? '-');
     }
 }

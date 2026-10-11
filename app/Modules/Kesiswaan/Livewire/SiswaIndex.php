@@ -254,7 +254,7 @@ class SiswaIndex extends Component
 
     public function render()
     {
-        $query = Siswa::with(['rombel', 'rayon', 'program']);
+        $query = Siswa::with(['rombel', 'rayon', 'program', 'orangTuas']);
 
         if ($this->search) {
             $query->where(function ($q) {
@@ -266,7 +266,7 @@ class SiswaIndex extends Component
         }
 
         if ($this->filterRombel) {
-            $query->where('rombel_id', $this->filterRombel);
+            $query->inRombel($this->filterRombel);
         }
 
         if ($this->filterRayon) {
@@ -281,8 +281,9 @@ class SiswaIndex extends Component
             $query->where('status', $this->filterStatus);
         }
 
-        $siswas = $query->orderBy($this->sortField, $this->sortDirection)->paginate(20);
-        $rombels = Rombel::orderBy('tingkat')->orderBy('nama')->get();
+        $activeTa = \App\Modules\Akademik\Support\AcademicContext::currentTahunAjaran();
+        $siswas = $query->orderBy('is_active', 'desc')->orderBy($this->sortField, $this->sortDirection)->paginate(20);
+        $rombels = Rombel::where('tahun_ajaran_id', $activeTa?->id)->orderBy('tingkat')->orderBy('nama')->get();
         $rayons = Rayon::orderBy('nama')->get();
         $programs = Program::where('is_active', true)->orderBy('nama')->get();
 

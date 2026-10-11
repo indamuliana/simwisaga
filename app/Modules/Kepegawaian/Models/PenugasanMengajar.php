@@ -45,4 +45,14 @@ class PenugasanMengajar extends Model implements Auditable
     {
         return $this->belongsTo(Rombel::class);
     }
+
+    public function tujuanPembelajarans()
+    {
+        return $this->hasMany(\App\Modules\Penilaian\Models\TujuanPembelajaran::class, 'penugasan_mengajar_id');
+    }
+
+    public function nilaiAkhirs()
+    {
+        return $this->hasMany(\App\Modules\Penilaian\Models\NilaiAkhir::class, 'penugasan_mengajar_id');
+    }
 }

@@ -99,10 +99,46 @@
  </div>
  </div>
 
- @can('sistem.sekolah.edit')
- <div class="flex justify-end">
- <button type="submit" class="btn btn-primary" wire:loading.attr="disabled" wire:target="save">Simpan perubahan</button>
- </div>
- @endcan
- </form>
+    @can('sistem.sekolah.edit')
+    <div class="flex justify-end">
+        <button type="submit" class="btn btn-primary" wire:loading.attr="disabled" wire:target="save">Simpan perubahan</button>
+    </div>
+    @endcan
+    </form>
+
+    {{-- Konfigurasi Database (Zona Berbahaya) --}}
+    @canany(['sistem.sekolah.edit', 'kesiswaan.siswa.hapus'])
+    <div class="card border-danger/40 bg-surface space-y-4">
+        <div>
+            <h2 class="text-base font-semibold text-danger flex items-center gap-2">
+                <svg class="w-5 h-5 text-danger shrink-0" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                    <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 9v2m0 4h.01m-6.938 4h13.856c1.54 0 2.502-1.667 1.732-3L13.732 4c-.77-1.333-2.694-1.333-3.464 0L3.34 16c-.77 1.333.192 3 1.732 3z" />
+                </svg>
+                <span>Konfigurasi Database</span>
+            </h2>
+            <p class="text-xs text-text-secondary mt-1">
+                Tindakan di zona ini berkaitan langsung dengan pembersihan dan manajemen basis data sistem. Harap berhati-hati.
+            </p>
+        </div>
+
+        <div class="rounded-xl border border-danger/30 bg-danger-soft/40 p-4 sm:p-5 flex flex-col sm:flex-row sm:items-center sm:justify-between gap-4">
+            <div class="space-y-1">
+                <h3 class="text-sm font-semibold text-text-main">Reset Database Siswa</h3>
+                <p class="text-xs text-text-secondary max-w-xl">
+                    Mengosongkan seluruh data pokok siswa, identitas orang tua/wali, serta menghapus seluruh akun login siswa dan orang tua dari sistem.
+                </p>
+            </div>
+            <button type="button" 
+                    wire:click="resetAllSiswa" 
+                    wire:confirm="PERINGATAN KRUSIAL: Apakah Anda benar-benar yakin ingin MENGHAPUS SELURUH DATA SISWA beserta SELURUH AKUN PENGGUNA SISWA DAN ORANG TUA? Tindakan ini akan mengosongkan database siswa dan TIDAK DAPAT DIBATALKAN!" 
+                    class="btn btn-danger shrink-0 text-xs sm:text-sm inline-flex items-center gap-1.5 shadow-sm"
+                    title="Hapus seluruh data siswa dan akun siswa & orang tua">
+                <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                    <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M19 7l-.867 12.142A2 2 0 0116.138 21H7.862a2 2 0 01-1.995-1.858L5 7m5 4v6m4-6v6m1-10V4a1 1 0 00-1-1h-4a1 1 0 00-1 1v3M4 7h16" />
+                </svg>
+                <span>Reset Data Siswa</span>
+            </button>
+        </div>
+    </div>
+    @endcanany
 </div>

@@ -55,17 +55,18 @@
  </div>
  </div>
 
- <!-- Table Card -->
- <div class="card overflow-hidden">
- <div class="px-6 py-4 bg-surface-hover/50 bg-surface/40 border-b border-border flex justify-between items-center">
- <span class="text-sm font-bold text-text-main">
- Daftar Alokasi Mengajar
- </span>
- <span class="text-sm font-semibold text-primary dark:text-indigo-400 bg-indigo-50 dark:bg-indigo-950/50 px-3 py-1 rounded-full border border-indigo-200 dark:border-indigo-800">
- Total Alokasi: {{ $totalJp }} JP
- </span>
- </div>
- <table class="min-w-full divide-y divide-slate-200 dark:divide-slate-800 text-left text-sm">
+    <!-- Table Card -->
+    <div class="card p-0 overflow-hidden">
+        <div class="px-6 py-4 bg-surface-hover/50 bg-surface/40 border-b border-border flex justify-between items-center">
+            <span class="text-sm font-bold text-text-main">
+                Daftar Alokasi Mengajar
+            </span>
+            <span class="text-sm font-semibold text-primary dark:text-indigo-400 bg-indigo-50 dark:bg-indigo-950/50 px-3 py-1 rounded-full border border-indigo-200 dark:border-indigo-800">
+                Total Alokasi: {{ $totalJp }} JP
+            </span>
+        </div>
+        <div class="overflow-x-auto">
+            <table class="min-w-full divide-y divide-slate-200 dark:divide-slate-800 text-left text-sm">
  <thead class="bg-surface-hover bg-surface/50 text-text-secondary font-medium">
  <tr>
  <th class="px-6 py-3">Guru Pengampu</th>
@@ -115,6 +116,7 @@
  </tbody>
  </table>
  </div>
+ </div>
 
  <!-- Modal Form -->
  @if($showModal)
@@ -159,7 +161,7 @@
  </div>
  <div>
  <label class="block text-xs font-semibold text-text-main text-text-secondary mb-1">Beban Jam (JP / Minggu)</label>
- <input type="number" min="1" max="40" wire:model="jp" class="w-full text-sm rounded-lg border-border bg-surface text-text-main">
+ <input type="number" min="1" wire:model="jp" class="w-full text-sm rounded-lg border-border bg-surface text-text-main">
  @error('jp') <span class="text-xs text-rose-500">{{ $message }}</span> @enderror
  </div>
  </div>

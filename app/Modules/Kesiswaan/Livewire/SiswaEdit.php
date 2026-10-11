@@ -67,6 +67,8 @@ class SiswaEdit extends Component
     public ?string $ayah_pekerjaan = null;
     public ?string $ayah_penghasilan = null;
     public ?string $ayah_nik = null;
+    public ?string $ayah_no_hp = null;
+    public string $ayah_status_hidup = 'Hidup';
 
     // Ibu
     public ?string $ibu_nama = null;
@@ -75,6 +77,8 @@ class SiswaEdit extends Component
     public ?string $ibu_pekerjaan = null;
     public ?string $ibu_penghasilan = null;
     public ?string $ibu_nik = null;
+    public ?string $ibu_no_hp = null;
+    public string $ibu_status_hidup = 'Hidup';
 
     // Wali
     public ?string $wali_nama = null;
@@ -83,6 +87,7 @@ class SiswaEdit extends Component
     public ?string $wali_pekerjaan = null;
     public ?string $wali_penghasilan = null;
     public ?string $wali_nik = null;
+    public ?string $wali_no_hp = null;
 
     // 4. Bantuan, Rekening & Dokumen
     public ?string $no_kk = null;
@@ -160,6 +165,8 @@ class SiswaEdit extends Component
             $this->ayah_pekerjaan = $ayah->pekerjaan;
             $this->ayah_penghasilan = $ayah->penghasilan;
             $this->ayah_nik = $ayah->nik;
+            $this->ayah_no_hp = $ayah->no_hp;
+            $this->ayah_status_hidup = $ayah->status_hidup ?? 'Hidup';
         }
 
         $ibu = $s->ibu;
@@ -170,6 +177,8 @@ class SiswaEdit extends Component
             $this->ibu_pekerjaan = $ibu->pekerjaan;
             $this->ibu_penghasilan = $ibu->penghasilan;
             $this->ibu_nik = $ibu->nik;
+            $this->ibu_no_hp = $ibu->no_hp;
+            $this->ibu_status_hidup = $ibu->status_hidup ?? 'Hidup';
         }
 
         $wali = $s->wali;
@@ -180,6 +189,7 @@ class SiswaEdit extends Component
             $this->wali_pekerjaan = $wali->pekerjaan;
             $this->wali_penghasilan = $wali->penghasilan;
             $this->wali_nik = $wali->nik;
+            $this->wali_no_hp = $wali->no_hp;
         }
 
         // 4. Bantuan & Dokumen
@@ -337,6 +347,8 @@ class SiswaEdit extends Component
             'pekerjaan' => $this->ayah_pekerjaan,
             'penghasilan' => $this->ayah_penghasilan,
             'nik' => $this->ayah_nik,
+            'no_hp' => $this->ayah_no_hp,
+            // 'status_hidup' => $this->ayah_status_hidup, // TODO: Uncomment jika field di db sudah ada
         ]);
 
         $this->updateOrangTua('ibu', [
@@ -346,6 +358,8 @@ class SiswaEdit extends Component
             'pekerjaan' => $this->ibu_pekerjaan,
             'penghasilan' => $this->ibu_penghasilan,
             'nik' => $this->ibu_nik,
+            'no_hp' => $this->ibu_no_hp,
+            // 'status_hidup' => $this->ibu_status_hidup, // TODO: Uncomment jika field di db sudah ada
         ]);
 
         $this->updateOrangTua('wali', [
@@ -355,6 +369,7 @@ class SiswaEdit extends Component
             'pekerjaan' => $this->wali_pekerjaan,
             'penghasilan' => $this->wali_penghasilan,
             'nik' => $this->wali_nik,
+            'no_hp' => $this->wali_no_hp,
         ]);
 
         // 4. Sinkronisasi Akun Login Siswa jika NIS berubah

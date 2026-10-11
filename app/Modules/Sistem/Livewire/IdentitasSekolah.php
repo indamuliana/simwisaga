@@ -3,6 +3,7 @@
 namespace App\Modules\Sistem\Livewire;
 
 use App\Core\Concerns\GuardsPermission;
+use App\Modules\Kesiswaan\Services\DapodikImporter;
 use App\Modules\Sistem\Models\School;
 use Illuminate\Support\Facades\Storage;
 use Livewire\Attributes\Layout;
@@ -134,6 +135,20 @@ class IdentitasSekolah extends Component
         if ($path) {
             Storage::disk('public')->delete($path);
         }
+    }
+
+    /**
+     * Menghapus seluruh data siswa dan akun user siswa & orang tua
+     */
+    public function resetAllSiswa(): void
+    {
+        if (! auth()->user()->can('sistem.sekolah.edit') && ! auth()->user()->can('kesiswaan.siswa.hapus')) {
+            abort(403, 'Anda tidak memiliki hak akses untuk mereset data siswa.');
+        }
+
+        $cleaned = DapodikImporter::cleanSiswaData();
+
+        session()->flash('status', "Seluruh data siswa ({$cleaned['siswas']} siswa) dan {$cleaned['users']} akun pengguna (Siswa & Orang Tua) telah berhasil dihapus bersih dari sistem.");
     }
 
     public function render()

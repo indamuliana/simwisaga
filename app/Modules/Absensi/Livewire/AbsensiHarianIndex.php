@@ -26,7 +26,8 @@ class AbsensiHarianIndex extends Component
     public function mount()
     {
         $this->tanggal = date('Y-m-d');
-        $this->rombels = Rombel::orderBy('nama')->get();
+        $activeTa = AcademicContext::currentTahunAjaran();
+        $this->rombels = Rombel::where('tahun_ajaran_id', $activeTa?->id)->orderBy('tingkat')->orderBy('nama')->get();
         $this->rayons = Rayon::orderBy('nama')->get();
     }
 
@@ -69,7 +70,7 @@ class AbsensiHarianIndex extends Component
         }
 
         return Siswa::with('rayon')
-            ->where('rombel_id', $this->rombel_id)
+            ->inRombel($this->rombel_id)
             ->orderBy('nama')
             ->get();
     }
@@ -164,7 +165,24 @@ class AbsensiHarianIndex extends Component
             'absensiData.*.keterangan' => 'nullable|string|max:255',
         ]);
 
-        $semesterId = AcademicContext::currentSemester()?->id;
+        $rombel = Rombel::find($this->rombel_id);
+        $semesterId = null;
+
+        if ($rombel && $rombel->tahun_ajaran_id) {
+            $sem = \App\Modules\Akademik\Models\Semester::where('tahun_ajaran_id', $rombel->tahun_ajaran_id)
+                ->where('is_active', true)
+                ->first();
+            if (!$sem) {
+                $sem = \App\Modules\Akademik\Models\Semester::where('tahun_ajaran_id', $rombel->tahun_ajaran_id)
+                    ->orderByDesc('id')
+                    ->first();
+            }
+            $semesterId = $sem?->id;
+        }
+
+        if (!$semesterId) {
+            $semesterId = AcademicContext::currentSemester()?->id;
+        }
 
         DB::transaction(function () use ($semesterId) {
             foreach ($this->absensiData as $siswaId => $data) {

@@ -8,6 +8,7 @@ use App\Modules\Akademik\Models\Rombel;
 use Illuminate\Database\Eloquent\Model;
 use Illuminate\Database\Eloquent\Relations\BelongsTo;
 use Illuminate\Database\Eloquent\Relations\HasMany;
+use Illuminate\Database\Eloquent\Relations\HasOne;
 use OwenIt\Auditing\Contracts\Auditable;
 
 class Siswa extends Model implements Auditable
@@ -114,6 +115,16 @@ class Siswa extends Model implements Auditable
         return $this->hasMany(RombelSiswa::class);
     }
 
+    public function riwayatAkademiks(): HasMany
+    {
+        return $this->hasMany(RiwayatAkademik::class)->orderByDesc('id');
+    }
+
+    public function alumni(): HasOne
+    {
+        return $this->hasOne(\App\Modules\Alumni\Models\Alumni::class);
+    }
+
     public function getAyahAttribute(): ?SiswaOrangTua
     {
         return $this->orangTuas->firstWhere('hubungan', 'ayah');
@@ -127,5 +138,19 @@ class Siswa extends Model implements Auditable
     public function getWaliAttribute(): ?SiswaOrangTua
     {
         return $this->orangTuas->firstWhere('hubungan', 'wali');
+    }
+
+    /**
+     * Scope query to find students who are currently or historically enrolled in the given rombel.
+     * Guarantees ledger & historical integrity across Nilai, Absensi, and Rapor modules.
+     */
+    public function scopeInRombel($query, int $rombelId)
+    {
+        return $query->where(function ($q) use ($rombelId) {
+            $q->where($this->getTable() . '.rombel_id', $rombelId)
+                ->orWhereHas('riwayatRombel', function ($rq) use ($rombelId) {
+                    $rq->where('rombel_id', $rombelId);
+                });
+        });
     }
 }

@@ -42,7 +42,7 @@ class CetakAbsensi extends Component
     // Cetak Dokumen Settings
     public string $tahunPelajaran = '';
     public string $mapel = '';
-    public int $jumlahKolom = 30;
+    public int $jumlahKolom = 20;
     public string $namaGuru = '';
     public string $nipGuru = '';
 
@@ -74,7 +74,7 @@ class CetakAbsensi extends Component
             ->where('status', 'aktif');
 
         if ($this->filterRombel) {
-            $query->where('rombel_id', $this->filterRombel);
+            $query->inRombel($this->filterRombel);
         }
 
         if ($this->filterRayon) {
@@ -101,7 +101,13 @@ class CetakAbsensi extends Component
             $query->where('jk', $this->filterJk);
         }
 
-        // Shortir by logic
+        $this->applySorting($query);
+
+        return $query;
+    }
+
+    public function applySorting($query)
+    {
         switch ($this->sortBy) {
             case 'nama_asc':
                 $query->orderBy('nama', 'asc');
@@ -441,10 +447,314 @@ class CetakAbsensi extends Component
         ]);
     }
 
+    /**
+     * Helper membuat berkas PDF multi-halaman dari kumpulan grup
+     */
+    protected function generateMassalPdf(array $groups, string $prefixFilename): ?StreamedResponse
+    {
+        $this->guard('kesiswaan.siswa.cetak');
+
+        if (empty($groups)) {
+            session()->flash('error', 'Tidak ada data siswa aktif yang dapat dicetak untuk kriteria massal ini.');
+            return null;
+        }
+
+        $tahunPelajaran = $this->tahunPelajaran ?: '2026-2027';
+        $jumlahKolom = max(1, min(50, $this->jumlahKolom));
+
+        $pdf = Pdf::loadView('kesiswaan::pdf.cetak-absensi-massal', [
+            'groups' => $groups,
+            'tahunPelajaran' => $tahunPelajaran,
+            'mapel' => $this->mapel,
+            'jumlahKolom' => $jumlahKolom,
+            'namaGuru' => $this->namaGuru,
+            'nipGuru' => $this->nipGuru,
+        ])->setPaper('A4', 'portrait');
+
+        $filename = "{$prefixFilename}_" . date('Ymd_His') . ".pdf";
+
+        return response()->streamDownload(
+            fn () => print($pdf->output()),
+            $filename
+        );
+    }
+
+    /**
+     * 1. Cetak seluruh siswa per rombel (masing-masing 1 lembar)
+     */
+    public function cetakMassalRombel(): ?StreamedResponse
+    {
+        $rombelQuery = Rombel::query()->orderBy('tingkat')->orderBy('nama');
+
+        if ($this->filterTingkat) {
+            $rombelQuery->where('tingkat', $this->filterTingkat);
+        }
+        if ($this->filterJurusan) {
+            $rombelQuery->where('jurusan_id', $this->filterJurusan);
+        }
+
+        $rombels = $rombelQuery->get();
+        $groups = [];
+
+        foreach ($rombels as $rombel) {
+            $q = Siswa::query()
+                ->with(['rombel', 'rayon', 'program'])
+                ->where('is_active', true)
+                ->where('status', 'aktif')
+                ->where('rombel_id', $rombel->id);
+
+            $this->applySorting($q);
+            $siswas = $q->get();
+
+            if ($siswas->isNotEmpty()) {
+                $groups[] = [
+                    'label' => "Rombel {$rombel->nama}",
+                    'siswas' => $siswas,
+                ];
+            }
+        }
+
+        return $this->generateMassalPdf($groups, 'Daftar_Hadir_Massal_Per_Rombel');
+    }
+
+    /**
+     * 2. Cetak seluruh siswa per rombel per gender (Putra & Putri terpisah)
+     */
+    public function cetakMassalRombelGender(): ?StreamedResponse
+    {
+        $rombelQuery = Rombel::query()->orderBy('tingkat')->orderBy('nama');
+
+        if ($this->filterTingkat) {
+            $rombelQuery->where('tingkat', $this->filterTingkat);
+        }
+        if ($this->filterJurusan) {
+            $rombelQuery->where('jurusan_id', $this->filterJurusan);
+        }
+
+        $rombels = $rombelQuery->get();
+        $groups = [];
+
+        foreach ($rombels as $rombel) {
+            // Putra (L)
+            $qL = Siswa::query()
+                ->with(['rombel', 'rayon', 'program'])
+                ->where('is_active', true)
+                ->where('status', 'aktif')
+                ->where('rombel_id', $rombel->id)
+                ->where('jk', 'L');
+
+            $this->applySorting($qL);
+            $siswasL = $qL->get();
+
+            if ($siswasL->isNotEmpty()) {
+                $groups[] = [
+                    'label' => "Rombel {$rombel->nama} · Putra (L)",
+                    'siswas' => $siswasL,
+                ];
+            }
+
+            // Putri (P)
+            $qP = Siswa::query()
+                ->with(['rombel', 'rayon', 'program'])
+                ->where('is_active', true)
+                ->where('status', 'aktif')
+                ->where('rombel_id', $rombel->id)
+                ->where('jk', 'P');
+
+            $this->applySorting($qP);
+            $siswasP = $qP->get();
+
+            if ($siswasP->isNotEmpty()) {
+                $groups[] = [
+                    'label' => "Rombel {$rombel->nama} · Putri (P)",
+                    'siswas' => $siswasP,
+                ];
+            }
+        }
+
+        return $this->generateMassalPdf($groups, 'Daftar_Hadir_Massal_Per_Rombel_Gender');
+    }
+
+    /**
+     * 3. Cetak seluruh siswa per program (reguler dan unggulan)
+     */
+    public function cetakMassalProgram(): ?StreamedResponse
+    {
+        $groups = [];
+        $programs = Program::where('is_active', true)->orderBy('nama')->get();
+        $tingkatInfo = $this->filterTingkat ? "Kelas {$this->filterTingkat} · " : '';
+
+        foreach ($programs as $program) {
+            $q = Siswa::query()
+                ->with(['rombel', 'rayon', 'program'])
+                ->where('is_active', true)
+                ->where('status', 'aktif')
+                ->where('program_id', $program->id);
+
+            if ($this->filterTingkat) {
+                $q->whereHas('rombel', fn ($rq) => $rq->where('tingkat', $this->filterTingkat));
+            }
+            if ($this->filterJurusan) {
+                $q->whereHas('rombel', fn ($rq) => $rq->where('jurusan_id', $this->filterJurusan));
+            }
+
+            $this->applySorting($q);
+            $siswas = $q->get();
+
+            if ($siswas->isNotEmpty()) {
+                $groups[] = [
+                    'label' => "{$tingkatInfo}Program {$program->nama}",
+                    'siswas' => $siswas,
+                ];
+            }
+        }
+
+        // Siswa Reguler / Tanpa Program
+        $qReg = Siswa::query()
+            ->with(['rombel', 'rayon', 'program'])
+            ->where('is_active', true)
+            ->where('status', 'aktif')
+            ->whereNull('program_id');
+
+        if ($this->filterTingkat) {
+            $qReg->whereHas('rombel', fn ($rq) => $rq->where('tingkat', $this->filterTingkat));
+        }
+        if ($this->filterJurusan) {
+            $qReg->whereHas('rombel', fn ($rq) => $rq->where('jurusan_id', $this->filterJurusan));
+        }
+
+        $this->applySorting($qReg);
+        $siswasReg = $qReg->get();
+
+        if ($siswasReg->isNotEmpty()) {
+            $groups[] = [
+                'label' => "{$tingkatInfo}Program Reguler",
+                'siswas' => $siswasReg,
+            ];
+        }
+
+        return $this->generateMassalPdf($groups, 'Daftar_Hadir_Massal_Per_Program');
+    }
+
+    /**
+     * 4. Cetak seluruh siswa per program per gender
+     */
+    public function cetakMassalProgramGender(): ?StreamedResponse
+    {
+        $groups = [];
+        $programs = Program::where('is_active', true)->orderBy('nama')->get();
+        $tingkatInfo = $this->filterTingkat ? "Kelas {$this->filterTingkat} · " : '';
+
+        foreach ($programs as $program) {
+            // Putra (L)
+            $qL = Siswa::query()
+                ->with(['rombel', 'rayon', 'program'])
+                ->where('is_active', true)
+                ->where('status', 'aktif')
+                ->where('program_id', $program->id)
+                ->where('jk', 'L');
+
+            if ($this->filterTingkat) {
+                $qL->whereHas('rombel', fn ($rq) => $rq->where('tingkat', $this->filterTingkat));
+            }
+            if ($this->filterJurusan) {
+                $qL->whereHas('rombel', fn ($rq) => $rq->where('jurusan_id', $this->filterJurusan));
+            }
+
+            $this->applySorting($qL);
+            $siswasL = $qL->get();
+
+            if ($siswasL->isNotEmpty()) {
+                $groups[] = [
+                    'label' => "{$tingkatInfo}Program {$program->nama} · Putra (L)",
+                    'siswas' => $siswasL,
+                ];
+            }
+
+            // Putri (P)
+            $qP = Siswa::query()
+                ->with(['rombel', 'rayon', 'program'])
+                ->where('is_active', true)
+                ->where('status', 'aktif')
+                ->where('program_id', $program->id)
+                ->where('jk', 'P');
+
+            if ($this->filterTingkat) {
+                $qP->whereHas('rombel', fn ($rq) => $rq->where('tingkat', $this->filterTingkat));
+            }
+            if ($this->filterJurusan) {
+                $qP->whereHas('rombel', fn ($rq) => $rq->where('jurusan_id', $this->filterJurusan));
+            }
+
+            $this->applySorting($qP);
+            $siswasP = $qP->get();
+
+            if ($siswasP->isNotEmpty()) {
+                $groups[] = [
+                    'label' => "{$tingkatInfo}Program {$program->nama} · Putri (P)",
+                    'siswas' => $siswasP,
+                ];
+            }
+        }
+
+        // Siswa Reguler / Tanpa Program Putra
+        $qRegL = Siswa::query()
+            ->with(['rombel', 'rayon', 'program'])
+            ->where('is_active', true)
+            ->where('status', 'aktif')
+            ->whereNull('program_id')
+            ->where('jk', 'L');
+
+        if ($this->filterTingkat) {
+            $qRegL->whereHas('rombel', fn ($rq) => $rq->where('tingkat', $this->filterTingkat));
+        }
+        if ($this->filterJurusan) {
+            $qRegL->whereHas('rombel', fn ($rq) => $rq->where('jurusan_id', $this->filterJurusan));
+        }
+
+        $this->applySorting($qRegL);
+        $siswasRegL = $qRegL->get();
+
+        if ($siswasRegL->isNotEmpty()) {
+            $groups[] = [
+                'label' => "{$tingkatInfo}Program Reguler · Putra (L)",
+                'siswas' => $siswasRegL,
+            ];
+        }
+
+        // Siswa Reguler / Tanpa Program Putri
+        $qRegP = Siswa::query()
+            ->with(['rombel', 'rayon', 'program'])
+            ->where('is_active', true)
+            ->where('status', 'aktif')
+            ->whereNull('program_id')
+            ->where('jk', 'P');
+
+        if ($this->filterTingkat) {
+            $qRegP->whereHas('rombel', fn ($rq) => $rq->where('tingkat', $this->filterTingkat));
+        }
+        if ($this->filterJurusan) {
+            $qRegP->whereHas('rombel', fn ($rq) => $rq->where('jurusan_id', $this->filterJurusan));
+        }
+
+        $this->applySorting($qRegP);
+        $siswasRegP = $qRegP->get();
+
+        if ($siswasRegP->isNotEmpty()) {
+            $groups[] = [
+                'label' => "{$tingkatInfo}Program Reguler · Putri (P)",
+                'siswas' => $siswasRegP,
+            ];
+        }
+
+        return $this->generateMassalPdf($groups, 'Daftar_Hadir_Massal_Per_Program_Gender');
+    }
+
     public function render()
     {
         $siswas = $this->buildQuery()->get();
-        $rombels = Rombel::orderBy('tingkat')->orderBy('nama')->get();
+        $activeTa = AcademicContext::currentTahunAjaran();
+        $rombels = Rombel::where('tahun_ajaran_id', $activeTa?->id)->orderBy('tingkat')->orderBy('nama')->get();
         $rayons = Rayon::orderBy('nama')->get();
         $jurusans = Jurusan::where('is_active', true)->orderBy('nama')->get();
         $programs = Program::where('is_active', true)->orderBy('nama')->get();

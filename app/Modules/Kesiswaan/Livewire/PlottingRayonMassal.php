@@ -42,6 +42,12 @@ class PlottingRayonMassal extends Component
     public $fileExcel = null;
     public ?array $importResult = null;
 
+    // Reset Plotting Rayon Modal
+    public bool $showResetModal = false;
+    public string $resetScope = 'terpilih'; // 'terpilih', 'filter', 'semua'
+    public string $resetMode = 'kosongkan';  // 'kosongkan', 'acak'
+    public string $resetConfirmText = '';
+
     public function updatedFilterStatusRayon(): void
     {
         $this->resetPage();
@@ -147,6 +153,169 @@ class PlottingRayonMassal extends Component
         session()->flash('status', "Berhasil! Sebanyak {$count} siswa berhasil dialokasikan ke rayon {$rayon->nama}.");
     }
 
+    // ------------------------------------------------------------------------
+    // FITUR RESET PLOTTING RAYON
+    // ------------------------------------------------------------------------
+
+    public function openResetModal(): void
+    {
+        $this->guard('kesiswaan.siswa.edit');
+
+        if (!empty($this->selectedSiswaIds)) {
+            $this->resetScope = 'terpilih';
+        } elseif ($this->filterKecamatan || $this->filterKelurahan || $this->filterRombel || $this->search) {
+            $this->resetScope = 'filter';
+        } else {
+            $this->resetScope = 'semua';
+        }
+
+        $this->resetMode = 'kosongkan';
+        $this->resetConfirmText = '';
+        $this->showResetModal = true;
+    }
+
+    public function closeResetModal(): void
+    {
+        $this->showResetModal = false;
+        $this->resetConfirmText = '';
+    }
+
+    public function getResetTargetCountProperty(): int
+    {
+        return match ($this->resetScope) {
+            'terpilih' => ($this->resetMode === 'kosongkan')
+                ? Siswa::whereIn('id', $this->selectedSiswaIds)->whereNotNull('rayon_id')->count()
+                : count($this->selectedSiswaIds),
+            'filter' => ($this->resetMode === 'kosongkan')
+                ? $this->getQuery()->whereNotNull('rayon_id')->count()
+                : $this->getQuery()->count(),
+            'semua' => ($this->resetMode === 'kosongkan')
+                ? Siswa::where('status', 'aktif')->whereNotNull('rayon_id')->count()
+                : Siswa::where('status', 'aktif')->count(),
+            default => 0,
+        };
+    }
+
+    public function resetSelectedRayon(): void
+    {
+        $this->guard('kesiswaan.siswa.edit');
+
+        if (empty($this->selectedSiswaIds)) {
+            session()->flash('error', 'Pilih minimal satu siswa untuk mengosongkan rayon.');
+            return;
+        }
+
+        $count = count($this->selectedSiswaIds);
+
+        DB::transaction(function () {
+            RayonSiswa::whereIn('siswa_id', $this->selectedSiswaIds)
+                ->whereNull('tgl_selesai')
+                ->update([
+                    'tgl_selesai' => now(),
+                    'alasan_pindah' => 'Reset Plotting Rayon Terpilih',
+                ]);
+
+            Siswa::whereIn('id', $this->selectedSiswaIds)->update(['rayon_id' => null]);
+        });
+
+        $this->reset(['selectedSiswaIds', 'selectAll']);
+        $this->resetPage();
+        session()->flash('status', "Berhasil! Rayon untuk {$count} siswa terpilih telah di-reset (dikosongkan).");
+    }
+
+    public function executeResetRayon(): void
+    {
+        $this->guard('kesiswaan.siswa.edit');
+        $this->resetErrorBag();
+
+        if ($this->resetScope === 'semua' && strtoupper(trim($this->resetConfirmText)) !== 'RESET') {
+            $this->addError('resetConfirmText', 'Ketik kata "RESET" dengan huruf kapital untuk mengonfirmasi.');
+            return;
+        }
+
+        $query = Siswa::query();
+
+        if ($this->resetScope === 'terpilih') {
+            if (empty($this->selectedSiswaIds)) {
+                session()->flash('error', 'Tidak ada siswa yang dipilih.');
+                return;
+            }
+            $query->whereIn('id', $this->selectedSiswaIds);
+        } elseif ($this->resetScope === 'filter') {
+            $query = $this->getQuery();
+            if ($this->resetMode === 'kosongkan') {
+                $query->whereNotNull('rayon_id');
+            }
+        } else {
+            $query->where('status', 'aktif');
+            if ($this->resetMode === 'kosongkan') {
+                $query->whereNotNull('rayon_id');
+            }
+        }
+
+        $targetSiswaIds = $query->pluck('id')->toArray();
+        $count = count($targetSiswaIds);
+
+        if ($count === 0) {
+            session()->flash('error', 'Tidak ada data siswa yang perlu di-reset.');
+            $this->showResetModal = false;
+            return;
+        }
+
+        DB::transaction(function () use ($targetSiswaIds) {
+            if ($this->resetMode === 'kosongkan') {
+                RayonSiswa::whereIn('siswa_id', $targetSiswaIds)
+                    ->whereNull('tgl_selesai')
+                    ->update([
+                        'tgl_selesai' => now(),
+                        'alasan_pindah' => 'Reset Plotting Rayon',
+                    ]);
+
+                Siswa::whereIn('id', $targetSiswaIds)->update(['rayon_id' => null]);
+            } elseif ($this->resetMode === 'acak') {
+                $rayons = Rayon::all();
+                if ($rayons->isEmpty()) {
+                    throw new \Exception('Tidak ada data Rayon yang terdaftar di sistem.');
+                }
+
+                $rayonList = $rayons->values();
+                $rayonCount = $rayonList->count();
+
+                RayonSiswa::whereIn('siswa_id', $targetSiswaIds)
+                    ->whereNull('tgl_selesai')
+                    ->update([
+                        'tgl_selesai' => now(),
+                        'alasan_pindah' => 'Reset & Distribusi Ulang Rayon Acak',
+                    ]);
+
+                shuffle($targetSiswaIds);
+                foreach ($targetSiswaIds as $i => $siswaId) {
+                    $rayon = $rayonList[$i % $rayonCount];
+                    Siswa::where('id', $siswaId)->update(['rayon_id' => $rayon->id]);
+                    RayonSiswa::create([
+                        'siswa_id' => $siswaId,
+                        'rayon_id' => $rayon->id,
+                        'tgl_mulai' => now(),
+                        'alasan_pindah' => 'Distribusi Ulang Rayon Acak',
+                    ]);
+                }
+            }
+        });
+
+        $this->reset(['selectedSiswaIds', 'selectAll', 'showResetModal', 'resetConfirmText']);
+        $this->resetPage();
+
+        $actionText = ($this->resetMode === 'kosongkan')
+            ? "berhasil di-reset (dikosongkan) dari pembagian rayon."
+            : "berhasil diatur ulang dan didistribusikan secara acak merata ke seluruh rayon.";
+
+        session()->flash('status', "Sukses! Sebanyak {$count} siswa {$actionText}");
+    }
+
+    // ------------------------------------------------------------------------
+    // IMPORT & TEMPLATE EXCEL
+    // ------------------------------------------------------------------------
+
     public function openImportModal(): void
     {
         $this->guard('kesiswaan.siswa.edit');
@@ -241,6 +410,7 @@ class PlottingRayonMassal extends Component
             'rombels' => $rombels,
             'kecamatans' => $kecamatans,
             'kelurahans' => $kelurahans,
+            'resetTargetCount' => $this->resetTargetCount,
         ]);
     }
 }

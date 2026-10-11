@@ -2,7 +2,7 @@
     {{-- Header Halaman --}}
     <div class="flex flex-col sm:flex-row sm:items-center sm:justify-between gap-4">
         <div>
-            <h1 class="text-2xl font-bold tracking-tight text-text-main">Rekapitulasi Presensi Kehadiran Siswa</h1>
+            <h1 class="text-2xl font-bold tracking-tight text-text-main">Rekapitulasi Absensi Siswa</h1>
             <p class="text-sm text-text-secondary">Rekapitulasi absensi siswa berdasarkan rentang tanggal, rombel, rayon, gender, dan program keahlian.</p>
         </div>
         <div class="flex flex-wrap items-center gap-2.5">

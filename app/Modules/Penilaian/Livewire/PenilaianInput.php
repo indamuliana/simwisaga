@@ -60,7 +60,7 @@ class PenilaianInput extends Component
 
     public function loadSiswa()
     {
-        $this->siswas = Siswa::where('rombel_id', $this->penugasan->rombel_id)->orderBy('nama')->get();
+        $this->siswas = Siswa::inRombel($this->penugasan->rombel_id)->orderBy('nama')->get();
     }
 
     public function loadFormatif()
@@ -147,6 +147,22 @@ class PenilaianInput extends Component
 
     public function saveNilai()
     {
+        $this->validate([
+            'formatifData.*.*' => 'nullable|numeric|min:0|max:100',
+            'sumatifData.*.sts' => 'nullable|numeric|min:0|max:100',
+            'sumatifData.*.sas' => 'nullable|numeric|min:0|max:100',
+        ], [
+            'formatifData.*.*.numeric' => 'Nilai formatif harus berupa angka.',
+            'formatifData.*.*.min' => 'Nilai formatif tidak boleh kurang dari 0.',
+            'formatifData.*.*.max' => 'Nilai formatif tidak boleh lebih dari 100.',
+            'sumatifData.*.sts.numeric' => 'Nilai STS harus berupa angka.',
+            'sumatifData.*.sts.min' => 'Nilai STS tidak boleh kurang dari 0.',
+            'sumatifData.*.sts.max' => 'Nilai STS tidak boleh lebih dari 100.',
+            'sumatifData.*.sas.numeric' => 'Nilai SAS harus berupa angka.',
+            'sumatifData.*.sas.min' => 'Nilai SAS tidak boleh kurang dari 0.',
+            'sumatifData.*.sas.max' => 'Nilai SAS tidak boleh lebih dari 100.',
+        ]);
+
         // Save Formatif
         foreach ($this->formatifData as $siswaId => $tpScores) {
             foreach ($tpScores as $tpId => $score) {

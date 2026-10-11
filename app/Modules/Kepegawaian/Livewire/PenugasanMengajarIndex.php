@@ -46,7 +46,7 @@ class PenugasanMengajarIndex extends Component
 
     public function updated($propertyName): void
     {
-        if (in_array($propertyName, ['rombel_id', 'mapel_id'])) {
+        if (in_array($propertyName, ['rombel_id', 'mapel_id', 'semester_id'])) {
             $this->checkCurriculumJp();
         }
     }
@@ -55,6 +55,7 @@ class PenugasanMengajarIndex extends Component
     {
         if ($this->rombel_id && $this->mapel_id && $this->semester_id) {
             $rombel = Rombel::find($this->rombel_id);
+            $semester = Semester::find($this->semester_id);
             if ($rombel) {
                 $sk = StrukturKurikulum::where('tahun_ajaran_id', $rombel->tahun_ajaran_id)
                     ->where('jurusan_id', $rombel->jurusan_id)
@@ -62,7 +63,8 @@ class PenugasanMengajarIndex extends Component
                     ->where('mapel_id', $this->mapel_id)
                     ->first();
                 if ($sk) {
-                    $this->jp = $sk->jp_per_minggu;
+                    $semesterJp = $semester ? $sk->getJpForSemester($semester->semester) : null;
+                    $this->jp = $semesterJp ?: $sk->jp_per_minggu;
                 }
             }
         }
@@ -75,7 +77,7 @@ class PenugasanMengajarIndex extends Component
             'pegawai_id' => ['required', 'exists:pegawais,id'],
             'rombel_id' => ['required', 'exists:rombels,id'],
             'mapel_id' => ['required', 'exists:mapels,id'],
-            'jp' => ['required', 'integer', 'min:1', 'max:40'],
+            'jp' => ['required', 'integer', 'min:1', 'max:200'],
             'keterangan' => ['nullable', 'string', 'max:255'],
         ];
     }
@@ -248,7 +250,13 @@ class PenugasanMengajarIndex extends Component
         $semesters = Semester::with('tahunAjaran')->orderByDesc('tahun_ajaran_id')->get();
         $gurus = Pegawai::where('jenis_gtk', 'guru')->where('is_active', true)->orderBy('nama_lengkap')->get();
         $rombels = Rombel::orderBy('tingkat')->orderBy('nama')->get();
-        $mapels = Mapel::where('is_active', true)->orderBy('kelompok')->orderBy('nama')->get();
+        $mapels = Mapel::with('kelompokMapel')
+            ->leftJoin('kelompok_mapels', 'mapels.kelompok_mapel_id', '=', 'kelompok_mapels.id')
+            ->select('mapels.*')
+            ->where('mapels.is_active', true)
+            ->orderBy('kelompok_mapels.urutan')
+            ->orderBy('mapels.urutan')
+            ->get();
 
         return view('kepegawaian::livewire.penugasan-mengajar-index', [
             'penugasans' => $penugasans,

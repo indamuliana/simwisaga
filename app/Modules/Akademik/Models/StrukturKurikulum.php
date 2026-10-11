@@ -16,13 +16,44 @@ class StrukturKurikulum extends Model implements Auditable
         'tingkat',
         'mapel_id',
         'jp_per_minggu',
+        'jp_ganjil',
+        'jp_genap',
         'urutan',
     ];
 
     protected $casts = [
         'jp_per_minggu' => 'integer',
+        'jp_ganjil' => 'integer',
+        'jp_genap' => 'integer',
         'urutan' => 'integer',
     ];
+
+    public function getSemesterStatusAttribute(): string
+    {
+        $ganjil = (int) $this->jp_ganjil;
+        $genap = (int) $this->jp_genap;
+
+        if ($ganjil > 0 && $genap > 0) {
+            return 'Sepanjang Tahun';
+        }
+        if ($ganjil > 0) {
+            return 'Ganjil Saja';
+        }
+        if ($genap > 0) {
+            return 'Genap Saja';
+        }
+
+        return 'Nonaktif';
+    }
+
+    public function getJpForSemester(?string $semester): int
+    {
+        if ($semester && str_contains(strtolower($semester), 'genap')) {
+            return (int) $this->jp_genap;
+        }
+
+        return (int) $this->jp_ganjil;
+    }
 
     public function tahunAjaran(): BelongsTo
     {
