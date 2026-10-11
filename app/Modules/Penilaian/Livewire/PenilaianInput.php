@@ -6,6 +6,7 @@ use App\Modules\Akademik\Models\Semester;
 use App\Modules\Kepegawaian\Models\PenugasanMengajar;
 use App\Modules\Kesiswaan\Models\Siswa;
 use App\Modules\Penilaian\Models\NilaiAkhir;
+use App\Modules\Penilaian\Models\NilaiAsesmenHarian;
 use App\Modules\Penilaian\Models\NilaiFormatif;
 use App\Modules\Penilaian\Models\NilaiSumatif;
 use App\Modules\Penilaian\Models\TujuanPembelajaran;
@@ -28,13 +29,17 @@ class PenilaianInput extends Component
     public $tp_semester_id = null;
     public $tp_kode = '';
     public $tp_deskripsi = '';
+    public $tp_alokasi_ah = '';
     public $edit_tp_id = null;
 
     // State for Active Assessment Semester in Tab 2 & 3
     public $activeNilaiSemesterId = null;
     public $activeNilaiPenugasanId = null;
 
-    // State for Input Formatif
+    // State for Input Asesmen Harian (AH 1 s.d AH 8)
+    public $ahData = [];
+
+    // State for Input Formatif (for compatibility & sync)
     public $formatifData = [];
 
     // State for Input Sumatif
@@ -53,6 +58,7 @@ class PenilaianInput extends Component
         $this->activeNilaiSemesterId = $this->penugasan->semester_id;
         $this->activeNilaiPenugasanId = $this->penugasan->id;
         $this->tp_semester_id = $this->penugasan->semester_id;
+        $this->tp_alokasi_ah = $this->availableAhOptions[0] ?? 'AH 1';
 
         $this->loadAllTP();
         $this->loadSiswa();
@@ -125,15 +131,43 @@ class PenilaianInput extends Component
             ->orderBy('id')
             ->get();
 
-        // 2. Load Formatif
+        // 2. Load AH Data & Formatif
+        $this->ahData = [];
         $this->formatifData = [];
-        $nilai = NilaiFormatif::whereIn('siswa_id', $this->siswas->pluck('id'))
+        $activeAhs = $this->activeAhList;
+
+        $ahRecords = NilaiAsesmenHarian::whereIn('siswa_id', $this->siswas->pluck('id'))
+            ->where('penugasan_mengajar_id', $this->activeNilaiPenugasanId)
+            ->whereIn('kode_ah', $activeAhs)
+            ->get();
+
+        $nilaiFormatif = NilaiFormatif::whereIn('siswa_id', $this->siswas->pluck('id'))
             ->whereIn('tujuan_pembelajaran_id', $this->tps->pluck('id'))
             ->get();
 
+        $mapping = $this->ahTpsMapping;
+
         foreach ($this->siswas as $siswa) {
+            foreach ($activeAhs as $ahCode) {
+                $rec = $ahRecords->where('siswa_id', $siswa->id)->where('kode_ah', $ahCode)->first();
+                if ($rec !== null && $rec->nilai !== null) {
+                    $this->ahData[$siswa->id][$ahCode] = $rec->nilai;
+                } else {
+                    // Fallback jika sudah ada nilai_formatif untuk TP yang teralokasi di AH ini
+                    $tpsInAh = $mapping[$ahCode] ?? collect();
+                    $tpFirst = $tpsInAh->first();
+                    if ($tpFirst) {
+                        $nf = $nilaiFormatif->where('siswa_id', $siswa->id)->where('tujuan_pembelajaran_id', $tpFirst->id)->first();
+                        $this->ahData[$siswa->id][$ahCode] = $nf ? $nf->nilai : null;
+                    } else {
+                        $this->ahData[$siswa->id][$ahCode] = null;
+                    }
+                }
+            }
+
+            // Sync formatifData state
             foreach ($this->tps as $tp) {
-                $n = $nilai->where('siswa_id', $siswa->id)->where('tujuan_pembelajaran_id', $tp->id)->first();
+                $n = $nilaiFormatif->where('siswa_id', $siswa->id)->where('tujuan_pembelajaran_id', $tp->id)->first();
                 $this->formatifData[$siswa->id][$tp->id] = $n ? $n->nilai : null;
             }
         }
@@ -156,6 +190,12 @@ class PenilaianInput extends Component
         if ($this->activeTab === 'rekap') {
             $this->calculateRekap();
         }
+    }
+
+    public function updatedTpSemesterId($val)
+    {
+        $options = $this->availableAhOptions;
+        $this->tp_alokasi_ah = $options[0] ?? '';
     }
 
     public function switchTab($tab)
@@ -195,16 +235,77 @@ class PenilaianInput extends Component
         return 'TP ' . $this->suggestedNextNumber;
     }
 
+    public function getAvailableAhOptionsProperty(): array
+    {
+        $sem = collect($this->semesters)->firstWhere('id', (int) $this->tp_semester_id);
+        $semName = strtolower($sem['semester'] ?? '');
+        return str_contains($semName, 'genap')
+            ? ['AH 5', 'AH 6', 'AH 7', 'AH 8']
+            : ['AH 1', 'AH 2', 'AH 3', 'AH 4'];
+    }
+
+    public function getActiveAhListProperty(): array
+    {
+        $sem = collect($this->semesters)->firstWhere('id', (int) $this->activeNilaiSemesterId);
+        $semName = strtolower($sem['semester'] ?? '');
+        return str_contains($semName, 'genap')
+            ? ['AH 5', 'AH 6', 'AH 7', 'AH 8']
+            : ['AH 1', 'AH 2', 'AH 3', 'AH 4'];
+    }
+
+    public function getAhTpsMappingProperty(): array
+    {
+        $mapping = [];
+        $activeAhs = $this->activeAhList;
+        $tpsList = $this->tps->values();
+
+        foreach ($activeAhs as $idx => $ah) {
+            $mapping[$ah] = $tpsList->filter(function ($tp, $tpIdx) use ($ah, $idx) {
+                if (!empty($tp->alokasi_ah)) {
+                    return $tp->alokasi_ah === $ah;
+                }
+                // Fallback untuk data tanpa alokasi_ah eksplisit:
+                if (preg_match('/\d+/', $tp->kode, $m)) {
+                    $num = (int) $m[0];
+                    preg_match('/\d+/', $ah, $mah);
+                    $ahNum = isset($mah[0]) ? (int) $mah[0] : 0;
+                    if ($num === $ahNum) {
+                        return true;
+                    }
+                }
+                return $tpIdx === $idx;
+            })->values();
+        }
+
+        return $mapping;
+    }
+
+    public function getLabelStsProperty(): string
+    {
+        $currentSem = collect($this->semesters)->firstWhere('id', (int) $this->activeNilaiSemesterId);
+        $semName = strtolower($currentSem['semester'] ?? '');
+        return str_contains($semName, 'genap') ? 'STS 2' : 'STS 1';
+    }
+
+    public function getLabelSasProperty(): string
+    {
+        $currentSem = collect($this->semesters)->firstWhere('id', (int) $this->activeNilaiSemesterId);
+        $semName = strtolower($currentSem['semester'] ?? '');
+        return str_contains($semName, 'genap') ? 'SAT' : 'SAS';
+    }
+
     public function saveTP()
     {
         $this->validate([
             'tp_semester_id' => 'required',
             'tp_kode' => 'required|string|max:20',
             'tp_deskripsi' => 'required|string|max:255',
+            'tp_alokasi_ah' => 'required|string|max:20',
         ], [
             'tp_semester_id.required' => 'Pilih semester target untuk TP / CP ini.',
             'tp_kode.required' => 'Kode TP / CP wajib diisi (misal: TP 1, TP 4, atau CP 1).',
             'tp_deskripsi.required' => 'Deskripsi TP / CP wajib diisi.',
+            'tp_alokasi_ah.required' => 'Alokasi Asesmen Harian (AH) wajib dipilih.',
         ]);
 
         $targetSem = collect($this->semesters)->firstWhere('id', (int) $this->tp_semester_id);
@@ -216,6 +317,7 @@ class PenilaianInput extends Component
                 'penugasan_mengajar_id' => $targetPmId,
                 'kode' => $this->tp_kode,
                 'deskripsi' => $this->tp_deskripsi,
+                'alokasi_ah' => $this->tp_alokasi_ah,
             ]);
             $this->edit_tp_id = null;
             session()->flash('message_tp', 'Tujuan Pembelajaran berhasil diperbarui.');
@@ -224,6 +326,7 @@ class PenilaianInput extends Component
                 'penugasan_mengajar_id' => $targetPmId,
                 'kode' => $this->tp_kode,
                 'deskripsi' => $this->tp_deskripsi,
+                'alokasi_ah' => $this->tp_alokasi_ah,
                 'is_active' => true,
             ]);
             session()->flash('message_tp', 'Tujuan Pembelajaran berhasil ditambahkan.');
@@ -231,6 +334,7 @@ class PenilaianInput extends Component
 
         $this->tp_kode = '';
         $this->tp_deskripsi = '';
+        $this->tp_alokasi_ah = $this->availableAhOptions[0] ?? 'AH 1';
         $this->loadAllTP();
         $this->loadNilaiForActiveSemester();
     }
@@ -242,6 +346,7 @@ class PenilaianInput extends Component
         $this->tp_semester_id = $tp->penugasanMengajar?->semester_id ?? $this->penugasan->semester_id;
         $this->tp_kode = $tp->kode;
         $this->tp_deskripsi = $tp->deskripsi;
+        $this->tp_alokasi_ah = $tp->alokasi_ah ?: ($this->availableAhOptions[0] ?? 'AH 1');
     }
 
     public function cancelEditTP()
@@ -250,6 +355,7 @@ class PenilaianInput extends Component
         $this->tp_kode = '';
         $this->tp_deskripsi = '';
         $this->tp_semester_id = $this->activeNilaiSemesterId ?? $this->penugasan->semester_id;
+        $this->tp_alokasi_ah = $this->availableAhOptions[0] ?? 'AH 1';
     }
 
     public function hapusTP($tp_id)
@@ -266,10 +372,14 @@ class PenilaianInput extends Component
     public function saveNilai()
     {
         $this->validate([
+            'ahData.*.*' => 'nullable|numeric|min:0|max:100',
             'formatifData.*.*' => 'nullable|numeric|min:0|max:100',
             'sumatifData.*.sts' => 'nullable|numeric|min:0|max:100',
             'sumatifData.*.sas' => 'nullable|numeric|min:0|max:100',
         ], [
+            'ahData.*.*.numeric' => 'Nilai asesmen harian (AH) harus berupa angka.',
+            'ahData.*.*.min' => 'Nilai asesmen harian (AH) tidak boleh kurang dari 0.',
+            'ahData.*.*.max' => 'Nilai asesmen harian (AH) tidak boleh lebih dari 100.',
             'formatifData.*.*.numeric' => 'Nilai formatif harus berupa angka.',
             'formatifData.*.*.min' => 'Nilai formatif tidak boleh kurang dari 0.',
             'formatifData.*.*.max' => 'Nilai formatif tidak boleh lebih dari 100.',
@@ -281,7 +391,62 @@ class PenilaianInput extends Component
             'sumatifData.*.sas.max' => 'Nilai SAS tidak boleh lebih dari 100.',
         ]);
 
-        // Simpan Formatif
+        $mapping = $this->ahTpsMapping;
+
+        // 1. Simpan Nilai Asesmen Harian (AH) & Sinkronisasi ke seluruh TP binaannya
+        foreach ($this->ahData as $siswaId => $scores) {
+            foreach ($scores as $ahCode => $score) {
+                $tpsInAh = $mapping[$ahCode] ?? collect();
+
+                // Jika score AH kosong, periksa apakah ada formatifData yang diisi langsung untuk TP dalam AH ini
+                if ($score === null || $score === '') {
+                    foreach ($tpsInAh as $tp) {
+                        if (isset($this->formatifData[$siswaId][$tp->id]) && $this->formatifData[$siswaId][$tp->id] !== null && $this->formatifData[$siswaId][$tp->id] !== '') {
+                            $score = $this->formatifData[$siswaId][$tp->id];
+                            $this->ahData[$siswaId][$ahCode] = $score;
+                            break;
+                        }
+                    }
+                }
+
+                if ($score !== null && $score !== '') {
+                    NilaiAsesmenHarian::updateOrCreate(
+                        [
+                            'siswa_id' => $siswaId,
+                            'penugasan_mengajar_id' => $this->activeNilaiPenugasanId,
+                            'kode_ah' => $ahCode,
+                        ],
+                        ['nilai' => $score]
+                    );
+
+                    // Sinkronisasi nilai yang sama persis ke setiap TP di bawah naungan AH ini
+                    foreach ($tpsInAh as $tp) {
+                        NilaiFormatif::updateOrCreate(
+                            ['siswa_id' => $siswaId, 'tujuan_pembelajaran_id' => $tp->id],
+                            ['nilai' => $score]
+                        );
+                        $this->formatifData[$siswaId][$tp->id] = $score;
+                    }
+                } else {
+                    NilaiAsesmenHarian::where('siswa_id', $siswaId)
+                        ->where('penugasan_mengajar_id', $this->activeNilaiPenugasanId)
+                        ->where('kode_ah', $ahCode)
+                        ->delete();
+
+                    foreach ($tpsInAh as $tp) {
+                        // Hanya hapus jika formatifData juga tidak memiliki nilai
+                        if (!isset($this->formatifData[$siswaId][$tp->id]) || $this->formatifData[$siswaId][$tp->id] === null || $this->formatifData[$siswaId][$tp->id] === '') {
+                            NilaiFormatif::where('siswa_id', $siswaId)
+                                ->where('tujuan_pembelajaran_id', $tp->id)
+                                ->delete();
+                            $this->formatifData[$siswaId][$tp->id] = null;
+                        }
+                    }
+                }
+            }
+        }
+
+        // 2. Simpan Nilai Formatif jika ada perubahan langsung (dukungan kompatibilitas)
         foreach ($this->formatifData as $siswaId => $tpScores) {
             foreach ($tpScores as $tpId => $score) {
                 if ($score !== null && $score !== '') {
@@ -289,13 +454,11 @@ class PenilaianInput extends Component
                         ['siswa_id' => $siswaId, 'tujuan_pembelajaran_id' => $tpId],
                         ['nilai' => $score]
                     );
-                } else {
-                    NilaiFormatif::where('siswa_id', $siswaId)->where('tujuan_pembelajaran_id', $tpId)->delete();
                 }
             }
         }
 
-        // Simpan Sumatif
+        // 3. Simpan Sumatif
         foreach ($this->sumatifData as $siswaId => $data) {
             if ($data['sts'] !== null || $data['sas'] !== null) {
                 NilaiSumatif::updateOrCreate(
@@ -316,12 +479,24 @@ class PenilaianInput extends Component
             ->whereIn('tujuan_pembelajaran_id', $this->tps->pluck('id'))
             ->get();
 
+        $ahRecords = NilaiAsesmenHarian::whereIn('siswa_id', $this->siswas->pluck('id'))
+            ->where('penugasan_mengajar_id', $this->activeNilaiPenugasanId)
+            ->get();
+
         $sumatifs = NilaiSumatif::where('penugasan_mengajar_id', $this->activeNilaiPenugasanId)->get()->keyBy('siswa_id');
 
         foreach ($this->siswas as $siswa) {
-            $siswaFormatifs = $formatifs->where('siswa_id', $siswa->id);
-            $rataFormatif = $siswaFormatifs->avg('nilai') ?? 0;
+            // Hitung rata-rata formatif dari nilai AH yang terisi
+            $siswaAh = $ahRecords->where('siswa_id', $siswa->id)->whereNotNull('nilai');
+            if ($siswaAh->isNotEmpty()) {
+                $rataFormatif = round($siswaAh->avg('nilai'), 2);
+            } else {
+                $siswaFormatifs = $formatifs->where('siswa_id', $siswa->id)->whereNotNull('nilai');
+                $rataFormatif = $siswaFormatifs->isNotEmpty() ? round($siswaFormatifs->avg('nilai'), 2) : 0;
+            }
 
+            // Tentukan deskripsi capaian tertinggi & terendah berbasis TP
+            $siswaFormatifs = $formatifs->where('siswa_id', $siswa->id)->whereNotNull('nilai');
             $highestTpId = null;
             $lowestTpId = null;
             $maxScore = null;
@@ -341,7 +516,7 @@ class PenilaianInput extends Component
             $sts = $sumatifs[$siswa->id]->sts ?? 0;
             $sas = $sumatifs[$siswa->id]->sas ?? 0;
 
-            // Formula: Formatif 50%, STS 25%, SAS 25%
+            // Formula: Formatif (AH) 50%, STS 25%, SAS 25%
             $nilaiAkhir = ($rataFormatif * 0.5) + ($sts * 0.25) + ($sas * 0.25);
 
             $descTinggi = '';

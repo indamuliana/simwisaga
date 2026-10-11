@@ -218,20 +218,28 @@ class PenilaianTPTerpaduDanSwitcherTest extends TestCase
             ->test(PenilaianInput::class, ['penugasan_id' => $this->pmGanjil->id])
             ->call('switchTab', 'formatif');
 
-        // Di Ganjil: kolom TP 1 dan TP 2
+        // Di Ganjil: kolom TP 1, TP 2 serta sumatif STS 1 dan SAS
         $test->assertSee('TP 1')
             ->assertSee('TP 2')
+            ->assertSee('STS 1')
+            ->assertSee('SAS')
             ->assertDontSee('TP 3')
-            ->assertDontSee('TP 4');
+            ->assertDontSee('TP 4')
+            ->assertDontSee('STS 2')
+            ->assertDontSee('SAT');
 
         // Beralih ke Semester Genap
         $test->call('switchNilaiSemester', $this->semGenap->id);
 
-        // Di Genap: kolom TP 3 dan TP 4
+        // Di Genap: kolom TP 3, TP 4 serta sumatif STS 2 dan SAT
         $test->assertSee('TP 3')
             ->assertSee('TP 4')
+            ->assertSee('STS 2')
+            ->assertSee('SAT')
             ->assertDontSee('TP 1')
-            ->assertDontSee('TP 2');
+            ->assertDontSee('TP 2')
+            ->assertDontSee('STS 1')
+            ->assertDontSee('SAS');
     }
 
     public function test_input_nilai_pada_semester_yang_dialihkan_berhasil_disimpan(): void

@@ -10,6 +10,7 @@ class TujuanPembelajaran extends Model
         'penugasan_mengajar_id',
         'kode',
         'deskripsi',
+        'alokasi_ah',
         'is_active',
     ];
 

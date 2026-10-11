@@ -395,7 +395,8 @@ class PopulateXHTL1DummyDataSeeder extends Seeder
                 // 5b. Buat / Update Tujuan Pembelajaran (TP)
                 $tpList = $semKey === 'ganjil' ? $cfg['tps_ganjil'] : $cfg['tps_genap'];
                 $createdTps = [];
-                foreach ($tpList as $tData) {
+                foreach ($tpList as $idx => $tData) {
+                    $ahCode = $semKey === 'ganjil' ? 'AH ' . ($idx + 1) : 'AH ' . ($idx + 5);
                     $tp = TujuanPembelajaran::updateOrCreate(
                         [
                             'penugasan_mengajar_id' => $pm->id,
@@ -403,6 +404,7 @@ class PopulateXHTL1DummyDataSeeder extends Seeder
                         ],
                         [
                             'deskripsi' => $tData['deskripsi'],
+                            'alokasi_ah' => $ahCode,
                             'is_active' => true,
                         ]
                     );
@@ -431,6 +433,19 @@ class PopulateXHTL1DummyDataSeeder extends Seeder
                                 'nilai' => $score,
                             ]
                         );
+
+                        if ($tp->alokasi_ah) {
+                            \App\Modules\Penilaian\Models\NilaiAsesmenHarian::updateOrCreate(
+                                [
+                                    'siswa_id' => $siswa->id,
+                                    'penugasan_mengajar_id' => $pm->id,
+                                    'kode_ah' => $tp->alokasi_ah,
+                                ],
+                                [
+                                    'nilai' => $score,
+                                ]
+                            );
+                        }
                     }
 
                     // Sumatif STS & SAS
