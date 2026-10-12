@@ -188,4 +188,61 @@ class PenilaianBukuNilaiSatuTahunTest extends TestCase
             'sas' => 94,
         ]);
     }
+
+    public function test_tab_aktif_bertahan_pada_tab_formatif_saat_reload_atau_diakses_dengan_parameter(): void
+    {
+        $this->actingAs($this->admin);
+
+        // 1. Akses langsung dengan parameter query ?tab=formatif (simulasi reload saat tab 2 terbuka)
+        Livewire::withQueryParams(['tab' => 'formatif'])
+            ->test(PenilaianInput::class, ['penugasan_id' => $this->pmGanjil->id])
+            ->assertSet('activeTab', 'formatif')
+            ->assertSee('Tampilan Tabel:')
+            ->assertSee('Simpan Semua Nilai');
+
+        // 2. Simulasi ganti tab ke formatif, maka session otomatis tersimpan
+        session()->put('penilaian_active_tab_' . $this->pmGanjil->id, 'formatif');
+
+        // Saat halaman di-reload / diakses kembali tanpa query parameter:
+        Livewire::test(PenilaianInput::class, ['penugasan_id' => $this->pmGanjil->id])
+            ->assertSet('activeTab', 'formatif')
+            ->assertSee('Tampilan Tabel:')
+            ->assertSee('Simpan Semua Nilai');
+
+        // 3. Jika berpindah ke tab rekap, session ter-update ke rekap
+        $comp = Livewire::test(PenilaianInput::class, ['penugasan_id' => $this->pmGanjil->id]);
+        $comp->call('switchTab', 'rekap')
+            ->assertSet('activeTab', 'rekap');
+
+        $this->assertEquals('rekap', session('penilaian_active_tab_' . $this->pmGanjil->id));
+
+        // Saat reload tanpa query parameter, session 'rekap' yang dipakai
+        Livewire::withQueryParams([])
+            ->test(PenilaianInput::class, ['penugasan_id' => $this->pmGanjil->id])
+            ->assertSet('activeTab', 'rekap')
+            ->assertSee('Rekap Semester:');
+    }
+
+    public function test_nilai_di_bawah_kkm_disorot_merah(): void
+    {
+        $this->actingAs($this->admin);
+
+        // Mapel default KKM = 75
+        $comp = Livewire::withQueryParams(['tab' => 'formatif'])
+            ->test(PenilaianInput::class, ['penugasan_id' => $this->pmGanjil->id]);
+
+        $this->assertEquals(75, $comp->get('kkm'));
+        $this->assertTrue($comp->instance()->isBelowKkm(65));
+        $this->assertTrue($comp->instance()->isBelowKkm('74.5'));
+        $this->assertFalse($comp->instance()->isBelowKkm(75));
+        $this->assertFalse($comp->instance()->isBelowKkm(80));
+        $this->assertFalse($comp->instance()->isBelowKkm(null));
+        $this->assertFalse($comp->instance()->isBelowKkm(''));
+
+        // Input nilai di bawah KKM pada STS 1 siswa
+        $comp->set('sumatifDataGanjil.' . $this->siswa->id . '.sts', 60)
+            ->assertSee('border-rose-500')
+            ->assertSee('bg-rose-100/70')
+            ->assertSee('di bawah KKM (75) - Belum Kompeten');
+    }
 }

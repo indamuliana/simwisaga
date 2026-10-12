@@ -11,6 +11,7 @@ use App\Modules\Penilaian\Models\NilaiFormatif;
 use App\Modules\Penilaian\Models\NilaiSumatif;
 use App\Modules\Penilaian\Models\TujuanPembelajaran;
 use Livewire\Attributes\Layout;
+use Livewire\Attributes\Url;
 use Livewire\Component;
 
 class PenilaianInput extends Component
@@ -23,6 +24,7 @@ class PenilaianInput extends Component
     public $semesters = []; // [ ['id' => ..., 'semester' => ..., 'nama' => ..., 'is_current_penugasan' => ..., 'penugasan_id' => ...] ]
 
     // Tab state: 'tp', 'formatif', 'rekap'
+    #[Url(as: 'tab')]
     public $activeTab = 'tp';
 
     // State for TP Form (Tab 1)
@@ -65,6 +67,14 @@ class PenilaianInput extends Component
     {
         $this->penugasan_id = $penugasan_id;
         $this->penugasan = PenugasanMengajar::with(['mapel', 'rombel', 'semester.tahunAjaran'])->findOrFail($penugasan_id);
+
+        $sessionKey = 'penilaian_active_tab_' . $penugasan_id;
+        if (request()->has('tab') && in_array(request()->query('tab'), ['tp', 'formatif', 'rekap'])) {
+            $this->activeTab = request()->query('tab');
+            session([$sessionKey => $this->activeTab]);
+        } elseif (session()->has($sessionKey)) {
+            $this->activeTab = session($sessionKey);
+        }
 
         $this->loadSemestersAndPenugasans();
 
@@ -257,6 +267,7 @@ class PenilaianInput extends Component
     public function switchTab($tab)
     {
         $this->activeTab = $tab;
+        session(['penilaian_active_tab_' . $this->penugasan_id => $tab]);
         if ($tab === 'rekap') {
             $this->calculateRekap();
         }
@@ -355,6 +366,16 @@ class PenilaianInput extends Component
         $currentSem = collect($this->semesters)->firstWhere('id', (int) $this->activeNilaiSemesterId);
         $semName = strtolower($currentSem['semester'] ?? '');
         return str_contains($semName, 'genap') ? 'SAT' : 'SAS';
+    }
+
+    public function getKkmProperty(): float
+    {
+        return (float) ($this->penugasan?->mapel?->kkm_default ?? 75);
+    }
+
+    public function isBelowKkm($val): bool
+    {
+        return $val !== null && $val !== '' && is_numeric($val) && (float) $val < $this->kkm;
     }
 
     public function saveTP()
@@ -574,6 +595,8 @@ class PenilaianInput extends Component
             }
         }
 
+        $this->calculateRekap();
+
         session()->flash('message_nilai', 'Seluruh Nilai Akademik (Formatif & Sumatif) berhasil disimpan.');
     }
 
@@ -591,8 +614,10 @@ class PenilaianInput extends Component
 
         $sumatifs = NilaiSumatif::where('penugasan_mengajar_id', $this->activeNilaiPenugasanId)->get()->keyBy('siswa_id');
 
+        $kkm = $this->penugasan->mapel->kkm_default ?? 75;
+
         foreach ($this->siswas as $siswa) {
-            // Hitung rata-rata formatif dari nilai AH yang terisi
+            // 1. Hitung rata-rata formatif dari nilai AH yang terisi
             $siswaAh = $ahRecords->where('siswa_id', $siswa->id)->whereNotNull('nilai');
             if ($siswaAh->isNotEmpty()) {
                 $rataFormatif = round($siswaAh->avg('nilai'), 2);
@@ -601,44 +626,99 @@ class PenilaianInput extends Component
                 $rataFormatif = $siswaFormatifs->isNotEmpty() ? round($siswaFormatifs->avg('nilai'), 2) : 0;
             }
 
-            // Tentukan deskripsi capaian tertinggi & terendah berbasis TP
-            $siswaFormatifs = $formatifs->where('siswa_id', $siswa->id)->whereNotNull('nilai');
-            $highestTpId = null;
-            $lowestTpId = null;
+            // 2. Kumpulkan nilai setiap TP pada semester aktif untuk analisis ketercapaian kompetensi
+            $tpScores = [];
+            foreach ($this->tps as $tp) {
+                // Ambil nilai dari NilaiFormatif
+                $nf = $formatifs->where('siswa_id', $siswa->id)->where('tujuan_pembelajaran_id', $tp->id)->first();
+                $score = $nf?->nilai;
+
+                // Fallback ke NilaiAsesmenHarian jika ada alokasi AH
+                if (($score === null || $score === '') && $tp->alokasi_ah) {
+                    $ahRec = $ahRecords->where('siswa_id', $siswa->id)->where('kode_ah', $tp->alokasi_ah)->first();
+                    $score = $ahRec?->nilai;
+                }
+
+                if ($score !== null && $score !== '') {
+                    $tpScores[$tp->id] = (float) $score;
+                }
+            }
+
+            // 3. Tentukan skor tertinggi dan skor terendah
+            $highestTpIds = [];
+            $lowestTpIds = [];
             $maxScore = null;
             $minScore = null;
 
-            foreach ($siswaFormatifs as $nf) {
-                if ($maxScore === null || $nf->nilai > $maxScore) {
-                    $maxScore = $nf->nilai;
-                    $highestTpId = $nf->tujuan_pembelajaran_id;
+            foreach ($tpScores as $tpId => $score) {
+                if ($maxScore === null || $score > $maxScore) {
+                    $maxScore = $score;
+                    $highestTpIds = [$tpId];
+                } elseif ($score == $maxScore) {
+                    $highestTpIds[] = $tpId;
                 }
-                if ($minScore === null || $nf->nilai < $minScore) {
-                    $minScore = $nf->nilai;
-                    $lowestTpId = $nf->tujuan_pembelajaran_id;
+
+                if ($minScore === null || $score < $minScore) {
+                    $minScore = $score;
+                    $lowestTpIds = [$tpId];
+                } elseif ($score == $minScore) {
+                    $lowestTpIds[] = $tpId;
                 }
             }
 
             $sts = $sumatifs[$siswa->id]->sts ?? 0;
             $sas = $sumatifs[$siswa->id]->sas ?? 0;
 
-            // Formula: Formatif (AH) 50%, STS 25%, SAS 25%
-            $nilaiAkhir = ($rataFormatif * 0.5) + ($sts * 0.25) + ($sas * 0.25);
+            // Formula: Formatif (AH) 50%, STS 25%, SAS 25% dengan pembulatan 2 desimal
+            $nilaiAkhir = round(($rataFormatif * 0.5) + ($sts * 0.25) + ($sas * 0.25), 2);
 
             $descTinggi = '';
             $descRendah = '';
 
-            if ($highestTpId) {
-                $tp = $this->tps->firstWhere('id', $highestTpId);
-                if ($tp) {
-                    $descTinggi = 'Menunjukkan penguasaan yang sangat baik dalam ' . lcfirst($tp->deskripsi) . '.';
+            // 4. Perumusan Deskripsi Capaian Tertinggi (Optimal)
+            if (!empty($highestTpIds) && $maxScore !== null) {
+                $highestTps = $this->tps->whereIn('id', $highestTpIds);
+                $tpDescriptions = $highestTps->pluck('deskripsi')->map(fn($d) => lcfirst(rtrim($d, '.')))->all();
+                
+                $joinedDesc = count($tpDescriptions) > 1 
+                    ? implode(' serta ', $tpDescriptions) 
+                    : ($tpDescriptions[0] ?? '');
+
+                if ($joinedDesc) {
+                    if ($maxScore >= 85) {
+                        $descTinggi = 'Menunjukkan penguasaan yang sangat baik dalam ' . $joinedDesc . '.';
+                    } elseif ($maxScore >= $kkm) {
+                        $descTinggi = 'Menunjukkan penguasaan yang baik dalam ' . $joinedDesc . '.';
+                    } else {
+                        $descTinggi = 'Cukup menguasai dalam ' . $joinedDesc . '.';
+                    }
                 }
             }
 
-            if ($lowestTpId && $lowestTpId !== $highestTpId) {
-                $tp = $this->tps->firstWhere('id', $lowestTpId);
-                if ($tp) {
-                    $descRendah = 'Perlu bimbingan lebih lanjut dalam ' . lcfirst($tp->deskripsi) . '.';
+            // 5. Perumusan Deskripsi Capaian Terendah (HANYA jika nilai di bawah KKM / memerlukan bimbingan)
+            // Sesuai Panduan Kurikulum Merdeka: Siswa yang seluruh nilainya tuntas (>= KKM) tidak diberikan catatan bimbingan
+            if ($minScore !== null && $minScore < $kkm) {
+                // Ambil TP yang nilainya di bawah KKM dan bukan bagian dari capaian tertinggi
+                $belowKkmTpIds = [];
+                foreach ($tpScores as $tpId => $score) {
+                    if ($score < $kkm && !in_array($tpId, $highestTpIds)) {
+                        $belowKkmTpIds[] = $tpId;
+                    }
+                }
+                if (empty($belowKkmTpIds)) {
+                    $belowKkmTpIds = array_diff($lowestTpIds, $highestTpIds);
+                }
+
+                if (!empty($belowKkmTpIds)) {
+                    $lowestTps = $this->tps->whereIn('id', $belowKkmTpIds);
+                    $tpDescriptions = $lowestTps->pluck('deskripsi')->map(fn($d) => lcfirst(rtrim($d, '.')))->all();
+                    $joinedDesc = count($tpDescriptions) > 1 
+                        ? implode(' dan ', $tpDescriptions) 
+                        : ($tpDescriptions[0] ?? '');
+
+                    if ($joinedDesc) {
+                        $descRendah = 'Perlu bimbingan lebih lanjut dalam ' . $joinedDesc . '.';
+                    }
                 }
             }
 

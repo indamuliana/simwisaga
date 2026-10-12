@@ -271,5 +271,18 @@ class PenilaianAlokasiAHTest extends TestCase
         $this->assertEquals(85.0, (float) $na->rata_formatif);
         // Deskripsi tertinggi harus membaca TP yang nilainya 90 (TP 2 atau TP 3)
         $this->assertStringContainsString('penguasaan yang sangat baik', $na->deskripsi_tertinggi);
+        // Karena nilai terendah adalah 80 (>= KKM 75), siswa tidak diberikan catatan "perlu bimbingan"
+        $this->assertEmpty($na->deskripsi_terendah);
+
+        // Jika siswa memiliki nilai di bawah KKM (< 75), harus muncul catatan bimbingan
+        NilaiFormatif::where('siswa_id', $this->siswa1->id)->where('tujuan_pembelajaran_id', $tp1->id)->update(['nilai' => 68]);
+        NilaiAsesmenHarian::where('siswa_id', $this->siswa1->id)->where('kode_ah', 'AH 1')->update(['nilai' => 68]);
+
+        Livewire::actingAs($this->admin)
+            ->test(PenilaianInput::class, ['penugasan_id' => $this->pmGanjil->id])
+            ->call('calculateRekap');
+
+        $naRemedial = NilaiAkhir::where('siswa_id', $this->siswa1->id)->where('penugasan_mengajar_id', $this->pmGanjil->id)->first();
+        $this->assertStringContainsString('Perlu bimbingan lebih lanjut', $naRemedial->deskripsi_terendah);
     }
 }

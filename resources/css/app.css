@@ -1,5 +1,7 @@
 @import 'tailwindcss';
 
+@custom-variant dark (&:where(.dark, .dark *));
+
 @source '../../vendor/laravel/framework/src/Illuminate/Pagination/resources/views/*.blade.php';
 @source '../../storage/framework/views/*.php';
 @source "../**/*.blade.php";
@@ -184,3 +186,22 @@
 }
 
 [x-cloak] { display: none !important; }
+
+/* Hilangkan tombol navigasi atas-bawah (spinner tambah/kurang) pada input angka tabel nilai */
+.no-spinner::-webkit-outer-spin-button,
+.no-spinner::-webkit-inner-spin-button,
+input[type="number"].no-spinner::-webkit-outer-spin-button,
+input[type="number"].no-spinner::-webkit-inner-spin-button,
+.table-nilai input[type="number"]::-webkit-outer-spin-button,
+.table-nilai input[type="number"]::-webkit-inner-spin-button {
+    -webkit-appearance: none !important;
+    margin: 0 !important;
+}
+
+.no-spinner,
+input[type="number"].no-spinner,
+.table-nilai input[type="number"] {
+    -moz-appearance: textfield !important;
+    appearance: textfield !important;
+}
+
