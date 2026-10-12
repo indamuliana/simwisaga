@@ -20,7 +20,7 @@
                 <span>Download Template (.xlsx)</span>
             </button>
 
-            @can('kesiswaan.siswa.hapus')
+            <!-- @can('kesiswaan.siswa.hapus')
             <button type="button" 
                     wire:click="resetAllSiswa" 
                     wire:confirm="PERINGATAN KRUSIAL: Apakah Anda yakin ingin MENGHAPUS SELURUH DATA SISWA beserta SELURUH AKUN PENGGUNA SISWA DAN ORANG TUA? Tindakan ini akan mengosongkan database siswa dan TIDAK DAPAT DIBATALKAN!" 
@@ -31,7 +31,7 @@
                 </svg>
                 <span>Reset Data Siswa</span>
             </button>
-            @endcan
+            @endcan -->
 
             <a href="{{ route('kesiswaan.siswa') }}" class="btn btn-secondary inline-flex items-center gap-1.5 text-text-secondary hover:text-text-main">
                 &larr; Kembali
