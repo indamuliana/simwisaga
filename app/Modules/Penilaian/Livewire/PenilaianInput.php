@@ -10,18 +10,43 @@ use App\Modules\Penilaian\Models\NilaiAsesmenHarian;
 use App\Modules\Penilaian\Models\NilaiFormatif;
 use App\Modules\Penilaian\Models\NilaiSumatif;
 use App\Modules\Penilaian\Models\TujuanPembelajaran;
+use App\Modules\Penilaian\Services\NilaiImporter;
+use App\Modules\Penilaian\Services\NilaiTemplateExporter;
+use App\Modules\Penilaian\Services\TujuanPembelajaranCopier;
 use Livewire\Attributes\Layout;
 use Livewire\Attributes\Url;
 use Livewire\Component;
+use Livewire\WithFileUploads;
 
 class PenilaianInput extends Component
 {
+    use WithFileUploads;
+
     public $penugasan_id;
     public $penugasan;
     public $siswas = [];
     public $tps = []; // TPs for the currently active semester being assessed
     public $allTps = []; // All TPs across Ganjil & Genap for this Mapel & Rombel
     public $semesters = []; // [ ['id' => ..., 'semester' => ..., 'nama' => ..., 'is_current_penugasan' => ..., 'penugasan_id' => ...] ]
+
+    // State untuk Modal Import Nilai
+    public bool $showImportModal = false;
+    public string $importStep = 'select'; // 'select' | 'preview'
+    public array $importSelectedColumns = [
+        'AH 1', 'AH 2', 'STS 1', 'AH 3', 'AH 4', 'SAS',
+        'AH 5', 'AH 6', 'STS 2', 'AH 7', 'AH 8', 'SAT',
+    ];
+    public string $importRombelScope = 'current'; // 'current' | 'all_assigned'
+    public $importFile = null;
+    public ?array $importPreviewData = null;
+    public bool $isImporting = false;
+
+    // State untuk Modal Salin TP ke Rombel Lain
+    public bool $showCopyTpModal = false;
+    public string $copyTpSemesterScope = 'all'; // 'all' | 'ganjil' | 'genap'
+    public array $selectedTargetRombelIds = [];
+    public array $availableTargetRombels = [];
+    public bool $isCopyingTp = false;
 
     // Tab state: 'tp', 'formatif', 'rekap'
     #[Url(as: 'tab')]
@@ -62,6 +87,15 @@ class PenilaianInput extends Component
 
     // State for Rekap
     public $rekapData = [];
+
+    // State for Modal Edit Deskripsi 9M
+    public bool $showModalDeskripsi9M = false;
+    public ?int $selectedSiswaId9M = null;
+    public ?string $selectedSiswaNama9M = null;
+    public string $selectedPeriodKey9M = ''; // '9M1', '9M2', '9M3', '9M4'
+    public string $selectedPeriodLabel9M = '';
+    public string $tempDeskripsiManual9M = '';
+    public string $autoDeskripsiInfo9M = '';
 
     public function mount($penugasan_id)
     {
@@ -604,138 +638,328 @@ class PenilaianInput extends Component
     {
         $this->rekapData = [];
 
-        $formatifs = NilaiFormatif::whereIn('siswa_id', $this->siswas->pluck('id'))
-            ->whereIn('tujuan_pembelajaran_id', $this->tps->pluck('id'))
-            ->get();
+        $isGenap = ($this->activeNilaiPenugasanId == $this->pmGenapId);
+        $block1Key = $isGenap ? '9M3' : '9M1';
+        $block2Key = $isGenap ? '9M4' : '9M2';
 
-        $ahRecords = NilaiAsesmenHarian::whereIn('siswa_id', $this->siswas->pluck('id'))
-            ->where('penugasan_mengajar_id', $this->activeNilaiPenugasanId)
-            ->get();
+        $ahBlock1 = $isGenap ? ['AH 5', 'AH 6'] : ['AH 1', 'AH 2'];
+        $ahBlock2 = $isGenap ? ['AH 7', 'AH 8'] : ['AH 3', 'AH 4'];
 
-        $sumatifs = NilaiSumatif::where('penugasan_mengajar_id', $this->activeNilaiPenugasanId)->get()->keyBy('siswa_id');
+        $sumatifSource = $isGenap ? $this->sumatifDataGenap : $this->sumatifDataGanjil;
+
+        $ahMapping = $this->ahTpsMapping;
+        $tpsBlock1 = collect();
+        foreach ($ahBlock1 as $ah) {
+            $tpsBlock1 = $tpsBlock1->merge($ahMapping[$ah] ?? collect());
+        }
+        $tpsBlock2 = collect();
+        foreach ($ahBlock2 as $ah) {
+            $tpsBlock2 = $tpsBlock2->merge($ahMapping[$ah] ?? collect());
+        }
 
         $kkm = $this->penugasan->mapel->kkm_default ?? 75;
 
+        // Ambil data nilai akhir yang sudah ada (untuk menjaga deskripsi_manual dan data_9m yang lama)
+        $existingNas = NilaiAkhir::where('penugasan_mengajar_id', $this->activeNilaiPenugasanId)
+            ->whereIn('siswa_id', $this->siswas->pluck('id'))
+            ->get()
+            ->keyBy('siswa_id');
+
         foreach ($this->siswas as $siswa) {
-            // 1. Hitung rata-rata formatif dari nilai AH yang terisi
-            $siswaAh = $ahRecords->where('siswa_id', $siswa->id)->whereNotNull('nilai');
-            if ($siswaAh->isNotEmpty()) {
-                $rataFormatif = round($siswaAh->avg('nilai'), 2);
+            $existingNa = $existingNas->get($siswa->id);
+            $currentData9m = $existingNa?->data_9m ?? [];
+
+            // 1. Evaluasi Blok 1 (9M1 atau 9M3)
+            $resBlock1 = $this->evaluate9MBlock(
+                $siswa->id,
+                $ahBlock1,
+                $tpsBlock1,
+                $sumatifSource[$siswa->id]['sts'] ?? null,
+                $kkm,
+                $currentData9m[$block1Key]['deskripsi_manual'] ?? null
+            );
+
+            // 2. Evaluasi Blok 2 (9M2 atau 9M4)
+            $resBlock2 = $this->evaluate9MBlock(
+                $siswa->id,
+                $ahBlock2,
+                $tpsBlock2,
+                $sumatifSource[$siswa->id]['sas'] ?? null,
+                $kkm,
+                $currentData9m[$block2Key]['deskripsi_manual'] ?? null
+            );
+
+            $currentData9m[$block1Key] = $resBlock1;
+            $currentData9m[$block2Key] = $resBlock2;
+
+            // Hitung nilai akhir semester (backward compatibility)
+            $allAhThisSem = array_merge($ahBlock1, $ahBlock2);
+            $filledAhs = [];
+            foreach ($allAhThisSem as $ah) {
+                $val = $this->ahData[$siswa->id][$ah] ?? null;
+                if ($val !== null && $val !== '' && is_numeric($val)) {
+                    $filledAhs[] = (float) $val;
+                }
+            }
+            $rataFormatifSem = !empty($filledAhs) ? round(array_sum($filledAhs) / count($filledAhs), 2) : 0;
+            $stsVal = isset($sumatifSource[$siswa->id]['sts']) && is_numeric($sumatifSource[$siswa->id]['sts']) ? (float) $sumatifSource[$siswa->id]['sts'] : null;
+            $sasVal = isset($sumatifSource[$siswa->id]['sas']) && is_numeric($sumatifSource[$siswa->id]['sas']) ? (float) $sumatifSource[$siswa->id]['sas'] : null;
+
+            // Nilai akhir semester penuh
+            if ($sasVal !== null) {
+                $nilaiAkhirSem = round(($rataFormatifSem * 0.5) + (($stsVal ?? 0) * 0.25) + ($sasVal * 0.25), 2);
+            } elseif ($resBlock1['nilai_akhir'] !== null) {
+                $nilaiAkhirSem = $resBlock1['nilai_akhir'];
             } else {
-                $siswaFormatifs = $formatifs->where('siswa_id', $siswa->id)->whereNotNull('nilai');
-                $rataFormatif = $siswaFormatifs->isNotEmpty() ? round($siswaFormatifs->avg('nilai'), 2) : 0;
+                $nilaiAkhirSem = $rataFormatifSem > 0 ? $rataFormatifSem : null;
             }
 
-            // 2. Kumpulkan nilai setiap TP pada semester aktif untuk analisis ketercapaian kompetensi
-            $tpScores = [];
-            foreach ($this->tps as $tp) {
-                // Ambil nilai dari NilaiFormatif
-                $nf = $formatifs->where('siswa_id', $siswa->id)->where('tujuan_pembelajaran_id', $tp->id)->first();
-                $score = $nf?->nilai;
-
-                // Fallback ke NilaiAsesmenHarian jika ada alokasi AH
-                if (($score === null || $score === '') && $tp->alokasi_ah) {
-                    $ahRec = $ahRecords->where('siswa_id', $siswa->id)->where('kode_ah', $tp->alokasi_ah)->first();
-                    $score = $ahRec?->nilai;
-                }
-
-                if ($score !== null && $score !== '') {
-                    $tpScores[$tp->id] = (float) $score;
-                }
-            }
-
-            // 3. Tentukan skor tertinggi dan skor terendah
-            $highestTpIds = [];
-            $lowestTpIds = [];
-            $maxScore = null;
-            $minScore = null;
-
-            foreach ($tpScores as $tpId => $score) {
-                if ($maxScore === null || $score > $maxScore) {
-                    $maxScore = $score;
-                    $highestTpIds = [$tpId];
-                } elseif ($score == $maxScore) {
-                    $highestTpIds[] = $tpId;
-                }
-
-                if ($minScore === null || $score < $minScore) {
-                    $minScore = $score;
-                    $lowestTpIds = [$tpId];
-                } elseif ($score == $minScore) {
-                    $lowestTpIds[] = $tpId;
-                }
-            }
-
-            $sts = $sumatifs[$siswa->id]->sts ?? 0;
-            $sas = $sumatifs[$siswa->id]->sas ?? 0;
-
-            // Formula: Formatif (AH) 50%, STS 25%, SAS 25% dengan pembulatan 2 desimal
-            $nilaiAkhir = round(($rataFormatif * 0.5) + ($sts * 0.25) + ($sas * 0.25), 2);
-
-            $descTinggi = '';
-            $descRendah = '';
-
-            // 4. Perumusan Deskripsi Capaian Tertinggi (Optimal)
-            if (!empty($highestTpIds) && $maxScore !== null) {
-                $highestTps = $this->tps->whereIn('id', $highestTpIds);
-                $tpDescriptions = $highestTps->pluck('deskripsi')->map(fn($d) => lcfirst(rtrim($d, '.')))->all();
-                
-                $joinedDesc = count($tpDescriptions) > 1 
-                    ? implode(' serta ', $tpDescriptions) 
-                    : ($tpDescriptions[0] ?? '');
-
-                if ($joinedDesc) {
-                    if ($maxScore >= 85) {
-                        $descTinggi = 'Menunjukkan penguasaan yang sangat baik dalam ' . $joinedDesc . '.';
-                    } elseif ($maxScore >= $kkm) {
-                        $descTinggi = 'Menunjukkan penguasaan yang baik dalam ' . $joinedDesc . '.';
-                    } else {
-                        $descTinggi = 'Cukup menguasai dalam ' . $joinedDesc . '.';
-                    }
-                }
-            }
-
-            // 5. Perumusan Deskripsi Capaian Terendah (HANYA jika nilai di bawah KKM / memerlukan bimbingan)
-            // Sesuai Panduan Kurikulum Merdeka: Siswa yang seluruh nilainya tuntas (>= KKM) tidak diberikan catatan bimbingan
-            if ($minScore !== null && $minScore < $kkm) {
-                // Ambil TP yang nilainya di bawah KKM dan bukan bagian dari capaian tertinggi
-                $belowKkmTpIds = [];
-                foreach ($tpScores as $tpId => $score) {
-                    if ($score < $kkm && !in_array($tpId, $highestTpIds)) {
-                        $belowKkmTpIds[] = $tpId;
-                    }
-                }
-                if (empty($belowKkmTpIds)) {
-                    $belowKkmTpIds = array_diff($lowestTpIds, $highestTpIds);
-                }
-
-                if (!empty($belowKkmTpIds)) {
-                    $lowestTps = $this->tps->whereIn('id', $belowKkmTpIds);
-                    $tpDescriptions = $lowestTps->pluck('deskripsi')->map(fn($d) => lcfirst(rtrim($d, '.')))->all();
-                    $joinedDesc = count($tpDescriptions) > 1 
-                        ? implode(' dan ', $tpDescriptions) 
-                        : ($tpDescriptions[0] ?? '');
-
-                    if ($joinedDesc) {
-                        $descRendah = 'Perlu bimbingan lebih lanjut dalam ' . $joinedDesc . '.';
-                    }
-                }
-            }
-
+            // Simpan ke database
             $na = NilaiAkhir::updateOrCreate(
                 ['siswa_id' => $siswa->id, 'penugasan_mengajar_id' => $this->activeNilaiPenugasanId],
                 [
-                    'rata_formatif' => $rataFormatif,
-                    'sts' => $sts,
-                    'sas' => $sas,
-                    'nilai_akhir' => $nilaiAkhir,
-                    'deskripsi_tertinggi' => $descTinggi,
-                    'deskripsi_terendah' => $descRendah,
+                    'rata_formatif' => $rataFormatifSem,
+                    'sts' => $stsVal,
+                    'sas' => $sasVal,
+                    'nilai_akhir' => $nilaiAkhirSem,
+                    'deskripsi_tertinggi' => $resBlock2['deskripsi_tertinggi'] ?: $resBlock1['deskripsi_tertinggi'],
+                    'deskripsi_terendah' => $resBlock2['deskripsi_terendah'] ?: $resBlock1['deskripsi_terendah'],
+                    'deskripsi_manual' => $resBlock2['deskripsi_manual'] ?: $resBlock1['deskripsi_manual'],
+                    'data_9m' => $currentData9m,
                 ]
             );
 
             $this->rekapData[$siswa->id] = $na;
         }
+    }
+
+    /**
+     * Evaluasi satu blok 9 minggu untuk satu siswa
+     */
+    protected function evaluate9MBlock(
+        int $siswaId,
+        array $ahCodes,
+        \Illuminate\Support\Collection $tpsInBlock,
+        $sumatifVal,
+        float $kkm,
+        ?string $existingManualOverride = null
+    ): array {
+        // 1. Kumpulkan nilai AH pada blok ini
+        $ahScores = [];
+        foreach ($ahCodes as $ah) {
+            $score = $this->ahData[$siswaId][$ah] ?? null;
+            if ($score !== null && $score !== '' && is_numeric($score)) {
+                $ahScores[] = (float) $score;
+            }
+        }
+        $rataFormatif = !empty($ahScores) ? round(array_sum($ahScores) / count($ahScores), 2) : null;
+        $sumatif = ($sumatifVal !== null && $sumatifVal !== '' && is_numeric($sumatifVal)) ? (float) $sumatifVal : null;
+
+        // 2. Hitung NA Blok (50% Formatif + 50% Sumatif)
+        $nilaiAkhir = null;
+        if ($rataFormatif !== null && $sumatif !== null) {
+            $nilaiAkhir = round(($rataFormatif * 0.5) + ($sumatif * 0.5), 2);
+        } elseif ($rataFormatif !== null) {
+            $nilaiAkhir = $rataFormatif;
+        } elseif ($sumatif !== null) {
+            $nilaiAkhir = $sumatif;
+        }
+
+        // 3. Evaluasi Deskripsi TP pada blok ini
+        $tpScores = [];
+        foreach ($tpsInBlock as $tp) {
+            $score = $this->formatifData[$siswaId][$tp->id] ?? null;
+            if (($score === null || $score === '') && !empty($tp->alokasi_ah)) {
+                $score = $this->ahData[$siswaId][$tp->alokasi_ah] ?? null;
+            }
+            if ($score !== null && $score !== '' && is_numeric($score)) {
+                $tpScores[$tp->id] = (float) $score;
+            }
+        }
+
+        $descTinggi = '';
+        $descRendah = '';
+
+        if (!empty($tpScores)) {
+            $countTps = count($tpScores);
+
+            if ($countTps === 1) {
+                // KASUS 1: Hanya ada 1 TP dalam periode 9M (tetap hasilkan 2 baris)
+                $onlyTpId = array_key_first($tpScores);
+                $onlyScore = $tpScores[$onlyTpId];
+                $onlyTp = $tpsInBlock->firstWhere('id', $onlyTpId);
+                $tpDesc = lcfirst(rtrim($onlyTp->deskripsi ?? '', '.'));
+
+                // Baris 1: Capaian penguasaan
+                if ($onlyScore >= 85) {
+                    $descTinggi = 'Menunjukkan penguasaan yang sangat baik dalam ' . $tpDesc . '.';
+                } elseif ($onlyScore >= $kkm) {
+                    $descTinggi = 'Menunjukkan penguasaan yang baik dalam ' . $tpDesc . '.';
+                } else {
+                    $descTinggi = 'Cukup menguasai dalam ' . $tpDesc . '.';
+                }
+
+                // Baris 2: Pemantapan / Bimbingan berkelanjutan
+                if ($onlyScore >= $kkm) {
+                    $descRendah = 'Perlu pemantapan lebih lanjut dalam ' . $tpDesc . ' secara berkelanjutan.';
+                } else {
+                    $descRendah = 'Perlu bimbingan lebih lanjut dalam ' . $tpDesc . '.';
+                }
+            } else {
+                // KASUS 2: Ada 2 atau lebih TP
+                $maxScore = max($tpScores);
+                $minScore = min($tpScores);
+
+                if ($maxScore == $minScore) {
+                    // Semua TP bernilai identik
+                    $tpIds = array_keys($tpScores);
+                    $firstTpId = $tpIds[0];
+                    $otherTpIds = array_slice($tpIds, 1);
+
+                    $firstTp = $tpsInBlock->firstWhere('id', $firstTpId);
+                    $firstDesc = lcfirst(rtrim($firstTp->deskripsi ?? '', '.'));
+
+                    if ($maxScore >= 85) {
+                        $descTinggi = 'Menunjukkan penguasaan yang sangat baik dalam ' . $firstDesc . '.';
+                    } elseif ($maxScore >= $kkm) {
+                        $descTinggi = 'Menunjukkan penguasaan yang baik dalam ' . $firstDesc . '.';
+                    } else {
+                        $descTinggi = 'Cukup menguasai dalam ' . $firstDesc . '.';
+                    }
+
+                    $otherTps = $tpsInBlock->whereIn('id', $otherTpIds);
+                    $tpOtherDesc = $otherTps->pluck('deskripsi')->map(fn($d) => lcfirst(rtrim($d, '.')))->all();
+                    $joinedOtherDesc = count($tpOtherDesc) > 1 ? implode(' dan ', $tpOtherDesc) : ($tpOtherDesc[0] ?? '');
+
+                    if ($minScore >= $kkm) {
+                        $descRendah = 'Perlu pemantapan dalam ' . $joinedOtherDesc . '.';
+                    } else {
+                        $descRendah = 'Perlu bimbingan dalam ' . $joinedOtherDesc . '.';
+                    }
+                } else {
+                    // Terdapat perbedaan nilai tertinggi dan terendah
+                    $highestTpIds = array_keys(array_filter($tpScores, fn($s) => $s == $maxScore));
+                    $lowestTpIds = array_keys(array_filter($tpScores, fn($s) => $s == $minScore && !in_array($s, $highestTpIds)));
+
+                    if (empty($lowestTpIds)) {
+                        $lowestTpIds = array_keys(array_filter($tpScores, fn($s) => $s == $minScore));
+                    }
+
+                    // Baris 1: TP yang unggul
+                    $highestTps = $tpsInBlock->whereIn('id', $highestTpIds);
+                    $tpDescTinggi = $highestTps->pluck('deskripsi')->map(fn($d) => lcfirst(rtrim($d, '.')))->all();
+                    $joinedDescTinggi = count($tpDescTinggi) > 1 ? implode(' serta ', $tpDescTinggi) : ($tpDescTinggi[0] ?? '');
+
+                    if ($maxScore >= 85) {
+                        $descTinggi = 'Menunjukkan penguasaan yang sangat baik dalam ' . $joinedDescTinggi . '.';
+                    } elseif ($maxScore >= $kkm) {
+                        $descTinggi = 'Menunjukkan penguasaan yang baik dalam ' . $joinedDescTinggi . '.';
+                    } else {
+                        $descTinggi = 'Cukup menguasai dalam ' . $joinedDescTinggi . '.';
+                    }
+
+                    // Baris 2: TP yang rendah (adaptif: perlu bimbingan jika < KKM, perlu pemantapan jika >= KKM)
+                    $lowestTps = $tpsInBlock->whereIn('id', $lowestTpIds);
+                    $tpDescRendah = $lowestTps->pluck('deskripsi')->map(fn($d) => lcfirst(rtrim($d, '.')))->all();
+                    $joinedDescRendah = count($tpDescRendah) > 1 ? implode(' dan ', $tpDescRendah) : ($tpDescRendah[0] ?? '');
+
+                    if ($minScore >= $kkm) {
+                        $descRendah = 'Perlu pemantapan dalam ' . $joinedDescRendah . '.';
+                    } else {
+                        $descRendah = 'Perlu bimbingan dalam ' . $joinedDescRendah . '.';
+                    }
+                }
+            }
+        }
+
+        return [
+            'rata_formatif' => $rataFormatif,
+            'sumatif' => $sumatif,
+            'nilai_akhir' => $nilaiAkhir,
+            'deskripsi_tertinggi' => $descTinggi,
+            'deskripsi_terendah' => $descRendah,
+            'deskripsi_manual' => $existingManualOverride ?: null,
+        ];
+    }
+
+    public function openEditDeskripsi9M(int $siswaId, string $periodKey): void
+    {
+        $this->selectedSiswaId9M = $siswaId;
+        $this->selectedPeriodKey9M = $periodKey;
+
+        $siswa = $this->siswas->firstWhere('id', $siswaId);
+        $this->selectedSiswaNama9M = $siswa?->nama ?? 'Siswa';
+
+        $periodLabels = [
+            '9M1' => '9 Minggu ke-1 (Periode STS 1)',
+            '9M2' => '9 Minggu ke-2 (Periode SAS)',
+            '9M3' => '9 Minggu ke-3 (Periode STS 2)',
+            '9M4' => '9 Minggu ke-4 (Periode SAT)',
+        ];
+        $this->selectedPeriodLabel9M = $periodLabels[$periodKey] ?? $periodKey;
+
+        $na = $this->rekapData[$siswaId] ?? NilaiAkhir::where('siswa_id', $siswaId)->where('penugasan_mengajar_id', $this->activeNilaiPenugasanId)->first();
+        $record9m = $na?->getRecordFor9M($periodKey);
+
+        $this->tempDeskripsiManual9M = $record9m['deskripsi_manual'] ?? '';
+        
+        $autoDesc = [];
+        if (!empty($record9m['deskripsi_tertinggi'])) {
+            $autoDesc[] = $record9m['deskripsi_tertinggi'];
+        }
+        if (!empty($record9m['deskripsi_terendah'])) {
+            $autoDesc[] = $record9m['deskripsi_terendah'];
+        }
+        $this->autoDeskripsiInfo9M = !empty($autoDesc) ? implode("\n", $autoDesc) : 'Belum ada deskripsi otomatis yang dihasilkan.';
+
+        $this->showModalDeskripsi9M = true;
+    }
+
+    public function closeEditDeskripsi9M(): void
+    {
+        $this->showModalDeskripsi9M = false;
+        $this->selectedSiswaId9M = null;
+        $this->selectedPeriodKey9M = '';
+        $this->tempDeskripsiManual9M = '';
+        $this->autoDeskripsiInfo9M = '';
+    }
+
+    public function saveDeskripsi9M(): void
+    {
+        if (!$this->selectedSiswaId9M || !$this->selectedPeriodKey9M) {
+            return;
+        }
+
+        $na = NilaiAkhir::where('siswa_id', $this->selectedSiswaId9M)
+            ->where('penugasan_mengajar_id', $this->activeNilaiPenugasanId)
+            ->first();
+
+        if ($na) {
+            $data9m = $na->data_9m ?? [];
+            if (!isset($data9m[$this->selectedPeriodKey9M])) {
+                $data9m[$this->selectedPeriodKey9M] = [];
+            }
+            $cleanText = trim($this->tempDeskripsiManual9M);
+            $data9m[$this->selectedPeriodKey9M]['deskripsi_manual'] = $cleanText !== '' ? $cleanText : null;
+            $na->data_9m = $data9m;
+            $na->save();
+
+            $this->rekapData[$this->selectedSiswaId9M] = $na;
+        }
+
+        session()->flash('message_rekap', 'Deskripsi capaian periode ' . $this->selectedPeriodKey9M . ' berhasil diperbarui.');
+        $this->closeEditDeskripsi9M();
+    }
+
+    public function resetToAutoDeskripsi9M(): void
+    {
+        $this->tempDeskripsiManual9M = '';
+        $this->saveDeskripsi9M();
+    }
+
+    public function copyAutoToManual9M(): void
+    {
+        $this->tempDeskripsiManual9M = $this->autoDeskripsiInfo9M;
     }
 
     public function updateManualDeskripsi($siswaId, $text)
@@ -744,6 +968,178 @@ class PenilaianInput extends Component
         if ($na) {
             $na->deskripsi_manual = $text;
             $na->save();
+        }
+    }
+
+    public function openImportModal(): void
+    {
+        $this->importStep = 'select';
+        $this->importFile = null;
+        $this->importPreviewData = null;
+        $this->isImporting = false;
+        $this->showImportModal = true;
+    }
+
+    public function closeImportModal(): void
+    {
+        $this->showImportModal = false;
+        $this->importFile = null;
+        $this->importPreviewData = null;
+        $this->isImporting = false;
+    }
+
+    public function setImportPreset(string $preset): void
+    {
+        if ($preset === 'semua') {
+            $this->importSelectedColumns = NilaiTemplateExporter::ALL_COLUMNS;
+        } elseif ($preset === 'ganjil') {
+            $this->importSelectedColumns = ['AH 1', 'AH 2', 'STS 1', 'AH 3', 'AH 4', 'SAS'];
+        } elseif ($preset === 'genap') {
+            $this->importSelectedColumns = ['AH 5', 'AH 6', 'STS 2', 'AH 7', 'AH 8', 'SAT'];
+        } elseif ($preset === 'reset') {
+            $this->importSelectedColumns = [];
+        }
+    }
+
+    public function downloadTemplate()
+    {
+        if (empty($this->importSelectedColumns)) {
+            $this->addError('importSelectedColumns', 'Pilih minimal satu kolom nilai asesmen untuk membuat template.');
+            return;
+        }
+
+        $exporter = new NilaiTemplateExporter(
+            $this->penugasan,
+            $this->importSelectedColumns,
+            $this->importRombelScope
+        );
+
+        return $exporter->downloadResponse();
+    }
+
+    public function uploadAndPreview(): void
+    {
+        $this->validate([
+            'importFile' => ['required', 'file', 'mimes:xlsx,xls', 'max:10240'],
+        ], [
+            'importFile.required' => 'Pilih berkas Excel (.xlsx / .xls) terlebih dahulu.',
+            'importFile.mimes' => 'Format berkas harus berupa Excel (.xlsx atau .xls).',
+            'importFile.max' => 'Ukuran berkas maksimal adalah 10 MB.',
+        ]);
+
+        $realPath = $this->importFile->getRealPath();
+        $cleanTempPath = tempnam(sys_get_temp_dir(), 'siraga_import_') . '.xlsx';
+        copy($realPath, $cleanTempPath);
+
+        $importer = new NilaiImporter();
+
+        $this->importPreviewData = $importer->validateAndParse(
+            $cleanTempPath,
+            $this->penugasan,
+            $this->importSelectedColumns
+        );
+
+        @unlink($cleanTempPath);
+
+        if (!$this->importPreviewData['success'] && empty($this->importPreviewData['valid_rows'])) {
+            return;
+        }
+
+        $this->importStep = 'preview';
+    }
+
+    public function cancelPreview(): void
+    {
+        $this->importStep = 'select';
+        $this->importFile = null;
+        $this->importPreviewData = null;
+    }
+
+    public function executeImport(): void
+    {
+        if (empty($this->importPreviewData['valid_rows'])) {
+            $this->addError('importFile', 'Tidak ada baris data nilai yang valid untuk disimpan.');
+            return;
+        }
+
+        $this->isImporting = true;
+
+        $importer = new NilaiImporter();
+        $result = $importer->commitImport($this->importPreviewData['valid_rows'], $this->penugasan);
+
+        // Muat ulang data nilai pada tabel input 1 tahun
+        $this->loadNilaiForActiveSemester();
+        $this->calculateRekap();
+
+        $this->isImporting = false;
+        $this->showImportModal = false;
+        $this->importFile = null;
+        $this->importPreviewData = null;
+
+        session()->flash('message_nilai', "Sukses! Berhasil mengimpor nilai untuk {$result['saved_students']} siswa pada {$result['affected_rombels_count']} rombel.");
+    }
+
+    public function openCopyTpModal(): void
+    {
+        if (empty($this->allTps) || count($this->allTps) === 0) {
+            session()->flash('message_tp_error', 'Belum ada Tujuan Pembelajaran yang dapat disalin.');
+            return;
+        }
+
+        $copier = app(TujuanPembelajaranCopier::class);
+        $this->availableTargetRombels = $copier->getAvailableTargetRombels($this->penugasan)->toArray();
+        $this->selectedTargetRombelIds = [];
+        $this->copyTpSemesterScope = 'all';
+        $this->showCopyTpModal = true;
+    }
+
+    public function closeCopyTpModal(): void
+    {
+        $this->showCopyTpModal = false;
+        $this->selectedTargetRombelIds = [];
+    }
+
+    public function selectAllTargetRombels(): void
+    {
+        $this->selectedTargetRombelIds = collect($this->availableTargetRombels)
+            ->pluck('id')
+            ->map(fn($id) => (int) $id)
+            ->all();
+    }
+
+    public function deselectAllTargetRombels(): void
+    {
+        $this->selectedTargetRombelIds = [];
+    }
+
+    public function executeCopyTp(): void
+    {
+        if (empty($this->selectedTargetRombelIds)) {
+            session()->flash('message_copy_tp_error', 'Pilih minimal satu rombel tujuan untuk disalin.');
+            return;
+        }
+
+        $this->isCopyingTp = true;
+
+        try {
+            $copier = app(TujuanPembelajaranCopier::class);
+            $result = $copier->copyTps(
+                $this->penugasan,
+                array_map('intval', $this->selectedTargetRombelIds),
+                $this->copyTpSemesterScope
+            );
+
+            session()->flash(
+                'message_tp',
+                "Sukses! Berhasil menyalin {$result['source_tps_count']} TP ke {$result['rombels_count']} rombel ({$result['created_count']} baru dibuat, {$result['updated_count']} diperbarui)."
+            );
+
+            $this->showCopyTpModal = false;
+            $this->selectedTargetRombelIds = [];
+        } catch (\Throwable $e) {
+            session()->flash('message_copy_tp_error', 'Gagal menyalin TP: ' . $e->getMessage());
+        } finally {
+            $this->isCopyingTp = false;
         }
     }
 

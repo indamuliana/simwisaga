@@ -10,6 +10,10 @@ use App\Modules\Akademik\Support\AcademicContext;
 use App\Modules\Kepegawaian\Models\Pegawai;
 use App\Modules\Kepegawaian\Models\PenugasanMengajar;
 use App\Modules\Kesiswaan\Models\Siswa;
+use App\Modules\Penilaian\Models\NilaiAkhir;
+use App\Modules\Penilaian\Models\NilaiAsesmenHarian;
+use App\Modules\Penilaian\Models\NilaiFormatif;
+use App\Modules\Penilaian\Models\NilaiSumatif;
 use Livewire\Attributes\Layout;
 use Livewire\Attributes\Title;
 use Livewire\Component;
@@ -178,16 +182,87 @@ class PenilaianDashboard extends Component
             $penugasans = PenugasanMengajar::where('rombel_id', $selectedRombel->id)
                 ->where('semester_id', $currentSem->id)
                 ->with('pegawai')
-                ->withCount(['nilaiAkhirs', 'tujuanPembelajarans'])
+                ->withCount('tujuanPembelajarans')
                 ->get()
                 ->keyBy('mapel_id');
 
+            $pmIds = $penugasans->pluck('id')->filter()->all();
+
+            $activeSiswaIds = Siswa::where('rombel_id', $selectedRombel->id)
+                ->where('status', 'aktif')
+                ->pluck('id');
+
+            // 1. Pemetaan siswa aktif yang telah memiliki Nilai Akhir valid (skor > 0 atau komponen terisi)
+            $naSiswaMap = NilaiAkhir::whereIn('penugasan_mengajar_id', $pmIds)
+                ->whereIn('siswa_id', $activeSiswaIds)
+                ->where(function ($q) {
+                    $q->where('nilai_akhir', '>', 0)
+                        ->orWhere('rata_formatif', '>', 0)
+                        ->orWhereNotNull('sts')
+                        ->orWhereNotNull('sas');
+                })
+                ->select('penugasan_mengajar_id', 'siswa_id')
+                ->get()
+                ->groupBy('penugasan_mengajar_id')
+                ->map(fn($g) => $g->pluck('siswa_id')->unique());
+
+            // 2. Pemetaan siswa aktif yang memiliki Asesmen Harian terisi
+            $ahSiswaMap = NilaiAsesmenHarian::whereIn('penugasan_mengajar_id', $pmIds)
+                ->whereIn('siswa_id', $activeSiswaIds)
+                ->whereNotNull('nilai')
+                ->select('penugasan_mengajar_id', 'siswa_id')
+                ->get()
+                ->groupBy('penugasan_mengajar_id')
+                ->map(fn($g) => $g->pluck('siswa_id')->unique());
+
+            // 3. Pemetaan siswa aktif yang memiliki nilai Sumatif (STS atau SAS/SAT) terisi
+            $sumatifSiswaMap = NilaiSumatif::whereIn('penugasan_mengajar_id', $pmIds)
+                ->whereIn('siswa_id', $activeSiswaIds)
+                ->where(function ($q) {
+                    $q->whereNotNull('sts')->orWhereNotNull('sas');
+                })
+                ->select('penugasan_mengajar_id', 'siswa_id')
+                ->get()
+                ->groupBy('penugasan_mengajar_id')
+                ->map(fn($g) => $g->pluck('siswa_id')->unique());
+
+            // 4. Pemetaan siswa aktif yang memiliki nilai Formatif (berbasis TP) terisi
+            $formatifSiswaMap = NilaiFormatif::whereIn('siswa_id', $activeSiswaIds)
+                ->whereNotNull('nilai')
+                ->whereHas('tujuanPembelajaran', function ($q) use ($pmIds) {
+                    $q->whereIn('penugasan_mengajar_id', $pmIds);
+                })
+                ->with('tujuanPembelajaran:id,penugasan_mengajar_id')
+                ->get()
+                ->groupBy(fn($item) => $item->tujuanPembelajaran->penugasan_mengajar_id)
+                ->map(fn($g) => $g->pluck('siswa_id')->unique());
+
             // Hitung metrik per mata pelajaran
-            $mappedItems = $allSk->map(function ($sk) use ($penugasans, $totalSiswaRombel, $currentSem) {
+            $mappedItems = $allSk->map(function ($sk) use (
+                $penugasans,
+                $totalSiswaRombel,
+                $currentSem,
+                $naSiswaMap,
+                $ahSiswaMap,
+                $sumatifSiswaMap,
+                $formatifSiswaMap
+            ) {
                 $pm = $penugasans->get($sk->mapel_id);
                 $tpCount = $pm ? $pm->tujuan_pembelajarans_count : 0;
-                $nilaiCount = $pm ? $pm->nilai_akhirs_count : 0;
                 $guru = $pm && $pm->pegawai ? $pm->pegawai->nama_lengkap : null;
+                $pmId = $pm?->id;
+
+                if ($pmId) {
+                    $assessedSiswa = collect()
+                        ->merge($naSiswaMap->get($pmId, collect()))
+                        ->merge($ahSiswaMap->get($pmId, collect()))
+                        ->merge($sumatifSiswaMap->get($pmId, collect()))
+                        ->merge($formatifSiswaMap->get($pmId, collect()))
+                        ->unique();
+                    $nilaiCount = $assessedSiswa->count();
+                } else {
+                    $nilaiCount = 0;
+                }
 
                 $persen = ($totalSiswaRombel > 0 && $nilaiCount > 0)
                     ? min(100, (int) round(($nilaiCount / $totalSiswaRombel) * 100))
@@ -196,7 +271,7 @@ class PenilaianDashboard extends Component
                 // Tentukan status
                 if ($totalSiswaRombel > 0 && $nilaiCount >= $totalSiswaRombel) {
                     $status = 'lengkap';
-                } elseif ($nilaiCount > 0) {
+                } elseif ($totalSiswaRombel > 0 && $nilaiCount > 0) {
                     $status = 'sebagian';
                 } elseif ($tpCount > 0) {
                     $status = 'proses_tp';

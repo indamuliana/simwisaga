@@ -11,8 +11,12 @@ return [
             'route' => 'penilaian.index',
         ],
         [
-            'label' => 'Rekapitulasi',
+            'label' => 'Rekap Nilai Semester',
             'route' => 'penilaian.rekap',
+        ],
+        [
+            'label' => 'Transkrip Siswa Tahunan',
+            'route' => 'penilaian.transkrip',
         ]
     ],
     'permissions' => [

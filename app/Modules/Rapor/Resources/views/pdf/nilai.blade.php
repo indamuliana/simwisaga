@@ -93,12 +93,19 @@
 					<td style="text-align: center;">{{ $index + 1 }}</td>
 					<td>{{ $na->penugasanMengajar->mapel->nama }}</td>
 					<td style="text-align: center; font-weight: bold;">{{ number_format($na->nilai_akhir, 0) }}</td>
-					<td style="font-size: 9pt;">
+					<td style="font-size: 8.5pt; line-height: 1.4; color: #1f2937;">
 						@if($na->deskripsi_manual)
-							{{ $na->deskripsi_manual }}
+							{!! nl2br(e($na->deskripsi_manual)) !!}
 						@else
-							<span style="color: green;">{{ $na->deskripsi_tertinggi }}</span><br>
-							<span style="color: red;">{{ $na->deskripsi_terendah }}</span>
+							@if(!empty($na->deskripsi_tertinggi))
+								<div>{{ $na->deskripsi_tertinggi }}</div>
+							@endif
+							@if(!empty($na->deskripsi_terendah))
+								<div style="margin-top: 4px;">{{ $na->deskripsi_terendah }}</div>
+							@endif
+							@if(empty($na->deskripsi_tertinggi) && empty($na->deskripsi_terendah))
+								<span style="color: #9ca3af; font-style: italic;">Belum ada deskripsi</span>
+							@endif
 						@endif
 					</td>
 				</tr>
@@ -110,12 +117,19 @@
 					<td style="text-align: center;">{{ $index + 1 }}</td>
 					<td>{{ $na->penugasanMengajar->mapel->nama }}</td>
 					<td style="text-align: center; font-weight: bold;">{{ number_format($na->nilai_akhir, 0) }}</td>
-					<td style="font-size: 9pt;">
+					<td style="font-size: 8.5pt; line-height: 1.4; color: #1f2937;">
 						@if($na->deskripsi_manual)
-							{{ $na->deskripsi_manual }}
+							{!! nl2br(e($na->deskripsi_manual)) !!}
 						@else
-							<span style="color: green;">{{ $na->deskripsi_tertinggi }}</span><br>
-							<span style="color: red;">{{ $na->deskripsi_terendah }}</span>
+							@if(!empty($na->deskripsi_tertinggi))
+								<div>{{ $na->deskripsi_tertinggi }}</div>
+							@endif
+							@if(!empty($na->deskripsi_terendah))
+								<div style="margin-top: 4px;">{{ $na->deskripsi_terendah }}</div>
+							@endif
+							@if(empty($na->deskripsi_tertinggi) && empty($na->deskripsi_terendah))
+								<span style="color: #9ca3af; font-style: italic;">Belum ada deskripsi</span>
+							@endif
 						@endif
 					</td>
 				</tr>
@@ -126,13 +140,13 @@
 		</tbody>
 	</table>
 
-	<!-- Ekstrakurikuler -->
-	<h3 style="margin-bottom: 5px;">B. Ekstrakurikuler</h3>
+	<!-- Unit Pengembangan Diri (UPD) / Ekstrakurikuler -->
+	<h3 style="margin-bottom: 5px;">B. Unit Pengembangan Diri (UPD)</h3>
 	<table class="data-table">
 		<thead>
 			<tr>
 				<th width="5%">No</th>
-				<th width="30%">Kegiatan Ekstrakurikuler</th>
+				<th width="30%">Kegiatan Unit Pengembangan Diri (UPD)</th>
 				<th width="15%">Predikat</th>
 				<th width="50%">Keterangan</th>
 			</tr>
@@ -147,7 +161,7 @@
 			</tr>
 			@endforeach
 			@if($ekskuls->isEmpty())
-				<tr><td colspan="4" style="text-align: center;">Tidak mengikuti kegiatan ekstrakurikuler.</td></tr>
+				<tr><td colspan="4" style="text-align: center;">Tidak mengikuti kegiatan Unit Pengembangan Diri (UPD).</td></tr>
 			@endif
 		</tbody>
 	</table>
