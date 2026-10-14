@@ -92,7 +92,7 @@
 				<tr>
 					<td style="text-align: center;">{{ $index + 1 }}</td>
 					<td>{{ $na->penugasanMengajar->mapel->nama }}</td>
-					<td style="text-align: center; font-weight: bold;">{{ number_format($na->nilai_akhir, 0) }}</td>
+					<td style="text-align: center; font-weight: bold;">{{ $na->nilai_akhir !== null ? number_format($na->nilai_akhir, 0) : '-' }}</td>
 					<td style="font-size: 8.5pt; line-height: 1.4; color: #1f2937;">
 						@if($na->deskripsi_manual)
 							{!! nl2br(e($na->deskripsi_manual)) !!}
@@ -116,7 +116,7 @@
 				<tr>
 					<td style="text-align: center;">{{ $index + 1 }}</td>
 					<td>{{ $na->penugasanMengajar->mapel->nama }}</td>
-					<td style="text-align: center; font-weight: bold;">{{ number_format($na->nilai_akhir, 0) }}</td>
+					<td style="text-align: center; font-weight: bold;">{{ $na->nilai_akhir !== null ? number_format($na->nilai_akhir, 0) : '-' }}</td>
 					<td style="font-size: 8.5pt; line-height: 1.4; color: #1f2937;">
 						@if($na->deskripsi_manual)
 							{!! nl2br(e($na->deskripsi_manual)) !!}

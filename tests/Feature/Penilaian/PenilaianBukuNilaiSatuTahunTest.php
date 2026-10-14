@@ -245,4 +245,64 @@ class PenilaianBukuNilaiSatuTahunTest extends TestCase
             ->assertSee('bg-rose-100/70')
             ->assertSee('di bawah KKM (75) - Belum Kompeten');
     }
+
+    public function test_guru_dapat_mengedit_dan_mengosongkan_nilai_sumatif_yang_sudah_ada(): void
+    {
+        // 1. Buat nilai sumatif awal untuk siswa
+        NilaiSumatif::create([
+            'siswa_id' => $this->siswa->id,
+            'penugasan_mengajar_id' => $this->pmGanjil->id,
+            'sts' => 70,
+            'sas' => 75,
+        ]);
+
+        NilaiSumatif::create([
+            'siswa_id' => $this->siswa->id,
+            'penugasan_mengajar_id' => $this->pmGenap->id,
+            'sts' => 80,
+            'sas' => 85,
+        ]);
+
+        // 2. Edit nilai STS 1, SAS, STS 2, SAT
+        Livewire::actingAs($this->admin)
+            ->test(PenilaianInput::class, ['penugasan_id' => $this->pmGanjil->id])
+            ->call('switchTab', 'formatif')
+            ->set("sumatifDataGanjil.{$this->siswa->id}.sts", 95)
+            ->set("sumatifDataGanjil.{$this->siswa->id}.sas", 96)
+            ->set("sumatifDataGenap.{$this->siswa->id}.sts", 97)
+            ->set("sumatifDataGenap.{$this->siswa->id}.sas", 98)
+            ->call('saveNilai')
+            ->assertHasNoErrors()
+            ->assertSee('Seluruh Nilai Akademik');
+
+        // Pastikan nilai ter-update di database
+        $this->assertDatabaseHas('nilai_sumatifs', [
+            'siswa_id' => $this->siswa->id,
+            'penugasan_mengajar_id' => $this->pmGanjil->id,
+            'sts' => 95,
+            'sas' => 96,
+        ]);
+
+        $this->assertDatabaseHas('nilai_sumatifs', [
+            'siswa_id' => $this->siswa->id,
+            'penugasan_mengajar_id' => $this->pmGenap->id,
+            'sts' => 97,
+            'sas' => 98,
+        ]);
+
+        // 3. Uji pengosongan nilai (hapus nilai menjadi kosong/null)
+        Livewire::actingAs($this->admin)
+            ->test(PenilaianInput::class, ['penugasan_id' => $this->pmGanjil->id])
+            ->call('switchTab', 'formatif')
+            ->set("sumatifDataGanjil.{$this->siswa->id}.sts", '')
+            ->set("sumatifDataGanjil.{$this->siswa->id}.sas", '')
+            ->call('saveNilai')
+            ->assertHasNoErrors();
+
+        $this->assertDatabaseMissing('nilai_sumatifs', [
+            'siswa_id' => $this->siswa->id,
+            'penugasan_mengajar_id' => $this->pmGanjil->id,
+        ]);
+    }
 }
+

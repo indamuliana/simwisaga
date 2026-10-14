@@ -164,10 +164,16 @@ class SeniBudayaService
                 ];
             }
 
-            // Pindahkan cabang
+            // Pindahkan cabang & bersihkan data TP cabang sebelumnya agar tidak dangling
             $existing->update([
                 'seni_budaya_id' => $seniBudayaId,
                 'status_keanggotaan' => 'aktif',
+                'tp_tercapai_ids' => null,
+                'tp_perlu_bimbingan_ids' => null,
+                'tp_evaluations' => null,
+                'deskripsi_evaluations' => null,
+                'deskripsi_tertinggi' => null,
+                'deskripsi_terendah' => null,
             ]);
 
             return [

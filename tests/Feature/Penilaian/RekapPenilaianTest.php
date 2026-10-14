@@ -275,6 +275,7 @@ class RekapPenilaianTest extends TestCase
         Livewire::actingAs($this->admin)
             ->test(RekapPenilaianIndex::class)
             ->set('selectedRombelId', $this->rombel->id)
+            ->call('tampilkanData')
             ->set('search', 'Aditya')
             ->assertSee('Aditya Pratama')
             ->assertDontSee('Budi Santoso');
@@ -285,7 +286,8 @@ class RekapPenilaianTest extends TestCase
         $component = Livewire::actingAs($this->admin)
             ->test(RekapPenilaianIndex::class)
             ->set('selectedRombelId', $this->rombel->id)
-            ->set('selectedSemesterId', $this->semester->id);
+            ->set('selectedSemesterId', $this->semester->id)
+            ->call('tampilkanData');
 
         $response = $component->call('exportLegerExcel');
         $this->assertNotNull($response);
@@ -296,7 +298,8 @@ class RekapPenilaianTest extends TestCase
         $component = Livewire::actingAs($this->admin)
             ->test(RekapPenilaianIndex::class)
             ->set('selectedRombelId', $this->rombel->id)
-            ->set('selectedSemesterId', $this->semester->id);
+            ->set('selectedSemesterId', $this->semester->id)
+            ->call('tampilkanData');
 
         $response = $component->call('exportAnalisisExcel');
         $this->assertNotNull($response);

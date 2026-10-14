@@ -30,7 +30,8 @@
             <button type="button"
                     wire:click="exportExcel"
                     wire:loading.attr="disabled"
-                    class="btn btn-primary text-xs flex items-center gap-1.5 py-2 px-3.5 font-semibold cursor-pointer shadow-sm">
+                    @if(!$hasLoaded || !$cohortData) disabled @endif
+                    class="btn btn-primary text-xs flex items-center gap-1.5 py-2 px-3.5 font-semibold shadow-sm {{ (!$hasLoaded || !$cohortData) ? 'opacity-40 cursor-not-allowed' : 'cursor-pointer' }}">
                 <svg wire:loading.remove wire:target="exportExcel" class="w-4 h-4" fill="none" viewBox="0 0 24 24" stroke="currentColor">
                     <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 10v6m0 0l-3-3m3 3l3-3m2 8H7a2 2 0 01-2-2V5a2 2 0 012-2h5.586a1 1 0 01.707.293l5.414 5.414a1 1 0 01.293.707V19a2 2 0 01-2 2z" />
                 </svg>
@@ -45,7 +46,7 @@
 
     <!-- FILTER BAR -->
     <div class="card p-4 sm:p-5 bg-surface border border-border rounded-2xl shadow-xs">
-        <div class="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 xl:grid-cols-5 gap-3 sm:gap-4">
+        <div class="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 xl:grid-cols-6 gap-3 sm:gap-4 items-end">
             <!-- 1. Tahun Pelajaran -->
             <div>
                 <label class="block text-xs font-bold uppercase tracking-wider text-text-secondary mb-1.5">
@@ -65,10 +66,11 @@
             <!-- 2. Jurusan -->
             <div>
                 <label class="block text-xs font-bold uppercase tracking-wider text-text-secondary mb-1.5">
-                    Kompetensi / Program Keahlian
+                    Kompetensi Keahlian
                 </label>
                 <select wire:model.live="selectedJurusanId"
                         class="w-full text-xs sm:text-sm rounded-xl border border-border bg-surface px-3 py-2 text-text-main focus:outline-none focus:ring-2 focus:ring-primary">
+                    <option value="">-- Pilih Jurusan --</option>
                     @foreach($jurusans as $j)
                         <option value="{{ $j->id }}">{{ $j->nama }} ({{ $j->kode }})</option>
                     @endforeach
@@ -78,7 +80,7 @@
             <!-- 3. Tingkat -->
             <div>
                 <label class="block text-xs font-bold uppercase tracking-wider text-text-secondary mb-1.5">
-                    Tingkat Siswa
+                    Tingkat
                 </label>
                 <select wire:model.live="selectedTingkat"
                         class="w-full text-xs sm:text-sm rounded-xl border border-border bg-surface px-3 py-2 text-text-main focus:outline-none focus:ring-2 focus:ring-primary">
@@ -92,7 +94,7 @@
             <!-- 4. Rombel -->
             <div>
                 <label class="block text-xs font-bold uppercase tracking-wider text-text-secondary mb-1.5">
-                    Pilihan Rombel / Kelas
+                    Rombel
                 </label>
                 <select wire:model.live="selectedRombelId"
                         class="w-full text-xs sm:text-sm rounded-xl border border-border bg-surface px-3 py-2 text-text-main focus:outline-none focus:ring-2 focus:ring-primary">
@@ -133,6 +135,23 @@
                         </svg>
                     </span>
                 </div>
+            </div>
+
+            <!-- 6. Tombol Tampilkan Data -->
+            <div>
+                <button type="button"
+                        wire:click="tampilkanData"
+                        wire:loading.attr="disabled"
+                        class="w-full btn btn-primary text-xs flex items-center justify-center gap-2 py-2.5 px-4 font-semibold rounded-xl shadow-sm cursor-pointer">
+                    <svg wire:loading.remove wire:target="tampilkanData" class="w-4 h-4" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                        <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9 5H7a2 2 0 00-2 2v12a2 2 0 002 2h10a2 2 0 002-2V7a2 2 0 00-2-2h-2M9 5a2 2 0 002 2h2a2 2 0 002-2M9 5a2 2 0 012-2h2a2 2 0 012 2m-6 9l2 2 4-4" />
+                    </svg>
+                    <svg wire:loading wire:target="tampilkanData" class="w-4 h-4 animate-spin" fill="none" viewBox="0 0 24 24">
+                        <circle class="opacity-25" cx="12" cy="12" r="10" stroke="currentColor" stroke-width="4"></circle>
+                        <path class="opacity-75" fill="currentColor" d="M4 12a8 8 0 018-8v8H4z"></path>
+                    </svg>
+                    <span>Tampilkan Data</span>
+                </button>
             </div>
         </div>
     </div>
@@ -408,6 +427,23 @@
                         </tbody>
                     </table>
                 </div>
+        @else
+            <div class="card p-10 text-center border-dashed border-2 border-border/80 bg-surface/50 rounded-2xl">
+                <div class="w-14 h-14 rounded-2xl bg-primary/10 text-primary flex items-center justify-center mx-auto mb-3.5 shadow-2xs">
+                    <svg class="w-7 h-7" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                        <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9 19v-6a2 2 0 00-2-2H5a2 2 0 00-2 2v6a2 2 0 002 2h2a2 2 0 002-2zm0 0V9a2 2 0 012-2h2a2 2 0 012 2v10m-6 0a2 2 0 002 2h2a2 2 0 002-2m0 0V5a2 2 0 012-2h2a2 2 0 012 2v14a2 2 0 01-2 2h-2a2 2 0 01-2-2z" />
+                    </svg>
+                </div>
+                <h3 class="text-base font-bold text-text-main mb-1">Silakan Pilih Jurusan & Klik Tampilkan Data</h3>
+                <p class="text-xs text-text-secondary max-w-md mx-auto mb-4">
+                    Tentukan Kompetensi Keahlian (Jurusan) dan kriteria pada filter di atas, lalu klik tombol <strong class="text-primary font-semibold">Tampilkan Data</strong> untuk memuat matriks transkrip angkatan 3 tahun.
+                </p>
+                <div class="inline-flex items-center gap-2 px-3 py-1.5 rounded-full bg-slate-100 dark:bg-slate-800 text-[11px] text-text-secondary font-medium">
+                    <svg class="w-3.5 h-3.5 text-primary" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                        <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M13 16h-1v-4h-1m1-4h.01M21 12a9 9 0 11-18 0 9 9 0 0118 0z" />
+                    </svg>
+                    <span>Sistem tidak memuat kohor 3 tahun di awal untuk menjaga kecepatan rendering</span>
+                </div>
             </div>
         @endif
     @endif
@@ -415,30 +451,200 @@
     <!-- TAB 2: TRANSKRIP INDIVIDUAL SISWA -->
     @if($activeTab === 'individual')
         <div class="space-y-5">
-            <!-- Siswa Selector Bar -->
-            <div class="card p-4 bg-surface border border-border rounded-2xl flex flex-col sm:flex-row sm:items-center justify-between gap-3">
-                <div class="flex items-center gap-2">
-                    <span class="text-xs font-bold uppercase tracking-wider text-text-secondary">Pilih Siswa:</span>
-                    <select wire:model.live="selectedSiswaId"
-                            class="text-xs sm:text-sm rounded-xl border border-border bg-surface px-3 py-1.5 text-text-main focus:outline-none focus:ring-2 focus:ring-primary min-w-[240px]">
-                        @foreach($siswasList as $sw)
-                            <option value="{{ $sw->id }}">{{ $sw->nama }} ({{ $sw->nipd }}) &mdash; {{ $sw->rombel?->nama }} [TP {{ $sw->rombel?->tahunAjaran?->nama ?? '-' }}{{ $sw->rombel?->tahunAjaran?->is_active ? ' - Aktif' : '' }}]</option>
-                        @endforeach
-                    </select>
-                </div>
+            <!-- Siswa Selector Bar with Instant Client-Side Alpine.js Search (0ms Latency) -->
+            <div class="card relative z-30 p-4 sm:p-5 bg-surface border border-border rounded-2xl shadow-xs space-y-3" style="overflow: visible !important;">
+                <div class="flex flex-col lg:flex-row lg:items-center justify-between gap-4">
+                    <!-- Autocomplete Input Section -->
+                    <div class="w-full lg:max-w-xl relative"
+                         x-data="{
+                            open: false,
+                            query: '{{ addslashes($selectedSiswaModel?->nama ?? '') }}',
+                            selectedId: {{ $selectedSiswaId ?? 'null' }},
+                            allStudents: {{ json_encode($siswasJson ?? []) }},
+                            get filteredStudents() {
+                                if (!this.query || this.query.trim() === '') {
+                                    return this.allStudents.slice(0, 30);
+                                }
+                                const q = this.query.toLowerCase().trim();
+                                return this.allStudents.filter(s => 
+                                    s.nama.toLowerCase().includes(q) || 
+                                    s.nipd.toLowerCase().includes(q) || 
+                                    s.nisn.toLowerCase().includes(q) ||
+                                    s.rombel.toLowerCase().includes(q)
+                                ).slice(0, 30);
+                            },
+                            select(id, nama) {
+                                this.selectedId = id;
+                                this.query = nama;
+                                this.open = false;
+                                $wire.selectSiswa(id);
+                            },
+                            clear() {
+                                this.query = '';
+                                this.open = true;
+                                this.$nextTick(() => {
+                                    if (this.$refs.searchInput) this.$refs.searchInput.focus();
+                                });
+                            }
+                         }"
+                         x-effect="selectedId = {{ $selectedSiswaId ?? 'null' }}; if (!open && '{{ addslashes($selectedSiswaModel?->nama ?? '') }}') query = '{{ addslashes($selectedSiswaModel?->nama ?? '') }}'"
+                         @click.outside="open = false"
+                         @keydown.escape.window="open = false">
+                        <label class="block text-xs font-bold uppercase tracking-wider text-text-secondary mb-1.5 flex items-center justify-between">
+                            <span class="flex items-center gap-1.5">
+                                <svg class="w-3.5 h-3.5 text-primary" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                                    <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M16 7a4 4 0 11-8 0 4 4 0 018 0zM12 14a7 7 0 00-7 7h14a7 7 0 00-7-7z" />
+                                </svg>
+                                <span>Pilih / Cari Siswa Transkrip</span>
+                            </span>
+                            <span x-show="query && query.trim() !== ''" class="text-[11px] font-normal text-text-muted lowercase" style="display: none;">
+                                hasil pencarian "<strong class="text-primary font-medium" x-text="query"></strong>"
+                            </span>
+                        </label>
 
-                @if($selectedSiswaId)
-                    <div class="flex items-center gap-2">
-                        <a href="{{ route('penilaian.transkrip.pdf', ['siswa_id' => $selectedSiswaId]) }}"
-                           target="_blank"
-                           class="btn btn-primary text-xs py-1.5 px-3 font-semibold flex items-center gap-1.5 cursor-pointer">
-                            <svg class="w-4 h-4" fill="none" viewBox="0 0 24 24" stroke="currentColor">
-                                <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M17 17h2a2 2 0 002-2v-4a2 2 0 00-2-2H5a2 2 0 00-2 2v4a2 2 0 002 2h2m2 4h6a2 2 0 002-2v-4a2 2 0 00-2-2H9a2 2 0 00-2 2v4a2 2 0 002 2zm8-12V5a2 2 0 00-2-2H9a2 2 0 00-2 2v4h10z" />
-                            </svg>
-                            <span>Cetak PDF Transkrip Siswa</span>
-                        </a>
+                        <div class="relative">
+                            <!-- Search Icon -->
+                            <div class="absolute inset-y-0 left-0 pl-3.5 flex items-center pointer-events-none text-text-muted">
+                                <svg class="w-4 h-4" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                                    <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M21 21l-6-6m2-5a7 7 0 11-14 0 7 7 0 0114 0z" />
+                                </svg>
+                            </div>
+
+                            <!-- Input Field (Instant Client-Side via Alpine.js) -->
+                            <input type="text"
+                                   x-ref="searchInput"
+                                   x-model="query"
+                                   @focus="open = true; $el.select()"
+                                   @click="open = true"
+                                   placeholder="Ketik nama siswa (contoh: 'ah', 'aldi', atau NIS)..."
+                                   class="w-full text-xs sm:text-sm rounded-xl border border-border bg-surface pl-10 pr-20 py-2.5 text-text-main placeholder:text-text-muted focus:outline-none focus:ring-2 focus:ring-primary focus:border-transparent transition-all shadow-2xs">
+
+                            <!-- Right Icons: Clear Button & Dropdown Chevron -->
+                            <div class="absolute inset-y-0 right-0 pr-3 flex items-center gap-1.5">
+                                <!-- Clear Button -->
+                                <button type="button"
+                                        x-show="query && query.length > 0"
+                                        @click="clear()"
+                                        class="text-text-muted hover:text-text-main p-1 rounded-md hover:bg-surface-hover transition-colors cursor-pointer"
+                                        title="Hapus pencarian">
+                                    <svg class="w-3.5 h-3.5" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                                        <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M6 18L18 6M6 6l12 12" />
+                                    </svg>
+                                </button>
+
+                                <!-- Dropdown Toggle Button -->
+                                <button type="button"
+                                        @click="open = !open"
+                                        class="text-text-muted hover:text-text-main p-1 rounded-md hover:bg-surface-hover transition-colors cursor-pointer"
+                                        title="Buka daftar siswa">
+                                    <svg class="w-4 h-4 transition-transform duration-200" :class="{ 'rotate-180': open }" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                                        <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M19 9l-7 7-7-7" />
+                                    </svg>
+                                </button>
+                            </div>
+
+                            <!-- Autocomplete Dropdown List Panel -->
+                            <div x-show="open"
+                                 x-transition:enter="transition ease-out duration-150"
+                                 x-transition:enter-start="opacity-0 translate-y-1 scale-98"
+                                 x-transition:enter-end="opacity-100 translate-y-0 scale-100"
+                                 x-transition:leave="transition ease-in duration-100"
+                                 x-transition:leave-start="opacity-100 translate-y-0 scale-100"
+                                 x-transition:leave-end="opacity-0 translate-y-1 scale-98"
+                                 x-cloak
+                                 class="absolute left-0 right-0 top-full mt-2 z-50 bg-surface border border-border rounded-2xl shadow-2xl overflow-hidden max-h-80 overflow-y-auto"
+                                 style="z-index: 9999 !important;">
+                                
+                                <!-- Dropdown Header -->
+                                <div class="px-3.5 py-2 bg-surface-alt/80 border-b border-border flex items-center justify-between text-[11px] text-text-secondary sticky top-0 z-10 backdrop-blur-xs">
+                                    <span x-text="query && query.trim() !== '' ? 'Hasil pencarian: ' + query : 'Daftar Siswa Tersedia (Pilih Nama)'">
+                                    </span>
+                                    <span class="font-semibold text-primary" x-text="filteredStudents.length + ' siswa'">
+                                    </span>
+                                </div>
+
+                                <!-- List of Students -->
+                                <div class="p-1 space-y-0.5 divide-y divide-border/40">
+                                    <template x-for="sw in filteredStudents" :key="sw.id">
+                                        <button type="button"
+                                                @click="select(sw.id, sw.nama)"
+                                                class="w-full text-left px-3 py-2.5 rounded-xl transition-all flex items-center justify-between gap-3 cursor-pointer group hover:bg-primary/5 hover:text-text-main text-text-secondary"
+                                                :class="{ 'bg-primary/10 border border-primary/30 text-primary font-semibold': selectedId === sw.id }">
+                                            <div class="flex items-center gap-2.5 min-w-0">
+                                                <!-- Avatar Initials -->
+                                                <div class="w-8 h-8 rounded-lg flex-shrink-0 flex items-center justify-center text-xs font-bold transition-colors"
+                                                     :class="selectedId === sw.id ? 'bg-primary text-white' : 'bg-primary/10 text-primary group-hover:bg-primary group-hover:text-white'"
+                                                     x-text="sw.nama.charAt(0).toUpperCase()">
+                                                </div>
+                                                <div class="min-w-0">
+                                                    <div class="text-xs sm:text-sm font-semibold truncate group-hover:text-primary transition-colors"
+                                                         x-text="sw.nama">
+                                                    </div>
+                                                    <div class="text-[10px] text-text-muted flex items-center gap-2 mt-0.5">
+                                                        <span>NIPD: <strong class="text-text-secondary font-mono" x-text="sw.nipd || '-'"></strong></span>
+                                                        <span>•</span>
+                                                        <span>NISN: <strong class="text-text-secondary font-mono" x-text="sw.nisn || '-'"></strong></span>
+                                                    </div>
+                                                </div>
+                                            </div>
+
+                                            <!-- Rombel & Badge -->
+                                            <div class="flex-shrink-0 text-right">
+                                                <span class="inline-flex items-center px-2 py-0.5 rounded-full text-[10px] font-bold transition-colors"
+                                                      :class="selectedId === sw.id ? 'bg-primary text-white' : 'bg-slate-100 dark:bg-slate-800 text-text-secondary group-hover:bg-primary/10 group-hover:text-primary'"
+                                                      x-text="sw.rombel">
+                                                </span>
+                                                <div class="text-[9px] text-text-muted mt-0.5" x-show="sw.ta" x-text="'TP ' + sw.ta"></div>
+                                            </div>
+                                        </button>
+                                    </template>
+
+                                    <!-- Empty State -->
+                                    <template x-if="filteredStudents.length === 0">
+                                        <div class="px-4 py-6 text-center text-xs text-text-muted space-y-1">
+                                            <svg class="w-8 h-8 mx-auto text-text-muted/60 mb-2" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                                                <path stroke-linecap="round" stroke-linejoin="round" stroke-width="1.5" d="M9.172 16.172a4 4 0 015.656 0M9 10h.01M15 10h.01M21 12a9 9 0 11-18 0 9 9 0 0118 0z" />
+                                            </svg>
+                                            <p class="font-medium text-text-secondary">Tidak ada siswa yang cocok</p>
+                                            <p class="text-[11px]">Tidak ditemukan siswa dengan kata kunci "<strong x-text="query"></strong>".</p>
+                                        </div>
+                                    </template>
+                                </div>
+                            </div>
+                        </div>
                     </div>
-                @endif
+
+                    <!-- Right Side: Selected Student Pill & Print PDF Button -->
+                    <div class="flex flex-col sm:flex-row items-stretch sm:items-center gap-3">
+                        @if($selectedSiswaModel)
+                            <div class="px-3.5 py-2 rounded-xl bg-surface-alt/60 border border-border flex items-center gap-3 text-xs">
+                                <div class="w-2.5 h-2.5 rounded-full bg-emerald-500 animate-pulse"></div>
+                                <div class="min-w-0">
+                                    <div class="text-[10px] text-text-muted uppercase font-bold tracking-wider">Siswa Aktif:</div>
+                                    <div class="font-bold text-text-main truncate max-w-[200px]" title="{{ $selectedSiswaModel->nama }}">
+                                        {{ $selectedSiswaModel->nama }}
+                                    </div>
+                                </div>
+                                <div class="border-l border-border pl-3">
+                                    <span class="px-2 py-0.5 rounded-md bg-primary/10 text-primary font-bold text-[10px]">
+                                        {{ $selectedSiswaModel->rombel?->nama ?? '-' }}
+                                    </span>
+                                </div>
+                            </div>
+                        @endif
+
+                        @if($selectedSiswaId)
+                            <a href="{{ route('penilaian.transkrip.pdf', ['siswa_id' => $selectedSiswaId]) }}"
+                               target="_blank"
+                               class="btn btn-primary text-xs py-2 px-3.5 font-semibold flex items-center justify-center gap-1.5 shadow-xs hover:shadow-md transition-all cursor-pointer whitespace-nowrap">
+                                <svg class="w-4 h-4" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                                    <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M17 17h2a2 2 0 002-2v-4a2 2 0 00-2-2H5a2 2 0 00-2 2v4a2 2 0 002 2h2m2 4h6a2 2 0 002-2v-4a2 2 0 00-2-2H9a2 2 0 00-2 2v4a2 2 0 002 2zm8-12V5a2 2 0 00-2-2H9a2 2 0 00-2 2v4h10z" />
+                                </svg>
+                                <span>Cetak PDF Transkrip Siswa</span>
+                            </a>
+                        @endif
+                    </div>
+                </div>
             </div>
 
             @if($individualData)
@@ -601,8 +807,16 @@
                     </div>
                 </div>
             @else
-                <div class="card p-8 text-center bg-surface border border-border rounded-2xl text-text-muted italic">
-                    Silakan pilih siswa untuk melihat lembar transkrip nilai individual.
+                <div class="card p-10 text-center border-dashed border-2 border-border/80 bg-surface/50 rounded-2xl">
+                    <div class="w-14 h-14 rounded-2xl bg-primary/10 text-primary flex items-center justify-center mx-auto mb-3.5 shadow-2xs">
+                        <svg class="w-7 h-7" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M16 7a4 4 0 11-8 0 4 4 0 018 0zM12 14a7 7 0 00-7 7h14a7 7 0 00-7-7z" />
+                        </svg>
+                    </div>
+                    <h3 class="text-base font-bold text-text-main mb-1">Pilih Siswa untuk Melihat Transkrip</h3>
+                    <p class="text-xs text-text-secondary max-w-md mx-auto mb-2">
+                        Ketik nama atau NIS pada kotak pencarian di atas, lalu klik nama siswa untuk langsung menampilkan lembar transkrip capaian 3 tahun secara instan.
+                    </p>
                 </div>
             @endif
         </div>
@@ -678,6 +892,24 @@
                             @endforelse
                         </tbody>
                     </table>
+                </div>
+            </div>
+        @else
+            <div class="card p-10 text-center border-dashed border-2 border-border/80 bg-surface/50 rounded-2xl">
+                <div class="w-14 h-14 rounded-2xl bg-primary/10 text-primary flex items-center justify-center mx-auto mb-3.5 shadow-2xs">
+                    <svg class="w-7 h-7" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                        <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9 19v-6a2 2 0 00-2-2H5a2 2 0 00-2 2v6a2 2 0 002 2h2a2 2 0 002-2zm0 0V9a2 2 0 012-2h2a2 2 0 012 2v10m-6 0a2 2 0 002 2h2a2 2 0 002-2m0 0V5a2 2 0 012-2h2a2 2 0 012 2v14a2 2 0 01-2 2h-2a2 2 0 01-2-2z" />
+                    </svg>
+                </div>
+                <h3 class="text-base font-bold text-text-main mb-1">Silakan Pilih Jurusan & Klik Tampilkan Data</h3>
+                <p class="text-xs text-text-secondary max-w-md mx-auto mb-4">
+                    Tentukan Kompetensi Keahlian (Jurusan) pada filter di atas, lalu klik tombol <strong class="text-primary font-semibold">Tampilkan Data</strong> untuk memuat analisis perkembangan capaian nilai per mata pelajaran selama 3 tahun.
+                </p>
+                <div class="inline-flex items-center gap-2 px-3 py-1.5 rounded-full bg-slate-100 dark:bg-slate-800 text-[11px] text-text-secondary font-medium">
+                    <svg class="w-3.5 h-3.5 text-primary" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                        <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M13 16h-1v-4h-1m1-4h.01M21 12a9 9 0 11-18 0 9 9 0 0118 0z" />
+                    </svg>
+                    <span>Sistem tidak memuat analisis lintas angkatan di awal untuk menjaga respon cepat</span>
                 </div>
             </div>
         @endif

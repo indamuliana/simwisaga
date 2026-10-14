@@ -42,6 +42,8 @@ class TranskripPenilaianIndex extends Component
     public ?int $selectedSiswaId = null;
 
     public string $search = '';
+    public string $searchSiswa = '';
+    public bool $hasLoaded = false;
 
     public function mount(): void
     {
@@ -63,64 +65,70 @@ class TranskripPenilaianIndex extends Component
             }
         }
 
-        $firstJurusan = Jurusan::where('is_active', true)->orderBy('id')->first();
-        if (!$this->selectedJurusanId && $firstJurusan) {
-            $this->selectedJurusanId = $firstJurusan->id;
+        // Biarkan selectedJurusanId dan siswa null di awal agar halaman dimuat super cepat (< 30ms)
+        $this->hasLoaded = false;
+    }
+
+    public function tampilkanData(): void
+    {
+        if (in_array($this->activeTab, ['matriks', 'analisis']) && ! $this->selectedJurusanId) {
+            session()->flash('error', 'Silakan pilih Kompetensi Keahlian (Jurusan) terlebih dahulu.');
+            return;
         }
 
-        // Jika tidak ada rombel tingkat XII di jurusan & TA ini, cari tingkat yang tersedia
-        $rombelQuery = Rombel::where('jurusan_id', $this->selectedJurusanId);
-        if ($this->selectedTaId !== 'semua' && $this->selectedTaId) {
-            $rombelQuery->where('tahun_ajaran_id', (int) $this->selectedTaId);
-        }
-        $availableTingkats = $rombelQuery->pluck('tingkat')->unique()->toArray();
-
-        if (!empty($availableTingkats) && !in_array($this->selectedTingkat, $availableTingkats) && $this->selectedTingkat !== 'semua') {
-            $this->selectedTingkat = in_array('XII', $availableTingkats)
-                ? 'XII'
-                : (in_array('XI', $availableTingkats) ? 'XI' : ($availableTingkats[0] ?? 'X'));
-        }
-
-        $this->ensureSelectedSiswa();
+        $this->hasLoaded = true;
     }
 
     public function updatedSelectedTaId(): void
     {
+        $this->hasLoaded = false;
         $this->selectedRombelId = null;
-        $this->ensureSelectedSiswa();
     }
 
     public function updatedSelectedJurusanId(): void
     {
+        $this->hasLoaded = false;
         $this->selectedRombelId = null;
-        $this->ensureSelectedSiswa();
     }
 
     public function updatedSelectedTingkat(): void
     {
+        $this->hasLoaded = false;
         $this->selectedRombelId = null;
-        $this->ensureSelectedSiswa();
     }
 
     public function updatedSelectedRombelId(): void
     {
-        $this->ensureSelectedSiswa();
+        $this->hasLoaded = false;
     }
 
     public function switchTab(string $tab): void
     {
         if (in_array($tab, ['matriks', 'individual', 'analisis'])) {
             $this->activeTab = $tab;
-            if ($tab === 'individual') {
-                $this->ensureSelectedSiswa();
-            }
+            $this->hasLoaded = false; // Reset per keputusan grill-me
         }
     }
 
     public function selectSiswa(int $siswaId): void
     {
-        $this->selectedSiswaId = $siswaId;
-        $this->activeTab = 'individual';
+        $siswa = Siswa::find($siswaId);
+        if ($siswa) {
+            $this->selectedSiswaId = $siswa->id;
+            $this->activeTab = 'individual';
+            $this->hasLoaded = true; // Langsung tampilkan transkrip individual per kesepakatan grill-me
+            $this->searchSiswa = '';
+
+            // Jika siswa berada di luar rombel filter aktif saat ini, sesuaikan rombel filter
+            if ($this->selectedRombelId && $this->selectedRombelId !== $siswa->rombel_id) {
+                $this->selectedRombelId = $siswa->rombel_id;
+            }
+        }
+    }
+
+    public function clearSearchSiswa(): void
+    {
+        $this->searchSiswa = '';
     }
 
     protected function ensureSelectedSiswa(): void
@@ -209,17 +217,48 @@ class TranskripPenilaianIndex extends Component
         }
         $rombels = $rombelQuery->orderBy('tingkat')->orderBy('nama')->get();
 
-        // Data Siswa untuk dropdown selector di tab individual
+        // Data Siswa untuk selector & instant Alpine.js search di tab individual
         $rombelIds = $rombels->pluck('id')->toArray();
-        $siswasList = Siswa::with('rombel.tahunAjaran')
+        $siswasQuery = Siswa::with('rombel.tahunAjaran')
+            ->whereIn('rombel_id', $rombelIds)
+            ->where('is_active', true);
+
+        if (!empty($this->searchSiswa)) {
+            $searchKey = trim($this->searchSiswa);
+            $siswasQuery->where(function ($q) use ($searchKey) {
+                $q->where('nama', 'like', "%{$searchKey}%")
+                  ->orWhere('nipd', 'like', "%{$searchKey}%")
+                  ->orWhere('nisn', 'like', "%{$searchKey}%");
+            });
+        }
+
+        $siswasList = $siswasQuery->orderBy('nama')->get();
+
+        // Seluruh siswa dalam scope rombel ini untuk pencarian instan 0ms di browser via Alpine.js
+        $allScopeSiswas = Siswa::with('rombel.tahunAjaran')
             ->whereIn('rombel_id', $rombelIds)
             ->where('is_active', true)
             ->orderBy('nama')
             ->get();
 
-        // Data Matriks Cohort
+        $siswasJson = $allScopeSiswas->map(function ($s) {
+            return [
+                'id' => $s->id,
+                'nama' => $s->nama,
+                'nipd' => $s->nipd ?? '',
+                'nisn' => $s->nisn ?? '',
+                'rombel' => $s->rombel?->nama ?? '-',
+                'ta' => $s->rombel?->tahunAjaran?->nama ?? '',
+            ];
+        })->values()->toArray();
+
+        $selectedSiswaModel = $this->selectedSiswaId 
+            ? Siswa::with('rombel.tahunAjaran')->find($this->selectedSiswaId) 
+            : null;
+
+        // Data Matriks Cohort (Hanya dihitung jika hasLoaded dan tab aktif 'matriks')
         $cohortData = null;
-        if ($this->selectedJurusanId) {
+        if ($this->hasLoaded && $this->activeTab === 'matriks' && $this->selectedJurusanId) {
             $cohortData = $service->getCohortTranskripData(
                 $this->selectedJurusanId,
                 $this->selectedTingkat,
@@ -229,15 +268,15 @@ class TranskripPenilaianIndex extends Component
             );
         }
 
-        // Data Individual
+        // Data Individual (Hanya dihitung jika hasLoaded dan tab aktif 'individual')
         $individualData = null;
-        if ($this->activeTab === 'individual' && $this->selectedSiswaId) {
+        if ($this->hasLoaded && $this->activeTab === 'individual' && $this->selectedSiswaId) {
             $individualData = $service->getSiswaTranskripData($this->selectedSiswaId);
         }
 
-        // Data Analisis Mapel
+        // Data Analisis Mapel (Hanya dihitung jika hasLoaded dan tab aktif 'analisis')
         $mapelComparison = null;
-        if ($this->activeTab === 'analisis' && $this->selectedJurusanId) {
+        if ($this->hasLoaded && $this->activeTab === 'analisis' && $this->selectedJurusanId) {
             $mapelComparison = $service->getMapelComparisonData(
                 $this->selectedJurusanId,
                 $this->selectedTingkat
@@ -249,9 +288,12 @@ class TranskripPenilaianIndex extends Component
             'jurusans' => $jurusans,
             'rombels' => $rombels,
             'siswasList' => $siswasList,
+            'siswasJson' => $siswasJson,
+            'selectedSiswaModel' => $selectedSiswaModel,
             'cohortData' => $cohortData,
             'individualData' => $individualData,
             'mapelComparison' => $mapelComparison,
+            'hasLoaded' => $this->hasLoaded,
         ]);
     }
 }

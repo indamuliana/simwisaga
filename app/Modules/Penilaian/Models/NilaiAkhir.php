@@ -77,8 +77,8 @@ class NilaiAkhir extends Model
     public function getScoreForPeriod(string $period): ?float
     {
         $rec = $this->getRecordFor9M($period);
-        if ($rec && isset($rec['nilai_akhir']) && $rec['nilai_akhir'] !== null) {
-            return (float) $rec['nilai_akhir'];
+        if ($rec && array_key_exists('nilai_akhir', $rec)) {
+            return $rec['nilai_akhir'] !== null ? (float) $rec['nilai_akhir'] : null;
         }
 
         return $this->nilai_akhir !== null ? (float) $this->nilai_akhir : null;
@@ -92,6 +92,7 @@ class NilaiAkhir extends Model
         $rec = $this->getRecordFor9M($period);
         if ($rec) {
             return [
+                'status' => $rec['status'] ?? null,
                 'deskripsi_tertinggi' => $rec['deskripsi_tertinggi'] ?? null,
                 'deskripsi_terendah' => $rec['deskripsi_terendah'] ?? null,
                 'deskripsi_manual' => $rec['deskripsi_manual'] ?? null,
@@ -99,6 +100,7 @@ class NilaiAkhir extends Model
         }
 
         return [
+            'status' => null,
             'deskripsi_tertinggi' => $this->deskripsi_tertinggi,
             'deskripsi_terendah' => $this->deskripsi_terendah,
             'deskripsi_manual' => $this->deskripsi_manual,

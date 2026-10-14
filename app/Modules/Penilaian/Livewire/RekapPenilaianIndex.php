@@ -34,6 +34,7 @@ class RekapPenilaianIndex extends Component
     public ?int $selectedMapelId = null;
     public ?int $selectedRayonId = null;
     public string $search = '';
+    public bool $hasLoaded = false;
 
     public function mount(): void
     {
@@ -43,70 +44,47 @@ class RekapPenilaianIndex extends Component
         $this->selectedTaId = $currentTa?->id;
         $this->selectedSemesterId = $currentSem?->id;
 
-        $user = auth()->user();
+        // Biarkan selectedRombelId null agar halaman dibuka instan tanpa kalkulasi berat di awal
+        $this->selectedRombelId = null;
+        $this->hasLoaded = false;
+    }
 
-        // Cari rombel awal
-        $rombelQuery = Rombel::query();
-        if ($this->selectedTaId) {
-            $rombelQuery->where('tahun_ajaran_id', $this->selectedTaId);
+    public function tampilkanData(): void
+    {
+        if (in_array($this->activeSubTab, ['leger', 'mapel']) && ! $this->selectedRombelId) {
+            session()->flash('error', 'Silakan pilih Rombongan Belajar terlebih dahulu.');
+            return;
         }
 
-        // Jika user adalah Guru (bukan superadmin), utamakan rombel yang dia ampu atau dia sebagai wali kelas
-        if ($user && !$user->isSuperAdmin()) {
-            $pegawai = Pegawai::where('user_id', $user->id)->first();
-            $myRombelId = null;
-
-            if ($pegawai && $this->selectedSemesterId) {
-                $myRombelId = PenugasanMengajar::where('pegawai_id', $pegawai->id)
-                    ->where('semester_id', $this->selectedSemesterId)
-                    ->value('rombel_id');
-            }
-
-            if (!$myRombelId) {
-                $myRombelId = Rombel::where('wali_kelas_id', $user->id)
-                    ->where('tahun_ajaran_id', $this->selectedTaId)
-                    ->value('id');
-            }
-
-            if ($myRombelId) {
-                $this->selectedRombelId = $myRombelId;
-            }
-        }
-
-        if (!$this->selectedRombelId) {
-            $firstRombel = (clone $rombelQuery)->orderBy('tingkat')->orderBy('nama')->first();
-            $this->selectedRombelId = $firstRombel?->id;
-        }
+        $this->hasLoaded = true;
     }
 
     public function updatedFilterTingkat(): void
     {
-        $rombelQuery = Rombel::where('tahun_ajaran_id', $this->selectedTaId);
-        if ($this->filterTingkat !== 'semua') {
-            $rombelQuery->where('tingkat', $this->filterTingkat);
-        }
-
-        $available = (clone $rombelQuery)->pluck('id')->toArray();
-        if (!in_array($this->selectedRombelId, $available)) {
-            $first = (clone $rombelQuery)->orderBy('tingkat')->orderBy('nama')->first();
-            $this->selectedRombelId = $first?->id;
-        }
+        $this->hasLoaded = false;
+        $this->selectedRombelId = null;
         $this->selectedMapelId = null;
     }
 
     public function updatedSelectedTaId(): void
     {
+        $this->hasLoaded = false;
         // Sesuaikan semester ke semester pada TA terpilih
         $sem = Semester::where('tahun_ajaran_id', $this->selectedTaId)->orderBy('semester')->first();
         $this->selectedSemesterId = $sem?->id;
 
-        $firstRombel = Rombel::where('tahun_ajaran_id', $this->selectedTaId)->orderBy('tingkat')->orderBy('nama')->first();
-        $this->selectedRombelId = $firstRombel?->id;
+        $this->selectedRombelId = null;
         $this->selectedMapelId = null;
+    }
+
+    public function updatedSelectedSemesterId(): void
+    {
+        $this->hasLoaded = false;
     }
 
     public function updatedSelectedRombelId(): void
     {
+        $this->hasLoaded = false;
         $this->selectedMapelId = null;
     }
 
@@ -114,6 +92,7 @@ class RekapPenilaianIndex extends Component
     {
         if (in_array($tab, ['leger', 'mapel', 'komparasi', 'rayon'])) {
             $this->activeSubTab = $tab;
+            $this->hasLoaded = false; // Reset ke empty state per keputusan grill-me
         }
     }
 
@@ -184,30 +163,29 @@ class RekapPenilaianIndex extends Component
         $crossRombelData = collect();
         $crossRayonData = collect();
 
-        if ($selectedSemester) {
-            $crossRayonData = $service->getCrossRayonComparison($this->filterTingkat, $selectedSemester);
-        }
+        if ($this->hasLoaded) {
+            if ($this->activeSubTab === 'rayon' && $selectedSemester) {
+                $crossRayonData = $service->getCrossRayonComparison($this->filterTingkat, $selectedSemester);
+            } elseif ($this->activeSubTab === 'komparasi' && $selectedSemester) {
+                $crossRombelData = $service->getCrossRombelComparison($this->filterTingkat, $selectedSemester);
+            } elseif (in_array($this->activeSubTab, ['leger', 'mapel']) && $selectedRombel && $selectedSemester) {
+                $legerData = $service->getLegerRombelData($selectedRombel, $selectedSemester);
 
-        if ($selectedRombel && $selectedSemester) {
-            $legerData = $service->getLegerRombelData($selectedRombel, $selectedSemester);
+                // Jika belum ada mapel terpilih untuk Tab 2, pilih mapel pertama
+                if (! $this->selectedMapelId && ! empty($legerData['mapel_list'])) {
+                    $this->selectedMapelId = array_key_first($legerData['mapel_list']);
+                }
 
-            // Jika belum ada mapel terpilih untuk Tab 2, pilih mapel pertama
-            if (!$this->selectedMapelId && !empty($legerData['mapel_list'])) {
-                $this->selectedMapelId = array_key_first($legerData['mapel_list']);
+                // Terapkan filter pencarian siswa jika ada
+                if (trim($this->search) !== '') {
+                    $kw = strtolower(trim($this->search));
+                    $legerData['siswa_rows'] = array_filter($legerData['siswa_rows'], function ($s) use ($kw) {
+                        return str_contains(strtolower($s['nama']), $kw)
+                            || str_contains(strtolower($s['nis']), $kw)
+                            || str_contains(strtolower($s['nisn']), $kw);
+                    });
+                }
             }
-
-            // Terapkan filter pencarian siswa jika ada
-            if (trim($this->search) !== '') {
-                $kw = strtolower(trim($this->search));
-                $legerData['siswa_rows'] = array_filter($legerData['siswa_rows'], function ($s) use ($kw) {
-                    return str_contains(strtolower($s['nama']), $kw)
-                        || str_contains(strtolower($s['nis']), $kw)
-                        || str_contains(strtolower($s['nisn']), $kw);
-                });
-            }
-
-            // Data komparasi antar rombel
-            $crossRombelData = $service->getCrossRombelComparison($this->filterTingkat, $selectedSemester);
         }
 
         return view('penilaian::livewire.rekap-penilaian-index', [
@@ -224,6 +202,7 @@ class RekapPenilaianIndex extends Component
             'selectedMapelId' => $this->selectedMapelId,
             'filterTingkat' => $this->filterTingkat,
             'search' => $this->search,
+            'hasLoaded' => $this->hasLoaded,
         ]);
     }
 }

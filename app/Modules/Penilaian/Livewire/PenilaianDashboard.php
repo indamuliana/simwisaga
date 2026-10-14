@@ -27,61 +27,36 @@ class PenilaianDashboard extends Component
     public ?int $selectedRombelId = null;
     public string $filterTingkat = 'semua'; // 'semua', 'X', 'XI', 'XII'
     public string $search = '';
+    public bool $hasLoaded = false;
 
     public function mount(): void
     {
-        $currentTa = AcademicContext::currentTahunAjaran();
-        $currentSem = AcademicContext::currentSemester();
-        $user = auth()->user();
+        // Biarkan selectedRombelId bernilai null agar halaman dimuat cepat tanpa kalkulasi berat di awal
+        $this->selectedRombelId = null;
+        $this->hasLoaded = false;
+    }
 
-        // Cari rombel awal
-        $rombelQuery = Rombel::query();
-        if ($currentTa) {
-            $rombelQuery->where('tahun_ajaran_id', $currentTa->id);
-        }
-
-        // Jika user adalah Guru (bukan superadmin), coba cari rombel yang dia ampu terlebih dahulu
-        if (! $user->isSuperAdmin() && $currentSem) {
-            $pegawai = Pegawai::where('user_id', $user->id)->first();
-            if ($pegawai) {
-                $myRombelId = PenugasanMengajar::where('pegawai_id', $pegawai->id)
-                    ->where('semester_id', $currentSem->id)
-                    ->value('rombel_id');
-
-                if ($myRombelId) {
-                    $this->selectedRombelId = $myRombelId;
-                }
-            }
-        }
-
+    public function tampilkanData(): void
+    {
         if (! $this->selectedRombelId) {
-            $firstRombel = (clone $rombelQuery)->orderBy('tingkat')->orderBy('nama')->first();
-            $this->selectedRombelId = $firstRombel?->id;
+            session()->flash('error', 'Silakan pilih Rombongan Belajar terlebih dahulu.');
+            return;
         }
+
+        $this->hasLoaded = true;
     }
 
     public function updatedSelectedRombelId(): void
     {
+        $this->hasLoaded = false;
         $this->reset('search');
     }
 
     public function updatedFilterTingkat(): void
     {
-        $currentTa = AcademicContext::currentTahunAjaran();
-
-        $rombelQuery = Rombel::query();
-        if ($currentTa) {
-            $rombelQuery->where('tahun_ajaran_id', $currentTa->id);
-        }
-        if ($this->filterTingkat !== 'semua') {
-            $rombelQuery->where('tingkat', $this->filterTingkat);
-        }
-
-        $available = (clone $rombelQuery)->pluck('id')->toArray();
-        if (! in_array($this->selectedRombelId, $available)) {
-            $first = (clone $rombelQuery)->orderBy('tingkat')->orderBy('nama')->first();
-            $this->selectedRombelId = $first?->id;
-        }
+        $this->hasLoaded = false;
+        $this->selectedRombelId = null;
+        $this->reset('search');
     }
 
     public function bukaPenilaian(int $mapelId)
@@ -156,7 +131,7 @@ class PenilaianDashboard extends Component
             'persenRombel' => 0,
         ];
 
-        if ($selectedRombel && $currentSem) {
+        if ($this->hasLoaded && $selectedRombel && $currentSem) {
             $isGenap = str_contains(strtolower($currentSem->semester), 'genap');
             $allSk = StrukturKurikulum::with('mapel.kelompokMapel')
                 ->where('tahun_ajaran_id', $selectedRombel->tahun_ajaran_id)
@@ -354,6 +329,7 @@ class PenilaianDashboard extends Component
             'totalSiswaRombel' => $totalSiswaRombel,
             'groupedStrukturKurikulum' => $strukturKurikulums,
             'summary' => $summary,
+            'hasLoaded' => $this->hasLoaded,
         ]);
     }
 }

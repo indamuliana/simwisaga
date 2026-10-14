@@ -125,6 +125,19 @@ class Siswa extends Model implements Auditable
         return $this->hasOne(\App\Modules\Alumni\Models\Alumni::class);
     }
 
+    public function customKelompoks(): \Illuminate\Database\Eloquent\Relations\BelongsToMany
+    {
+        return $this->belongsToMany(
+            \App\Modules\Akademik\Models\CustomKelompok::class,
+            'custom_kelompok_siswas'
+        )->withPivot('id', 'keterangan')->withTimestamps();
+    }
+
+    public function customKelompokSiswas(): HasMany
+    {
+        return $this->hasMany(\App\Modules\Akademik\Models\CustomKelompokSiswa::class);
+    }
+
     public function getAyahAttribute(): ?SiswaOrangTua
     {
         return $this->orangTuas->firstWhere('hubungan', 'ayah');

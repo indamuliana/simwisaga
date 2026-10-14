@@ -216,24 +216,22 @@ class PenilaianRekap9MingguTest extends TestCase
         // 1. Verifikasi Blok 9M1:
         // Rata formatif = (90 + 60) / 2 = 75
         // Sumatif STS 1 = 80
-        // NA 9M1 = (75 * 0.5) + (80 * 0.5) = 77.5
+        // Karena AH 2 = 60 (< KKM 75), maka NA 9M1 harus NULL dan status belum_kompeten!
         $m1 = $data9m['9M1'];
         $this->assertEquals(75.0, (float) $m1['rata_formatif']);
         $this->assertEquals(80.0, (float) $m1['sumatif']);
-        $this->assertEquals(77.5, (float) $m1['nilai_akhir']);
-
-        // Deskripsi 9M1 harus memuat capaian tinggi (TP 1) dan bimbingan untuk TP 2
-        $this->assertStringContainsString('memahami konsep aljabar linear', $m1['deskripsi_tertinggi']);
-        $this->assertStringContainsString('Perlu bimbingan', $m1['deskripsi_terendah']);
-        $this->assertStringContainsString('menyelesaikan persamaan kuadrat', $m1['deskripsi_terendah']);
+        $this->assertEquals('belum_kompeten', $m1['status']);
+        $this->assertNull($m1['nilai_akhir']);
+        $this->assertEquals('Nilai belum kompeten, silakan hubungi guru yang bersangkutan.', $m1['deskripsi_tertinggi']);
 
         // 2. Verifikasi Blok 9M2:
         // Rata formatif = (88 + 86) / 2 = 87
         // Sumatif SAS = 90
-        // NA 9M2 = (87 * 0.5) + (90 * 0.5) = 88.5
+        // Karena semua nilai >= KKM 75, NA 9M2 = (87 * 0.5) + (90 * 0.5) = 88.5
         $m2 = $data9m['9M2'];
         $this->assertEquals(87.0, (float) $m2['rata_formatif']);
         $this->assertEquals(90.0, (float) $m2['sumatif']);
+        $this->assertEquals('kompeten', $m2['status']);
         $this->assertEquals(88.5, (float) $m2['nilai_akhir']);
 
         // Deskripsi 9M2: selalu 2 baris (TP 3 = 88 penguasaan tinggi, TP 4 = 86 pemantapan)
@@ -241,6 +239,10 @@ class PenilaianRekap9MingguTest extends TestCase
         $this->assertStringContainsString('Perlu pemantapan', $m2['deskripsi_terendah']);
         $this->assertStringContainsString('menghitung volume bangun ruang', $m2['deskripsi_terendah']);
         $this->assertStringNotContainsString('menyelesaikan persamaan kuadrat', $m2['deskripsi_terendah']); // Memastikan TP 2 dari 9M1 tidak bocor ke 9M2!
+
+        // Verifikasi Nilai Akhir Semester (karena ada AH 2 = 60 < KKM, NA semester harus null)
+        $this->assertNull($na->nilai_akhir);
+        $this->assertEquals('Nilai belum kompeten, silakan hubungi guru yang bersangkutan.', $na->deskripsi_tertinggi);
     }
 
     public function test_livewire_modal_edit_manual_override_for_specific_9m_period(): void
@@ -320,7 +322,6 @@ class PenilaianRekap9MingguTest extends TestCase
             'periode_id' => $this->periode9M1->id,
         ]));
         $res9M1->assertOk();
-        // PDF returned as stream with 200 OK
 
         // Model helper check
         $na = NilaiAkhir::where('siswa_id', $this->siswa->id)->firstOrFail();
@@ -395,6 +396,12 @@ class PenilaianRekap9MingguTest extends TestCase
         ]);
         NilaiFormatif::create(['siswa_id' => $this->siswa->id, 'tujuan_pembelajaran_id' => $tp->id, 'nilai' => 80]);
 
+        NilaiSumatif::create([
+            'siswa_id' => $this->siswa->id,
+            'penugasan_mengajar_id' => $this->pmGanjil->id,
+            'sts' => 85,
+        ]);
+
         $testComp = Livewire::test(PenilaianInput::class, ['penugasan_id' => $this->pmGanjil->id])
             ->set('activeTab', 'rekap')
             ->call('calculateRekap')
@@ -406,5 +413,114 @@ class PenilaianRekap9MingguTest extends TestCase
 
         $testComp->call('copyAutoToManual9M')
             ->assertSet('tempDeskripsiManual9M', fn($val) => !empty($val) && str_contains($val, 'menganalisis data statistik'));
+    }
+
+    public function test_empty_score_causes_null_na_and_belum_lengkap_description(): void
+    {
+        $this->actingAs($this->guruUser);
+
+        $tp = TujuanPembelajaran::create([
+            'penugasan_mengajar_id' => $this->pmGanjil->id,
+            'kode' => 'TP-LENGKAP',
+            'deskripsi' => 'menerapkan fungsi eksponensial',
+            'alokasi_ah' => 'AH 1',
+            'is_active' => true,
+        ]);
+
+        // AH 1 diisi 85, tetapi STS dikosongkan (belum diinput)
+        NilaiAsesmenHarian::create([
+            'siswa_id' => $this->siswa->id,
+            'penugasan_mengajar_id' => $this->pmGanjil->id,
+            'kode_ah' => 'AH 1',
+            'nilai' => 85,
+        ]);
+        NilaiFormatif::create(['siswa_id' => $this->siswa->id, 'tujuan_pembelajaran_id' => $tp->id, 'nilai' => 85]);
+
+        Livewire::test(PenilaianInput::class, ['penugasan_id' => $this->pmGanjil->id])
+            ->set('activeTab', 'rekap')
+            ->call('calculateRekap')
+            ->assertHasNoErrors();
+
+        $na = NilaiAkhir::where('siswa_id', $this->siswa->id)->firstOrFail();
+        $m1 = $na->data_9m['9M1'];
+
+        $this->assertEquals('belum_lengkap', $m1['status']);
+        $this->assertNull($m1['nilai_akhir']);
+        $this->assertEquals('Nilai belum lengkap, silakan hubungi guru yang bersangkutan.', $m1['deskripsi_tertinggi']);
+        $this->assertEmpty($m1['deskripsi_terendah']);
+    }
+
+    public function test_below_kkm_score_causes_null_na_and_belum_kompeten_description(): void
+    {
+        $this->actingAs($this->guruUser);
+
+        $tp = TujuanPembelajaran::create([
+            'penugasan_mengajar_id' => $this->pmGanjil->id,
+            'kode' => 'TP-KKM',
+            'deskripsi' => 'menyelesaikan barisan dan deret aritmetika',
+            'alokasi_ah' => 'AH 1',
+            'is_active' => true,
+        ]);
+
+        // AH 1 = 70 (< KKM 75), STS = 80 (>= 75)
+        NilaiAsesmenHarian::create([
+            'siswa_id' => $this->siswa->id,
+            'penugasan_mengajar_id' => $this->pmGanjil->id,
+            'kode_ah' => 'AH 1',
+            'nilai' => 70,
+        ]);
+        NilaiFormatif::create(['siswa_id' => $this->siswa->id, 'tujuan_pembelajaran_id' => $tp->id, 'nilai' => 70]);
+
+        NilaiSumatif::create([
+            'siswa_id' => $this->siswa->id,
+            'penugasan_mengajar_id' => $this->pmGanjil->id,
+            'sts' => 80,
+        ]);
+
+        Livewire::test(PenilaianInput::class, ['penugasan_id' => $this->pmGanjil->id])
+            ->set('activeTab', 'rekap')
+            ->call('calculateRekap')
+            ->assertHasNoErrors();
+
+        $na = NilaiAkhir::where('siswa_id', $this->siswa->id)->firstOrFail();
+        $m1 = $na->data_9m['9M1'];
+
+        $this->assertEquals('belum_kompeten', $m1['status']);
+        $this->assertNull($m1['nilai_akhir']);
+        $this->assertEquals('Nilai belum kompeten, silakan hubungi guru yang bersangkutan.', $m1['deskripsi_tertinggi']);
+        $this->assertEmpty($m1['deskripsi_terendah']);
+    }
+
+    public function test_null_score_rendered_as_dash_in_rapor_pdf(): void
+    {
+        $this->actingAs($this->guruUser);
+
+        // Buat record nilai akhir dengan nilai_akhir NULL (karena belum lengkap/kompeten)
+        NilaiAkhir::create([
+            'siswa_id' => $this->siswa->id,
+            'penugasan_mengajar_id' => $this->pmGanjil->id,
+            'nilai_akhir' => null,
+            'data_9m' => [
+                '9M1' => [
+                    'rata_formatif' => 70,
+                    'sumatif' => null,
+                    'nilai_akhir' => null,
+                    'status' => 'belum_lengkap',
+                    'deskripsi_tertinggi' => 'Nilai belum lengkap, silakan hubungi guru yang bersangkutan.',
+                    'deskripsi_terendah' => '',
+                    'deskripsi_manual' => null,
+                ],
+            ],
+        ]);
+
+        $res = $this->get(route('rapor.cetak.nilai', [
+            'siswa_id' => $this->siswa->id,
+            'periode_id' => $this->periode9M1->id,
+        ]));
+        $res->assertOk();
+
+        $na = NilaiAkhir::where('siswa_id', $this->siswa->id)->firstOrFail();
+        $this->assertNull($na->getScoreForPeriod('9M1'));
+        $this->assertEquals('Nilai belum lengkap, silakan hubungi guru yang bersangkutan.', $na->getDescriptionForPeriod('9M1')['deskripsi_tertinggi']);
     }
 }

@@ -1,5 +1,6 @@
 <?php
 
+use App\Modules\Akademik\Livewire\CustomKelompokIndex;
 use App\Modules\Akademik\Livewire\JurusanIndex;
 use App\Modules\Akademik\Livewire\MapelIndex;
 use App\Modules\Akademik\Livewire\ProgramIndex;
@@ -17,4 +18,5 @@ Route::prefix('akademik')->name('akademik.')->group(function () {
     Route::get('/program', ProgramIndex::class)->name('program');
     Route::get('/mapel', MapelIndex::class)->name('mapel');
     Route::get('/kurikulum', StrukturKurikulumIndex::class)->name('kurikulum');
+    Route::get('/custom-kelompok', CustomKelompokIndex::class)->name('custom-kelompok');
 });

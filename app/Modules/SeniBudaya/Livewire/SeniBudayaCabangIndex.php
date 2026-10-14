@@ -125,7 +125,13 @@ class SeniBudayaCabangIndex extends Component
 
     public function delete(int $id)
     {
-        $cabang = SeniBudaya::findOrFail($id);
+        $cabang = SeniBudaya::withCount(['anggotas', 'tps'])->findOrFail($id);
+
+        if ($cabang->anggotas_count > 0) {
+            session()->flash('error', "Cabang '{$cabang->nama}' tidak dapat dihapus karena masih memiliki {$cabang->anggotas_count} siswa terdaftar. Silakan nonaktifkan cabang jika sudah tidak digunakan.");
+            return;
+        }
+
         $name = $cabang->nama;
         $cabang->delete();
         $this->loadData();

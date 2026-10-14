@@ -110,13 +110,22 @@ class TranskripNilaiService
         }
 
         // Integrasi Seni Budaya jika siswa terdaftar
-        $sbAnggota = null;
-        if (class_exists(\App\Modules\SeniBudaya\Models\SeniBudayaAnggota::class)) {
-            $sbAnggota = \App\Modules\SeniBudaya\Models\SeniBudayaAnggota::with('seniBudaya')
-                ->where('siswa_id', $siswaId)
-                ->where('status_keanggotaan', 'aktif')
-                ->first();
+        $mapelSeni = Mapel::with('kelompokMapel')
+            ->where('kode', 'SENI')
+            ->orWhere('nama', 'like', '%Seni Budaya%')
+            ->first();
+
+        if ($mapelSeni && !$kurikulumMapels->has($mapelSeni->id)) {
+            $kurikulumMapels->put($mapelSeni->id, $mapelSeni);
         }
+
+        $sbAnggotas = collect();
+        if (class_exists(\App\Modules\SeniBudaya\Models\SeniBudayaAnggota::class)) {
+            $sbAnggotas = \App\Modules\SeniBudaya\Models\SeniBudayaAnggota::with(['seniBudaya', 'semester.tahunAjaran'])
+                ->where('siswa_id', $siswaId)
+                ->get();
+        }
+        $latestSb = $sbAnggotas->where('status_keanggotaan', 'aktif')->last() ?? $sbAnggotas->last();
 
         // Kelompokkan mapel berdasarkan KelompokMapel (A, B, C, D)
         $kelompokMaster = KelompokMapel::orderBy('urutan')->get();
@@ -131,6 +140,8 @@ class TranskripNilaiService
 
         // Matriks nilai siswa: [mapel_id][semester_index] = score
         $studentScores = [];
+        $semesterIdToIdx = [];
+
         foreach ($nilaiAkhirs as $na) {
             $pm = $na->penugasanMengajar;
             if (!$pm || !$pm->mapel_id) {
@@ -141,9 +152,32 @@ class TranskripNilaiService
             $semName = $pm->semester?->semester ?? 'ganjil';
             $semIdx = self::getSemesterIndex($tingkat, $semName);
 
+            if ($pm->semester_id) {
+                $semesterIdToIdx[$pm->semester_id] = $semIdx;
+            }
+
             $score = $na->nilai_akhir !== null ? (float) $na->nilai_akhir : null;
             if ($score !== null) {
                 $studentScores[$pm->mapel_id][$semIdx] = $score;
+            }
+        }
+
+        // Petakan nilai Seni Budaya ke semester index
+        $currentTingkat = $siswa->rombel?->tingkat ?? 'X';
+        $activeSem = \App\Modules\Akademik\Models\Semester::active()->first();
+        if ($activeSem) {
+            $semesterIdToIdx[$activeSem->id] ??= self::getSemesterIndex($currentTingkat, $activeSem->semester);
+        }
+
+        if ($mapelSeni) {
+            foreach ($sbAnggotas as $sb) {
+                $semIdx = $semesterIdToIdx[$sb->semester_id] ?? null;
+                if (!$semIdx && $sb->semester) {
+                    $semIdx = self::getSemesterIndex($currentTingkat, $sb->semester->semester);
+                }
+                if ($semIdx && $sb->nilai_akhir !== null) {
+                    $studentScores[$mapelSeni->id][$semIdx] = (float) $sb->nilai_akhir;
+                }
             }
         }
 
@@ -186,8 +220,8 @@ class TranskripNilaiService
 
                 // Ganti nama jika Seni Budaya
                 $namaMapel = $mapel->nama;
-                if (str_contains(strtolower($mapel->kode), 'seni') && $sbAnggota?->seniBudaya) {
-                    $namaMapel = 'Seni Budaya: ' . $sbAnggota->seniBudaya->nama;
+                if ((str_contains(strtolower($mapel->kode), 'seni') || str_contains(strtolower($mapel->nama), 'seni')) && $latestSb?->seniBudaya) {
+                    $namaMapel = 'Seni Budaya: ' . $latestSb->seniBudaya->nama;
                 }
 
                 $rows[] = [
@@ -333,6 +367,15 @@ class TranskripNilaiService
             ->get()
             ->groupBy('siswa_id');
 
+        // Ambil data nilai Seni Budaya untuk siswa rombel ini
+        $allSbAnggotas = collect();
+        if (class_exists(\App\Modules\SeniBudaya\Models\SeniBudayaAnggota::class)) {
+            $allSbAnggotas = \App\Modules\SeniBudaya\Models\SeniBudayaAnggota::with('semester')
+                ->whereIn('siswa_id', $siswas->pluck('id'))
+                ->get()
+                ->groupBy('siswa_id');
+        }
+
         $studentRows = [];
         $cohortKumulatifs = [];
 
@@ -360,6 +403,17 @@ class TranskripNilaiService
                 $semIdx = self::getSemesterIndex($t, $sName);
 
                 $semScores[$semIdx][] = (float) $na->nilai_akhir;
+            }
+
+            // Tambahkan nilai Seni Budaya siswa ke agregasi semester
+            $sbList = $allSbAnggotas->get($siswa->id) ?? collect();
+            foreach ($sbList as $sb) {
+                if ($sb->nilai_akhir === null) {
+                    continue;
+                }
+                $sName = $sb->semester?->semester ?? 'ganjil';
+                $semIdx = self::getSemesterIndex($tingkat, $sName);
+                $semScores[$semIdx][] = (float) $sb->nilai_akhir;
             }
 
             // Hitung rata-rata per semester
@@ -479,6 +533,14 @@ class TranskripNilaiService
             ->get();
 
         $mapels = $sks->pluck('mapel')->filter()->unique('id')->values();
+        $mapelSeni = Mapel::with('kelompokMapel')
+            ->where('kode', 'SENI')
+            ->orWhere('nama', 'like', '%Seni Budaya%')
+            ->first();
+
+        if ($mapelSeni && !$mapels->contains('id', $mapelSeni->id)) {
+            $mapels->push($mapelSeni);
+        }
 
         // Rombel yang relevan
         $rombelQuery = Rombel::where('jurusan_id', $jurusanId);
@@ -506,6 +568,22 @@ class TranskripNilaiService
             $semIdx = self::getSemesterIndex($t, $sName);
 
             $mapelScores[$mId][$semIdx][] = (float) $na->nilai_akhir;
+        }
+
+        // Tambahkan nilai Seni Budaya ke komparasi mapel
+        if ($mapelSeni && class_exists(\App\Modules\SeniBudaya\Models\SeniBudayaAnggota::class)) {
+            $allSbAnggotas = \App\Modules\SeniBudaya\Models\SeniBudayaAnggota::with('semester')
+                ->whereIn('siswa_id', $siswaIds)
+                ->get();
+
+            foreach ($allSbAnggotas as $sb) {
+                if ($sb->nilai_akhir === null) {
+                    continue;
+                }
+                $sName = $sb->semester?->semester ?? 'ganjil';
+                $semIdx = self::getSemesterIndex($tingkat, $sName);
+                $mapelScores[$mapelSeni->id][$semIdx][] = (float) $sb->nilai_akhir;
+            }
         }
 
         $comparisonRows = [];

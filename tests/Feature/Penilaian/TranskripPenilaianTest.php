@@ -269,6 +269,10 @@ class TranskripPenilaianTest extends TestCase
         Livewire::actingAs($this->admin)
             ->test(TranskripPenilaianIndex::class)
             ->assertSet('activeTab', 'matriks')
+            ->assertSet('hasLoaded', false)
+            ->set('selectedJurusanId', $this->jurusan->id)
+            ->call('tampilkanData')
+            ->assertSet('hasLoaded', true)
             ->assertSee('Ahmad Fadhil')
             ->assertSee('Bintang Pratama')
             ->call('switchTab', 'individual')
@@ -276,10 +280,42 @@ class TranskripPenilaianTest extends TestCase
             ->call('selectSiswa', $this->siswa2->id)
             ->assertSet('selectedSiswaId', $this->siswa2->id)
             ->assertSet('activeTab', 'individual')
+            ->assertSet('hasLoaded', true)
             ->call('switchTab', 'analisis')
             ->assertSet('activeTab', 'analisis')
+            ->assertSet('hasLoaded', false)
+            ->call('tampilkanData')
+            ->assertSet('hasLoaded', true)
             ->set('search', 'Ahmad')
             ->assertSet('search', 'Ahmad');
+    }
+
+    public function test_livewire_individual_tab_student_live_search_autocomplete(): void
+    {
+        Livewire::actingAs($this->admin)
+            ->test(TranskripPenilaianIndex::class)
+            ->call('switchTab', 'individual')
+            ->assertSet('activeTab', 'individual')
+            // Siswa di setup: 'Ahmad Fadhil' dan 'Bintang Pratama'
+            // Ketik 'ah' -> siswasList hanya memuat 'Ahmad Fadhil'
+            ->set('searchSiswa', 'ah')
+            ->assertSet('searchSiswa', 'ah')
+            ->assertViewHas('siswasList', function ($list) {
+                return $list->contains('nama', 'Ahmad Fadhil') && !$list->contains('nama', 'Bintang Pratama');
+            })
+            // Ketik 'bint' -> siswasList hanya memuat 'Bintang Pratama'
+            ->set('searchSiswa', 'bint')
+            ->assertViewHas('siswasList', function ($list) {
+                return $list->contains('nama', 'Bintang Pratama') && !$list->contains('nama', 'Ahmad Fadhil');
+            })
+            // Klik / pilih siswa Bintang Pratama
+            ->call('selectSiswa', $this->siswa2->id)
+            ->assertSet('selectedSiswaId', $this->siswa2->id)
+            ->assertSet('searchSiswa', '')
+            // Clear search method
+            ->set('searchSiswa', 'test')
+            ->call('clearSearchSiswa')
+            ->assertSet('searchSiswa', '');
     }
 
     public function test_excel_export_cohort_transkrip_streams_valid_spreadsheet(): void

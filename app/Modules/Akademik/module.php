@@ -15,6 +15,7 @@ return [
         ['label' => 'Setting Program', 'route' => 'akademik.program', 'permission' => 'akademik.program.lihat'],
         ['label' => 'Mata Pelajaran', 'route' => 'akademik.mapel', 'permission' => 'akademik.mapel.lihat'],
         ['label' => 'Struktur Kurikulum', 'route' => 'akademik.kurikulum', 'permission' => 'akademik.kurikulum.lihat'],
+        ['label' => 'Custom Kelompok', 'route' => 'akademik.custom-kelompok', 'permission' => 'akademik.custom_kelompok.lihat'],
     ],
     'permissions' => [
         'akademik.tahun_ajaran' => ['label' => 'Tahun Ajaran & Semester', 'actions' => ['lihat', 'tambah', 'edit', 'hapus']],
@@ -24,5 +25,6 @@ return [
         'akademik.program' => ['label' => 'Setting Program', 'actions' => ['lihat', 'tambah', 'edit', 'hapus']],
         'akademik.mapel' => ['label' => 'Mata Pelajaran', 'actions' => ['lihat', 'tambah', 'edit', 'hapus', 'cetak']],
         'akademik.kurikulum' => ['label' => 'Struktur Kurikulum', 'actions' => ['lihat', 'tambah', 'edit', 'hapus', 'cetak']],
+        'akademik.custom_kelompok' => ['label' => 'Custom Kelompok', 'actions' => ['lihat', 'tambah', 'edit', 'hapus', 'cetak']],
     ],
 ];

@@ -84,6 +84,7 @@ class PenilaianInput extends Component
 
     // State for Input Sumatif (for compatibility)
     public $sumatifData = [];
+    public $initialSumatifData = [];
 
     // State for Rekap
     public $rekapData = [];
@@ -274,6 +275,8 @@ class PenilaianInput extends Component
             ];
         }
 
+        $this->initialSumatifData = $this->sumatifData;
+
         // 4. Jika sedang di tab rekap, hitung otomatis
         if ($this->activeTab === 'rekap') {
             $this->calculateRekap();
@@ -296,6 +299,20 @@ class PenilaianInput extends Component
     {
         $options = $this->availableAhOptions;
         $this->tp_alokasi_ah = $options[0] ?? '';
+    }
+
+    public function updatedSumatifData($value, $key): void
+    {
+        $parts = explode('.', $key);
+        if (count($parts) === 2) {
+            $siswaId = (int) $parts[0];
+            $type = $parts[1]; // 'sts' atau 'sas'
+            if ($this->activeNilaiPenugasanId == $this->pmGenapId) {
+                $this->sumatifDataGenap[$siswaId][$type] = $value;
+            } else {
+                $this->sumatifDataGanjil[$siswaId][$type] = $value;
+            }
+        }
     }
 
     public function switchTab($tab)
@@ -515,21 +532,23 @@ class PenilaianInput extends Component
 
         $mapping = $this->ahTpsMapping;
 
-        // Sinkronisasi data sumatif jika diubah melalui properti sumatifData (misal dari pemanggilan tes)
+        // Sinkronisasi data sumatif hanya jika sumatifData diubah secara eksplisit (misal dari pemanggilan tes lama)
         foreach ($this->sumatifData as $sId => $vals) {
-            if ($this->activeNilaiPenugasanId == $this->pmGenapId) {
-                if (isset($vals['sts']) && $vals['sts'] !== null && $vals['sts'] !== '') {
-                    $this->sumatifDataGenap[$sId]['sts'] = $vals['sts'];
-                }
-                if (isset($vals['sas']) && $vals['sas'] !== null && $vals['sas'] !== '') {
-                    $this->sumatifDataGenap[$sId]['sas'] = $vals['sas'];
-                }
-            } else {
-                if (isset($vals['sts']) && $vals['sts'] !== null && $vals['sts'] !== '') {
-                    $this->sumatifDataGanjil[$sId]['sts'] = $vals['sts'];
-                }
-                if (isset($vals['sas']) && $vals['sas'] !== null && $vals['sas'] !== '') {
-                    $this->sumatifDataGanjil[$sId]['sas'] = $vals['sas'];
+            $initialSts = $this->initialSumatifData[$sId]['sts'] ?? null;
+            $initialSas = $this->initialSumatifData[$sId]['sas'] ?? null;
+            $currentSts = $vals['sts'] ?? null;
+            $currentSas = $vals['sas'] ?? null;
+
+            $isStsChanged = ($currentSts !== $initialSts);
+            $isSasChanged = ($currentSas !== $initialSas);
+
+            if ($isStsChanged || $isSasChanged) {
+                if ($this->activeNilaiPenugasanId == $this->pmGenapId) {
+                    if ($isStsChanged) $this->sumatifDataGenap[$sId]['sts'] = $currentSts;
+                    if ($isSasChanged) $this->sumatifDataGenap[$sId]['sas'] = $currentSas;
+                } else {
+                    if ($isStsChanged) $this->sumatifDataGanjil[$sId]['sts'] = $currentSts;
+                    if ($isSasChanged) $this->sumatifDataGanjil[$sId]['sas'] = $currentSas;
                 }
             }
         }
@@ -608,37 +627,57 @@ class PenilaianInput extends Component
         // 3. Simpan Sumatif Ganjil (STS 1 & SAS)
         if ($this->pmGanjilId) {
             foreach ($this->sumatifDataGanjil as $siswaId => $data) {
-                if ($data['sts'] !== null || $data['sas'] !== null) {
+                $sts = ($data['sts'] === '' || $data['sts'] === null) ? null : (float) $data['sts'];
+                $sas = ($data['sas'] === '' || $data['sas'] === null) ? null : (float) $data['sas'];
+
+                if ($sts !== null || $sas !== null) {
                     NilaiSumatif::updateOrCreate(
                         ['siswa_id' => $siswaId, 'penugasan_mengajar_id' => $this->pmGanjilId],
-                        ['sts' => $data['sts'] === '' ? null : $data['sts'], 'sas' => $data['sas'] === '' ? null : $data['sas']]
+                        ['sts' => $sts, 'sas' => $sas]
                     );
+                } else {
+                    NilaiSumatif::where('siswa_id', $siswaId)
+                        ->where('penugasan_mengajar_id', $this->pmGanjilId)
+                        ->delete();
                 }
             }
+            $this->calculateRekap($this->pmGanjilId);
         }
 
         // 4. Simpan Sumatif Genap (STS 2 & SAT)
         if ($this->pmGenapId) {
             foreach ($this->sumatifDataGenap as $siswaId => $data) {
-                if ($data['sts'] !== null || $data['sas'] !== null) {
+                $sts = ($data['sts'] === '' || $data['sts'] === null) ? null : (float) $data['sts'];
+                $sas = ($data['sas'] === '' || $data['sas'] === null) ? null : (float) $data['sas'];
+
+                if ($sts !== null || $sas !== null) {
                     NilaiSumatif::updateOrCreate(
                         ['siswa_id' => $siswaId, 'penugasan_mengajar_id' => $this->pmGenapId],
-                        ['sts' => $data['sts'] === '' ? null : $data['sts'], 'sas' => $data['sas'] === '' ? null : $data['sas']]
+                        ['sts' => $sts, 'sas' => $sas]
                     );
+                } else {
+                    NilaiSumatif::where('siswa_id', $siswaId)
+                        ->where('penugasan_mengajar_id', $this->pmGenapId)
+                        ->delete();
                 }
             }
+            $this->calculateRekap($this->pmGenapId);
         }
 
-        $this->calculateRekap();
+        // Sinkronkan properti sumatifData untuk backward-compatibility dengan semester aktif
+        $activeSumatif = ($this->activeNilaiPenugasanId == $this->pmGenapId) ? $this->sumatifDataGenap : $this->sumatifDataGanjil;
+        $this->sumatifData = $activeSumatif;
+        $this->initialSumatifData = $activeSumatif;
 
         session()->flash('message_nilai', 'Seluruh Nilai Akademik (Formatif & Sumatif) berhasil disimpan.');
     }
 
-    public function calculateRekap()
+    public function calculateRekap(?int $targetPenugasanId = null)
     {
-        $this->rekapData = [];
+        $penugasanId = $targetPenugasanId ?? $this->activeNilaiPenugasanId;
+        if (!$penugasanId) return;
 
-        $isGenap = ($this->activeNilaiPenugasanId == $this->pmGenapId);
+        $isGenap = ($penugasanId == $this->pmGenapId);
         $block1Key = $isGenap ? '9M3' : '9M1';
         $block2Key = $isGenap ? '9M4' : '9M2';
 
@@ -660,11 +699,12 @@ class PenilaianInput extends Component
         $kkm = $this->penugasan->mapel->kkm_default ?? 75;
 
         // Ambil data nilai akhir yang sudah ada (untuk menjaga deskripsi_manual dan data_9m yang lama)
-        $existingNas = NilaiAkhir::where('penugasan_mengajar_id', $this->activeNilaiPenugasanId)
+        $existingNas = NilaiAkhir::where('penugasan_mengajar_id', $penugasanId)
             ->whereIn('siswa_id', $this->siswas->pluck('id'))
             ->get()
             ->keyBy('siswa_id');
 
+        $computedRekap = [];
         foreach ($this->siswas as $siswa) {
             $existingNa = $existingNas->get($siswa->id);
             $currentData9m = $existingNa?->data_9m ?? [];
@@ -694,42 +734,85 @@ class PenilaianInput extends Component
 
             // Hitung nilai akhir semester (backward compatibility)
             $allAhThisSem = array_merge($ahBlock1, $ahBlock2);
-            $filledAhs = [];
+            $activeAhThisSem = [];
             foreach ($allAhThisSem as $ah) {
-                $val = $this->ahData[$siswa->id][$ah] ?? null;
-                if ($val !== null && $val !== '' && is_numeric($val)) {
-                    $filledAhs[] = (float) $val;
+                if (($ahMapping[$ah] ?? collect())->isNotEmpty()) {
+                    $activeAhThisSem[] = $ah;
                 }
             }
-            $rataFormatifSem = !empty($filledAhs) ? round(array_sum($filledAhs) / count($filledAhs), 2) : 0;
+
+            $filledAhs = [];
+            $semHasEmpty = false;
+            $semHasBelowKkm = false;
+
+            if (!empty($activeAhThisSem)) {
+                foreach ($activeAhThisSem as $ah) {
+                    $val = $this->ahData[$siswa->id][$ah] ?? null;
+                    if ($val === null || $val === '' || !is_numeric($val)) {
+                        $semHasEmpty = true;
+                    } else {
+                        $num = (float) $val;
+                        $filledAhs[] = $num;
+                        if ($num < $kkm) {
+                            $semHasBelowKkm = true;
+                        }
+                    }
+                }
+            } else {
+                $semHasEmpty = true;
+            }
+
             $stsVal = isset($sumatifSource[$siswa->id]['sts']) && is_numeric($sumatifSource[$siswa->id]['sts']) ? (float) $sumatifSource[$siswa->id]['sts'] : null;
             $sasVal = isset($sumatifSource[$siswa->id]['sas']) && is_numeric($sumatifSource[$siswa->id]['sas']) ? (float) $sumatifSource[$siswa->id]['sas'] : null;
 
-            // Nilai akhir semester penuh
-            if ($sasVal !== null) {
-                $nilaiAkhirSem = round(($rataFormatifSem * 0.5) + (($stsVal ?? 0) * 0.25) + ($sasVal * 0.25), 2);
-            } elseif ($resBlock1['nilai_akhir'] !== null) {
-                $nilaiAkhirSem = $resBlock1['nilai_akhir'];
+            if ($stsVal === null || $sasVal === null) {
+                $semHasEmpty = true;
             } else {
-                $nilaiAkhirSem = $rataFormatifSem > 0 ? $rataFormatifSem : null;
+                if ($stsVal < $kkm || $sasVal < $kkm) {
+                    $semHasBelowKkm = true;
+                }
+            }
+
+            $rataFormatifSem = !empty($filledAhs) ? round(array_sum($filledAhs) / count($filledAhs), 2) : null;
+
+            if ($semHasEmpty || $semHasBelowKkm) {
+                $nilaiAkhirSem = null;
+            } else {
+                $nilaiAkhirSem = round(($rataFormatifSem * 0.5) + (($stsVal ?? 0) * 0.25) + (($sasVal ?? 0) * 0.25), 2);
+            }
+
+            // Deskripsi semester penuh
+            if (($resBlock2['status'] ?? '') === 'belum_lengkap' || ($resBlock1['status'] ?? '') === 'belum_lengkap') {
+                $semDescTinggi = 'Nilai belum lengkap, silakan hubungi guru yang bersangkutan.';
+                $semDescRendah = '';
+            } elseif (($resBlock2['status'] ?? '') === 'belum_kompeten' || ($resBlock1['status'] ?? '') === 'belum_kompeten') {
+                $semDescTinggi = 'Nilai belum kompeten, silakan hubungi guru yang bersangkutan.';
+                $semDescRendah = '';
+            } else {
+                $semDescTinggi = $resBlock2['deskripsi_tertinggi'] ?: $resBlock1['deskripsi_tertinggi'];
+                $semDescRendah = $resBlock2['deskripsi_terendah'] ?: $resBlock1['deskripsi_terendah'];
             }
 
             // Simpan ke database
             $na = NilaiAkhir::updateOrCreate(
-                ['siswa_id' => $siswa->id, 'penugasan_mengajar_id' => $this->activeNilaiPenugasanId],
+                ['siswa_id' => $siswa->id, 'penugasan_mengajar_id' => $penugasanId],
                 [
                     'rata_formatif' => $rataFormatifSem,
                     'sts' => $stsVal,
                     'sas' => $sasVal,
                     'nilai_akhir' => $nilaiAkhirSem,
-                    'deskripsi_tertinggi' => $resBlock2['deskripsi_tertinggi'] ?: $resBlock1['deskripsi_tertinggi'],
-                    'deskripsi_terendah' => $resBlock2['deskripsi_terendah'] ?: $resBlock1['deskripsi_terendah'],
+                    'deskripsi_tertinggi' => $semDescTinggi,
+                    'deskripsi_terendah' => $semDescRendah,
                     'deskripsi_manual' => $resBlock2['deskripsi_manual'] ?: $resBlock1['deskripsi_manual'],
                     'data_9m' => $currentData9m,
                 ]
             );
 
-            $this->rekapData[$siswa->id] = $na;
+            $computedRekap[$siswa->id] = $na;
+        }
+
+        if ($penugasanId == $this->activeNilaiPenugasanId) {
+            $this->rekapData = $computedRekap;
         }
     }
 
@@ -744,135 +827,211 @@ class PenilaianInput extends Component
         float $kkm,
         ?string $existingManualOverride = null
     ): array {
-        // 1. Kumpulkan nilai AH pada blok ini
-        $ahScores = [];
+        $ahMapping = $this->ahTpsMapping;
+
+        // 1. Identifikasi AH aktif pada blok ini (hanya AH yang memiliki alokasi TP)
+        $activeAhCodes = [];
         foreach ($ahCodes as $ah) {
-            $score = $this->ahData[$siswaId][$ah] ?? null;
-            if ($score !== null && $score !== '' && is_numeric($score)) {
-                $ahScores[] = (float) $score;
+            $tpsForAh = $ahMapping[$ah] ?? collect();
+            if ($tpsForAh->isNotEmpty()) {
+                $activeAhCodes[] = $ah;
             }
         }
+
+        // Kumpulkan nilai AH aktif & periksa kondisi kosong / di bawah KKM
+        $ahScores = [];
+        $hasEmptyAh = false;
+        $hasBelowKkm = false;
+
+        if (!empty($activeAhCodes)) {
+            foreach ($activeAhCodes as $ah) {
+                $score = $this->ahData[$siswaId][$ah] ?? null;
+                // Fallback cek formatifData jika ahData belum disinkronkan
+                if ($score === null || $score === '') {
+                    $tpsForAh = $ahMapping[$ah] ?? collect();
+                    foreach ($tpsForAh as $tp) {
+                        if (isset($this->formatifData[$siswaId][$tp->id]) && $this->formatifData[$siswaId][$tp->id] !== null && $this->formatifData[$siswaId][$tp->id] !== '') {
+                            $score = $this->formatifData[$siswaId][$tp->id];
+                            break;
+                        }
+                    }
+                }
+
+                if ($score === null || $score === '' || !is_numeric($score)) {
+                    $hasEmptyAh = true;
+                } else {
+                    $numScore = (float) $score;
+                    $ahScores[] = $numScore;
+                    if ($numScore < $kkm) {
+                        $hasBelowKkm = true;
+                    }
+                }
+            }
+        }
+
+        // 2. Evaluasi Sumatif (STS atau SAS atau SAT)
+        $sumatif = null;
+        $hasSumatif = false;
+        if ($sumatifVal !== null && $sumatifVal !== '' && is_numeric($sumatifVal)) {
+            $sumatif = (float) $sumatifVal;
+            $hasSumatif = true;
+            if ($sumatif < $kkm) {
+                $hasBelowKkm = true;
+            }
+        }
+
+        // Kasus: Blok sama sekali belum diisi nilai apapun (belum dimulai atau belum ada asesmen)
+        $hasAnyScoreEntered = !empty($ahScores) || $hasSumatif;
+        if (!$hasAnyScoreEntered) {
+            return [
+                'status' => 'belum_ada_nilai',
+                'rata_formatif' => null,
+                'sumatif' => null,
+                'nilai_akhir' => null,
+                'deskripsi_tertinggi' => '',
+                'deskripsi_terendah' => '',
+                'deskripsi_manual' => $existingManualOverride ?: null,
+            ];
+        }
+
         $rataFormatif = !empty($ahScores) ? round(array_sum($ahScores) / count($ahScores), 2) : null;
-        $sumatif = ($sumatifVal !== null && $sumatifVal !== '' && is_numeric($sumatifVal)) ? (float) $sumatifVal : null;
 
-        // 2. Hitung NA Blok (50% Formatif + 50% Sumatif)
+        // 3. Tentukan Status, NA Blok, dan Deskripsi
+        // Jika ada salah satu nilai kosong (AH ada yang belum diisi atau sumatif belum diisi)
+        $hasEmptyScore = $hasEmptyAh || !$hasSumatif || (empty($activeAhCodes) && $tpsInBlock->isNotEmpty());
+
         $nilaiAkhir = null;
-        if ($rataFormatif !== null && $sumatif !== null) {
-            $nilaiAkhir = round(($rataFormatif * 0.5) + ($sumatif * 0.5), 2);
-        } elseif ($rataFormatif !== null) {
-            $nilaiAkhir = $rataFormatif;
-        } elseif ($sumatif !== null) {
-            $nilaiAkhir = $sumatif;
-        }
-
-        // 3. Evaluasi Deskripsi TP pada blok ini
-        $tpScores = [];
-        foreach ($tpsInBlock as $tp) {
-            $score = $this->formatifData[$siswaId][$tp->id] ?? null;
-            if (($score === null || $score === '') && !empty($tp->alokasi_ah)) {
-                $score = $this->ahData[$siswaId][$tp->alokasi_ah] ?? null;
-            }
-            if ($score !== null && $score !== '' && is_numeric($score)) {
-                $tpScores[$tp->id] = (float) $score;
-            }
-        }
-
+        $status = 'kompeten';
         $descTinggi = '';
         $descRendah = '';
 
-        if (!empty($tpScores)) {
-            $countTps = count($tpScores);
+        if ($hasEmptyScore) {
+            $status = 'belum_lengkap';
+            $descTinggi = 'Nilai belum lengkap, silakan hubungi guru yang bersangkutan.';
+            $descRendah = '';
+            $nilaiAkhir = null;
+        } elseif ($hasBelowKkm) {
+            $status = 'belum_kompeten';
+            $descTinggi = 'Nilai belum kompeten, silakan hubungi guru yang bersangkutan.';
+            $descRendah = '';
+            $nilaiAkhir = null;
+        } else {
+            $status = 'kompeten';
+            if ($rataFormatif !== null && $sumatif !== null) {
+                $nilaiAkhir = round(($rataFormatif * 0.5) + ($sumatif * 0.5), 2);
+            } elseif ($rataFormatif !== null) {
+                $nilaiAkhir = $rataFormatif;
+            } elseif ($sumatif !== null) {
+                $nilaiAkhir = $sumatif;
+            }
 
-            if ($countTps === 1) {
-                // KASUS 1: Hanya ada 1 TP dalam periode 9M (tetap hasilkan 2 baris)
-                $onlyTpId = array_key_first($tpScores);
-                $onlyScore = $tpScores[$onlyTpId];
-                $onlyTp = $tpsInBlock->firstWhere('id', $onlyTpId);
-                $tpDesc = lcfirst(rtrim($onlyTp->deskripsi ?? '', '.'));
-
-                // Baris 1: Capaian penguasaan
-                if ($onlyScore >= 85) {
-                    $descTinggi = 'Menunjukkan penguasaan yang sangat baik dalam ' . $tpDesc . '.';
-                } elseif ($onlyScore >= $kkm) {
-                    $descTinggi = 'Menunjukkan penguasaan yang baik dalam ' . $tpDesc . '.';
-                } else {
-                    $descTinggi = 'Cukup menguasai dalam ' . $tpDesc . '.';
+            // Evaluasi Deskripsi TP normal untuk siswa yang kompeten
+            $tpScores = [];
+            foreach ($tpsInBlock as $tp) {
+                $score = $this->formatifData[$siswaId][$tp->id] ?? null;
+                if (($score === null || $score === '') && !empty($tp->alokasi_ah)) {
+                    $score = $this->ahData[$siswaId][$tp->alokasi_ah] ?? null;
                 }
-
-                // Baris 2: Pemantapan / Bimbingan berkelanjutan
-                if ($onlyScore >= $kkm) {
-                    $descRendah = 'Perlu pemantapan lebih lanjut dalam ' . $tpDesc . ' secara berkelanjutan.';
-                } else {
-                    $descRendah = 'Perlu bimbingan lebih lanjut dalam ' . $tpDesc . '.';
+                if ($score !== null && $score !== '' && is_numeric($score)) {
+                    $tpScores[$tp->id] = (float) $score;
                 }
-            } else {
-                // KASUS 2: Ada 2 atau lebih TP
-                $maxScore = max($tpScores);
-                $minScore = min($tpScores);
+            }
 
-                if ($maxScore == $minScore) {
-                    // Semua TP bernilai identik
-                    $tpIds = array_keys($tpScores);
-                    $firstTpId = $tpIds[0];
-                    $otherTpIds = array_slice($tpIds, 1);
+            if (!empty($tpScores)) {
+                $countTps = count($tpScores);
 
-                    $firstTp = $tpsInBlock->firstWhere('id', $firstTpId);
-                    $firstDesc = lcfirst(rtrim($firstTp->deskripsi ?? '', '.'));
+                if ($countTps === 1) {
+                    // KASUS 1: Hanya ada 1 TP dalam periode 9M (tetap hasilkan 2 baris)
+                    $onlyTpId = array_key_first($tpScores);
+                    $onlyScore = $tpScores[$onlyTpId];
+                    $onlyTp = $tpsInBlock->firstWhere('id', $onlyTpId);
+                    $tpDesc = lcfirst(rtrim($onlyTp->deskripsi ?? '', '.'));
 
-                    if ($maxScore >= 85) {
-                        $descTinggi = 'Menunjukkan penguasaan yang sangat baik dalam ' . $firstDesc . '.';
-                    } elseif ($maxScore >= $kkm) {
-                        $descTinggi = 'Menunjukkan penguasaan yang baik dalam ' . $firstDesc . '.';
+                    // Baris 1: Capaian penguasaan
+                    if ($onlyScore >= 85) {
+                        $descTinggi = 'Menunjukkan penguasaan yang sangat baik dalam ' . $tpDesc . '.';
+                    } elseif ($onlyScore >= $kkm) {
+                        $descTinggi = 'Menunjukkan penguasaan yang baik dalam ' . $tpDesc . '.';
                     } else {
-                        $descTinggi = 'Cukup menguasai dalam ' . $firstDesc . '.';
+                        $descTinggi = 'Cukup menguasai dalam ' . $tpDesc . '.';
                     }
 
-                    $otherTps = $tpsInBlock->whereIn('id', $otherTpIds);
-                    $tpOtherDesc = $otherTps->pluck('deskripsi')->map(fn($d) => lcfirst(rtrim($d, '.')))->all();
-                    $joinedOtherDesc = count($tpOtherDesc) > 1 ? implode(' dan ', $tpOtherDesc) : ($tpOtherDesc[0] ?? '');
-
-                    if ($minScore >= $kkm) {
-                        $descRendah = 'Perlu pemantapan dalam ' . $joinedOtherDesc . '.';
+                    // Baris 2: Pemantapan / Bimbingan berkelanjutan
+                    if ($onlyScore >= $kkm) {
+                        $descRendah = 'Perlu pemantapan lebih lanjut dalam ' . $tpDesc . ' secara berkelanjutan.';
                     } else {
-                        $descRendah = 'Perlu bimbingan dalam ' . $joinedOtherDesc . '.';
+                        $descRendah = 'Perlu bimbingan lebih lanjut dalam ' . $tpDesc . '.';
                     }
                 } else {
-                    // Terdapat perbedaan nilai tertinggi dan terendah
-                    $highestTpIds = array_keys(array_filter($tpScores, fn($s) => $s == $maxScore));
-                    $lowestTpIds = array_keys(array_filter($tpScores, fn($s) => $s == $minScore && !in_array($s, $highestTpIds)));
+                    // KASUS 2: Ada 2 atau lebih TP
+                    $maxScore = max($tpScores);
+                    $minScore = min($tpScores);
 
-                    if (empty($lowestTpIds)) {
-                        $lowestTpIds = array_keys(array_filter($tpScores, fn($s) => $s == $minScore));
-                    }
+                    if ($maxScore == $minScore) {
+                        // Semua TP bernilai identik
+                        $tpIds = array_keys($tpScores);
+                        $firstTpId = $tpIds[0];
+                        $otherTpIds = array_slice($tpIds, 1);
 
-                    // Baris 1: TP yang unggul
-                    $highestTps = $tpsInBlock->whereIn('id', $highestTpIds);
-                    $tpDescTinggi = $highestTps->pluck('deskripsi')->map(fn($d) => lcfirst(rtrim($d, '.')))->all();
-                    $joinedDescTinggi = count($tpDescTinggi) > 1 ? implode(' serta ', $tpDescTinggi) : ($tpDescTinggi[0] ?? '');
+                        $firstTp = $tpsInBlock->firstWhere('id', $firstTpId);
+                        $firstDesc = lcfirst(rtrim($firstTp->deskripsi ?? '', '.'));
 
-                    if ($maxScore >= 85) {
-                        $descTinggi = 'Menunjukkan penguasaan yang sangat baik dalam ' . $joinedDescTinggi . '.';
-                    } elseif ($maxScore >= $kkm) {
-                        $descTinggi = 'Menunjukkan penguasaan yang baik dalam ' . $joinedDescTinggi . '.';
+                        if ($maxScore >= 85) {
+                            $descTinggi = 'Menunjukkan penguasaan yang sangat baik dalam ' . $firstDesc . '.';
+                        } elseif ($maxScore >= $kkm) {
+                            $descTinggi = 'Menunjukkan penguasaan yang baik dalam ' . $firstDesc . '.';
+                        } else {
+                            $descTinggi = 'Cukup menguasai dalam ' . $firstDesc . '.';
+                        }
+
+                        $otherTps = $tpsInBlock->whereIn('id', $otherTpIds);
+                        $tpOtherDesc = $otherTps->pluck('deskripsi')->map(fn($d) => lcfirst(rtrim($d, '.')))->all();
+                        $joinedOtherDesc = count($tpOtherDesc) > 1 ? implode(' dan ', $tpOtherDesc) : ($tpOtherDesc[0] ?? '');
+
+                        if ($minScore >= $kkm) {
+                            $descRendah = 'Perlu pemantapan dalam ' . $joinedOtherDesc . '.';
+                        } else {
+                            $descRendah = 'Perlu bimbingan dalam ' . $joinedOtherDesc . '.';
+                        }
                     } else {
-                        $descTinggi = 'Cukup menguasai dalam ' . $joinedDescTinggi . '.';
-                    }
+                        // Terdapat perbedaan nilai tertinggi dan terendah
+                        $highestTpIds = array_keys(array_filter($tpScores, fn($s) => $s == $maxScore));
+                        $lowestTpIds = array_keys(array_filter($tpScores, fn($s) => $s == $minScore && !in_array($s, $highestTpIds)));
 
-                    // Baris 2: TP yang rendah (adaptif: perlu bimbingan jika < KKM, perlu pemantapan jika >= KKM)
-                    $lowestTps = $tpsInBlock->whereIn('id', $lowestTpIds);
-                    $tpDescRendah = $lowestTps->pluck('deskripsi')->map(fn($d) => lcfirst(rtrim($d, '.')))->all();
-                    $joinedDescRendah = count($tpDescRendah) > 1 ? implode(' dan ', $tpDescRendah) : ($tpDescRendah[0] ?? '');
+                        if (empty($lowestTpIds)) {
+                            $lowestTpIds = array_keys(array_filter($tpScores, fn($s) => $s == $minScore));
+                        }
 
-                    if ($minScore >= $kkm) {
-                        $descRendah = 'Perlu pemantapan dalam ' . $joinedDescRendah . '.';
-                    } else {
-                        $descRendah = 'Perlu bimbingan dalam ' . $joinedDescRendah . '.';
+                        // Baris 1: TP yang unggul
+                        $highestTps = $tpsInBlock->whereIn('id', $highestTpIds);
+                        $tpDescTinggi = $highestTps->pluck('deskripsi')->map(fn($d) => lcfirst(rtrim($d, '.')))->all();
+                        $joinedDescTinggi = count($tpDescTinggi) > 1 ? implode(' serta ', $tpDescTinggi) : ($tpDescTinggi[0] ?? '');
+
+                        if ($maxScore >= 85) {
+                            $descTinggi = 'Menunjukkan penguasaan yang sangat baik dalam ' . $joinedDescTinggi . '.';
+                        } elseif ($maxScore >= $kkm) {
+                            $descTinggi = 'Menunjukkan penguasaan yang baik dalam ' . $joinedDescTinggi . '.';
+                        } else {
+                            $descTinggi = 'Cukup menguasai dalam ' . $joinedDescTinggi . '.';
+                        }
+
+                        // Baris 2: TP yang rendah
+                        $lowestTps = $tpsInBlock->whereIn('id', $lowestTpIds);
+                        $tpDescRendah = $lowestTps->pluck('deskripsi')->map(fn($d) => lcfirst(rtrim($d, '.')))->all();
+                        $joinedDescRendah = count($tpDescRendah) > 1 ? implode(' dan ', $tpDescRendah) : ($tpDescRendah[0] ?? '');
+
+                        if ($minScore >= $kkm) {
+                            $descRendah = 'Perlu pemantapan dalam ' . $joinedDescRendah . '.';
+                        } else {
+                            $descRendah = 'Perlu bimbingan dalam ' . $joinedDescRendah . '.';
+                        }
                     }
                 }
             }
         }
 
         return [
+            'status' => $status,
             'rata_formatif' => $rataFormatif,
             'sumatif' => $sumatif,
             'nilai_akhir' => $nilaiAkhir,

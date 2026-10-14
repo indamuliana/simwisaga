@@ -16,6 +16,7 @@ use App\Modules\Penilaian\Livewire\PenilaianInput;
 use App\Modules\Penilaian\Models\NilaiAkhir;
 use App\Modules\Penilaian\Models\NilaiAsesmenHarian;
 use App\Modules\Penilaian\Models\NilaiFormatif;
+use App\Modules\Penilaian\Models\NilaiSumatif;
 use App\Modules\Penilaian\Models\TujuanPembelajaran;
 use Database\Seeders\AkademikInitialSeeder;
 use Database\Seeders\RolesSeeder;
@@ -260,6 +261,7 @@ class PenilaianAlokasiAHTest extends TestCase
         NilaiFormatif::create(['siswa_id' => $this->siswa1->id, 'tujuan_pembelajaran_id' => $tp1->id, 'nilai' => 80]);
         NilaiFormatif::create(['siswa_id' => $this->siswa1->id, 'tujuan_pembelajaran_id' => $tp2->id, 'nilai' => 90]);
         NilaiFormatif::create(['siswa_id' => $this->siswa1->id, 'tujuan_pembelajaran_id' => $tp3->id, 'nilai' => 90]);
+        NilaiSumatif::create(['siswa_id' => $this->siswa1->id, 'penugasan_mengajar_id' => $this->pmGanjil->id, 'sts' => 85, 'sas' => 85]);
 
         Livewire::actingAs($this->admin)
             ->test(PenilaianInput::class, ['penugasan_id' => $this->pmGanjil->id])
@@ -274,7 +276,7 @@ class PenilaianAlokasiAHTest extends TestCase
         // Karena nilai terendah adalah 80 (>= KKM 75), siswa diberikan catatan pemantapan
         $this->assertStringContainsString('Perlu pemantapan', $na->deskripsi_terendah);
 
-        // Jika siswa memiliki nilai di bawah KKM (< 75), harus muncul catatan bimbingan
+        // Jika siswa memiliki nilai di bawah KKM (< 75), NA menjadi null dan deskripsi belum kompeten
         NilaiFormatif::where('siswa_id', $this->siswa1->id)->where('tujuan_pembelajaran_id', $tp1->id)->update(['nilai' => 68]);
         NilaiAsesmenHarian::where('siswa_id', $this->siswa1->id)->where('kode_ah', 'AH 1')->update(['nilai' => 68]);
 
@@ -283,6 +285,7 @@ class PenilaianAlokasiAHTest extends TestCase
             ->call('calculateRekap');
 
         $naRemedial = NilaiAkhir::where('siswa_id', $this->siswa1->id)->where('penugasan_mengajar_id', $this->pmGanjil->id)->first();
-        $this->assertStringContainsString('Perlu bimbingan', $naRemedial->deskripsi_terendah);
+        $this->assertNull($naRemedial->nilai_akhir);
+        $this->assertEquals('Nilai belum kompeten, silakan hubungi guru yang bersangkutan.', $naRemedial->deskripsi_tertinggi);
     }
 }

@@ -106,7 +106,12 @@ class PenilaianDashboardGroupedTableTest extends TestCase
         Livewire::actingAs($this->admin)
             ->test(PenilaianDashboard::class)
             ->assertSet('filterTingkat', 'semua')
-            ->assertSet('selectedRombelId', $this->rombel->id)
+            ->assertSet('selectedRombelId', null)
+            ->assertSet('hasLoaded', false)
+            ->assertSee('Silakan Pilih Rombongan Belajar')
+            ->set('selectedRombelId', $this->rombel->id)
+            ->call('tampilkanData')
+            ->assertSet('hasLoaded', true)
             ->assertSee('Dashboard Pengolahan Nilai')
             ->assertSee($this->rombel->nama)
             ->assertSee('Kelompok A (Muatan Umum)')
@@ -118,6 +123,7 @@ class PenilaianDashboardGroupedTableTest extends TestCase
         Livewire::actingAs($this->admin)
             ->test(PenilaianDashboard::class)
             ->set('selectedRombelId', $this->rombel->id)
+            ->call('tampilkanData')
             ->set('search', 'Pendidikan Agama')
             ->assertSee('Pendidikan Agama')
             ->assertDontSee('Dasar-dasar Kejuruan');
@@ -153,6 +159,7 @@ class PenilaianDashboardGroupedTableTest extends TestCase
         Livewire::actingAs($this->admin)
             ->test(PenilaianDashboard::class)
             ->set('selectedRombelId', $this->rombel->id)
+            ->call('tampilkanData')
             ->assertSee('Lengkap (100%):')
             ->assertSee('100%');
     }
@@ -179,6 +186,7 @@ class PenilaianDashboardGroupedTableTest extends TestCase
         $component = Livewire::actingAs($this->admin)
             ->test(PenilaianDashboard::class)
             ->set('selectedRombelId', $this->rombel->id)
+            ->call('tampilkanData')
             ->assertSee('Mata Pelajaran Uji Coba Baru')
             ->assertSee('Belum Ditugaskan')
             ->call('bukaPenilaian', $mapelBaru->id);
@@ -271,6 +279,7 @@ class PenilaianDashboardGroupedTableTest extends TestCase
         Livewire::actingAs($this->admin)
             ->test(PenilaianDashboard::class)
             ->set('selectedRombelId', $this->rombel->id)
+            ->call('tampilkanData')
             // Siswa asing tidak dihitung, siswa nilai 0 tidak dihitung, hanya siswa 2 yang dihitung (1 dari 2 siswa = 50%)
             ->assertSee('1/2 Siswa')
             ->assertSee('50%')

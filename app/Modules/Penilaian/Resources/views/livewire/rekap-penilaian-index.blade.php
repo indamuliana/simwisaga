@@ -11,7 +11,8 @@
             <button type="button"
                     wire:click="exportLegerExcel"
                     wire:loading.attr="disabled"
-                    class="btn btn-outline text-xs flex items-center gap-1.5 py-1.5 px-3 bg-surface hover:bg-surface-hover text-emerald-700 dark:text-emerald-400 border-emerald-300 dark:border-emerald-800 shadow-2xs font-semibold cursor-pointer">
+                    @if(!$hasLoaded || !$selectedRombel) disabled @endif
+                    class="btn btn-outline text-xs flex items-center gap-1.5 py-1.5 px-3 bg-surface hover:bg-surface-hover text-emerald-700 dark:text-emerald-400 border-emerald-300 dark:border-emerald-800 shadow-2xs font-semibold {{ (!$hasLoaded || !$selectedRombel) ? 'opacity-40 cursor-not-allowed' : 'cursor-pointer' }}">
                 <svg wire:loading.remove wire:target="exportLegerExcel" class="w-4 h-4 text-emerald-600" fill="none" viewBox="0 0 24 24" stroke="currentColor">
                     <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 10v6m0 0l-3-3m3 3l3-3m2 8H7a2 2 0 01-2-2V5a2 2 0 012-2h5.586a1 1 0 01.707.293l5.414 5.414a1 1 0 01.293.707V19a2 2 0 01-2 2z" />
                 </svg>
@@ -25,7 +26,8 @@
             <button type="button"
                     wire:click="exportAnalisisExcel"
                     wire:loading.attr="disabled"
-                    class="btn btn-outline text-xs flex items-center gap-1.5 py-1.5 px-3 bg-surface hover:bg-surface-hover text-primary border-primary/30 shadow-2xs font-semibold cursor-pointer">
+                    @if(!$hasLoaded || !$selectedRombel) disabled @endif
+                    class="btn btn-outline text-xs flex items-center gap-1.5 py-1.5 px-3 bg-surface hover:bg-surface-hover text-primary border-primary/30 shadow-2xs font-semibold {{ (!$hasLoaded || !$selectedRombel) ? 'opacity-40 cursor-not-allowed' : 'cursor-pointer' }}">
                 <svg wire:loading.remove wire:target="exportAnalisisExcel" class="w-4 h-4 text-primary" fill="none" viewBox="0 0 24 24" stroke="currentColor">
                     <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9 19v-6a2 2 0 00-2-2H5a2 2 0 00-2 2v6a2 2 0 002 2h2a2 2 0 002-2zm0 0V9a2 2 0 012-2h2a2 2 0 012 2v10m-6 0a2 2 0 002 2h2a2 2 0 002-2m0 0V5a2 2 0 012-2h2a2 2 0 012 2v14a2 2 0 01-2 2h-2a2 2 0 01-2-2z" />
                 </svg>
@@ -52,8 +54,8 @@
     @endif
 
     <!-- Baris Filter Rombel & Periode Akademik -->
-    <div class="card p-3">
-        <div class="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-3 items-center">
+    <div class="card p-3.5">
+        <div class="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-5 gap-3 items-end">
             <!-- Kolom 1: Tahun Ajaran -->
             <div>
                 <label class="block text-[11px] font-bold uppercase tracking-wider text-text-secondary mb-1">
@@ -99,120 +101,168 @@
                     Rombongan Belajar
                 </label>
                 <select wire:model.live="selectedRombelId" class="w-full text-xs font-semibold rounded-lg border-border bg-surface text-text-main py-2 px-2.5 focus:ring-primary focus:border-primary">
-                    @forelse($rombels as $rb)
+                    <option value="">-- Pilih Rombel --</option>
+                    @foreach($rombels as $rb)
                         <option value="{{ $rb->id }}">{{ $rb->nama }} ({{ $rb->tingkat }} - {{ $rb->jurusan?->kode ?? 'Umum' }})</option>
-                    @empty
-                        <option value="">-- Tidak ada rombel --</option>
-                    @endforelse
+                    @endforeach
                 </select>
+            </div>
+
+            <!-- Kolom 5: Tombol Tampilkan Data -->
+            <div>
+                <button type="button"
+                        wire:click="tampilkanData"
+                        wire:loading.attr="disabled"
+                        class="w-full btn btn-primary text-xs flex items-center justify-center gap-2 py-2 px-4 font-semibold shadow-sm cursor-pointer">
+                    <svg wire:loading.remove wire:target="tampilkanData" class="w-4 h-4" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                        <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9 5H7a2 2 0 00-2 2v12a2 2 0 002 2h10a2 2 0 002-2V7a2 2 0 00-2-2h-2M9 5a2 2 0 002 2h2a2 2 0 002-2M9 5a2 2 0 012-2h2a2 2 0 012 2m-6 9l2 2 4-4" />
+                    </svg>
+                    <svg wire:loading wire:target="tampilkanData" class="w-4 h-4 animate-spin" fill="none" viewBox="0 0 24 24">
+                        <circle class="opacity-25" cx="12" cy="12" r="10" stroke="currentColor" stroke-width="4"></circle>
+                        <path class="opacity-75" fill="currentColor" d="M4 12a8 8 0 018-8v8H4z"></path>
+                    </svg>
+                    <span>Tampilkan Data</span>
+                </button>
             </div>
         </div>
     </div>
 
-    @if($selectedRombel && $legerData)
-        <!-- Baris Statistik Ringkasan Rombel Minimalis (1 Baris Ringkas) -->
-        <div class="card p-2.5 sm:p-3 flex flex-col xl:flex-row xl:items-center justify-between gap-3 text-xs shadow-2xs">
-            <div class="flex flex-wrap items-center gap-x-5 gap-y-2">
-                <!-- Rata-rata Rombel -->
-                <div class="flex items-center gap-1.5">
-                    <span class="text-text-secondary">Rata-Rata Rombel:</span>
-                    <span class="font-extrabold font-mono text-primary text-xs sm:text-sm">{{ number_format($legerData['summary']['rata_rata_rombel'], 2) }}</span>
-                    <span class="text-[11px] text-text-secondary">({{ $legerData['summary']['total_siswa'] }} Siswa)</span>
-                </div>
+    <!-- Tab Navigasi Sub-Modul -->
+    <div class="flex items-center border-b border-border gap-2 text-xs font-semibold overflow-x-auto">
+        <button type="button"
+                wire:click="switchSubTab('leger')"
+                class="pb-2 px-3 border-b-2 flex items-center gap-1.5 transition-colors cursor-pointer whitespace-nowrap {{ $activeSubTab === 'leger' ? 'border-primary text-primary' : 'border-transparent text-text-secondary hover:text-text-main' }}">
+            <svg class="w-4 h-4" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M3 10h18M3 14h18m-9-4v8m-7 0h14a2 2 0 002-2V6a2 2 0 00-2-2H5a2 2 0 00-2 2v12a2 2 0 002 2z" />
+            </svg>
+            <span>Buku Leger Nilai Rombel</span>
+        </button>
 
-                <div class="h-3.5 w-px bg-border hidden sm:block"></div>
+        <button type="button"
+                wire:click="switchSubTab('mapel')"
+                class="pb-2 px-3 border-b-2 flex items-center gap-1.5 transition-colors cursor-pointer whitespace-nowrap {{ $activeSubTab === 'mapel' ? 'border-primary text-primary' : 'border-transparent text-text-secondary hover:text-text-main' }}">
+            <svg class="w-4 h-4" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9 19v-6a2 2 0 00-2-2H5a2 2 0 00-2 2v6a2 2 0 002 2h2a2 2 0 002-2zm0 0V9a2 2 0 012-2h2a2 2 0 012 2v10m-6 0a2 2 0 002 2h2a2 2 0 002-2m0 0V5a2 2 0 012-2h2a2 2 0 012 2v14a2 2 0 01-2 2h-2a2 2 0 01-2-2z" />
+            </svg>
+            <span>Analisis & Remedial Mapel</span>
+        </button>
 
-                <!-- Ketuntasan Klasikal -->
-                <div class="flex items-center gap-2">
-                    <span class="text-text-secondary whitespace-nowrap">Ketuntasan Klasikal:</span>
-                    <div class="w-16 sm:w-20 bg-slate-200 dark:bg-slate-700 rounded-full h-1.5 overflow-hidden">
-                        <div class="bg-emerald-500 h-1.5 rounded-full transition-all duration-300" style="width: {{ min(100, $legerData['summary']['persen_tuntas_klasikal']) }}%"></div>
-                    </div>
-                    <span class="font-bold font-mono text-emerald-600 dark:text-emerald-400">{{ $legerData['summary']['persen_tuntas_klasikal'] }}%</span>
-                </div>
+        <button type="button"
+                wire:click="switchSubTab('komparasi')"
+                class="pb-2 px-3 border-b-2 flex items-center gap-1.5 transition-colors cursor-pointer whitespace-nowrap {{ $activeSubTab === 'komparasi' ? 'border-primary text-primary' : 'border-transparent text-text-secondary hover:text-text-main' }}">
+            <svg class="w-4 h-4" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M8 7h12m0 0l-4-4m4 4l-4 4m0 6H4m0 0l4 4m-4-4l4-4" />
+            </svg>
+            <span>Komparasi Antar Rombel</span>
+        </button>
 
-                <div class="h-3.5 w-px bg-border hidden sm:block"></div>
+        <button type="button"
+                wire:click="switchSubTab('rayon')"
+                class="pb-2 px-3 border-b-2 flex items-center gap-1.5 transition-colors cursor-pointer whitespace-nowrap {{ $activeSubTab === 'rayon' ? 'border-primary text-primary' : 'border-transparent text-text-secondary hover:text-text-main' }}">
+            <svg class="w-4 h-4" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M17 20h5v-2a3 3 0 00-5.356-1.857M17 20H7m10 0v-2c0-.656-.126-1.283-.356-1.857M7 20H2v-2a3 3 0 015.356-1.857M7 20v-2c0-.656.126-1.283.356-1.857m0 0a5.002 5.002 0 019.288 0M15 7a3 3 0 11-6 0 3 3 0 016 0zm6 3a2 2 0 11-4 0 2 2 0 014 0zM7 10a2 2 0 11-4 0 2 2 0 014 0z" />
+            </svg>
+            <span>Komparasi Antar Rayon</span>
+        </button>
+    </div>
 
-                <!-- Bebas Remedial -->
-                <div class="flex items-center gap-1.5">
-                    <span class="w-2 h-2 rounded-full bg-emerald-500 shrink-0"></span>
-                    <span class="text-emerald-700 dark:text-emerald-400 font-medium">Bebas Remedial:</span>
-                    <span class="font-bold text-emerald-700 dark:text-emerald-300 font-mono">{{ $legerData['summary']['siswa_tuntas_count'] }}</span>
-                    <span class="text-[11px] text-text-secondary">({{ $legerData['summary']['siswa_tuntas_persen'] }}%)</span>
-                </div>
-
-                <div class="h-3.5 w-px bg-border hidden sm:block"></div>
-
-                <!-- Butuh Remedial / Kritis -->
-                <div class="flex items-center gap-1.5">
-                    <span class="w-2 h-2 rounded-full {{ $legerData['summary']['siswa_remedial_count'] > 0 ? 'bg-amber-500' : 'bg-slate-400' }} shrink-0"></span>
-                    <span class="{{ $legerData['summary']['siswa_remedial_count'] > 0 ? 'text-amber-700 dark:text-amber-400' : 'text-text-secondary' }} font-medium">Remedial:</span>
-                    <span class="font-bold {{ $legerData['summary']['siswa_remedial_count'] > 0 ? 'text-amber-700 dark:text-amber-300' : 'text-text-secondary' }} font-mono">{{ $legerData['summary']['siswa_remedial_count'] }}</span>
-                    @if($legerData['summary']['siswa_kritis_count'] > 0)
-                        <span class="px-1.5 py-0.2 rounded bg-rose-100 dark:bg-rose-950 text-rose-700 dark:text-rose-300 text-[10px] font-bold">
-                            {{ $legerData['summary']['siswa_kritis_count'] }} Kritis
-                        </span>
-                    @endif
-                </div>
+    @if(!$hasLoaded)
+        <!-- Empty State Panduan Sebelum Tampilkan Data Sesuai SubTab -->
+        <div class="card p-10 text-center border-dashed border-2 border-border/80 bg-surface/50">
+            <div class="w-14 h-14 rounded-2xl bg-primary/10 text-primary flex items-center justify-center mx-auto mb-3.5 shadow-2xs">
+                <svg class="w-7 h-7" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                    <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M3 4a1 1 0 011-1h16a1 1 0 011 1v2.586a1 1 0 01-.293.707l-6.414 6.414a1 1 0 00-.293.707V17l-4 4v-6.586a1 1 0 00-.293-.707L3.293 7.293A1 1 0 013 6.586V4z" />
+                </svg>
             </div>
-
-            <!-- Juara 1 Kelas -->
-            <div class="flex items-center gap-2 shrink-0 pt-2 xl:pt-0 border-t xl:border-t-0 border-border">
-                <span class="text-xs">🏆</span>
-                <span class="text-text-secondary text-[11px]">Juara 1:</span>
-                <span class="font-bold text-text-main truncate max-w-[150px] text-xs" title="{{ $legerData['summary']['top_student_nama'] }}">
-                    {{ $legerData['summary']['top_student_nama'] }}
-                </span>
-                <span class="font-bold font-mono text-amber-700 dark:text-amber-400 text-xs">
-                    ({{ number_format($legerData['summary']['top_student_avg'], 2) }})
-                </span>
+            @if(in_array($activeSubTab, ['leger', 'mapel']))
+                <h3 class="text-base font-bold text-text-main mb-1">Silakan Pilih Rombongan Belajar</h3>
+                <p class="text-xs text-text-secondary max-w-md mx-auto mb-4">
+                    Tentukan Tahun Ajaran, Semester, dan Rombongan Belajar pada filter di atas, lalu klik tombol <strong class="text-primary font-semibold">Tampilkan Data</strong> untuk memuat {{ $activeSubTab === 'leger' ? 'Buku Leger Nilai Rombel' : 'Analisis Ketuntasan & Remedial Mapel' }}.
+                </p>
+            @elseif($activeSubTab === 'komparasi')
+                <h3 class="text-base font-bold text-text-main mb-1">Komparasi Capaian Antar Rombel</h3>
+                <p class="text-xs text-text-secondary max-w-md mx-auto mb-4">
+                    Tentukan kriteria tingkat kelas pada filter di atas dan klik tombol <strong class="text-primary font-semibold">Tampilkan Data</strong> untuk memuat perbandingan nilai antar rombel.
+                </p>
+            @elseif($activeSubTab === 'rayon')
+                <h3 class="text-base font-bold text-text-main mb-1">Komparasi Capaian Antar Rayon</h3>
+                <p class="text-xs text-text-secondary max-w-md mx-auto mb-4">
+                    Tentukan kriteria tingkat kelas pada filter di atas dan klik tombol <strong class="text-primary font-semibold">Tampilkan Data</strong> untuk memuat evaluasi ketuntasan nilai per rayon pembimbing.
+                </p>
+            @endif
+            <div class="inline-flex items-center gap-2 px-3 py-1.5 rounded-full bg-slate-100 dark:bg-slate-800 text-[11px] text-text-secondary font-medium">
+                <svg class="w-3.5 h-3.5 text-primary" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                    <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M13 16h-1v-4h-1m1-4h.01M21 12a9 9 0 11-18 0 9 9 0 0118 0z" />
+                </svg>
+                <span>Sistem tidak memproses data di awal untuk menjaga kecepatan halaman</span>
             </div>
         </div>
-
-        <!-- Tab Navigasi Sub-Modul -->
-        <div class="flex items-center border-b border-border gap-2 text-xs font-semibold">
-            <button type="button"
-                    wire:click="switchSubTab('leger')"
-                    class="pb-2 px-3 border-b-2 flex items-center gap-1.5 transition-colors cursor-pointer {{ $activeSubTab === 'leger' ? 'border-primary text-primary' : 'border-transparent text-text-secondary hover:text-text-main' }}">
-                <svg class="w-4 h-4" fill="none" viewBox="0 0 24 24" stroke="currentColor">
-                    <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M3 10h18M3 14h18m-9-4v8m-7 0h14a2 2 0 002-2V6a2 2 0 00-2-2H5a2 2 0 00-2 2v12a2 2 0 002 2z" />
-                </svg>
-                <span>Buku Leger Nilai Rombel</span>
-            </button>
-
-            <button type="button"
-                    wire:click="switchSubTab('mapel')"
-                    class="pb-2 px-3 border-b-2 flex items-center gap-1.5 transition-colors cursor-pointer {{ $activeSubTab === 'mapel' ? 'border-primary text-primary' : 'border-transparent text-text-secondary hover:text-text-main' }}">
-                <svg class="w-4 h-4" fill="none" viewBox="0 0 24 24" stroke="currentColor">
-                    <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9 19v-6a2 2 0 00-2-2H5a2 2 0 00-2 2v6a2 2 0 002 2h2a2 2 0 002-2zm0 0V9a2 2 0 012-2h2a2 2 0 012 2v10m-6 0a2 2 0 002 2h2a2 2 0 002-2m0 0V5a2 2 0 012-2h2a2 2 0 012 2v14a2 2 0 01-2 2h-2a2 2 0 01-2-2z" />
-                </svg>
-                <span>Analisis & Remedial Mapel</span>
-            </button>
-
-            <button type="button"
-                    wire:click="switchSubTab('komparasi')"
-                    class="pb-2 px-3 border-b-2 flex items-center gap-1.5 transition-colors cursor-pointer {{ $activeSubTab === 'komparasi' ? 'border-primary text-primary' : 'border-transparent text-text-secondary hover:text-text-main' }}">
-                <svg class="w-4 h-4" fill="none" viewBox="0 0 24 24" stroke="currentColor">
-                    <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M8 7h12m0 0l-4-4m4 4l-4 4m0 6H4m0 0l4 4m-4-4l4-4" />
-                </svg>
-                <span>Komparasi Antar Rombel</span>
-            </button>
-
-            <button type="button"
-                    wire:click="switchSubTab('rayon')"
-                    class="pb-2 px-3 border-b-2 flex items-center gap-1.5 transition-colors cursor-pointer {{ $activeSubTab === 'rayon' ? 'border-primary text-primary' : 'border-transparent text-text-secondary hover:text-text-main' }}">
-                <svg class="w-4 h-4" fill="none" viewBox="0 0 24 24" stroke="currentColor">
-                    <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M17 20h5v-2a3 3 0 00-5.356-1.857M17 20H7m10 0v-2c0-.656-.126-1.283-.356-1.857M7 20H2v-2a3 3 0 015.356-1.857M7 20v-2c0-.656.126-1.283.356-1.857m0 0a5.002 5.002 0 019.288 0M15 7a3 3 0 11-6 0 3 3 0 016 0zm6 3a2 2 0 11-4 0 2 2 0 014 0zM7 10a2 2 0 11-4 0 2 2 0 014 0z" />
-                </svg>
-                <span>Komparasi Antar Rayon</span>
-            </button>
-        </div>
-
+    @else
         <!-- ========================================== -->
         <!-- SUB-TAB 1: BUKU LEGER NILAI ROMBEL -->
         <!-- ========================================== -->
         @if($activeSubTab === 'leger')
-            <div class="card p-0 overflow-hidden shadow-2xs space-y-0 border border-border">
+            @if($selectedRombel && $legerData)
+                <!-- Baris Statistik Ringkasan Rombel Minimalis (1 Baris Ringkas) -->
+                <div class="card p-2.5 sm:p-3 flex flex-col xl:flex-row xl:items-center justify-between gap-3 text-xs shadow-2xs">
+                    <div class="flex flex-wrap items-center gap-x-5 gap-y-2">
+                        <!-- Rata-rata Rombel -->
+                        <div class="flex items-center gap-1.5">
+                            <span class="text-text-secondary">Rata-Rata Rombel:</span>
+                            <span class="font-extrabold font-mono text-primary text-xs sm:text-sm">{{ number_format($legerData['summary']['rata_rata_rombel'], 2) }}</span>
+                            <span class="text-[11px] text-text-secondary">({{ $legerData['summary']['total_siswa'] }} Siswa)</span>
+                        </div>
+
+                        <div class="h-3.5 w-px bg-border hidden sm:block"></div>
+
+                        <!-- Ketuntasan Klasikal -->
+                        <div class="flex items-center gap-2">
+                            <span class="text-text-secondary whitespace-nowrap">Ketuntasan Klasikal:</span>
+                            <div class="w-16 sm:w-20 bg-slate-200 dark:bg-slate-700 rounded-full h-1.5 overflow-hidden">
+                                <div class="bg-emerald-500 h-1.5 rounded-full transition-all duration-300" style="width: {{ min(100, $legerData['summary']['persen_tuntas_klasikal']) }}%"></div>
+                            </div>
+                            <span class="font-bold font-mono text-emerald-600 dark:text-emerald-400">{{ $legerData['summary']['persen_tuntas_klasikal'] }}%</span>
+                        </div>
+
+                        <div class="h-3.5 w-px bg-border hidden sm:block"></div>
+
+                        <!-- Bebas Remedial -->
+                        <div class="flex items-center gap-1.5">
+                            <span class="w-2 h-2 rounded-full bg-emerald-500 shrink-0"></span>
+                            <span class="text-emerald-700 dark:text-emerald-400 font-medium">Bebas Remedial:</span>
+                            <span class="font-bold text-emerald-700 dark:text-emerald-300 font-mono">{{ $legerData['summary']['siswa_tuntas_count'] }}</span>
+                            <span class="text-[11px] text-text-secondary">({{ $legerData['summary']['siswa_tuntas_persen'] }}%)</span>
+                        </div>
+
+                        <div class="h-3.5 w-px bg-border hidden sm:block"></div>
+
+                        <!-- Butuh Remedial / Kritis -->
+                        <div class="flex items-center gap-1.5">
+                            <span class="w-2 h-2 rounded-full {{ $legerData['summary']['siswa_remedial_count'] > 0 ? 'bg-amber-500' : 'bg-slate-400' }} shrink-0"></span>
+                            <span class="{{ $legerData['summary']['siswa_remedial_count'] > 0 ? 'text-amber-700 dark:text-amber-400' : 'text-text-secondary' }} font-medium">Remedial:</span>
+                            <span class="font-bold {{ $legerData['summary']['siswa_remedial_count'] > 0 ? 'text-amber-700 dark:text-amber-300' : 'text-text-secondary' }} font-mono">{{ $legerData['summary']['siswa_remedial_count'] }}</span>
+                            @if($legerData['summary']['siswa_kritis_count'] > 0)
+                                <span class="px-1.5 py-0.2 rounded bg-rose-100 dark:bg-rose-950 text-rose-700 dark:text-rose-300 text-[10px] font-bold">
+                                    {{ $legerData['summary']['siswa_kritis_count'] }} Kritis
+                                </span>
+                            @endif
+                        </div>
+                    </div>
+
+                    <!-- Juara 1 Kelas -->
+                    <div class="flex items-center gap-2 shrink-0 pt-2 xl:pt-0 border-t xl:border-t-0 border-border">
+                        <span class="text-xs">🏆</span>
+                        <span class="text-text-secondary text-[11px]">Juara 1:</span>
+                        <span class="font-bold text-text-main truncate max-w-[150px] text-xs" title="{{ $legerData['summary']['top_student_nama'] }}">
+                            {{ $legerData['summary']['top_student_nama'] }}
+                        </span>
+                        <span class="font-bold font-mono text-amber-700 dark:text-amber-400 text-xs">
+                            ({{ number_format($legerData['summary']['top_student_avg'], 2) }})
+                        </span>
+                    </div>
+                </div>
+
+                <div class="card p-0 overflow-hidden shadow-2xs space-y-0 border border-border">
                 <!-- Toolbar Pencarian, Info Kelas, & Keterangan Freeze -->
                 <div class="px-4 py-2.5 border-b border-border flex flex-col sm:flex-row sm:items-center sm:justify-between gap-2.5 bg-surface-hover/40">
                     <div class="flex flex-wrap items-center gap-2 text-xs">
@@ -481,18 +531,20 @@
                             <span>Tuntas (&ge; KKM)</span>
                         </div>
                     </div>
-                    <div class="text-[11px] text-text-secondary">
-                        * Nilai Akhir dihitung dari kombinasi Asesmen Harian (Formatif), STS, dan SAS.
-                    </div>
                 </div>
-            </div>
+            @else
+                <div class="card p-8 text-center text-text-secondary">
+                    <p class="text-xs">Silakan pilih rombongan belajar terlebih dahulu dan klik Tampilkan Data.</p>
+                </div>
+            @endif
         @endif
 
         <!-- ========================================== -->
         <!-- SUB-TAB 2: ANALISIS & REMEDIAL MAPEL -->
         <!-- ========================================== -->
         @if($activeSubTab === 'mapel')
-            <div class="space-y-4">
+            @if($selectedRombel && $legerData)
+                <div class="space-y-4">
                 <!-- Pemilih Mata Pelajaran -->
                 <div class="card p-3">
                     <label class="block text-[11px] font-bold uppercase tracking-wider text-text-secondary mb-1.5">
@@ -710,6 +762,11 @@
                     </div>
                 @endif
             </div>
+            @else
+                <div class="card p-8 text-center text-text-secondary">
+                    <p class="text-xs">Silakan pilih rombongan belajar terlebih dahulu dan klik Tampilkan Data.</p>
+                </div>
+            @endif
         @endif
 
         <!-- ========================================== -->
@@ -1041,14 +1098,5 @@
                 </div>
             </div>
         @endif
-    @else
-        <!-- State Belum Ada Rombel Terpilih -->
-        <div class="card p-12 text-center">
-            <svg class="w-12 h-12 text-text-secondary mx-auto mb-3" fill="none" viewBox="0 0 24 24" stroke="currentColor">
-                <path stroke-linecap="round" stroke-linejoin="round" stroke-width="1.5" d="M19 11H5m14 0a2 2 0 012 2v6a2 2 0 01-2 2H5a2 2 0 01-2-2v-6a2 2 0 012-2m14 0V9a2 2 0 00-2-2M5 11V9a2 2 0 012-2m0 0V5a2 2 0 012-2h6a2 2 0 012 2v2M7 7h10" />
-            </svg>
-            <h3 class="text-sm font-bold text-text-main">Pilih Rombongan Belajar</h3>
-            <p class="text-xs text-text-secondary mt-1">Silakan pilih Tahun Ajaran, Semester, dan Rombongan Belajar di atas untuk memuat buku leger nilai.</p>
-        </div>
     @endif
 </div>

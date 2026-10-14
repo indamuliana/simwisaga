@@ -25,9 +25,9 @@
         </div>
     @endif
 
-    <!-- Baris Filter & Pencarian: 1 Baris Dibagi 3 Kolom -->
-    <div class="card p-3">
-        <div class="grid grid-cols-1 md:grid-cols-3 gap-3 items-center">
+    <!-- Baris Filter & Tombol Tampilkan Data -->
+    <div class="card p-3.5">
+        <div class="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-3 items-end">
             <!-- Kolom 1: Pilih Tingkat Kelas (Dropdown) -->
             <div>
                 <label class="block text-[11px] font-bold uppercase tracking-wider text-text-secondary mb-1">
@@ -47,13 +47,12 @@
                     Rombongan Belajar
                 </label>
                 <select wire:model.live="selectedRombelId" class="w-full text-xs font-semibold rounded-lg border-border bg-surface text-text-main py-2 px-2.5 focus:ring-primary focus:border-primary">
-                    @forelse($availableRombels as $rb)
+                    <option value="">-- Pilih Rombongan Belajar --</option>
+                    @foreach($availableRombels as $rb)
                         <option value="{{ $rb->id }}">
                             {{ $rb->nama }} ({{ $rb->tingkat }} - {{ $rb->jurusan?->kode ?? 'Umum' }})
                         </option>
-                    @empty
-                        <option value="">-- Tidak ada rombel --</option>
-                    @endforelse
+                    @endforeach
                 </select>
             </div>
 
@@ -68,7 +67,7 @@
                             <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M21 21l-6-6m2-5a7 7 0 11-14 0 7 7 0 0114 0z" />
                         </svg>
                     </div>
-                    <input type="text" wire:model.live.debounce.300ms="search" placeholder="Ketik nama mapel atau guru..." class="w-full text-xs rounded-lg border-border bg-surface text-text-main pl-8 pr-7 py-2 focus:ring-primary focus:border-primary">
+                    <input type="text" wire:model.live.debounce.300ms="search" placeholder="Ketik nama mapel atau guru..." class="w-full text-xs rounded-lg border-border bg-surface text-text-main pl-8 pr-7 py-2 focus:ring-primary focus:border-primary" {{ !$hasLoaded ? 'disabled' : '' }}>
                     @if($search)
                         <button type="button" wire:click="$set('search', '')" class="absolute inset-y-0 right-0 pr-2.5 flex items-center text-text-secondary hover:text-text-main cursor-pointer text-xs font-bold">
                             &times;
@@ -76,10 +75,27 @@
                     @endif
                 </div>
             </div>
+
+            <!-- Kolom 4: Tombol Tampilkan Data -->
+            <div>
+                <button type="button"
+                        wire:click="tampilkanData"
+                        wire:loading.attr="disabled"
+                        class="w-full btn btn-primary text-xs flex items-center justify-center gap-2 py-2 px-4 font-semibold shadow-sm cursor-pointer">
+                    <svg wire:loading.remove wire:target="tampilkanData" class="w-4 h-4" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                        <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9 5H7a2 2 0 00-2 2v12a2 2 0 002 2h10a2 2 0 002-2V7a2 2 0 00-2-2h-2M9 5a2 2 0 002 2h2a2 2 0 002-2M9 5a2 2 0 012-2h2a2 2 0 012 2m-6 9l2 2 4-4" />
+                    </svg>
+                    <svg wire:loading wire:target="tampilkanData" class="w-4 h-4 animate-spin" fill="none" viewBox="0 0 24 24">
+                        <circle class="opacity-25" cx="12" cy="12" r="10" stroke="currentColor" stroke-width="4"></circle>
+                        <path class="opacity-75" fill="currentColor" d="M4 12a8 8 0 018-8v8H4z"></path>
+                    </svg>
+                    <span>Tampilkan Data</span>
+                </button>
+            </div>
         </div>
     </div>
 
-    @if($selectedRombel)
+    @if($hasLoaded && $selectedRombel)
         <!-- Card Statistik Ringkasan: 1 Baris Ukuran Kecil -->
         <div class="card p-3 flex flex-col md:flex-row md:items-center justify-between gap-3 text-xs">
             <div class="flex flex-wrap items-center gap-x-5 gap-y-1.5">
@@ -111,6 +127,22 @@
                 <span class="font-bold font-mono text-text-main whitespace-nowrap">{{ $summary['persenRombel'] }}%</span>
                 <span class="text-[11px] text-text-secondary">({{ $totalSiswaRombel }} Siswa)</span>
             </div>
+        </div>
+
+        <!-- Banner Info Seni Budaya Cross-Rombel -->
+        <div class="p-3 bg-purple-50 dark:bg-purple-950/40 border border-purple-200 dark:border-purple-800 rounded-xl flex flex-col sm:flex-row sm:items-center justify-between gap-3 text-xs text-purple-900 dark:text-purple-200">
+            <div class="flex items-center gap-2.5">
+                <span class="p-1.5 bg-purple-100 dark:bg-purple-900/60 rounded-lg text-purple-700 dark:text-purple-300 shrink-0">
+                    <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M13 10V3L4 14h7v7l9-11h-7z"/></svg>
+                </span>
+                <div>
+                    <span class="font-bold">Mata Pelajaran Seni Budaya (Kelompok A):</span>
+                    <span class="text-purple-700 dark:text-purple-300">Dilaksanakan berbasis peminatan cabang lintas rombel (Seni Tari, Suara, Musik, Rupa). Penilaian, presensi & TP dikelola terpusat.</span>
+                </div>
+            </div>
+            <a href="{{ route('seni-budaya.index') }}" class="btn btn-primary text-xs py-1.5 px-3 bg-purple-600 hover:bg-purple-700 text-white shrink-0 self-start sm:self-auto font-medium">
+                Buka Modul Seni Budaya &rarr;
+            </a>
         </div>
 
         <!-- Tabel Struktur Mata Pelajaran Minimalis -->
@@ -261,14 +293,33 @@
                 </table>
             </div>
         </div>
+    @elseif(!$hasLoaded)
+        <!-- Empty State Panduan Sebelum Tampilkan Data -->
+        <div class="card p-10 text-center border-dashed border-2 border-border/80 bg-surface/50">
+            <div class="w-14 h-14 rounded-2xl bg-primary/10 text-primary flex items-center justify-center mx-auto mb-3.5 shadow-2xs">
+                <svg class="w-7 h-7" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                    <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M3 4a1 1 0 011-1h16a1 1 0 011 1v2.586a1 1 0 01-.293.707l-6.414 6.414a1 1 0 00-.293.707V17l-4 4v-6.586a1 1 0 00-.293-.707L3.293 7.293A1 1 0 013 6.586V4z" />
+                </svg>
+            </div>
+            <h3 class="text-base font-bold text-text-main mb-1">Silakan Pilih Rombongan Belajar</h3>
+            <p class="text-xs text-text-secondary max-w-md mx-auto mb-4">
+                Tentukan tingkat kelas dan rombongan belajar pada baris filter di atas, lalu klik tombol <strong class="text-primary font-semibold">Tampilkan Data</strong> untuk memuat daftar mata pelajaran dan progres pengolahan nilai.
+            </p>
+            <div class="inline-flex items-center gap-2 px-3 py-1.5 rounded-full bg-slate-100 dark:bg-slate-800 text-[11px] text-text-secondary font-medium">
+                <svg class="w-3.5 h-3.5 text-primary" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                    <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M13 16h-1v-4h-1m1-4h.01M21 12a9 9 0 11-18 0 9 9 0 0118 0z" />
+                </svg>
+                <span>Sistem tidak memuat data di awal untuk mengoptimalkan performa halaman</span>
+            </div>
+        </div>
     @else
-        <!-- State jika tidak ada rombel -->
+        <!-- State jika rombel tidak ditemukan -->
         <div class="card p-8 text-center text-text-secondary">
             <svg class="w-10 h-10 text-slate-300 mx-auto mb-2" fill="none" viewBox="0 0 24 24" stroke="currentColor">
                 <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M19 11H5m14 0a2 2 0 012 2v6a2 2 0 01-2 2H5a2 2 0 01-2-2v-6a2 2 0 012-2m14 0V9a2 2 0 00-2-2M5 11V9a2 2 0 012-2m0 0V5a2 2 0 012-2h6a2 2 0 012 2v2M7 7h10" />
             </svg>
-            <h3 class="text-sm font-bold text-text-main mb-1">Belum Ada Rombongan Belajar</h3>
-            <p class="text-xs text-text-secondary">Silakan tambahkan data rombel di modul Akademik untuk mulai mengelola pengolahan nilai.</p>
+            <h3 class="text-sm font-bold text-text-main mb-1">Rombongan Belajar Belum Dipilih</h3>
+            <p class="text-xs text-text-secondary">Silakan pilih rombongan belajar di atas untuk mulai melihat progres nilai.</p>
         </div>
     @endif
 </div>

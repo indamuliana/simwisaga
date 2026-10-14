@@ -740,12 +740,30 @@
                         $rf1 = $d1['rata_formatif'] ?? null;
                         $sm1 = $d1['sumatif'] ?? null;
                         $na1 = $d1['nilai_akhir'] ?? null;
-                        $isNa1Below = $this->isBelowKkm($na1);
+                        $status1 = $d1['status'] ?? null;
+                        if (!$status1) {
+                            if (str_contains($d1['deskripsi_tertinggi'] ?? '', 'belum lengkap')) {
+                                $status1 = 'belum_lengkap';
+                            } elseif (str_contains($d1['deskripsi_tertinggi'] ?? '', 'belum kompeten')) {
+                                $status1 = 'belum_kompeten';
+                            } elseif ($na1 !== null) {
+                                $status1 = 'kompeten';
+                            }
+                        }
 
                         $rf2 = $d2['rata_formatif'] ?? null;
                         $sm2 = $d2['sumatif'] ?? null;
                         $na2 = $d2['nilai_akhir'] ?? null;
-                        $isNa2Below = $this->isBelowKkm($na2);
+                        $status2 = $d2['status'] ?? null;
+                        if (!$status2) {
+                            if (str_contains($d2['deskripsi_tertinggi'] ?? '', 'belum lengkap')) {
+                                $status2 = 'belum_lengkap';
+                            } elseif (str_contains($d2['deskripsi_tertinggi'] ?? '', 'belum kompeten')) {
+                                $status2 = 'belum_kompeten';
+                            } elseif ($na2 !== null) {
+                                $status2 = 'kompeten';
+                            }
+                        }
 
                         $isManual1 = !empty($d1['deskripsi_manual']);
                         $desc1 = $isManual1 ? $d1['deskripsi_manual'] : trim(($d1['deskripsi_tertinggi'] ?? '') . ' ' . ($d1['deskripsi_terendah'] ?? ''));
@@ -776,10 +794,21 @@
                         </td>
 
                         <!-- BLOK 1: NA 9M1 / 9M3 -->
-                        <td class="p-2 text-center font-mono font-bold text-sm border-b border-r border-border {{ $isNa1Below ? 'bg-rose-100/70 dark:bg-rose-950/60 text-rose-700 dark:text-rose-300' : 'bg-blue-100/40 dark:bg-blue-950/30 text-blue-950 dark:text-blue-100' }}"
-                            @if($isNa1Below) title="Nilai Akhir {{ $na1 }} di bawah KKM ({{ $this->kkm }})" @endif>
-                            {{ $na1 !== null ? number_format($na1, 0) : '-' }}
-                        </td>
+                        @if($status1 === 'belum_kompeten')
+                            <td class="p-2 text-center font-mono font-bold text-sm border-b border-r border-border bg-rose-50 dark:bg-rose-950/40 text-rose-700 dark:text-rose-300"
+                                title="Belum Kompeten: Ada nilai formatif/sumatif di bawah KKM ({{ $this->kkm }})">
+                                <span class="inline-block px-1.5 py-0.5 rounded text-xs bg-rose-100 dark:bg-rose-900/60 text-rose-800 dark:text-rose-200 font-bold">-</span>
+                            </td>
+                        @elseif($status1 === 'belum_lengkap')
+                            <td class="p-2 text-center font-mono font-bold text-sm border-b border-r border-border bg-amber-50/50 dark:bg-amber-950/30 text-amber-700 dark:text-amber-300"
+                                title="Nilai Belum Lengkap: Ada nilai formatif/sumatif yang belum terisi">
+                                <span class="inline-block px-1.5 py-0.5 rounded text-xs bg-amber-100/80 dark:bg-amber-900/40 text-amber-800 dark:text-amber-200 font-bold">-</span>
+                            </td>
+                        @else
+                            <td class="p-2 text-center font-mono font-bold text-sm border-b border-r border-border bg-blue-100/40 dark:bg-blue-950/30 text-blue-950 dark:text-blue-100">
+                                {{ $na1 !== null ? number_format($na1, 0) : '-' }}
+                            </td>
+                        @endif
 
                         <!-- BLOK 1: Deskripsi Capaian 9M1 / 9M3 -->
                         <td class="p-2 border-b border-r-2 border-border text-[11px] align-top bg-blue-50/10 dark:bg-blue-950/5 min-w-[240px]">
@@ -790,6 +819,50 @@
                                 <div class="flex items-center justify-between gap-1 pt-1 border-t border-border/40">
                                     <span class="inline-flex items-center gap-0.5 text-[9px] px-1.5 py-0.2 rounded bg-amber-100 dark:bg-amber-950/80 text-amber-800 dark:text-amber-200 font-bold">
                                         ✏️ Manual
+                                    </span>
+                                    <button type="button"
+                                            wire:click="openEditDeskripsi9M({{ $siswa->id }}, '{{ $k1 }}')"
+                                            class="text-[10px] text-primary hover:underline font-semibold cursor-pointer flex items-center gap-0.5">
+                                        <span>Edit Narasi</span>
+                                    </button>
+                                </div>
+                            @elseif($status1 === 'belum_lengkap')
+                                <div class="p-2 rounded-lg bg-amber-50 dark:bg-amber-950/40 border border-amber-200 dark:border-amber-800/50 text-amber-900 dark:text-amber-200 mb-1.5">
+                                    <div class="font-bold flex items-center gap-1.5 text-xs text-amber-800 dark:text-amber-300">
+                                        <svg class="w-3.5 h-3.5 text-amber-600 dark:text-amber-400 shrink-0" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                                            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 9v2m0 4h.01m-6.938 4h13.856c1.54 0 2.502-1.667 1.732-3L13.732 4c-.77-1.333-2.694-1.333-3.464 0L3.34 16c-.77 1.333.192 3 1.732 3z"/>
+                                        </svg>
+                                        <span>Nilai belum lengkap</span>
+                                    </div>
+                                    <div class="text-[10px] mt-0.5 text-amber-700 dark:text-amber-300/90 leading-tight">
+                                        Silakan hubungi guru yang bersangkutan.
+                                    </div>
+                                </div>
+                                <div class="flex items-center justify-between gap-1 pt-1 border-t border-border/40">
+                                    <span class="inline-flex items-center gap-0.5 text-[9px] px-1.5 py-0.2 rounded bg-amber-100 dark:bg-amber-950 text-amber-800 dark:text-amber-300 font-semibold">
+                                        ⚠️ Belum Lengkap
+                                    </span>
+                                    <button type="button"
+                                            wire:click="openEditDeskripsi9M({{ $siswa->id }}, '{{ $k1 }}')"
+                                            class="text-[10px] text-primary hover:underline font-semibold cursor-pointer flex items-center gap-0.5">
+                                        <span>Edit Narasi</span>
+                                    </button>
+                                </div>
+                            @elseif($status1 === 'belum_kompeten')
+                                <div class="p-2 rounded-lg bg-rose-50 dark:bg-rose-950/40 border border-rose-200 dark:border-rose-800/50 text-rose-900 dark:text-rose-200 mb-1.5">
+                                    <div class="font-bold flex items-center gap-1.5 text-xs text-rose-800 dark:text-rose-300">
+                                        <svg class="w-3.5 h-3.5 text-rose-600 dark:text-rose-400 shrink-0" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                                            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 8v4m0 4h.01M21 12a9 9 0 11-18 0 9 9 0 0118 0z"/>
+                                        </svg>
+                                        <span>Nilai belum kompeten</span>
+                                    </div>
+                                    <div class="text-[10px] mt-0.5 text-rose-700 dark:text-rose-300/90 leading-tight">
+                                        Silakan hubungi guru yang bersangkutan.
+                                    </div>
+                                </div>
+                                <div class="flex items-center justify-between gap-1 pt-1 border-t border-border/40">
+                                    <span class="inline-flex items-center gap-0.5 text-[9px] px-1.5 py-0.2 rounded bg-rose-100 dark:bg-rose-950 text-rose-800 dark:text-rose-300 font-semibold">
+                                        🚫 Belum Kompeten
                                     </span>
                                     <button type="button"
                                             wire:click="openEditDeskripsi9M({{ $siswa->id }}, '{{ $k1 }}')"
@@ -843,10 +916,21 @@
                         </td>
 
                         <!-- BLOK 2: NA 9M2 / 9M4 -->
-                        <td class="p-2 text-center font-mono font-bold text-sm border-b border-r border-border {{ $isNa2Below ? 'bg-rose-100/70 dark:bg-rose-950/60 text-rose-700 dark:text-rose-300' : 'bg-emerald-100/40 dark:bg-emerald-950/30 text-emerald-950 dark:text-emerald-100' }}"
-                            @if($isNa2Below) title="Nilai Akhir {{ $na2 }} di bawah KKM ({{ $this->kkm }})" @endif>
-                            {{ $na2 !== null ? number_format($na2, 0) : '-' }}
-                        </td>
+                        @if($status2 === 'belum_kompeten')
+                            <td class="p-2 text-center font-mono font-bold text-sm border-b border-r border-border bg-rose-50 dark:bg-rose-950/40 text-rose-700 dark:text-rose-300"
+                                title="Belum Kompeten: Ada nilai formatif/sumatif di bawah KKM ({{ $this->kkm }})">
+                                <span class="inline-block px-1.5 py-0.5 rounded text-xs bg-rose-100 dark:bg-rose-900/60 text-rose-800 dark:text-rose-200 font-bold">-</span>
+                            </td>
+                        @elseif($status2 === 'belum_lengkap')
+                            <td class="p-2 text-center font-mono font-bold text-sm border-b border-r border-border bg-amber-50/50 dark:bg-amber-950/30 text-amber-700 dark:text-amber-300"
+                                title="Nilai Belum Lengkap: Ada nilai formatif/sumatif yang belum terisi">
+                                <span class="inline-block px-1.5 py-0.5 rounded text-xs bg-amber-100/80 dark:bg-amber-900/40 text-amber-800 dark:text-amber-200 font-bold">-</span>
+                            </td>
+                        @else
+                            <td class="p-2 text-center font-mono font-bold text-sm border-b border-r border-border bg-emerald-100/40 dark:bg-emerald-950/30 text-emerald-950 dark:text-emerald-100">
+                                {{ $na2 !== null ? number_format($na2, 0) : '-' }}
+                            </td>
+                        @endif
 
                         <!-- BLOK 2: Deskripsi Capaian 9M2 / 9M4 -->
                         <td class="p-2 border-b border-border text-[11px] align-top bg-emerald-50/10 dark:bg-emerald-950/5 min-w-[240px]">
@@ -857,6 +941,50 @@
                                 <div class="flex items-center justify-between gap-1 pt-1 border-t border-border/40">
                                     <span class="inline-flex items-center gap-0.5 text-[9px] px-1.5 py-0.2 rounded bg-amber-100 dark:bg-amber-950/80 text-amber-800 dark:text-amber-200 font-bold">
                                         ✏️ Manual
+                                    </span>
+                                    <button type="button"
+                                            wire:click="openEditDeskripsi9M({{ $siswa->id }}, '{{ $k2 }}')"
+                                            class="text-[10px] text-emerald-700 dark:text-emerald-400 hover:underline font-semibold cursor-pointer flex items-center gap-0.5">
+                                        <span>Edit Narasi</span>
+                                    </button>
+                                </div>
+                            @elseif($status2 === 'belum_lengkap')
+                                <div class="p-2 rounded-lg bg-amber-50 dark:bg-amber-950/40 border border-amber-200 dark:border-amber-800/50 text-amber-900 dark:text-amber-200 mb-1.5">
+                                    <div class="font-bold flex items-center gap-1.5 text-xs text-amber-800 dark:text-amber-300">
+                                        <svg class="w-3.5 h-3.5 text-amber-600 dark:text-amber-400 shrink-0" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                                            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 9v2m0 4h.01m-6.938 4h13.856c1.54 0 2.502-1.667 1.732-3L13.732 4c-.77-1.333-2.694-1.333-3.464 0L3.34 16c-.77 1.333.192 3 1.732 3z"/>
+                                        </svg>
+                                        <span>Nilai belum lengkap</span>
+                                    </div>
+                                    <div class="text-[10px] mt-0.5 text-amber-700 dark:text-amber-300/90 leading-tight">
+                                        Silakan hubungi guru yang bersangkutan.
+                                    </div>
+                                </div>
+                                <div class="flex items-center justify-between gap-1 pt-1 border-t border-border/40">
+                                    <span class="inline-flex items-center gap-0.5 text-[9px] px-1.5 py-0.2 rounded bg-amber-100 dark:bg-amber-950 text-amber-800 dark:text-amber-300 font-semibold">
+                                        ⚠️ Belum Lengkap
+                                    </span>
+                                    <button type="button"
+                                            wire:click="openEditDeskripsi9M({{ $siswa->id }}, '{{ $k2 }}')"
+                                            class="text-[10px] text-emerald-700 dark:text-emerald-400 hover:underline font-semibold cursor-pointer flex items-center gap-0.5">
+                                        <span>Edit Narasi</span>
+                                    </button>
+                                </div>
+                            @elseif($status2 === 'belum_kompeten')
+                                <div class="p-2 rounded-lg bg-rose-50 dark:bg-rose-950/40 border border-rose-200 dark:border-rose-800/50 text-rose-900 dark:text-rose-200 mb-1.5">
+                                    <div class="font-bold flex items-center gap-1.5 text-xs text-rose-800 dark:text-rose-300">
+                                        <svg class="w-3.5 h-3.5 text-rose-600 dark:text-rose-400 shrink-0" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                                            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 8v4m0 4h.01M21 12a9 9 0 11-18 0 9 9 0 0118 0z"/>
+                                        </svg>
+                                        <span>Nilai belum kompeten</span>
+                                    </div>
+                                    <div class="text-[10px] mt-0.5 text-rose-700 dark:text-rose-300/90 leading-tight">
+                                        Silakan hubungi guru yang bersangkutan.
+                                    </div>
+                                </div>
+                                <div class="flex items-center justify-between gap-1 pt-1 border-t border-border/40">
+                                    <span class="inline-flex items-center gap-0.5 text-[9px] px-1.5 py-0.2 rounded bg-rose-100 dark:bg-rose-950 text-rose-800 dark:text-rose-300 font-semibold">
+                                        🚫 Belum Kompeten
                                     </span>
                                     <button type="button"
                                             wire:click="openEditDeskripsi9M({{ $siswa->id }}, '{{ $k2 }}')"
