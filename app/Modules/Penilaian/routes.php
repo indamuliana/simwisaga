@@ -1,6 +1,8 @@
 <?php
 
 use Illuminate\Support\Facades\Route;
+use App\Modules\Penilaian\Livewire\MapelPilihanPenilaianIndex;
+use App\Modules\Penilaian\Livewire\MapelPilihanPenilaianInput;
 use App\Modules\Penilaian\Livewire\PenilaianDashboard;
 use App\Modules\Penilaian\Livewire\PenilaianInput;
 use App\Modules\Penilaian\Livewire\RekapPenilaianIndex;
@@ -11,6 +13,8 @@ use Barryvdh\DomPDF\Facade\Pdf;
 
 Route::middleware(['web', 'auth'])->group(function () {
     Route::get('/penilaian', PenilaianDashboard::class)->name('penilaian.index');
+    Route::get('/penilaian/mapil', MapelPilihanPenilaianIndex::class)->name('penilaian.mapil.index');
+    Route::get('/penilaian/mapil/{id}/input', MapelPilihanPenilaianInput::class)->name('penilaian.mapil.input');
     Route::get('/penilaian/{penugasan_id}/input', PenilaianInput::class)->name('penilaian.input');
     Route::get('/penilaian/rekap', RekapPenilaianIndex::class)->name('penilaian.rekap');
     Route::get('/penilaian/transkrip', TranskripPenilaianIndex::class)->name('penilaian.transkrip');

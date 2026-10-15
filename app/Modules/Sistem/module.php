@@ -16,7 +16,7 @@ return [
         'sistem.sekolah' => ['label' => 'Identitas Sekolah', 'actions' => ['lihat', 'edit']],
         'sistem.template' => ['label' => 'Template Dokumen PDF', 'actions' => ['lihat', 'edit']],
         'sistem.titimangsa' => ['label' => 'Titi Mangsa Rapor', 'actions' => ['lihat', 'tambah', 'edit', 'hapus']],
-        'sistem.pengguna' => ['label' => 'Pengguna', 'actions' => ['lihat', 'tambah', 'edit']],
+        'sistem.pengguna' => ['label' => 'Pengguna', 'actions' => ['lihat', 'tambah', 'edit', 'hapus']],
         'sistem.hakakses' => ['label' => 'Hak Akses', 'actions' => ['lihat', 'edit']],
         'sistem.audit' => ['label' => 'Log Aktivitas', 'actions' => ['lihat']],
     ],

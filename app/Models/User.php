@@ -2,7 +2,10 @@
 
 namespace App\Models;
 
+use App\Modules\Kepegawaian\Models\Pegawai;
+use App\Modules\Kesiswaan\Models\Siswa;
 use Illuminate\Database\Eloquent\Factories\HasFactory;
+use Illuminate\Database\Eloquent\Relations\HasOne;
 use Illuminate\Foundation\Auth\User as Authenticatable;
 use Illuminate\Notifications\Notifiable;
 use OwenIt\Auditing\Contracts\Auditable;
@@ -51,5 +54,45 @@ class User extends Authenticatable implements Auditable
     public function isSuperAdmin(): bool
     {
         return $this->hasRole(self::SUPER_ADMIN_ROLE);
+    }
+
+    public function pegawai(): HasOne
+    {
+        return $this->hasOne(Pegawai::class);
+    }
+
+    public function siswa(): HasOne
+    {
+        return $this->hasOne(Siswa::class);
+    }
+
+    /**
+     * Mendapatkan metadata profil Pegawai atau Siswa yang tertaut ke akun ini
+     */
+    public function getLinkedProfileAttribute(): ?array
+    {
+        if ($this->relationLoaded('pegawai') ? $this->pegawai : $this->pegawai()->first()) {
+            $p = $this->pegawai;
+            return [
+                'type' => 'pegawai',
+                'label' => 'Pegawai',
+                'name' => $p->nama_lengkap,
+                'identifier' => $p->nip ?: ($p->nuptk ?: '-'),
+                'detail' => ucfirst($p->jenis_gtk ?? 'GTK'),
+            ];
+        }
+
+        if ($this->relationLoaded('siswa') ? $this->siswa : $this->siswa()->with('rombel')->first()) {
+            $s = $this->siswa;
+            return [
+                'type' => 'siswa',
+                'label' => 'Siswa',
+                'name' => $s->nama,
+                'identifier' => $s->nisn ?: ($s->nipd ?: '-'),
+                'detail' => $s->rombel?->nama ?? 'Tanpa Rombel',
+            ];
+        }
+
+        return null;
     }
 }

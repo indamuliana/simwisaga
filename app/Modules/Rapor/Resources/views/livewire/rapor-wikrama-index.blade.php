@@ -359,6 +359,12 @@
                                                                 <span class="px-1.5 py-0.2 rounded text-[10px] font-bold bg-purple-100 dark:bg-purple-900/60 text-purple-700 dark:text-purple-300">
                                                                     Seni Budaya
                                                                 </span>
+                                                            @elseif(!empty($row->is_mapil))
+                                                                <span class="text-emerald-600">🎯</span>
+                                                                <span>{{ $row->mapel_nama }}</span>
+                                                                <span class="px-1.5 py-0.2 rounded text-[10px] font-bold bg-emerald-100 dark:bg-emerald-900/60 text-emerald-700 dark:text-emerald-300">
+                                                                    Mapil
+                                                                </span>
                                                             @else
                                                                 <span>{{ $row->mapel_nama }}</span>
                                                             @endif

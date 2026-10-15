@@ -21,6 +21,9 @@ class HakAkses extends Component
     public ?string $selectedRoleId = null;
     public array $rolePermissions = [];
     public array $roleScopes = [];
+    public string $search = '';
+
+    public const STANDARD_ACTIONS = ['lihat', 'tambah', 'edit', 'hapus', 'cetak'];
 
     public const AVAILABLE_SCOPES = [
         'semua' => 'Semua Data',
@@ -79,6 +82,47 @@ class HakAkses extends Component
         }
     }
 
+    public function toggleAllForModule(string $moduleName): void
+    {
+        $this->guard('sistem.hakakses.edit');
+
+        $modulePermissions = [];
+        foreach ($this->matrix as $resource => $def) {
+            if ($def['module'] === $moduleName) {
+                foreach ($def['actions'] as $act) {
+                    $modulePermissions[] = "{$resource}.{$act}";
+                }
+            }
+        }
+
+        $allSelected = count(array_intersect($modulePermissions, $this->rolePermissions)) === count($modulePermissions);
+
+        if ($allSelected) {
+            $this->rolePermissions = array_values(array_diff($this->rolePermissions, $modulePermissions));
+        } else {
+            $this->rolePermissions = array_values(array_unique(array_merge($this->rolePermissions, $modulePermissions)));
+        }
+    }
+
+    public function selectAllForRole(): void
+    {
+        $this->guard('sistem.hakakses.edit');
+
+        $all = [];
+        foreach ($this->matrix as $resource => $def) {
+            foreach ($def['actions'] as $act) {
+                $all[] = "{$resource}.{$act}";
+            }
+        }
+        $this->rolePermissions = array_values(array_unique($all));
+    }
+
+    public function clearAllForRole(): void
+    {
+        $this->guard('sistem.hakakses.edit');
+        $this->rolePermissions = [];
+    }
+
     public function save(): void
     {
         $this->guard('sistem.hakakses.edit');
@@ -106,9 +150,22 @@ class HakAkses extends Component
         $roles = Role::where('name', '!=', User::SUPER_ADMIN_ROLE)->orderBy('id')->get();
         $selectedRole = $this->selectedRoleId ? Role::find($this->selectedRoleId) : null;
 
+        $filteredMatrix = $this->matrix;
+        if (!empty($this->search)) {
+            $term = strtolower(trim($this->search));
+            $filteredMatrix = array_filter($this->matrix, function ($def, $resource) use ($term) {
+                return str_contains(strtolower($resource), $term)
+                    || str_contains(strtolower($def['module'] ?? ''), $term)
+                    || str_contains(strtolower($def['label'] ?? ''), $term);
+            }, ARRAY_FILTER_USE_BOTH);
+        }
+
         return view('sistem::livewire.hak-akses', [
             'roles' => $roles,
             'selectedRole' => $selectedRole,
+            'filteredMatrix' => $filteredMatrix,
+            'standardActions' => self::STANDARD_ACTIONS,
+            'availableScopes' => self::AVAILABLE_SCOPES,
         ]);
     }
 }

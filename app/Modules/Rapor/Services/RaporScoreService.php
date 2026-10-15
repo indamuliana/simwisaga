@@ -12,6 +12,7 @@ use App\Modules\Kepegawaian\Models\PenugasanMengajar;
 use App\Modules\Penilaian\Models\NilaiAkhir;
 use App\Modules\Penilaian\Models\NilaiAsesmenHarian;
 use App\Modules\Penilaian\Models\NilaiSumatif;
+use App\Modules\Penilaian\Services\MapelPilihanScoreService;
 use App\Modules\Rapor\Models\CatatanWaliKelas;
 use App\Modules\SeniBudaya\Models\SeniBudayaAnggota;
 use App\Modules\SeniBudaya\Services\SeniBudayaService;
@@ -427,6 +428,12 @@ class RaporScoreService
             $rows->push($sbItem);
         }
 
+        // 6. Integrasi Mapel Pilihan (Kelompok C)
+        $mapilRows = app(MapelPilihanScoreService::class)->getStudentRecordsForWikrama($siswa, $semester, $normKey);
+        foreach ($mapilRows as $mRow) {
+            $rows->push($mRow);
+        }
+
         // Urutkan berdasarkan Kelompok Mapel lalu Urutan Mapel
         return $rows->sortBy(function ($row) {
             return sprintf('%04d-%04d', $row->kelompok_urutan, $row->mapel_urutan);
@@ -506,6 +513,12 @@ class RaporScoreService
             } else {
                 $rows->push($sbItem);
             }
+        }
+
+        // Integrasi Mapel Pilihan (Kelompok C)
+        $mapilRows = app(MapelPilihanScoreService::class)->getStudentRecordsForPemerintah($siswa, $semester);
+        foreach ($mapilRows as $mRow) {
+            $rows->push($mRow);
         }
 
         return $rows->sortBy(function ($row) {
