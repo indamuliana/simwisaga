@@ -112,6 +112,19 @@
             transition-all duration-200
             focus:border-primary focus:outline-none focus:ring-2 focus:ring-primary/30;
     }
+
+    /* File Inputs */
+    .file-input,
+    input[type="file"]:not(.hidden):not(.sr-only) {
+        @apply block w-full cursor-pointer rounded-[var(--radius-md)] border border-border bg-surface p-1 text-xs text-text-secondary shadow-xs transition-all duration-200
+            focus:border-primary focus:outline-none focus:ring-2 focus:ring-primary/30;
+    }
+
+    input[type="file"]::file-selector-button,
+    .file-input::file-selector-button {
+        @apply mr-3 cursor-pointer rounded-md border border-border bg-surface-raised px-3 py-1.5 text-xs font-medium text-text-main shadow-xs transition-all duration-150
+            hover:bg-surface-hover hover:border-text-muted/60 active:scale-[0.98];
+    }
     
     select {
         @apply pr-8 appearance-none bg-no-repeat bg-[position:right_0.75rem_center] bg-[length:16px_16px];

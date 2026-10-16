@@ -262,7 +262,7 @@
 
                     <div>
                         <label class="block text-xs font-semibold text-text-secondary uppercase mb-1">Pilih File Excel (.xlsx / .xls)</label>
-                        <input type="file" wire:model="importFile" accept=".xlsx, .xls" class="input text-sm w-full file:mr-3 file:py-1.5 file:px-3 file:rounded-md file:border-0 file:text-xs file:font-semibold file:bg-primary file:text-white hover:file:opacity-90">
+                        <input type="file" wire:model="importFile" accept=".xlsx, .xls" class="file-input">
                         @error('importFile') <span class="text-xs text-rose-500">{{ $message }}</span> @enderror
                         <div wire:loading wire:target="importFile" class="text-xs text-primary mt-1">Mengunggah file...</div>
                     </div>

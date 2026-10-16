@@ -64,7 +64,7 @@
  </div>
  <div class="min-w-0 flex-1">
  <label class="label">{{ $label }}</label>
- <input type="file" wire:model="{{ $field }}" accept="image/png,image/jpeg,image/webp" class="block w-full text-sm">
+ <input type="file" wire:model="{{ $field }}" accept="image/png,image/jpeg,image/webp" class="file-input">
  <div wire:loading wire:target="{{ $field }}" class="text-xs text-text-secondary">Mengunggah...</div>
  @error($field) <p class="error">{{ $message }}</p> @enderror
  @if ($url && ! $this->{$field})
@@ -81,7 +81,7 @@
  @elseif ($school->kopSuratUrl())
  <img src="{{ $school->kopSuratUrl() }}" class="mb-2 w-full rounded border border-border" alt="Kop surat">
  @endif
- <input type="file" wire:model="kop_surat" accept="image/png,image/jpeg,image/webp" class="block w-full text-sm">
+ <input type="file" wire:model="kop_surat" accept="image/png,image/jpeg,image/webp" class="file-input">
  <div wire:loading wire:target="kop_surat" class="text-xs text-text-secondary">Mengunggah...</div>
  @error('kop_surat') <p class="error">{{ $message }}</p> @enderror
  @if ($school->kopSuratUrl() && ! $kop_surat)

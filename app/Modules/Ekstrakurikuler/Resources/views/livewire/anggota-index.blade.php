@@ -525,7 +525,7 @@
                     @else
                         <div class="space-y-4">
                             <div class="border-2 border-dashed border-border rounded-xl p-6 text-center hover:border-primary/50 transition">
-                                <input type="file" wire:model="importFile" accept=".xlsx,.xls,.csv" class="text-xs file:btn file:btn-secondary file:text-xs file:mr-3">
+                                <input type="file" wire:model="importFile" accept=".xlsx,.xls,.csv" class="file-input max-w-sm mx-auto">
                                 <p class="text-[11px] text-text-secondary mt-2">Mendukung format .xlsx, .xls, atau .csv (Maksimal 5MB)</p>
                                 @error('importFile') <span class="text-xs text-rose-500 block mt-1">{{ $message }}</span> @enderror
                             </div>

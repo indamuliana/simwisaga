@@ -225,7 +225,7 @@
                     <label class="block text-xs font-bold uppercase tracking-wider text-text-main">
                         3. Unggah Berkas Excel (.xlsx, .xls, .csv) <span class="text-rose-500">*</span>
                     </label>
-                    <input type="file" wire:model="fileExcel" accept=".xlsx,.xls,.csv" class="w-full text-xs text-text-main file:mr-3 file:py-2 file:px-4 file:rounded-lg file:border-0 file:text-xs file:font-semibold file:bg-primary file:text-white hover:file:bg-primary-hover border border-border rounded-lg p-1.5 bg-surface cursor-pointer">
+                    <input type="file" wire:model="fileExcel" accept=".xlsx,.xls,.csv" class="file-input">
                     
                     <div wire:loading wire:target="fileExcel" class="text-xs text-primary flex items-center gap-1.5 pt-1">
                         <svg class="animate-spin h-3.5 w-3.5 text-primary" xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24">

@@ -562,7 +562,7 @@
 
                     <div>
                         <label class="block font-semibold text-text-secondary mb-1.5">Pilih File Excel (.xlsx, .xls)</label>
-                        <input type="file" wire:model="importFile" accept=".xlsx,.xls" class="w-full text-xs rounded-xl border border-border bg-surface p-2 text-text-main">
+                        <input type="file" wire:model="importFile" accept=".xlsx,.xls" class="file-input">
                         @error('importFile') <p class="text-rose-600 text-[10px] mt-1">{{ $message }}</p> @enderror
                     </div>
 

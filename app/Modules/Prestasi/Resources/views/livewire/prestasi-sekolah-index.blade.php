@@ -281,14 +281,14 @@
                 <div class="grid grid-cols-1 sm:grid-cols-2 gap-4 pt-2 border-t border-border">
                     <div>
                         <label class="text-xs font-semibold text-text-main block mb-1">Berkas SK / Sertifikat (PDF/Gambar max 5MB)</label>
-                        <input type="file" wire:model="sertifikatFile" class="w-full text-xs text-text-secondary file:mr-3 file:py-1.5 file:px-3 file:rounded-lg file:border-0 file:text-xs file:font-semibold file:bg-purple-500/10 file:text-purple-700">
+                        <input type="file" wire:model="sertifikatFile" class="file-input">
                         @if($existingSertifikatPath)
                             <span class="text-[11px] text-teal-600 block mt-1">✓ Berkas SK sebelumnya tersimpan</span>
                         @endif
                     </div>
                     <div>
                         <label class="text-xs font-semibold text-text-main block mb-1">Foto Plakat / Piala (JPG/PNG max 5MB)</label>
-                        <input type="file" wire:model="fotoFile" accept="image/*" class="w-full text-xs text-text-secondary file:mr-3 file:py-1.5 file:px-3 file:rounded-lg file:border-0 file:text-xs file:font-semibold file:bg-purple-500/10 file:text-purple-700">
+                        <input type="file" wire:model="fotoFile" accept="image/*" class="file-input">
                         @if($existingFotoPath)
                             <span class="text-[11px] text-purple-600 block mt-1">✓ Foto piala sebelumnya tersimpan</span>
                         @endif

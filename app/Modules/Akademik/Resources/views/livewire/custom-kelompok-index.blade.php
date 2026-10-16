@@ -870,7 +870,7 @@
                 <!-- Step 2: Upload File -->
                 <div>
                     <label class="block font-semibold text-text-secondary mb-1">2. Unggah Berkas Excel (.xlsx / .xls)</label>
-                    <input type="file" wire:model="importFile" accept=".xlsx,.xls" class="w-full text-xs file:mr-3 file:py-1.5 file:px-3 file:rounded-md file:border-0 file:text-xs file:font-semibold file:bg-primary file:text-white hover:file:bg-primary/90 border border-border rounded-lg bg-surface">
+                    <input type="file" wire:model="importFile" accept=".xlsx,.xls" class="file-input">
                     @error('importFile') <span class="text-rose-500 text-[11px] block mt-1">{{ $message }}</span> @enderror
                 </div>
 

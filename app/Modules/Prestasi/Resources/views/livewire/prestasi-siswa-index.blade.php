@@ -492,7 +492,7 @@
                         <div class="grid grid-cols-1 sm:grid-cols-2 gap-3">
                             <div>
                                 <label class="text-xs font-semibold text-text-main block mb-1">Berkas Sertifikat / SK (PDF/Img max 5MB)</label>
-                                <input type="file" wire:model="sertifikatFile" class="w-full text-xs text-text-secondary file:mr-2 file:py-1 file:px-2.5 file:rounded-lg file:border-0 file:text-[11px] file:font-semibold file:bg-teal-500/10 file:text-teal-700">
+                                <input type="file" wire:model="sertifikatFile" class="file-input">
                                 @error('sertifikatFile') <span class="text-rose-500 text-[11px]">{{ $message }}</span> @enderror
                                 @if($existingSertifikatPath)
                                     <span class="text-[11px] text-teal-600 block mt-1">✓ Berkas tersimpan</span>
@@ -500,7 +500,7 @@
                             </div>
                             <div>
                                 <label class="text-xs font-semibold text-text-main block mb-1">Foto Dokumentasi (JPG/PNG max 5MB)</label>
-                                <input type="file" wire:model="fotoFile" accept="image/*" class="w-full text-xs text-text-secondary file:mr-2 file:py-1 file:px-2.5 file:rounded-lg file:border-0 file:text-[11px] file:font-semibold file:bg-blue-500/10 file:text-blue-700">
+                                <input type="file" wire:model="fotoFile" accept="image/*" class="file-input">
                                 @error('fotoFile') <span class="text-rose-500 text-[11px]">{{ $message }}</span> @enderror
                                 @if($existingFotoPath)
                                     <span class="text-[11px] text-blue-600 block mt-1">✓ Foto tersimpan</span>

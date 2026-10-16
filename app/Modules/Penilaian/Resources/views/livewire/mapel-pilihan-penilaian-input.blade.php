@@ -744,7 +744,7 @@
 
                     <div>
                         <label class="block text-[11px] font-bold text-text-secondary mb-1">Pilih File Excel (.xlsx / .xls)</label>
-                        <input type="file" wire:model="importFile" accept=".xlsx,.xls" class="w-full text-xs text-text-secondary file:mr-3 file:py-1.5 file:px-3 file:rounded-lg file:border-0 file:text-xs file:font-semibold file:bg-primary file:text-white hover:file:bg-primary/90">
+                        <input type="file" wire:model="importFile" accept=".xlsx,.xls" class="file-input">
                         @error('importFile') <span class="text-[10px] text-rose-500 mt-1 block">{{ $message }}</span> @enderror
                     </div>
 

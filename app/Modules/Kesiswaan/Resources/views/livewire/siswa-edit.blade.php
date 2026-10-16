@@ -134,7 +134,7 @@
  <label class="block text-xs font-bold uppercase tracking-wider text-text-main text-text-secondary">
  Upload Pas Foto Siswa
  </label>
- <input type="file" wire:model="foto" accept="image/*" class="text-xs text-text-secondary file:mr-4 file:py-2 file:px-4 file:rounded-md file:border-0 file:text-xs file:font-semibold file:bg-indigo-50 file:text-indigo-700 hover:file:bg-indigo-100">
+ <input type="file" wire:model="foto" accept="image/*" class="file-input">
  <p class="text-[11px] text-slate-400">Format: JPG, JPEG, PNG. Maksimal 2MB. Pas foto formal seragam sekolah.</p>
  @error('foto') <span class="text-xs text-rose-500 block">{{ $message }}</span> @enderror
  </div>

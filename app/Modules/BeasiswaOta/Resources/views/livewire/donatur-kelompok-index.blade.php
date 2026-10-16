@@ -670,7 +670,7 @@
 
                 <div class="space-y-2">
                     <label class="block text-xs font-semibold text-text-secondary uppercase">Pilih File Excel (.xlsx / .xls)</label>
-                    <input type="file" wire:model="fileImportDonatur" accept=".xlsx,.xls" class="file-input file-input-bordered file-input-sm w-full text-xs">
+                    <input type="file" wire:model="fileImportDonatur" accept=".xlsx,.xls" class="file-input">
                     <div wire:loading wire:target="fileImportDonatur" class="text-xs text-primary mt-1">Mengunggah file...</div>
                     @error('fileImportDonatur') <span class="text-xs text-rose-500">{{ $message }}</span> @enderror
                 </div>
@@ -715,7 +715,7 @@
 
                 <div class="space-y-2">
                     <label class="block text-xs font-semibold text-text-secondary uppercase">Pilih File Excel (.xlsx / .xls)</label>
-                    <input type="file" wire:model="fileImportKelompok" accept=".xlsx,.xls" class="file-input file-input-bordered file-input-sm w-full text-xs">
+                    <input type="file" wire:model="fileImportKelompok" accept=".xlsx,.xls" class="file-input">
                     <div wire:loading wire:target="fileImportKelompok" class="text-xs text-primary mt-1">Mengunggah file...</div>
                     @error('fileImportKelompok') <span class="text-xs text-rose-500">{{ $message }}</span> @enderror
                 </div>

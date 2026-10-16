@@ -49,7 +49,7 @@
 
                 <div class="grid grid-cols-1 md:grid-cols-2 gap-4 items-center">
                     <div>
-                        <input type="file" wire:model="certificateBgFile" accept="image/png,image/jpeg" class="file-input file-input-bordered file-input-sm w-full text-xs">
+                        <input type="file" wire:model="certificateBgFile" accept="image/png,image/jpeg" class="file-input">
                         <div wire:loading wire:target="certificateBgFile" class="text-xs text-primary mt-1">Mengunggah gambar...</div>
                         <span class="text-[11px] text-text-secondary mt-1 block">
                             Ukuran maksimal 5MB. Jika tidak diunggah, sistem akan menggunakan desain berbingkai elegan default.
