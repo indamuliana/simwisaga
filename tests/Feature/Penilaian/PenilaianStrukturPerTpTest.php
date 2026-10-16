@@ -265,4 +265,65 @@ class PenilaianStrukturPerTpTest extends TestCase
             ->assertSee('92.4')
             ->assertSee('Cakap');
     }
+
+    public function test_tab_rekap_menampilkan_semua_tombol_periode_9m1_sampai_9m4_dan_semua_periode(): void
+    {
+        Livewire::actingAs($this->admin)
+            ->test(PenilaianInput::class, ['penugasan_id' => $this->penugasan->id])
+            ->call('switchTab', 'rekap')
+            ->assertSee('9M1 (STS 1)')
+            ->assertSee('9M2 (SAS)')
+            ->assertSee('9M3 (STS 2)')
+            ->assertSee('9M4 (SAT)')
+            ->assertSee('1 Semester')
+            ->assertSee('Semua Periode (9M1 - 9M4)');
+    }
+
+    public function test_tab_rekap_akses_url_periode_9m3_pada_penugasan_ganjil_sinkron_ke_genap_dan_tampilkan_data(): void
+    {
+        $ta = TahunAjaran::first();
+        $semGenap = Semester::where('tahun_ajaran_id', $ta->id)->where('semester', 'genap')->first();
+        $pmGenap = PenugasanMengajar::firstOrCreate([
+            'semester_id' => $semGenap->id,
+            'pegawai_id' => $this->penugasan->pegawai_id,
+            'mapel_id' => $this->penugasan->mapel_id,
+            'rombel_id' => $this->penugasan->rombel_id,
+        ], ['jp' => 3]);
+
+        $tpGenap = TujuanPembelajaran::create([
+            'penugasan_mengajar_id' => $pmGenap->id,
+            'kode' => 'TP 3',
+            'deskripsi' => 'Memahami rukun iman secara mendalam',
+            'alokasi_ah' => 'AH 5',
+            'target_periode' => '9M3',
+            'urutan' => 3,
+        ]);
+
+        NilaiFormatif::create(['siswa_id' => $this->siswa1->id, 'tujuan_pembelajaran_id' => $tpGenap->id, 'nilai' => 88]);
+        NilaiHarian::create(['siswa_id' => $this->siswa1->id, 'penugasan_mengajar_id' => $pmGenap->id, 'target_periode' => '9M3', 'nilai' => 100]);
+        NilaiSumatif::create(['siswa_id' => $this->siswa1->id, 'penugasan_mengajar_id' => $pmGenap->id, 'sts' => 90]);
+
+        Livewire::withQueryParams(['periode' => '9M3', 'tab' => 'rekap'])
+            ->actingAs($this->admin)
+            ->test(PenilaianInput::class, ['penugasan_id' => $this->penugasan->id])
+            ->assertSet('rekapPeriode', '9M3')
+            ->assertSet('activeNilaiSemesterId', $semGenap->id)
+            ->assertSee('STS 2')
+            ->assertSee('NA 9M3')
+            ->assertSee('91.0')
+            ->assertSee('Cakap');
+    }
+
+    public function test_tab_rekap_mode_semua_menampilkan_tabel_4_periode_9m1_sampai_9m4_berdampingan(): void
+    {
+        Livewire::actingAs($this->admin)
+            ->test(PenilaianInput::class, ['penugasan_id' => $this->penugasan->id])
+            ->call('switchTab', 'rekap')
+            ->call('switchRekapPeriode', 'semua')
+            ->assertSee('9M1 (STS 1)')
+            ->assertSee('9M2 (SAS)')
+            ->assertSee('9M3 (STS 2)')
+            ->assertSee('9M4 (SAT)')
+            ->assertSee('Ringkasan 1 Tahun');
+    }
 }

@@ -423,15 +423,12 @@
         $currentSem = collect($semesters)->firstWhere('id', (int) $activeNilaiSemesterId);
         $semName = strtolower($currentSem['semester'] ?? '');
         $isGenap = str_contains($semName, 'genap');
-        $k1 = $isGenap ? '9M3' : '9M1';
-        $k2 = $isGenap ? '9M4' : '9M2';
-        $labelBlock1 = $isGenap ? '9 Minggu ke-3 (STS 2)' : '9 Minggu ke-1 (STS 1)';
-        $labelBlock2 = $isGenap ? '9 Minggu ke-4 (SAT)' : '9 Minggu ke-2 (SAS)';
-        $sumatifLabel1 = $isGenap ? 'STS 2' : 'STS 1';
-        $sumatifLabel2 = $isGenap ? 'SAT' : 'SAS';
 
-        $isSingleView = ($rekapPeriode !== 'semester');
-        $targetP = $isSingleView ? $rekapPeriode : $k1;
+        $isSemuaView = in_array($rekapPeriode, ['semua', 'tahun']);
+        $isSemesterView = ($rekapPeriode === 'semester');
+        $isSingleView = !$isSemuaView && !$isSemesterView;
+
+        $targetP = in_array($rekapPeriode, ['9M1', '9M2', '9M3', '9M4']) ? $rekapPeriode : ($isGenap ? '9M3' : '9M1');
         $sumatifLabelSingle = match($targetP) {
             '9M1' => 'STS 1',
             '9M2' => 'SAS',
@@ -439,6 +436,13 @@
             '9M4' => 'SAT',
             default => 'STS',
         };
+
+        $k1 = $isGenap ? '9M3' : '9M1';
+        $k2 = $isGenap ? '9M4' : '9M2';
+        $labelBlock1 = $isGenap ? '9 Minggu ke-3 (STS 2)' : '9 Minggu ke-1 (STS 1)';
+        $labelBlock2 = $isGenap ? '9 Minggu ke-4 (SAT)' : '9 Minggu ke-2 (SAS)';
+        $sumatifLabel1 = $isGenap ? 'STS 2' : 'STS 1';
+        $sumatifLabel2 = $isGenap ? 'SAT' : 'SAS';
     @endphp
 
     <div class="card mb-6 space-y-4">
@@ -447,33 +451,38 @@
             <div class="flex flex-wrap items-center gap-2">
                 <span class="text-xs font-bold uppercase tracking-wider text-text-secondary mr-1">Rekap Semester:</span>
                 <div class="inline-flex flex-wrap rounded-lg border border-border p-1 bg-surface shadow-xs gap-1">
-                    @if(!$isGenap)
                     <button type="button"
                         wire:click="switchRekapPeriode('9M1')"
-                        class="px-3 py-1 rounded-md text-xs font-semibold transition-all cursor-pointer {{ $rekapPeriode === '9M1' ? 'bg-primary text-white shadow-xs' : 'text-text-secondary hover:text-text-main hover:bg-surface-hover' }}">
+                        class="px-3 py-1 rounded-md text-xs font-semibold transition-all cursor-pointer {{ $rekapPeriode === '9M1' ? 'bg-primary text-white shadow-xs font-bold' : 'text-text-secondary hover:text-text-main hover:bg-surface-hover' }}">
                         <span>9M1 (STS 1)</span>
                     </button>
                     <button type="button"
                         wire:click="switchRekapPeriode('9M2')"
-                        class="px-3 py-1 rounded-md text-xs font-semibold transition-all cursor-pointer {{ $rekapPeriode === '9M2' ? 'bg-primary text-white shadow-xs' : 'text-text-secondary hover:text-text-main hover:bg-surface-hover' }}">
+                        class="px-3 py-1 rounded-md text-xs font-semibold transition-all cursor-pointer {{ $rekapPeriode === '9M2' ? 'bg-primary text-white shadow-xs font-bold' : 'text-text-secondary hover:text-text-main hover:bg-surface-hover' }}">
                         <span>9M2 (SAS)</span>
                     </button>
-                    @else
                     <button type="button"
                         wire:click="switchRekapPeriode('9M3')"
-                        class="px-3 py-1 rounded-md text-xs font-semibold transition-all cursor-pointer {{ $rekapPeriode === '9M3' ? 'bg-primary text-white shadow-xs' : 'text-text-secondary hover:text-text-main hover:bg-surface-hover' }}">
+                        class="px-3 py-1 rounded-md text-xs font-semibold transition-all cursor-pointer {{ $rekapPeriode === '9M3' ? 'bg-primary text-white shadow-xs font-bold' : 'text-text-secondary hover:text-text-main hover:bg-surface-hover' }}">
                         <span>9M3 (STS 2)</span>
                     </button>
                     <button type="button"
                         wire:click="switchRekapPeriode('9M4')"
-                        class="px-3 py-1 rounded-md text-xs font-semibold transition-all cursor-pointer {{ $rekapPeriode === '9M4' ? 'bg-primary text-white shadow-xs' : 'text-text-secondary hover:text-text-main hover:bg-surface-hover' }}">
+                        class="px-3 py-1 rounded-md text-xs font-semibold transition-all cursor-pointer {{ $rekapPeriode === '9M4' ? 'bg-primary text-white shadow-xs font-bold' : 'text-text-secondary hover:text-text-main hover:bg-surface-hover' }}">
                         <span>9M4 (SAT)</span>
                     </button>
-                    @endif
                     <button type="button"
                         wire:click="switchRekapPeriode('semester')"
-                        class="px-3 py-1 rounded-md text-xs font-semibold transition-all cursor-pointer {{ $rekapPeriode === 'semester' ? 'bg-primary text-white shadow-xs' : 'text-text-secondary hover:text-text-main hover:bg-surface-hover' }}">
-                        <span>1 Semester (Berdampingan)</span>
+                        class="px-3 py-1 rounded-md text-xs font-semibold transition-all cursor-pointer {{ $rekapPeriode === 'semester' ? 'bg-primary text-white shadow-xs font-bold' : 'text-text-secondary hover:text-text-main hover:bg-surface-hover' }}">
+                        <span>1 Semester ({{ $isGenap ? 'Genap: 9M3 & 9M4' : 'Ganjil: 9M1 & 9M2' }})</span>
+                    </button>
+                    <button type="button"
+                        wire:click="switchRekapPeriode('semua')"
+                        class="px-3 py-1 rounded-md text-xs font-semibold transition-all cursor-pointer {{ in_array($rekapPeriode, ['semua', 'tahun']) ? 'bg-primary text-white shadow-xs font-bold' : 'text-text-secondary hover:text-text-main hover:bg-surface-hover' }}">
+                        <span class="flex items-center gap-1.5">
+                            <svg class="w-3.5 h-3.5" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M4 6h16M4 10h16M4 14h16M4 18h16"></path></svg>
+                            <span>Semua Periode (9M1 - 9M4)</span>
+                        </span>
                     </button>
                 </div>
 
@@ -537,8 +546,7 @@
                 <tbody class="divide-y divide-border bg-surface text-text-main">
                     @foreach($siswas as $idx => $siswa)
                     @php
-                        $rekap = $rekapData[$siswa->id] ?? null;
-                        $d = $rekap ? $rekap->getRecordFor9M($targetP) : null;
+                        $d = $this->getRecord9MForSiswa($siswa->id, $targetP);
 
                         $rataTp = $d['rata_tp'] ?? null;
                         $nh = $d['nh'] ?? ($nhData[$siswa->id][$targetP] ?? 100.0);
@@ -567,6 +575,19 @@
                         <td class="min-w-[180px] max-w-[220px] p-2.5 font-medium sticky left-[40px] z-20 bg-surface dark:bg-surface-card border-b border-r-2 border-border shadow-[4px_0_8px_-2px_rgba(0,0,0,0.12)] whitespace-nowrap">
                             <div class="truncate text-xs font-semibold text-text-main" title="{{ $siswa->nama }}">{{ $siswa->nama }}</div>
                             <div class="text-[10px] text-text-secondary font-mono">{{ $siswa->nipd ?? $siswa->nisn ?? '-' }}</div>
+                            <!-- Mini Progress Semua Periode 9M1 - 9M4 -->
+                            <div class="flex items-center gap-1 mt-1 font-mono text-[9px]">
+                                @foreach(['9M1', '9M2', '9M3', '9M4'] as $pBadge)
+                                @php
+                                    $pRec = $this->getRecord9MForSiswa($siswa->id, $pBadge);
+                                    $pNa = $pRec['nilai_akhir'] ?? null;
+                                    $isCurrent = ($targetP === $pBadge);
+                                @endphp
+                                <span class="px-1.5 py-0.5 rounded text-[9px] {{ $isCurrent ? 'ring-1 ring-primary font-bold shadow-xs' : 'opacity-75' }} {{ $pNa !== null ? 'bg-emerald-100 text-emerald-800 dark:bg-emerald-950/70 dark:text-emerald-300' : 'bg-slate-100 text-slate-500 dark:bg-slate-800 dark:text-slate-400' }}" title="{{ $pBadge }}: {{ $pNa !== null ? number_format($pNa, 1) : 'Belum ada nilai' }}">
+                                    {{ $pBadge }}:{{ $pNa !== null ? number_format($pNa, 0) : '-' }}
+                                </span>
+                                @endforeach
+                            </div>
                         </td>
 
                         <!-- Rata TP -->
@@ -669,7 +690,7 @@
                 </tbody>
             </table>
         </div>
-        @else
+        @elseif($isSemesterView)
         <!-- VIEW 2: DUA BLOK 9 MINGGU BERDAMPINGAN (1 SEMESTER) -->
         <div class="overflow-x-auto max-h-[640px] relative border border-border rounded-xl shadow-2xs">
             <table class="min-w-full border-separate border-spacing-0 text-left text-xs">
@@ -748,9 +769,8 @@
                 <tbody class="divide-y divide-border bg-surface text-text-main">
                     @foreach($siswas as $idx => $siswa)
                     @php
-                        $rekap = $rekapData[$siswa->id] ?? null;
-                        $d1 = $rekap ? $rekap->getRecordFor9M($k1) : null;
-                        $d2 = $rekap ? $rekap->getRecordFor9M($k2) : null;
+                        $d1 = $this->getRecord9MForSiswa($siswa->id, $k1);
+                        $d2 = $this->getRecord9MForSiswa($siswa->id, $k2);
 
                         $rf1 = $d1['rata_tp'] ?? null;
                         $nh1 = $d1['nh'] ?? ($nhData[$siswa->id][$k1] ?? 100.0);
@@ -799,6 +819,18 @@
                         <td class="min-w-[170px] max-w-[210px] p-2.5 font-medium sticky left-[40px] z-20 bg-surface dark:bg-surface-card border-b border-r-2 border-border shadow-[4px_0_8px_-2px_rgba(0,0,0,0.12)] whitespace-nowrap">
                             <div class="truncate text-xs font-semibold text-text-main" title="{{ $siswa->nama }}">{{ $siswa->nama }}</div>
                             <div class="text-[10px] text-text-secondary font-mono">{{ $siswa->nipd ?? $siswa->nisn ?? '-' }}</div>
+                            <!-- Mini Progress Semua Periode 9M1 - 9M4 -->
+                            <div class="flex items-center gap-1 mt-1 font-mono text-[9px]">
+                                @foreach(['9M1', '9M2', '9M3', '9M4'] as $pBadge)
+                                @php
+                                    $pRec = $this->getRecord9MForSiswa($siswa->id, $pBadge);
+                                    $pNa = $pRec['nilai_akhir'] ?? null;
+                                @endphp
+                                <span class="px-1.5 py-0.5 rounded text-[9px] {{ in_array($pBadge, [$k1, $k2]) ? 'ring-1 ring-primary font-bold shadow-xs' : 'opacity-75' }} {{ $pNa !== null ? 'bg-emerald-100 text-emerald-800 dark:bg-emerald-950/70 dark:text-emerald-300' : 'bg-slate-100 text-slate-500 dark:bg-slate-800 dark:text-slate-400' }}" title="{{ $pBadge }}: {{ $pNa !== null ? number_format($pNa, 1) : 'Belum ada nilai' }}">
+                                    {{ $pBadge }}:{{ $pNa !== null ? number_format($pNa, 0) : '-' }}
+                                </span>
+                                @endforeach
+                            </div>
                         </td>
 
                         <!-- BLOK 1: Rata TP -->
@@ -917,6 +949,190 @@
                             @else
                                 <span class="italic text-text-muted text-[10px]">-</span>
                             @endif
+                        </td>
+                    </tr>
+                    @endforeach
+                </tbody>
+            </table>
+        </div>
+        @else
+        <!-- VIEW 3: SEMUA PERIODE (9M1 s.d. 9M4) BERDAMPINGAN 1 TAHUN PENUH -->
+        <div class="overflow-x-auto max-h-[640px] relative border border-border rounded-xl shadow-2xs">
+            <table class="min-w-full border-separate border-spacing-0 text-left text-xs">
+                <thead class="sticky top-0 z-30 shadow-2xs">
+                    <!-- HEADER BARIS 1: Header Tiap Periode 9M1 - 9M4 -->
+                    <tr class="text-[11px] uppercase tracking-wider font-semibold">
+                        <th rowspan="2" class="sticky top-0 left-0 z-40 w-10 min-w-[40px] max-w-[40px] p-2 text-center bg-slate-100 dark:bg-slate-800 border-b-2 border-r border-border font-bold text-text-main">
+                            No
+                        </th>
+                        <th rowspan="2" class="sticky top-0 left-[40px] z-40 min-w-[170px] max-w-[210px] p-2.5 text-left bg-slate-100 dark:bg-slate-800 border-b-2 border-r-2 border-border font-bold text-text-main shadow-[4px_0_8px_-2px_rgba(0,0,0,0.12)] whitespace-nowrap">
+                            Nama Peserta Didik
+                        </th>
+
+                        <!-- 9M1 (STS 1) -->
+                        <th colspan="6" class="p-2 text-center border-b border-r-2 border-border bg-blue-100/90 dark:bg-blue-950/70 text-blue-950 dark:text-blue-100 font-bold text-xs tracking-wider">
+                            <div class="flex items-center justify-center gap-1.5">
+                                <span class="w-2 h-2 rounded-full bg-blue-600"></span>
+                                <span>9M1 (STS 1)</span>
+                            </div>
+                        </th>
+
+                        <!-- 9M2 (SAS) -->
+                        <th colspan="6" class="p-2 text-center border-b border-r-2 border-border bg-indigo-100/90 dark:bg-indigo-950/70 text-indigo-950 dark:text-indigo-100 font-bold text-xs tracking-wider">
+                            <div class="flex items-center justify-center gap-1.5">
+                                <span class="w-2 h-2 rounded-full bg-indigo-600"></span>
+                                <span>9M2 (SAS)</span>
+                            </div>
+                        </th>
+
+                        <!-- 9M3 (STS 2) -->
+                        <th colspan="6" class="p-2 text-center border-b border-r-2 border-border bg-amber-100/90 dark:bg-amber-950/70 text-amber-950 dark:text-amber-100 font-bold text-xs tracking-wider">
+                            <div class="flex items-center justify-center gap-1.5">
+                                <span class="w-2 h-2 rounded-full bg-amber-600"></span>
+                                <span>9M3 (STS 2)</span>
+                            </div>
+                        </th>
+
+                        <!-- 9M4 (SAT) -->
+                        <th colspan="6" class="p-2 text-center border-b border-r-2 border-border bg-emerald-100/90 dark:bg-emerald-950/70 text-emerald-950 dark:text-emerald-100 font-bold text-xs tracking-wider">
+                            <div class="flex items-center justify-center gap-1.5">
+                                <span class="w-2 h-2 rounded-full bg-emerald-600"></span>
+                                <span>9M4 (SAT)</span>
+                            </div>
+                        </th>
+
+                        <!-- Ringkasan Tahunan -->
+                        <th colspan="2" class="p-2 text-center border-b border-border bg-slate-200/90 dark:bg-slate-700/80 text-text-main font-bold text-xs tracking-wider">
+                            Ringkasan 1 Tahun
+                        </th>
+                    </tr>
+
+                    <!-- HEADER BARIS 2: Komponen Nilai Per Periode -->
+                    <tr class="text-[10px] font-bold text-text-secondary bg-surface-hover">
+                        @foreach([
+                            ['key' => '9M1', 'sumatif' => 'STS 1', 'bg' => 'bg-blue-50/70 dark:bg-blue-950/40 text-blue-900 dark:text-blue-200', 'bgNa' => 'bg-blue-200/70 dark:bg-blue-900/60 text-blue-950 dark:text-blue-50'],
+                            ['key' => '9M2', 'sumatif' => 'SAS', 'bg' => 'bg-indigo-50/70 dark:bg-indigo-950/40 text-indigo-900 dark:text-indigo-200', 'bgNa' => 'bg-indigo-200/70 dark:bg-indigo-900/60 text-indigo-950 dark:text-indigo-50'],
+                            ['key' => '9M3', 'sumatif' => 'STS 2', 'bg' => 'bg-amber-50/70 dark:bg-amber-950/40 text-amber-900 dark:text-amber-200', 'bgNa' => 'bg-amber-200/70 dark:bg-amber-900/60 text-amber-950 dark:text-amber-50'],
+                            ['key' => '9M4', 'sumatif' => 'SAT', 'bg' => 'bg-emerald-50/70 dark:bg-emerald-950/40 text-emerald-900 dark:text-emerald-200', 'bgNa' => 'bg-emerald-200/70 dark:bg-emerald-900/60 text-emerald-950 dark:text-emerald-50'],
+                        ] as $colCfg)
+                        <th class="p-2 text-center min-w-[70px] border-b-2 border-r border-border {{ $colCfg['bg'] }}">Rata TP</th>
+                        <th class="p-2 text-center min-w-[65px] border-b-2 border-r border-border {{ $colCfg['bg'] }}">NH</th>
+                        <th class="p-2 text-center min-w-[70px] border-b-2 border-r border-border {{ $colCfg['bg'] }}">{{ $colCfg['sumatif'] }}</th>
+                        <th class="p-2 text-center min-w-[60px] border-b-2 border-r border-border {{ $colCfg['bgNa'] }} font-extrabold">NA</th>
+                        <th class="p-2 text-center min-w-[95px] border-b-2 border-r border-border {{ $colCfg['bg'] }}">Predikat</th>
+                        <th class="p-2 text-left min-w-[180px] max-w-[240px] border-b-2 border-r-2 border-border {{ $colCfg['bg'] }}">Narasi</th>
+                        @endforeach
+
+                        <th class="p-2 text-center min-w-[75px] border-b-2 border-r border-border bg-slate-100 dark:bg-slate-800 font-extrabold text-text-main">Rata NA</th>
+                        <th class="p-2 text-center min-w-[100px] border-b-2 border-border bg-slate-100 dark:bg-slate-800 font-bold text-text-main">Predikat Akhir</th>
+                    </tr>
+                </thead>
+                <tbody class="divide-y divide-border bg-surface text-text-main">
+                    @foreach($siswas as $idx => $siswa)
+                    @php
+                        $validNas = [];
+                    @endphp
+                    <tr class="hover:bg-surface-hover/60 transition-colors">
+                        <td class="w-10 min-w-[40px] max-w-[40px] p-2 text-center font-mono text-text-secondary sticky left-0 z-20 bg-surface dark:bg-surface-card border-b border-r border-border">
+                            {{ $loop->iteration }}
+                        </td>
+                        <td class="min-w-[170px] max-w-[210px] p-2.5 font-medium sticky left-[40px] z-20 bg-surface dark:bg-surface-card border-b border-r-2 border-border shadow-[4px_0_8px_-2px_rgba(0,0,0,0.12)] whitespace-nowrap">
+                            <div class="truncate text-xs font-semibold text-text-main" title="{{ $siswa->nama }}">{{ $siswa->nama }}</div>
+                            <div class="text-[10px] text-text-secondary font-mono">{{ $siswa->nipd ?? $siswa->nisn ?? '-' }}</div>
+                        </td>
+
+                        @foreach(['9M1', '9M2', '9M3', '9M4'] as $pKey)
+                        @php
+                            $d = $this->getRecord9MForSiswa($siswa->id, $pKey);
+                            $rf = $d['rata_tp'] ?? null;
+                            $nh = $d['nh'] ?? ($nhData[$siswa->id][$pKey] ?? 100.0);
+                            $sm = $d['sumatif'] ?? ($sumatifData[$siswa->id][$pKey] ?? null);
+                            $na = $d['nilai_akhir'] ?? null;
+                            if ($na !== null) {
+                                $validNas[] = $na;
+                            }
+                            $pred = $d['predikat'] ?? 'Belum Lengkap';
+                            $status = $d['status'] ?? 'belum_ada_nilai';
+                            $isManual = !empty($d['deskripsi_manual']);
+                            $desc = $isManual ? $d['deskripsi_manual'] : trim(($d['deskripsi_tertinggi'] ?? '') . ' ' . ($d['deskripsi_terendah'] ?? ''));
+
+                            $badgePred = match($pred) {
+                                'Mahir' => 'bg-emerald-100 dark:bg-emerald-950/70 text-emerald-800 dark:text-emerald-200 border-emerald-300',
+                                'Cakap' => 'bg-indigo-100 dark:bg-indigo-950/70 text-indigo-800 dark:text-indigo-200 border-indigo-300',
+                                'Layak' => 'bg-sky-100 dark:bg-sky-950/70 text-sky-800 dark:text-sky-200 border-sky-300',
+                                'Mulai Berkembang' => 'bg-amber-100 dark:bg-amber-950/70 text-amber-800 dark:text-amber-200 border-amber-300',
+                                'Belum Kompeten' => 'bg-rose-100 dark:bg-rose-950/70 text-rose-800 dark:text-rose-200 border-rose-300 font-bold',
+                                'Belum Lengkap' => 'bg-slate-100 dark:bg-slate-800 text-slate-700 dark:text-slate-300 border-slate-300',
+                                default => 'bg-slate-100 dark:bg-slate-800 text-slate-600 dark:text-slate-400 border-slate-200',
+                            };
+                        @endphp
+                            <!-- Rata TP -->
+                            <td class="p-2 text-center font-mono font-medium border-b border-r border-border bg-surface-hover/30">
+                                {{ $rf !== null ? number_format($rf, 1) : '-' }}
+                            </td>
+                            <!-- NH -->
+                            <td class="p-2 text-center font-mono font-medium border-b border-r border-border bg-surface-hover/30">
+                                {{ $nh !== null ? number_format($nh, 1) : '100.0' }}
+                            </td>
+                            <!-- Sumatif -->
+                            <td class="p-2 text-center font-mono font-medium border-b border-r border-border bg-surface-hover/30">
+                                {{ $sm !== null ? number_format($sm, 1) : '-' }}
+                            </td>
+                            <!-- NA -->
+                            @if($status === 'belum_kompeten')
+                                <td class="p-2 text-center font-mono font-bold text-xs border-b border-r border-border bg-rose-50 dark:bg-rose-950/40 text-rose-700 dark:text-rose-300">
+                                    <span class="inline-block px-1.5 py-0.5 rounded bg-rose-100 dark:bg-rose-900/60 text-rose-800 dark:text-rose-200 font-bold">-</span>
+                                </td>
+                            @elseif($status === 'belum_lengkap')
+                                <td class="p-2 text-center font-mono font-bold text-xs border-b border-r border-border bg-amber-50/50 dark:bg-amber-950/30 text-amber-700 dark:text-amber-300">
+                                    <span class="inline-block px-1.5 py-0.5 rounded bg-amber-100/80 dark:bg-amber-900/40 text-amber-800 dark:text-amber-200 font-bold">-</span>
+                                </td>
+                            @else
+                                <td class="p-2 text-center font-mono font-bold text-xs border-b border-r border-border bg-primary/5 text-primary">
+                                    {{ $na !== null ? number_format($na, 1) : '-' }}
+                                </td>
+                            @endif
+                            <!-- Predikat -->
+                            <td class="p-2 text-center border-b border-r border-border">
+                                <span class="inline-flex items-center px-2 py-0.5 rounded-full text-[9px] font-semibold border {{ $badgePred }}">
+                                    {{ $pred }}
+                                </span>
+                            </td>
+                            <!-- Narasi & Aksi -->
+                            <td class="p-2 border-b border-r-2 border-border text-[11px] align-top min-w-[180px]">
+                                @if($isManual)
+                                    <div class="text-[10px] leading-relaxed text-text-main line-clamp-2">{{ $desc }}</div>
+                                    <div class="flex items-center justify-between gap-1 pt-0.5">
+                                        <span class="text-[8px] px-1 py-0.2 rounded bg-amber-100 text-amber-800 font-bold">✏️ Manual</span>
+                                        <button type="button" wire:click="openEditDeskripsi9M({{ $siswa->id }}, '{{ $pKey }}')" class="text-[10px] text-primary hover:underline font-semibold cursor-pointer">Edit</button>
+                                    </div>
+                                @elseif($status === 'belum_lengkap')
+                                    <div class="text-[10px] text-amber-800 dark:text-amber-300">⚠️ Belum lengkap</div>
+                                    <button type="button" wire:click="openEditDeskripsi9M({{ $siswa->id }}, '{{ $pKey }}')" class="text-[10px] text-primary hover:underline font-semibold cursor-pointer">Edit</button>
+                                @elseif($status === 'belum_kompeten')
+                                    <div class="text-[10px] text-rose-800 dark:text-rose-300">🚫 Belum kompeten</div>
+                                    <button type="button" wire:click="openEditDeskripsi9M({{ $siswa->id }}, '{{ $pKey }}')" class="text-[10px] text-primary hover:underline font-semibold cursor-pointer">Edit</button>
+                                @elseif(!empty($desc))
+                                    <div class="text-[10px] text-text-main line-clamp-2">{{ $desc }}</div>
+                                    <button type="button" wire:click="openEditDeskripsi9M({{ $siswa->id }}, '{{ $pKey }}')" class="text-[10px] text-primary hover:underline font-semibold cursor-pointer">Edit</button>
+                                @else
+                                    <span class="italic text-text-muted text-[10px]">-</span>
+                                @endif
+                            </td>
+                        @endforeach
+
+                        @php
+                            $avgTahun = count($validNas) > 0 ? round(array_sum($validNas) / count($validNas), 1) : null;
+                            $kkmVal = (float) ($penugasan->mapel->kkm_default ?? 75);
+                            $predTahun = $avgTahun !== null ? app(\App\Modules\Penilaian\Services\PenilaianScoreCalculator::class)->resolvePredikat($avgTahun, $kkmVal, $settings) : 'Belum Lengkap';
+                        @endphp
+                        <td class="p-2 text-center font-mono font-bold text-xs border-b border-r border-border bg-slate-50 dark:bg-slate-900/50 text-text-main">
+                            {{ $avgTahun !== null ? number_format($avgTahun, 1) : '-' }}
+                        </td>
+                        <td class="p-2 text-center border-b border-border bg-slate-50 dark:bg-slate-900/50">
+                            <span class="inline-flex items-center px-2 py-0.5 rounded-full text-[9px] font-semibold border bg-slate-100 dark:bg-slate-800 text-slate-700 dark:text-slate-300 border-slate-300">
+                                {{ $predTahun }}
+                            </span>
                         </td>
                     </tr>
                     @endforeach

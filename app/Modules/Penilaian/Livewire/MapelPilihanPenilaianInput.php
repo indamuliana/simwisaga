@@ -115,6 +115,12 @@ class MapelPilihanPenilaianInput extends Component
         $this->rekapPeriode = $this->activePeriode;
         $this->tp_target_periode = $this->activePeriode;
 
+        if (in_array($this->activePeriode, ['9M3', '9M4']) && $this->semGenapId) {
+            $this->activeNilaiSemesterId = $this->semGenapId;
+        } elseif (in_array($this->activePeriode, ['9M1', '9M2']) && $this->semGanjilId) {
+            $this->activeNilaiSemesterId = $this->semGanjilId;
+        }
+
         $this->loadNilai();
     }
 

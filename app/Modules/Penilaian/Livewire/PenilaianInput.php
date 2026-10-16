@@ -100,6 +100,8 @@ class PenilaianInput extends Component
 
     // State for Rekap
     public $rekapData = [];
+    public array $rekapDataGanjil = [];
+    public array $rekapDataGenap = [];
 
     // State for Modal Edit Deskripsi 9M
     public bool $showModalDeskripsi9M = false;
@@ -127,16 +129,27 @@ class PenilaianInput extends Component
 
         $this->loadSemestersAndPenugasans();
 
-        $this->activeNilaiSemesterId = $this->penugasan->semester_id;
-        $this->activeNilaiPenugasanId = $this->penugasan->id;
-        $this->tp_semester_id = $this->penugasan->semester_id;
-        $this->tp_alokasi_ah = $this->availableAhOptions[0] ?? 'AH 1';
-
         $isGenap = str_contains(strtolower($this->penugasan->semester?->semester ?? ''), 'genap');
         $defaultP = $isGenap ? '9M3' : '9M1';
         $this->activePeriode = request()->query('periode', $defaultP);
         $this->rekapPeriode = $this->activePeriode;
         $this->tp_target_periode = $this->activePeriode;
+
+        if (in_array($this->activePeriode, ['9M3', '9M4']) && $this->semGenapId) {
+            $this->activeNilaiSemesterId = $this->semGenapId;
+            $this->activeNilaiPenugasanId = $this->pmGenapId;
+            $this->tp_semester_id = $this->semGenapId;
+        } elseif (in_array($this->activePeriode, ['9M1', '9M2']) && $this->semGanjilId) {
+            $this->activeNilaiSemesterId = $this->semGanjilId;
+            $this->activeNilaiPenugasanId = $this->pmGanjilId;
+            $this->tp_semester_id = $this->semGanjilId;
+        } else {
+            $this->activeNilaiSemesterId = $this->penugasan->semester_id;
+            $this->activeNilaiPenugasanId = $this->penugasan->id;
+            $this->tp_semester_id = $this->penugasan->semester_id;
+        }
+
+        $this->tp_alokasi_ah = $this->availableAhOptions[0] ?? 'AH 1';
 
         $this->loadAllTP();
         $this->tp_urutan = ($this->allTps->max('urutan') ?? 0) + 1;
@@ -521,9 +534,14 @@ class PenilaianInput extends Component
     {
         $this->rekapPeriode = $mode;
         if (in_array($mode, ['9M1', '9M2']) && $this->semGanjilId) {
+            $this->activePeriode = $mode;
             $this->switchNilaiSemester($this->semGanjilId);
         } elseif (in_array($mode, ['9M3', '9M4']) && $this->semGenapId) {
+            $this->activePeriode = $mode;
             $this->switchNilaiSemester($this->semGenapId);
+        } elseif (in_array($mode, ['semua', 'tahun'])) {
+            if ($this->pmGanjilId) $this->calculateRekap($this->pmGanjilId);
+            if ($this->pmGenapId && $this->pmGenapId !== $this->pmGanjilId) $this->calculateRekap($this->pmGenapId);
         }
     }
 
@@ -872,7 +890,17 @@ class PenilaianInput extends Component
 
     public function calculateRekap(?int $targetPenugasanId = null)
     {
-        $penugasanId = $targetPenugasanId ?? $this->activeNilaiPenugasanId;
+        if ($targetPenugasanId === null) {
+            if ($this->pmGanjilId) {
+                $this->calculateRekap($this->pmGanjilId);
+            }
+            if ($this->pmGenapId && $this->pmGenapId !== $this->pmGanjilId) {
+                $this->calculateRekap($this->pmGenapId);
+            }
+            return;
+        }
+
+        $penugasanId = $targetPenugasanId;
         if (!$penugasanId) return;
 
         $isGenap = ($penugasanId == $this->pmGenapId);
@@ -971,9 +999,38 @@ class PenilaianInput extends Component
             $computedRekap[$siswa->id] = $na;
         }
 
+        if ($penugasanId == $this->pmGanjilId) {
+            $this->rekapDataGanjil = $computedRekap;
+        }
+        if ($penugasanId == $this->pmGenapId) {
+            $this->rekapDataGenap = $computedRekap;
+        }
         if ($penugasanId == $this->activeNilaiPenugasanId) {
             $this->rekapData = $computedRekap;
         }
+    }
+
+    public function getRecord9MForSiswa(int $siswaId, string $periodKey): ?array
+    {
+        $cleanKey = NilaiAkhir::normalizePeriodKey($periodKey);
+        $isGenap = in_array($cleanKey, ['9M3', '9M4']);
+        $source = $isGenap ? ($this->rekapDataGenap[$siswaId] ?? null) : ($this->rekapDataGanjil[$siswaId] ?? null);
+
+        if (!$source) {
+            $targetPmId = $isGenap ? $this->pmGenapId : $this->pmGanjilId;
+            if ($targetPmId) {
+                $source = NilaiAkhir::where('siswa_id', $siswaId)
+                    ->where('penugasan_mengajar_id', $targetPmId)
+                    ->first();
+                if ($isGenap) {
+                    $this->rekapDataGenap[$siswaId] = $source;
+                } else {
+                    $this->rekapDataGanjil[$siswaId] = $source;
+                }
+            }
+        }
+
+        return $source?->getRecordFor9M($cleanKey);
     }
 
     public function openEditDeskripsi9M(int $siswaId, string $periodKey): void
@@ -992,7 +1049,18 @@ class PenilaianInput extends Component
         ];
         $this->selectedPeriodLabel9M = $periodLabels[$periodKey] ?? $periodKey;
 
-        $na = $this->rekapData[$siswaId] ?? NilaiAkhir::where('siswa_id', $siswaId)->where('penugasan_mengajar_id', $this->activeNilaiPenugasanId)->first();
+        $isGenap = in_array($periodKey, ['9M3', '9M4']);
+        $targetPmId = $isGenap ? $this->pmGenapId : $this->pmGanjilId;
+        $na = $isGenap ? ($this->rekapDataGenap[$siswaId] ?? null) : ($this->rekapDataGanjil[$siswaId] ?? null);
+        if (!$na && $targetPmId) {
+            $na = NilaiAkhir::where('siswa_id', $siswaId)->where('penugasan_mengajar_id', $targetPmId)->first();
+            if ($isGenap) {
+                $this->rekapDataGenap[$siswaId] = $na;
+            } else {
+                $this->rekapDataGanjil[$siswaId] = $na;
+            }
+        }
+
         $record9m = $na?->getRecordFor9M($periodKey);
 
         $this->tempDeskripsiManual9M = $record9m['deskripsi_manual'] ?? '';
@@ -1024,8 +1092,11 @@ class PenilaianInput extends Component
             return;
         }
 
+        $isGenap = in_array($this->selectedPeriodKey9M, ['9M3', '9M4']);
+        $targetPmId = $isGenap ? $this->pmGenapId : $this->pmGanjilId;
+
         $na = NilaiAkhir::where('siswa_id', $this->selectedSiswaId9M)
-            ->where('penugasan_mengajar_id', $this->activeNilaiPenugasanId)
+            ->where('penugasan_mengajar_id', $targetPmId)
             ->first();
 
         if ($na) {
@@ -1038,7 +1109,14 @@ class PenilaianInput extends Component
             $na->data_9m = $data9m;
             $na->save();
 
-            $this->rekapData[$this->selectedSiswaId9M] = $na;
+            if ($isGenap) {
+                $this->rekapDataGenap[$this->selectedSiswaId9M] = $na;
+            } else {
+                $this->rekapDataGanjil[$this->selectedSiswaId9M] = $na;
+            }
+            if ($targetPmId == $this->activeNilaiPenugasanId) {
+                $this->rekapData[$this->selectedSiswaId9M] = $na;
+            }
         }
 
         session()->flash('message_rekap', 'Deskripsi capaian periode ' . $this->selectedPeriodKey9M . ' berhasil diperbarui.');

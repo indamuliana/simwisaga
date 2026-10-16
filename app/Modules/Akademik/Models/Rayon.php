@@ -22,4 +22,9 @@ class Rayon extends Model implements Auditable
     {
         return $this->belongsTo(User::class, 'pembimbing_id');
     }
+
+    public function siswas(): \Illuminate\Database\Eloquent\Relations\HasMany
+    {
+        return $this->hasMany(\App\Modules\Kesiswaan\Models\Siswa::class, 'rayon_id');
+    }
 }
