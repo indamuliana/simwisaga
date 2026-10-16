@@ -173,16 +173,21 @@
 
     <!-- MODAL DETAIL & VERIFIKASI -->
     @if($showDetailModal && $selectedPrestasi)
-    <div class="fixed inset-0 z-50 overflow-y-auto bg-black/50 backdrop-blur-xs flex items-center justify-center p-4">
-        <div class="bg-surface rounded-2xl border border-border w-full max-w-2xl shadow-xl overflow-hidden my-8">
-            <div class="px-6 py-4 border-b border-border flex items-center justify-between bg-surface-hover/50">
+    <div class="fixed inset-0 z-50 bg-black/60 backdrop-blur-xs flex items-center justify-center p-3 sm:p-4 overflow-hidden">
+        <div class="bg-surface rounded-2xl border border-border w-full max-w-2xl shadow-2xl flex flex-col max-h-[88vh] overflow-hidden">
+            <!-- Header (Fixed / Sticky) -->
+            <div class="px-6 py-3.5 border-b border-border flex items-center justify-between bg-surface-hover/50 flex-none">
                 <h3 class="font-bold text-text-main text-base flex items-center gap-2">
                     <span>🔍</span> Tinjauan Pengajuan Prestasi Siswa
                 </h3>
-                <button type="button" wire:click="$set('showDetailModal', false)" class="text-text-muted hover:text-text-main text-xl font-bold">&times;</button>
+                <button type="button" wire:click="$set('showDetailModal', false)" 
+                        class="w-8 h-8 rounded-lg flex items-center justify-center text-text-muted hover:text-text-main hover:bg-surface-hover text-lg font-bold transition">
+                    &times;
+                </button>
             </div>
 
-            <div class="p-6 space-y-4 max-h-[80vh] overflow-y-auto">
+            <!-- Body (Scrollable) -->
+            <div class="p-6 space-y-4 overflow-y-auto flex-1">
                 <div class="p-4 rounded-xl bg-surface-hover/60 border border-border space-y-3 text-xs">
                     <div class="flex justify-between items-start">
                         <div>
@@ -250,24 +255,24 @@
                         @endif
                     </div>
                 </div>
+            </div>
 
-                <!-- Actions -->
-                <div class="pt-4 border-t border-border flex justify-between items-center">
-                    <button type="button" wire:click="$set('showDetailModal', false)" class="btn btn-sm btn-outline border-border text-xs">
-                        Tutup
-                    </button>
+            <!-- Footer (Fixed / Sticky) -->
+            <div class="px-6 py-3.5 border-t border-border bg-surface-hover/30 flex justify-between items-center flex-none">
+                <button type="button" wire:click="$set('showDetailModal', false)" class="btn btn-sm btn-outline border-border text-xs px-4">
+                    Tutup
+                </button>
 
-                    @if($selectedPrestasi->status_verifikasi === 'pending')
-                        <div class="flex items-center gap-2">
-                            <button type="button" wire:click="openReject({{ $selectedPrestasi->id }})" class="btn btn-sm btn-outline border-rose-300 text-rose-600 text-xs">
-                                Tolak Pengajuan
-                            </button>
-                            <button type="button" wire:click="approve({{ $selectedPrestasi->id }})" class="btn btn-sm btn-primary text-xs">
-                                ✓ Setujui & Masukkan ke Rapor
-                            </button>
-                        </div>
-                    @endif
-                </div>
+                @if($selectedPrestasi->status_verifikasi === 'pending')
+                    <div class="flex items-center gap-2">
+                        <button type="button" wire:click="openReject({{ $selectedPrestasi->id }})" class="btn btn-sm btn-outline border-rose-300 text-rose-600 text-xs px-3">
+                            Tolak Pengajuan
+                        </button>
+                        <button type="button" wire:click="approve({{ $selectedPrestasi->id }})" class="btn btn-sm btn-primary text-xs px-4">
+                            ✓ Setujui & Masukkan ke Rapor
+                        </button>
+                    </div>
+                @endif
             </div>
         </div>
     </div>

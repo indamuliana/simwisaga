@@ -257,267 +257,304 @@
 
     <!-- MODAL FORM CREATE / EDIT PRESTASI SISWA -->
     @if($showFormModal)
-    <div class="fixed inset-0 z-50 overflow-y-auto bg-black/50 backdrop-blur-xs flex items-center justify-center p-4">
-        <div class="bg-surface rounded-2xl border border-border w-full max-w-3xl shadow-xl overflow-hidden my-8">
-            <div class="px-6 py-4 border-b border-border flex items-center justify-between bg-surface-hover/50">
+    <div class="fixed inset-0 z-50 bg-black/60 backdrop-blur-xs flex items-center justify-center p-3 sm:p-4 overflow-hidden">
+        <form wire:submit="save" class="bg-surface rounded-2xl border border-border w-full max-w-4xl shadow-2xl flex flex-col max-h-[88vh] overflow-hidden">
+            <!-- Header (Fixed / Sticky) -->
+            <div class="px-6 py-3.5 border-b border-border flex items-center justify-between bg-surface-hover/50 flex-none">
                 <h3 class="font-bold text-text-main text-base flex items-center gap-2">
                     <span>🏆</span> {{ $prestasiId ? 'Edit Data Prestasi Siswa' : 'Catat Prestasi Siswa Baru' }}
                 </h3>
-                <button type="button" wire:click="$set('showFormModal', false)" class="text-text-muted hover:text-text-main text-xl font-bold">&times;</button>
+                <button type="button" wire:click="$set('showFormModal', false)" 
+                        class="w-8 h-8 rounded-lg flex items-center justify-center text-text-muted hover:text-text-main hover:bg-surface-hover text-lg font-bold transition">
+                    &times;
+                </button>
             </div>
 
-            <form wire:submit="save" class="p-6 space-y-4 max-h-[80vh] overflow-y-auto">
-                <!-- Tipe Peserta (Individu vs Kelompok) -->
-                <div class="bg-surface-hover/40 p-4 rounded-xl border border-border space-y-3">
-                    <label class="text-xs font-bold text-text-main block">Tipe Kepesertaan Prestasi</label>
-                    <div class="flex items-center gap-6 text-xs">
-                        <label class="flex items-center gap-2 cursor-pointer">
-                            <input type="radio" wire:model.live="tipePeserta" value="individu" class="text-primary focus:ring-primary">
-                            <span>Individu (1 Siswa)</span>
-                        </label>
-                        <label class="flex items-center gap-2 cursor-pointer">
-                            <input type="radio" wire:model.live="tipePeserta" value="kelompok" class="text-primary focus:ring-primary">
-                            <span>Regu / Kelompok / Tim</span>
-                        </label>
+            <!-- Body (Scrollable 2-Column Responsive Layout) -->
+            <div class="p-5 sm:p-6 overflow-y-auto flex-1">
+                <div class="grid grid-cols-1 lg:grid-cols-2 gap-5 text-xs">
+                    
+                    <!-- KOLOM KIRI: Informasi Event, Penyelenggara & Capaian -->
+                    <div class="space-y-4">
+                        <div class="font-bold text-[11px] uppercase tracking-wider text-text-muted flex items-center gap-1.5 pb-1 border-b border-border">
+                            <span>📌</span> Informasi Kejuaraan / Event
+                        </div>
+
+                        <!-- Nama Prestasi & Bidang -->
+                        <div class="grid grid-cols-1 sm:grid-cols-2 gap-3">
+                            <div class="sm:col-span-2">
+                                <label class="text-xs font-semibold text-text-main block mb-1">Nama Prestasi / Event *</label>
+                                <input type="text" wire:model="namaPrestasi" placeholder="Misal: LKS Web Technologies, O2SN Renang" 
+                                       class="w-full text-xs rounded-xl border border-border bg-surface px-3 py-2">
+                                @error('namaPrestasi') <span class="text-rose-500 text-[11px]">{{ $message }}</span> @enderror
+                            </div>
+                            <div class="sm:col-span-2">
+                                <label class="text-xs font-semibold text-text-main block mb-1">Bidang Prestasi</label>
+                                <input type="text" wire:model="bidang" placeholder="Misal: IT & Coding, Olahraga, Seni, Bahasa" 
+                                       class="w-full text-xs rounded-xl border border-border bg-surface px-3 py-2">
+                            </div>
+                        </div>
+
+                        <!-- Kategori & Lingkup Penyelenggara -->
+                        <div class="grid grid-cols-1 sm:grid-cols-2 gap-3">
+                            <div>
+                                <label class="text-xs font-semibold text-text-main block mb-1">Kategori Prestasi *</label>
+                                <select wire:model="kategori" class="w-full text-xs rounded-xl border border-border bg-surface px-3 py-2">
+                                    <option value="non_akademik">Non-Akademik (Kejuaraan)</option>
+                                    <option value="akademik">Akademik</option>
+                                    <option value="sertifikasi">Sertifikasi Keahlian</option>
+                                </select>
+                            </div>
+                            <div>
+                                <label class="text-xs font-semibold text-text-main block mb-1">Lingkup Penyelenggara *</label>
+                                <select wire:model="penyelenggaraLingkup" class="w-full text-xs rounded-xl border border-border bg-surface px-3 py-2">
+                                    <option value="luar_sekolah">Eksternal (Luar Sekolah)</option>
+                                    <option value="dalam_sekolah">Internal (Dalam Sekolah)</option>
+                                </select>
+                            </div>
+                        </div>
+
+                        <!-- Nama Penyelenggara -->
+                        <div>
+                            <label class="text-xs font-semibold text-text-main block mb-1">Nama Lembaga Penyelenggara *</label>
+                            <input type="text" wire:model="penyelenggaraNama" placeholder="Misal: Kemendikbudristek, Telkom Univ, Disdik" 
+                                   class="w-full text-xs rounded-xl border border-border bg-surface px-3 py-2">
+                            @error('penyelenggaraNama') <span class="text-rose-500 text-[11px]">{{ $message }}</span> @enderror
+                        </div>
+
+                        <!-- Tingkat Prestasi -->
+                        <div>
+                            <label class="text-xs font-semibold text-text-main block mb-1">Tingkat Prestasi *</label>
+                            <select wire:model="tingkat" class="w-full text-xs rounded-xl border border-border bg-surface px-3 py-2">
+                                <option value="sekolah">Tingkat Sekolah</option>
+                                <option value="kecamatan">Tingkat Kecamatan</option>
+                                <option value="kabupaten_kota">Tingkat Kabupaten / Kota</option>
+                                <option value="provinsi">Tingkat Provinsi</option>
+                                <option value="nasional">Tingkat Nasional</option>
+                                <option value="internasional">Tingkat Internasional</option>
+                            </select>
+                        </div>
+
+                        <!-- Peringkat / Capaian & Template Pills -->
+                        <div>
+                            <label class="text-xs font-semibold text-text-main block mb-1">Peringkat / Capaian (Bisa Pilih atau Ketik Bebas) *</label>
+                            <input type="text" wire:model="peringkat" placeholder="Misal: Juara 1, Best Speaker, Medali Emas" 
+                                   class="w-full text-xs rounded-xl border border-border bg-surface px-3 py-2 font-bold text-teal-700 dark:text-teal-300">
+                            @error('peringkat') <span class="text-rose-500 text-[11px]">{{ $message }}</span> @enderror
+                            
+                            <div class="flex flex-wrap gap-1 mt-1.5">
+                                @foreach(['Juara 1', 'Juara 2', 'Juara 3', 'Harapan 1', 'Medali Emas', 'Medali Perak', 'Medali Perunggu', 'Finalis', 'Best Speaker', 'Lulus Sertifikasi'] as $pill)
+                                    <button type="button" wire:click="setPeringkatTemplate('{{ $pill }}')" 
+                                            class="px-2 py-0.5 rounded text-[10px] bg-surface-hover hover:bg-teal-500 hover:text-white transition">
+                                        {{ $pill }}
+                                    </button>
+                                @endforeach
+                            </div>
+                        </div>
+
+                        <!-- Waktu & Tempat & Rapor -->
+                        <div class="grid grid-cols-1 sm:grid-cols-2 gap-3 pt-2 border-t border-border">
+                            <div>
+                                <label class="text-xs font-semibold text-text-main block mb-1">Tanggal Perolehan *</label>
+                                <input type="date" wire:model.live="tanggalPerolehan" 
+                                       class="w-full text-xs rounded-xl border border-border bg-surface px-3 py-2">
+                                @error('tanggalPerolehan') <span class="text-rose-500 text-[11px]">{{ $message }}</span> @enderror
+                            </div>
+                            <div>
+                                <label class="text-xs font-semibold text-text-main block mb-1">Tempat / Lokasi</label>
+                                <input type="text" wire:model="tempat" placeholder="Misal: Jakarta Convention Center" 
+                                       class="w-full text-xs rounded-xl border border-border bg-surface px-3 py-2">
+                            </div>
+                            <div class="sm:col-span-2">
+                                <label class="text-xs font-semibold text-text-main block mb-1">Periode Rapor (Target Integrasi Rapor)</label>
+                                <select wire:model="periodeRaporId" class="w-full text-xs rounded-xl border border-border bg-surface px-3 py-2">
+                                    <option value="">-- Umum Satu Semester --</option>
+                                    @foreach($formPeriodes as $fp)
+                                        <option value="{{ $fp->id }}">{{ $fp->nama }} ({{ $fp->sebutan }})</option>
+                                    @endforeach
+                                </select>
+                                <span class="text-[10px] text-text-muted mt-0.5 block">Otomatis terhubung ke catatan rapor siswa pada periode ini</span>
+                            </div>
+                        </div>
                     </div>
 
-                    @if($tipePeserta === 'kelompok')
-                        <div>
-                            <label class="text-[11px] font-semibold text-text-secondary block mb-1">Nama Tim / Kelompok (Opsional)</label>
-                            <input type="text" wire:model="namaTim" placeholder="Misal: Tim Robotik Wikrama, Regu LKS Web Tech" 
-                                   class="w-full text-xs rounded-xl border border-border bg-surface px-3 py-2">
+                    <!-- KOLOM KANAN: Penerima Prestasi, Pembimbing, Berkas Bukti & Catatan -->
+                    <div class="space-y-4">
+                        <div class="font-bold text-[11px] uppercase tracking-wider text-text-muted flex items-center gap-1.5 pb-1 border-b border-border">
+                            <span>👥</span> Penerima Prestasi & Pendamping
                         </div>
-                    @endif
 
-                    <!-- Pemilihan Siswa -->
-                    <div class="space-y-2">
-                        <label class="text-[11px] font-semibold text-text-secondary block">
-                            Pilih Siswa Penerima Prestasi:
-                        </label>
+                        <!-- Tipe Peserta & Pemilihan Siswa -->
+                        <div class="bg-surface-hover/40 p-3.5 rounded-xl border border-border space-y-3">
+                            <label class="text-xs font-bold text-text-main block">Tipe Kepesertaan Prestasi</label>
+                            <div class="flex items-center gap-6 text-xs">
+                                <label class="flex items-center gap-2 cursor-pointer">
+                                    <input type="radio" wire:model.live="tipePeserta" value="individu" class="text-primary focus:ring-primary">
+                                    <span>Individu (1 Siswa)</span>
+                                </label>
+                                <label class="flex items-center gap-2 cursor-pointer">
+                                    <input type="radio" wire:model.live="tipePeserta" value="kelompok" class="text-primary focus:ring-primary">
+                                    <span>Regu / Tim</span>
+                                </label>
+                            </div>
 
-                        <!-- Search Autocomplete -->
-                        <div class="relative">
-                            <input type="text" wire:model.live.debounce.250ms="siswaSearchQuery" 
-                                   placeholder="Ketik minimal 2 huruf nama atau NISN siswa..." 
-                                   class="w-full text-xs rounded-xl border border-border bg-surface px-3 py-2">
-                            
-                            @if(!empty($siswaSearchResults))
-                                <div class="absolute left-0 right-0 mt-1 bg-surface border border-border rounded-xl shadow-lg z-20 max-h-48 overflow-y-auto divide-y divide-border">
-                                    @foreach($siswaSearchResults as $sr)
-                                        <div wire:click="addSiswa({{ $sr->id }})" 
-                                             class="p-2.5 hover:bg-surface-hover cursor-pointer text-xs flex justify-between items-center">
-                                            <div>
-                                                <strong class="text-text-main">{{ $sr->nama }}</strong>
-                                                <span class="text-[10px] text-text-muted block">NISN: {{ $sr->nisn ?: '-' }} &bull; Rombel: {{ $sr->rombel?->nama ?? '-' }}</span>
+                            @if($tipePeserta === 'kelompok')
+                                <div>
+                                    <label class="text-[11px] font-semibold text-text-secondary block mb-1">Nama Tim / Kelompok (Opsional)</label>
+                                    <input type="text" wire:model="namaTim" placeholder="Misal: Tim Robotik Wikrama, Regu LKS Web Tech" 
+                                           class="w-full text-xs rounded-xl border border-border bg-surface px-3 py-2">
+                                </div>
+                            @endif
+
+                            <!-- Autocomplete Search -->
+                            <div class="space-y-2">
+                                <label class="text-[11px] font-semibold text-text-secondary block">
+                                    Pilih Siswa Penerima Prestasi:
+                                </label>
+
+                                <div class="relative">
+                                    <input type="text" wire:model.live.debounce.250ms="siswaSearchQuery" 
+                                           placeholder="Ketik minimal 2 huruf nama atau NISN siswa..." 
+                                           class="w-full text-xs rounded-xl border border-border bg-surface px-3 py-2">
+                                    
+                                    @if(!empty($siswaSearchResults))
+                                        <div class="absolute left-0 right-0 mt-1 bg-surface border border-border rounded-xl shadow-lg z-20 max-h-44 overflow-y-auto divide-y divide-border">
+                                            @foreach($siswaSearchResults as $sr)
+                                                <div wire:click="addSiswa({{ $sr->id }})" 
+                                                     class="p-2.5 hover:bg-surface-hover cursor-pointer text-xs flex justify-between items-center">
+                                                    <div>
+                                                        <strong class="text-text-main">{{ $sr->nama }}</strong>
+                                                        <span class="text-[10px] text-text-muted block">NISN: {{ $sr->nisn ?: '-' }} &bull; Rombel: {{ $sr->rombel?->nama ?? '-' }}</span>
+                                                    </div>
+                                                    <span class="text-[10px] font-bold text-primary">+ Tambahkan</span>
+                                                </div>
+                                            @endforeach
+                                        </div>
+                                    @endif
+                                </div>
+
+                                <!-- Chips Siswa Terpilih -->
+                                <div class="space-y-1.5 pt-1 max-h-36 overflow-y-auto">
+                                    @foreach($selectedSiswaIds as $sIdx => $sel)
+                                        <div class="flex items-center justify-between p-2 rounded-lg bg-surface border border-border text-xs">
+                                            <span class="font-medium text-text-main flex items-center gap-2">
+                                                <span class="w-5 h-5 rounded-full bg-teal-500/10 text-teal-600 flex items-center justify-center font-bold text-[10px]">{{ $sIdx + 1 }}</span>
+                                                {{ $sel['nama'] }}
+                                            </span>
+                                            <div class="flex items-center gap-2">
+                                                @if($tipePeserta === 'kelompok')
+                                                    <select wire:model="selectedSiswaIds.{{ $sIdx }}.peran" class="text-[11px] rounded-lg border border-border bg-surface px-2 py-1">
+                                                        <option value="ketua">Ketua Tim</option>
+                                                        <option value="anggota">Anggota</option>
+                                                    </select>
+                                                @endif
+                                                <button type="button" wire:click="removeSiswa({{ $sIdx }})" class="text-rose-500 hover:text-rose-700 font-bold px-1.5 py-0.5">&times;</button>
                                             </div>
-                                            <span class="text-[10px] font-bold text-primary">+ Tambahkan</span>
                                         </div>
                                     @endforeach
                                 </div>
+                                @error('selectedSiswaIds') <span class="text-rose-500 text-[11px]">{{ $message }}</span> @enderror
+                            </div>
+                        </div>
+
+                        <!-- Guru Pembimbing -->
+                        <div class="bg-surface-hover/40 p-3.5 rounded-xl border border-border space-y-2.5">
+                            <label class="text-xs font-bold text-text-main block">Guru Pembimbing / Pendamping Siswa</label>
+                            <div class="flex items-center gap-6 text-xs">
+                                <label class="flex items-center gap-2 cursor-pointer">
+                                    <input type="radio" wire:model.live="pembimbingType" value="pegawai" class="text-primary focus:ring-primary">
+                                    <span>Master Data Pegawai</span>
+                                </label>
+                                <label class="flex items-center gap-2 cursor-pointer">
+                                    <input type="radio" wire:model.live="pembimbingType" value="manual" class="text-primary focus:ring-primary">
+                                    <span>Tulis Manual</span>
+                                </label>
+                            </div>
+
+                            @if($pembimbingType === 'pegawai')
+                                <select wire:model="pembimbingPegawaiId" class="w-full text-xs rounded-xl border border-border bg-surface px-3 py-2">
+                                    <option value="">-- Pilih Guru / GTK Pembimbing --</option>
+                                    @foreach($pegawais as $pg)
+                                        <option value="{{ $pg->id }}">{{ $pg->nama_gelar }} ({{ $pg->nip ?: 'Non-NIP' }})</option>
+                                    @endforeach
+                                </select>
+                            @else
+                                <input type="text" wire:model="pembimbingNamaManual" placeholder="Tuliskan nama lengkap guru/pelatih luar..." 
+                                       class="w-full text-xs rounded-xl border border-border bg-surface px-3 py-2">
                             @endif
                         </div>
 
-                        <!-- Siswa Terpilih (Chips/List) -->
-                        <div class="space-y-1.5 pt-1">
-                            @foreach($selectedSiswaIds as $sIdx => $sel)
-                                <div class="flex items-center justify-between p-2 rounded-lg bg-surface border border-border text-xs">
-                                    <span class="font-medium text-text-main flex items-center gap-2">
-                                        <span class="w-5 h-5 rounded-full bg-teal-500/10 text-teal-600 flex items-center justify-center font-bold text-[10px]">{{ $sIdx + 1 }}</span>
-                                        {{ $sel['nama'] }}
-                                    </span>
-                                    <div class="flex items-center gap-2">
-                                        @if($tipePeserta === 'kelompok')
-                                            <select wire:model="selectedSiswaIds.{{ $sIdx }}.peran" class="text-[11px] rounded-lg border border-border bg-surface px-2 py-1">
-                                                <option value="ketua">Ketua Tim</option>
-                                                <option value="anggota">Anggota</option>
-                                            </select>
-                                        @endif
-                                        <button type="button" wire:click="removeSiswa({{ $sIdx }})" class="text-rose-500 hover:text-rose-700 font-bold px-1.5 py-0.5">&times;</button>
-                                    </div>
-                                </div>
-                            @endforeach
+                        <!-- Upload Ganda: Sertifikat & Foto -->
+                        <div class="font-bold text-[11px] uppercase tracking-wider text-text-muted flex items-center gap-1.5 pt-2 border-t border-border">
+                            <span>📎</span> Berkas Bukti & Catatan
                         </div>
-                        @error('selectedSiswaIds') <span class="text-rose-500 text-[11px]">{{ $message }}</span> @enderror
-                    </div>
-                </div>
 
-                <!-- Detail Kegiatan & Penyelenggara -->
-                <div class="grid grid-cols-1 sm:grid-cols-2 gap-4">
-                    <div>
-                        <label class="text-xs font-semibold text-text-main block mb-1">Nama Prestasi / Event *</label>
-                        <input type="text" wire:model="namaPrestasi" placeholder="Misal: LKS Web Technologies, O2SN Renang" 
-                               class="w-full text-xs rounded-xl border border-border bg-surface px-3 py-2">
-                        @error('namaPrestasi') <span class="text-rose-500 text-[11px]">{{ $message }}</span> @enderror
-                    </div>
-                    <div>
-                        <label class="text-xs font-semibold text-text-main block mb-1">Bidang Prestasi</label>
-                        <input type="text" wire:model="bidang" placeholder="Misal: IT & Coding, Olahraga, Seni, Bahasa" 
-                               class="w-full text-xs rounded-xl border border-border bg-surface px-3 py-2">
-                    </div>
-                </div>
+                        <div class="grid grid-cols-1 sm:grid-cols-2 gap-3">
+                            <div>
+                                <label class="text-xs font-semibold text-text-main block mb-1">Berkas Sertifikat / SK (PDF/Img max 5MB)</label>
+                                <input type="file" wire:model="sertifikatFile" class="w-full text-xs text-text-secondary file:mr-2 file:py-1 file:px-2.5 file:rounded-lg file:border-0 file:text-[11px] file:font-semibold file:bg-teal-500/10 file:text-teal-700">
+                                @error('sertifikatFile') <span class="text-rose-500 text-[11px]">{{ $message }}</span> @enderror
+                                @if($existingSertifikatPath)
+                                    <span class="text-[11px] text-teal-600 block mt-1">✓ Berkas tersimpan</span>
+                                @endif
+                            </div>
+                            <div>
+                                <label class="text-xs font-semibold text-text-main block mb-1">Foto Dokumentasi (JPG/PNG max 5MB)</label>
+                                <input type="file" wire:model="fotoFile" accept="image/*" class="w-full text-xs text-text-secondary file:mr-2 file:py-1 file:px-2.5 file:rounded-lg file:border-0 file:text-[11px] file:font-semibold file:bg-blue-500/10 file:text-blue-700">
+                                @error('fotoFile') <span class="text-rose-500 text-[11px]">{{ $message }}</span> @enderror
+                                @if($existingFotoPath)
+                                    <span class="text-[11px] text-blue-600 block mt-1">✓ Foto tersimpan</span>
+                                @endif
+                            </div>
+                        </div>
 
-                <div class="grid grid-cols-1 sm:grid-cols-3 gap-4">
-                    <div>
-                        <label class="text-xs font-semibold text-text-main block mb-1">Kategori Prestasi *</label>
-                        <select wire:model="kategori" class="w-full text-xs rounded-xl border border-border bg-surface px-3 py-2">
-                            <option value="non_akademik">Non-Akademik (Kejuaraan)</option>
-                            <option value="akademik">Akademik</option>
-                            <option value="sertifikasi">Sertifikasi Keahlian</option>
-                        </select>
-                    </div>
-                    <div>
-                        <label class="text-xs font-semibold text-text-main block mb-1">Lingkup Penyelenggara *</label>
-                        <select wire:model="penyelenggaraLingkup" class="w-full text-xs rounded-xl border border-border bg-surface px-3 py-2">
-                            <option value="luar_sekolah">Eksternal (Luar Sekolah)</option>
-                            <option value="dalam_sekolah">Internal (Dalam Sekolah)</option>
-                        </select>
-                    </div>
-                    <div>
-                        <label class="text-xs font-semibold text-text-main block mb-1">Nama Penyelenggara *</label>
-                        <input type="text" wire:model="penyelenggaraNama" placeholder="Misal: Kemendikbudristek, Telkom Univ" 
-                               class="w-full text-xs rounded-xl border border-border bg-surface px-3 py-2">
-                        @error('penyelenggaraNama') <span class="text-rose-500 text-[11px]">{{ $message }}</span> @enderror
-                    </div>
-                </div>
-
-                <!-- Tingkat & Peringkat (Dengan Template + Custom Text) -->
-                <div class="grid grid-cols-1 sm:grid-cols-2 gap-4">
-                    <div>
-                        <label class="text-xs font-semibold text-text-main block mb-1">Tingkat Prestasi *</label>
-                        <select wire:model="tingkat" class="w-full text-xs rounded-xl border border-border bg-surface px-3 py-2">
-                            <option value="sekolah">Tingkat Sekolah</option>
-                            <option value="kecamatan">Tingkat Kecamatan</option>
-                            <option value="kabupaten_kota">Tingkat Kabupaten / Kota</option>
-                            <option value="provinsi">Tingkat Provinsi</option>
-                            <option value="nasional">Tingkat Nasional</option>
-                            <option value="internasional">Tingkat Internasional</option>
-                        </select>
-                    </div>
-                    <div>
-                        <label class="text-xs font-semibold text-text-main block mb-1">Peringkat / Capaian (Bisa Pilih atau Ketik Bebas) *</label>
-                        <input type="text" wire:model="peringkat" placeholder="Misal: Juara 1, Best Speaker, Medali Emas" 
-                               class="w-full text-xs rounded-xl border border-border bg-surface px-3 py-2 font-bold text-teal-700 dark:text-teal-300">
-                        @error('peringkat') <span class="text-rose-500 text-[11px]">{{ $message }}</span> @enderror
-                        
-                        <!-- Template Pills -->
-                        <div class="flex flex-wrap gap-1 mt-1.5">
-                            @foreach(['Juara 1', 'Juara 2', 'Juara 3', 'Harapan 1', 'Medali Emas', 'Medali Perak', 'Medali Perunggu', 'Finalis', 'Best Speaker', 'Lulus Sertifikasi'] as $pill)
-                                <button type="button" wire:click="setPeringkatTemplate('{{ $pill }}')" 
-                                        class="px-2 py-0.5 rounded text-[10px] bg-surface-hover hover:bg-teal-500 hover:text-white transition">
-                                    {{ $pill }}
-                                </button>
-                            @endforeach
+                        <div>
+                            <label class="text-xs font-semibold text-text-main block mb-1">Catatan / Deskripsi Tambahan</label>
+                            <textarea wire:model="deskripsi" rows="2" placeholder="Catatan singkat tentang kompetisi atau karya yang dilombakan..." 
+                                      class="w-full text-xs rounded-xl border border-border bg-surface px-3 py-2"></textarea>
                         </div>
                     </div>
+
                 </div>
+            </div>
 
-                <!-- Guru Pembimbing (Dropdown Pegawai atau Tulis Manual) -->
-                <div class="bg-surface-hover/40 p-4 rounded-xl border border-border space-y-3">
-                    <label class="text-xs font-bold text-text-main block">Guru Pembimbing / Pendamping Siswa</label>
-                    <div class="flex items-center gap-6 text-xs">
-                        <label class="flex items-center gap-2 cursor-pointer">
-                            <input type="radio" wire:model.live="pembimbingType" value="pegawai" class="text-primary focus:ring-primary">
-                            <span>Pilih dari Master Data Pegawai SIRAGA</span>
-                        </label>
-                        <label class="flex items-center gap-2 cursor-pointer">
-                            <input type="radio" wire:model.live="pembimbingType" value="manual" class="text-primary focus:ring-primary">
-                            <span>Tulis Manual (Pembimbing / Pelatih Luar)</span>
-                        </label>
-                    </div>
-
-                    @if($pembimbingType === 'pegawai')
-                        <select wire:model="pembimbingPegawaiId" class="w-full text-xs rounded-xl border border-border bg-surface px-3 py-2">
-                            <option value="">-- Pilih Guru / GTK Pembimbing --</option>
-                            @foreach($pegawais as $pg)
-                                <option value="{{ $pg->id }}">{{ $pg->nama_gelar }} ({{ $pg->nip ?: 'Non-NIP' }})</option>
-                            @endforeach
-                        </select>
-                    @else
-                        <input type="text" wire:model="pembimbingNamaManual" placeholder="Tuliskan nama lengkap guru/pelatih luar..." 
-                               class="w-full text-xs rounded-xl border border-border bg-surface px-3 py-2">
-                    @endif
-                </div>
-
-                <!-- Waktu, Tempat, Periode Rapor -->
-                <div class="grid grid-cols-1 sm:grid-cols-3 gap-4">
-                    <div>
-                        <label class="text-xs font-semibold text-text-main block mb-1">Tanggal Perolehan *</label>
-                        <input type="date" wire:model.live="tanggalPerolehan" 
-                               class="w-full text-xs rounded-xl border border-border bg-surface px-3 py-2">
-                        @error('tanggalPerolehan') <span class="text-rose-500 text-[11px]">{{ $message }}</span> @enderror
-                    </div>
-                    <div>
-                        <label class="text-xs font-semibold text-text-main block mb-1">Tempat / Lokasi</label>
-                        <input type="text" wire:model="tempat" placeholder="Misal: Jakarta Convention Center" 
-                               class="w-full text-xs rounded-xl border border-border bg-surface px-3 py-2">
-                    </div>
-                    <div>
-                        <label class="text-xs font-semibold text-text-main block mb-1">Periode Rapor (Target Integrasi Rapor)</label>
-                        <select wire:model="periodeRaporId" class="w-full text-xs rounded-xl border border-border bg-surface px-3 py-2">
-                            <option value="">-- Umum Satu Semester --</option>
-                            @foreach($formPeriodes as $fp)
-                                <option value="{{ $fp->id }}">{{ $fp->nama }} ({{ $fp->sebutan }})</option>
-                            @endforeach
-                        </select>
-                        <span class="text-[10px] text-text-muted mt-0.5 block">Otomatis terhubung ke catatan rapor</span>
-                    </div>
-                </div>
-
-                <!-- Upload Ganda: Berkas Sertifikat & Foto Dokumentasi -->
-                <div class="grid grid-cols-1 sm:grid-cols-2 gap-4 pt-2 border-t border-border">
-                    <div>
-                        <label class="text-xs font-semibold text-text-main block mb-1">Berkas Sertifikat / SK (PDF/Gambar max 5MB)</label>
-                        <input type="file" wire:model="sertifikatFile" class="w-full text-xs text-text-secondary file:mr-3 file:py-1.5 file:px-3 file:rounded-lg file:border-0 file:text-xs file:font-semibold file:bg-teal-500/10 file:text-teal-700">
-                        @error('sertifikatFile') <span class="text-rose-500 text-[11px]">{{ $message }}</span> @enderror
-                        @if($existingSertifikatPath)
-                            <span class="text-[11px] text-teal-600 block mt-1">✓ Berkas sertifikat sebelumnya tersimpan</span>
-                        @endif
-                    </div>
-                    <div>
-                        <label class="text-xs font-semibold text-text-main block mb-1">Foto Dokumentasi / Piala (JPG/PNG max 5MB)</label>
-                        <input type="file" wire:model="fotoFile" accept="image/*" class="w-full text-xs text-text-secondary file:mr-3 file:py-1.5 file:px-3 file:rounded-lg file:border-0 file:text-xs file:font-semibold file:bg-blue-500/10 file:text-blue-700">
-                        @error('fotoFile') <span class="text-rose-500 text-[11px]">{{ $message }}</span> @enderror
-                        @if($existingFotoPath)
-                            <span class="text-[11px] text-blue-600 block mt-1">✓ Foto dokumentasi sebelumnya tersimpan</span>
-                        @endif
-                    </div>
-                </div>
-
-                <div>
-                    <label class="text-xs font-semibold text-text-main block mb-1">Catatan / Deskripsi Tambahan</label>
-                    <textarea wire:model="deskripsi" rows="2" placeholder="Catatan singkat tentang kompetisi atau karya yang dilombakan..." 
-                              class="w-full text-xs rounded-xl border border-border bg-surface px-3 py-2"></textarea>
-                </div>
-
-                <div class="pt-4 border-t border-border flex justify-end gap-3">
-                    <button type="button" wire:click="$set('showFormModal', false)" class="btn btn-sm btn-outline border-border text-xs">
+            <!-- Footer (Fixed / Sticky at bottom) -->
+            <div class="px-6 py-3.5 border-t border-border bg-surface-hover/30 flex items-center justify-between flex-none">
+                <span class="text-[11px] text-text-muted hidden sm:inline">*) Field bertanda bintang wajib diisi</span>
+                <div class="flex items-center gap-2.5 ml-auto">
+                    <button type="button" wire:click="$set('showFormModal', false)" class="btn btn-sm btn-outline border-border text-xs px-4">
                         Batal
                     </button>
-                    <button type="submit" class="btn btn-sm btn-primary text-xs flex items-center gap-1.5">
-                        <svg wire:loading class="animate-spin w-3.5 h-3.5" fill="none" viewBox="0 0 24 24">
+                    <button type="submit" class="btn btn-sm btn-primary text-xs px-5 flex items-center gap-1.5 shadow-sm">
+                        <svg wire:loading wire:target="save, sertifikatFile, fotoFile" class="animate-spin w-3.5 h-3.5" fill="none" viewBox="0 0 24 24">
                             <circle class="opacity-25" cx="12" cy="12" r="10" stroke="currentColor" stroke-width="4"></circle>
                             <path class="opacity-75" fill="currentColor" d="M4 12a8 8 0 018-8v8H4z"></path>
                         </svg>
-                        Simpan Data Prestasi
+                        <span>Simpan Data Prestasi</span>
                     </button>
                 </div>
-            </form>
-        </div>
+            </div>
+        </form>
     </div>
     @endif
 
     <!-- MODAL PREVIEW DETAIL PRESTASI SISWA -->
     @if($showPreviewModal && $previewItem)
-    <div class="fixed inset-0 z-50 overflow-y-auto bg-black/50 backdrop-blur-xs flex items-center justify-center p-4">
-        <div class="bg-surface rounded-2xl border border-border w-full max-w-2xl shadow-xl overflow-hidden my-8">
-            <div class="px-6 py-4 border-b border-border flex items-center justify-between bg-surface-hover/50">
+    <div class="fixed inset-0 z-50 bg-black/60 backdrop-blur-xs flex items-center justify-center p-3 sm:p-4 overflow-hidden">
+        <div class="bg-surface rounded-2xl border border-border w-full max-w-2xl shadow-2xl flex flex-col max-h-[88vh] overflow-hidden">
+            <!-- Header (Fixed / Sticky) -->
+            <div class="px-6 py-3.5 border-b border-border flex items-center justify-between bg-surface-hover/50 flex-none">
                 <h3 class="font-bold text-text-main text-base flex items-center gap-2">
                     <span>🎖️</span> Detail Portofolio Prestasi
                 </h3>
-                <button type="button" wire:click="$set('showPreviewModal', false)" class="text-text-muted hover:text-text-main text-xl font-bold">&times;</button>
+                <button type="button" wire:click="$set('showPreviewModal', false)" 
+                        class="w-8 h-8 rounded-lg flex items-center justify-center text-text-muted hover:text-text-main hover:bg-surface-hover text-lg font-bold transition">
+                    &times;
+                </button>
             </div>
 
-            <div class="p-6 space-y-4 max-h-[80vh] overflow-y-auto">
+            <!-- Body (Scrollable) -->
+            <div class="p-6 space-y-4 overflow-y-auto flex-1 text-xs">
                 <div class="p-4 rounded-xl bg-teal-500/10 border border-teal-500/20 flex items-center justify-between">
                     <div>
                         <span class="text-[10px] font-bold text-teal-700 uppercase tracking-wider">Capaian / Peringkat</span>
@@ -527,7 +564,7 @@
                     <span class="text-3xl">🏆</span>
                 </div>
 
-                <div class="space-y-3 text-xs">
+                <div class="space-y-3">
                     <div class="grid grid-cols-2 gap-4">
                         <div>
                             <span class="text-text-muted block text-[11px]">Nama Prestasi / Event:</span>
@@ -599,12 +636,13 @@
                         @endif
                     </div>
                 </div>
+            </div>
 
-                <div class="pt-4 border-t border-border flex justify-end">
-                    <button type="button" wire:click="$set('showPreviewModal', false)" class="btn btn-sm btn-outline border-border text-xs">
-                        Tutup
-                    </button>
-                </div>
+            <!-- Footer (Fixed / Sticky) -->
+            <div class="px-6 py-3 border-t border-border bg-surface-hover/30 flex justify-end flex-none">
+                <button type="button" wire:click="$set('showPreviewModal', false)" class="btn btn-sm btn-outline border-border text-xs px-4">
+                    Tutup
+                </button>
             </div>
         </div>
     </div>
