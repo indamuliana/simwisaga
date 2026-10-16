@@ -620,6 +620,32 @@ class RaporScoreService
     }
 
     /**
+     * Ambil Prestasi Siswa yang approved untuk dicetak di Catatan Rapor
+     */
+    public function getPrestasiForSiswa(int $siswaId, int $semesterId, ?int $periodeRaporId = null): Collection
+    {
+        if (!class_exists(\App\Modules\Prestasi\Models\Prestasi::class)) {
+            return collect();
+        }
+
+        $query = \App\Modules\Prestasi\Models\Prestasi::with(['pembimbingPegawai', 'siswas'])
+            ->whereHas('siswas', function ($q) use ($siswaId) {
+                $q->where('siswas.id', $siswaId);
+            })
+            ->where('semester_id', $semesterId)
+            ->approved();
+
+        if ($periodeRaporId) {
+            $query->where(function ($q) use ($periodeRaporId) {
+                $q->where('periode_rapor_id', $periodeRaporId)
+                  ->orWhereNull('periode_rapor_id');
+            });
+        }
+
+        return $query->orderBy('tanggal_perolehan', 'desc')->get();
+    }
+
+    /**
      * Ambil Rekap Ketidakhadiran (S/I/A)
      */
     public function getRekapAbsen(int $siswaId, int $semesterId): array

@@ -196,6 +196,21 @@
                             </div>
                         </div>
 
+                        @if(!empty($siswaPrestasis[$siswa->id]) && $siswaPrestasis[$siswa->id]->isNotEmpty())
+                            <div class="p-2 rounded-xl bg-teal-500/10 border border-teal-500/20 text-[11px] flex flex-wrap items-center justify-between gap-2">
+                                <span class="text-teal-800 dark:text-teal-200 flex items-center gap-1.5 font-medium">
+                                    <span>🏆</span>
+                                    <span>Tercatat {{ $siswaPrestasis[$siswa->id]->count() }} prestasi periode ini:</span>
+                                    <strong class="font-bold">{{ $siswaPrestasis[$siswa->id]->pluck('nama_prestasi')->implode(', ') }}</strong>
+                                </span>
+                                <button type="button" 
+                                        wire:click="appendPrestasiToCatatan({{ $siswa->id }})" 
+                                        class="px-2 py-0.5 rounded bg-teal-600 hover:bg-teal-700 text-white font-bold text-[10px] transition">
+                                    + Sisipkan ke Catatan
+                                </button>
+                            </div>
+                        @endif
+
                         <textarea
                             wire:model.defer="catatans.{{ $siswa->id }}"
                             rows="2"

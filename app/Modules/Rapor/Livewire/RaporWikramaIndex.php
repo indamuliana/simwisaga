@@ -224,6 +224,7 @@ class RaporWikramaIndex extends Component
         $catatan = $service->getCatatanForSiswa($siswa->id, $semester->id, $this->selectedPeriodeId);
         $rekapAbsen = $service->getRekapAbsen($siswa->id, $semester->id);
         $ekskuls = $service->getEkskuls($siswa->id, $semester->id);
+        $prestasis = $service->getPrestasiForSiswa($siswa->id, $semester->id, $this->selectedPeriodeId);
 
         $incompleteCount = $records->where('status', 'belum_lengkap')->count();
         $belowKkmCount = $records->where('status', 'belum_kompeten')->count();
@@ -237,6 +238,7 @@ class RaporWikramaIndex extends Component
             'periodMeta' => $periodMeta,
             'groupedAcademic' => $grouped,
             'catatan' => $catatan,
+            'prestasis' => $prestasis,
             'rekapAbsen' => $rekapAbsen,
             'ekskuls' => $ekskuls,
             'records' => $records,

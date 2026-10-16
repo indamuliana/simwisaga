@@ -41,6 +41,7 @@
 		$ekskuls = $data['ekskuls'];
 		$rekapAbsen = $data['rekapAbsen'];
 		$catatan = $data['catatan'];
+		$prestasis = $data['prestasis'] ?? collect();
 		$ahKeys = $periodMeta['ah_keys'];
 		$sumatifLabel = $periodMeta['sumatif_label'];
 
@@ -262,7 +263,19 @@
 		<!-- D. Catatan Pembimbing Rayon -->
 		<div style="font-weight: bold; margin-bottom: 4px; font-size: 9pt;">D. Catatan Perkembangan Karakter & Akademik (Pembimbing Rayon)</div>
 		<div class="catatan-box">
-			{{ $catatan ?: 'Peserta didik terus menunjukkan kemajuan belajar dan kedisiplinan yang baik. Pertahankan dan tingkatkan prestasi pada periode selanjutnya.' }}
+			<div>{{ $catatan ?: 'Peserta didik terus menunjukkan kemajuan belajar dan kedisiplinan yang baik. Pertahankan dan tingkatkan prestasi pada periode selanjutnya.' }}</div>
+			@if(!empty($prestasis) && $prestasis->isNotEmpty())
+				<div style="margin-top: 6px; border-top: 1px dashed #94a3b8; padding-top: 4px; font-size: 8pt;">
+					<strong>Prestasi / Penghargaan yang Diraih pada Periode Ini:</strong>
+					<ul style="margin: 3px 0 0 14px; padding: 0;">
+						@foreach($prestasis as $p)
+							<li>
+								{{ $p->nama_prestasi }} &mdash; <strong>{{ $p->peringkat }}</strong> (Tingkat {{ $p->tingkat_label }} &bull; Penyelenggara: {{ $p->penyelenggara_nama }})
+							</li>
+						@endforeach
+					</ul>
+				</div>
+			@endif
 		</div>
 
 		<!-- Tanda Tangan: Orang Tua, Pembimbing Rayon, Kepala Sekolah -->

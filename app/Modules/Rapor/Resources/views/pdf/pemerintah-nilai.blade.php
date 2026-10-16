@@ -39,6 +39,7 @@
 		$ekskuls = $data['ekskuls'];
 		$rekapAbsen = $data['rekapAbsen'];
 		$catatan = $data['catatan'];
+		$prestasis = $data['prestasis'] ?? collect();
 
 		$tingkat = $siswa->rombel?->tingkat ?? 'X';
 		$fase = in_array($tingkat, ['XI', 'XII']) ? 'F' : 'E';
@@ -185,7 +186,19 @@
 		<!-- D. Catatan Wali Kelas -->
 		<div style="font-weight: bold; margin-bottom: 5px; font-size: 9.5pt;">D. Catatan Wali Kelas</div>
 		<div class="catatan-box">
-			{{ $catatan ?: 'Tingkatkan terus semangat belajar dan pertahankan prestasi yang telah diraih.' }}
+			<div>{{ $catatan ?: 'Tingkatkan terus semangat belajar dan pertahankan prestasi yang telah diraih.' }}</div>
+			@if(!empty($prestasis) && $prestasis->isNotEmpty())
+				<div style="margin-top: 6px; border-top: 1px dashed #94a3b8; padding-top: 4px; font-size: 8.5pt;">
+					<strong>Prestasi / Penghargaan yang Diraih:</strong>
+					<ul style="margin: 3px 0 0 16px; padding: 0;">
+						@foreach($prestasis as $p)
+							<li>
+								{{ $p->nama_prestasi }} &mdash; <strong>{{ $p->peringkat }}</strong> (Tingkat {{ $p->tingkat_label }} &bull; Penyelenggara: {{ $p->penyelenggara_nama }})
+							</li>
+						@endforeach
+					</ul>
+				</div>
+			@endif
 		</div>
 
 		<!-- E. Keputusan Akhir Tahun (Khusus Semester Genap) -->

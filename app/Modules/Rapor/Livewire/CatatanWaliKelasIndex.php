@@ -30,6 +30,7 @@ class CatatanWaliKelasIndex extends Component
 
     public string $search = '';
     public array $catatans = []; // [siswa_id => string]
+    public array $siswaPrestasis = []; // [siswa_id => Collection]
 
     public bool $canSelectAll = false;
 
@@ -205,10 +206,27 @@ class CatatanWaliKelasIndex extends Component
 
         $existing = $query->get()->keyBy('siswa_id');
 
+        $raporService = app(\App\Modules\Rapor\Services\RaporScoreService::class);
         $this->catatans = [];
+        $this->siswaPrestasis = [];
         foreach ($siswas as $siswa) {
             $this->catatans[$siswa->id] = $existing->get($siswa->id)?->catatan ?? '';
+            $this->siswaPrestasis[$siswa->id] = $raporService->getPrestasiForSiswa($siswa->id, $currentSem->id, $this->selectedPeriodeId);
         }
+    }
+
+    public function appendPrestasiToCatatan(int $siswaId): void
+    {
+        $prestasis = $this->siswaPrestasis[$siswaId] ?? collect();
+        if ($prestasis->isEmpty()) return;
+
+        $lines = ["Prestasi diraih:"];
+        foreach ($prestasis as $p) {
+            $lines[] = "- {$p->nama_prestasi} ({$p->peringkat} Tingkat {$p->tingkat_label})";
+        }
+
+        $current = trim($this->catatans[$siswaId] ?? '');
+        $this->catatans[$siswaId] = $current . ($current !== '' ? "\n\n" : '') . implode("\n", $lines);
     }
 
     public function applyTemplate(int $siswaId, string $templateKey): void

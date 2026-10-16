@@ -166,4 +166,20 @@ class Siswa extends Model implements Auditable
                 });
         });
     }
+
+    public function prestasis(): \Illuminate\Database\Eloquent\Relations\BelongsToMany
+    {
+        return $this->belongsToMany(\App\Modules\Prestasi\Models\Prestasi::class, 'prestasi_siswa_anggotas', 'siswa_id', 'prestasi_id')
+            ->withPivot('peran', 'keterangan')
+            ->withTimestamps();
+    }
+
+    public function prestasisApproved(): \Illuminate\Database\Eloquent\Relations\BelongsToMany
+    {
+        return $this->belongsToMany(\App\Modules\Prestasi\Models\Prestasi::class, 'prestasi_siswa_anggotas', 'siswa_id', 'prestasi_id')
+            ->where('prestasis.status_verifikasi', 'approved')
+            ->withPivot('peran', 'keterangan')
+            ->withTimestamps();
+    }
 }
+

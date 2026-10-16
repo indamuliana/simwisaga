@@ -491,14 +491,29 @@
                                 </div>
                             </div>
 
-                            <!-- Catatan Pembimbing Rayon -->
-                            <div class="p-4 rounded-xl border border-border bg-surface-hover/20">
+                            <!-- Catatan Pembimbing Rayon & Prestasi -->
+                            <div class="p-4 rounded-xl border border-border bg-surface-hover/20 space-y-3">
                                 <h4 class="font-bold text-xs uppercase tracking-wider text-text-secondary mb-2">
                                     ✍️ Catatan Pembimbing Rayon
                                 </h4>
                                 <p class="text-xs text-text-main leading-relaxed italic bg-surface p-2.5 rounded-lg border border-border">
                                     {{ $previewData['catatan'] ?: 'Belum ada catatan khusus untuk periode ini.' }}
                                 </p>
+
+                                @if(!empty($previewData['prestasis']) && $previewData['prestasis']->isNotEmpty())
+                                    <div class="p-2.5 rounded-lg bg-teal-500/10 border border-teal-500/20 text-xs">
+                                        <span class="font-bold text-teal-800 dark:text-teal-200 block mb-1">
+                                            🏆 Prestasi Siswa pada Periode Ini (Tercetak di Lembar Rapor):
+                                        </span>
+                                        <ul class="list-disc list-inside space-y-1 text-teal-900 dark:text-teal-100 text-[11px]">
+                                            @foreach($previewData['prestasis'] as $p)
+                                                <li>
+                                                    <strong>{{ $p->peringkat }}</strong> &mdash; {{ $p->nama_prestasi }} (Tingkat {{ $p->tingkat_label }} &bull; {{ $p->penyelenggara_nama }})
+                                                </li>
+                                            @endforeach
+                                        </ul>
+                                    </div>
+                                @endif
                             </div>
                         </div>
                     </div>

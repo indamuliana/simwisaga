@@ -68,4 +68,17 @@ class Pegawai extends Model implements Auditable
 
         return $depan . $this->nama_lengkap . $belakang;
     }
+
+    public function prestasis(): \Illuminate\Database\Eloquent\Relations\BelongsToMany
+    {
+        return $this->belongsToMany(\App\Modules\Prestasi\Models\PrestasiGuru::class, 'prestasi_guru_anggotas', 'pegawai_id', 'prestasi_guru_id')
+            ->withPivot('peran', 'keterangan')
+            ->withTimestamps();
+    }
+
+    public function bimbinganPrestasis(): HasMany
+    {
+        return $this->hasMany(\App\Modules\Prestasi\Models\Prestasi::class, 'pembimbing_pegawai_id');
+    }
 }
+

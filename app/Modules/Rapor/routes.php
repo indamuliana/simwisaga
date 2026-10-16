@@ -52,6 +52,7 @@ Route::middleware(['web', 'auth'])->group(function () {
             $catatan = $service->getCatatanForSiswa($siswa->id, $semester->id, $periode?->id);
             $rekapAbsen = $service->getRekapAbsen($siswa->id, $semester->id);
             $ekskuls = $service->getEkskuls($siswa->id, $semester->id);
+            $prestasis = $service->getPrestasiForSiswa($siswa->id, $semester->id, $periode?->id);
 
             $studentsData[] = [
                 'siswa' => $siswa,
@@ -64,6 +65,7 @@ Route::middleware(['web', 'auth'])->group(function () {
                 'catatan' => $catatan,
                 'rekapAbsen' => $rekapAbsen,
                 'ekskuls' => $ekskuls,
+                'prestasis' => $prestasis,
             ];
         }
 
@@ -104,6 +106,7 @@ Route::middleware(['web', 'auth'])->group(function () {
             $catatan = $service->getCatatanForSiswa($siswa->id, $semester->id, null);
             $rekapAbsen = $service->getRekapAbsen($siswa->id, $semester->id);
             $ekskuls = $service->getEkskuls($siswa->id, $semester->id);
+            $prestasis = $service->getPrestasiForSiswa($siswa->id, $semester->id, null);
 
             $studentsData[] = [
                 'siswa' => $siswa,
@@ -114,6 +117,7 @@ Route::middleware(['web', 'auth'])->group(function () {
                 'catatan' => $catatan,
                 'rekapAbsen' => $rekapAbsen,
                 'ekskuls' => $ekskuls,
+                'prestasis' => $prestasis,
             ];
         }
 
@@ -142,6 +146,7 @@ Route::middleware(['web', 'auth'])->group(function () {
         $catatan = $service->getCatatanForSiswa($siswa->id, $semester->id, $periode?->id);
         $rekapAbsen = $service->getRekapAbsen($siswa->id, $semester->id);
         $ekskuls = $service->getEkskuls($siswa->id, $semester->id);
+        $prestasis = $service->getPrestasiForSiswa($siswa->id, $semester->id, $periode?->id);
 
         $studentsData = [
             [
@@ -155,6 +160,7 @@ Route::middleware(['web', 'auth'])->group(function () {
                 'catatan' => $catatan,
                 'rekapAbsen' => $rekapAbsen,
                 'ekskuls' => $ekskuls,
+                'prestasis' => $prestasis,
             ]
         ];
 
@@ -178,6 +184,7 @@ Route::middleware(['web', 'auth'])->group(function () {
         $catatan = $service->getCatatanForSiswa($siswa->id, $semester->id, null);
         $rekapAbsen = $service->getRekapAbsen($siswa->id, $semester->id);
         $ekskuls = $service->getEkskuls($siswa->id, $semester->id);
+        $prestasis = $service->getPrestasiForSiswa($siswa->id, $semester->id, null);
 
         $studentsData = [
             [
@@ -189,6 +196,7 @@ Route::middleware(['web', 'auth'])->group(function () {
                 'catatan' => $catatan,
                 'rekapAbsen' => $rekapAbsen,
                 'ekskuls' => $ekskuls,
+                'prestasis' => $prestasis,
             ]
         ];
 
