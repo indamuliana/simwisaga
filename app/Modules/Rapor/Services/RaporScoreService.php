@@ -11,16 +11,31 @@ use App\Modules\Akademik\Models\StrukturKurikulum;
 use App\Modules\Kepegawaian\Models\PenugasanMengajar;
 use App\Modules\Penilaian\Models\NilaiAkhir;
 use App\Modules\Penilaian\Models\NilaiAsesmenHarian;
+use App\Modules\Penilaian\Models\NilaiFormatif;
+use App\Modules\Penilaian\Models\NilaiHarian;
 use App\Modules\Penilaian\Models\NilaiSumatif;
+use App\Modules\Penilaian\Models\PengaturanPenilaian;
+use App\Modules\Penilaian\Models\TujuanPembelajaran;
 use App\Modules\Penilaian\Services\MapelPilihanScoreService;
+use App\Modules\Penilaian\Services\PenilaianScoreCalculator;
 use App\Modules\Rapor\Models\CatatanWaliKelas;
 use App\Modules\SeniBudaya\Models\SeniBudayaAnggota;
+use App\Modules\SeniBudaya\Models\SeniBudayaTp;
 use App\Modules\SeniBudaya\Services\SeniBudayaService;
 use App\Modules\Sistem\Models\PeriodeRapor;
 use Illuminate\Support\Collection;
 
 class RaporScoreService
 {
+    protected ?PenilaianScoreCalculator $calculator = null;
+
+    public function getCalculator(): PenilaianScoreCalculator
+    {
+        if (!$this->calculator) {
+            $this->calculator = new PenilaianScoreCalculator();
+        }
+        return $this->calculator;
+    }
     /**
      * Menentukan target period key (9M1, 9M2, 9M3, 9M4, atau Semester) dari PeriodeRapor
      */
@@ -187,19 +202,27 @@ class RaporScoreService
             }
         }
 
-        // 4. Pre-fetch Asesmen Harian dan Sumatif
+        // 4. Pre-fetch Formatif, Harian (NH), Sumatif, dan TP
         $allPmIds = $penugasans->pluck('id')->merge($nilaiAkademiks->pluck('penugasan_mengajar_id'))->filter()->unique()->values()->all();
 
-        $allAhs = NilaiAsesmenHarian::where('siswa_id', $siswa->id)
-            ->whereIn('penugasan_mengajar_id', $allPmIds)
-            ->whereIn('kode_ah', $ahKeys)
+        $allFormatifs = NilaiFormatif::where('siswa_id', $siswa->id)
+            ->whereNotNull('nilai')
             ->get()
-            ->groupBy('penugasan_mengajar_id');
+            ->keyBy('tujuan_pembelajaran_id');
+
+        $allNhs = NilaiHarian::where('siswa_id', $siswa->id)
+            ->where('target_periode', $normKey)
+            ->whereIn('penugasan_mengajar_id', $allPmIds)
+            ->get()
+            ->keyBy('penugasan_mengajar_id');
 
         $allSumatifs = NilaiSumatif::where('siswa_id', $siswa->id)
             ->whereIn('penugasan_mengajar_id', $allPmIds)
             ->get()
             ->keyBy('penugasan_mengajar_id');
+
+        $calc = $this->getCalculator();
+        $settings = $calc->getSettings($semester->tahun_ajaran_id);
 
         $rows = collect();
 
@@ -217,31 +240,51 @@ class RaporScoreService
             }
 
             $kkm = (float) ($mapel->kkm_default ?? 75);
-            $pmAhs = $pm ? $allAhs->get($pm->id, collect())->keyBy('kode_ah') : collect();
-            $pmSumatif = $pm ? $allSumatifs->get($pm->id) : null;
 
-            // Kumpulkan nilai AH
-            $ahScores = [];
-            $hasEmptyAh = false;
-            $hasBelowKkmAh = false;
-            $filledAhCount = 0;
+            // Tujuan Pembelajaran untuk penugasan ini di periode ini
+            $tpsInBlock = collect();
+            if ($pm) {
+                $allTpsForPm = $pm->tujuanPembelajarans ?? collect();
+                $tpsInBlock = $allTpsForPm->filter(fn($tp) => ($tp->target_periode === $normKey) || empty($tp->target_periode))->sortBy('urutan')->values();
+            }
 
-            foreach ($ahKeys as $ahKey) {
-                $val = $pmAhs->get($ahKey)?->nilai;
-                if ($val !== null && $val !== '' && is_numeric($val)) {
-                    $num = (float) $val;
-                    $ahScores[$ahKey] = $num;
-                    $filledAhCount++;
-                    if ($num < $kkm) {
-                        $hasBelowKkmAh = true;
-                    }
-                } else {
-                    $ahScores[$ahKey] = null;
-                    $hasEmptyAh = true;
+            // Kumpulkan nilai TP
+            $tpScoresMap = [];
+            $tpList = [];
+            foreach ($tpsInBlock as $tp) {
+                $fVal = $allFormatifs->get($tp->id)?->nilai;
+                $numScore = ($fVal !== null && $fVal !== '' && is_numeric($fVal)) ? (float) $fVal : null;
+                $tpScoresMap[$tp->id] = $numScore;
+                $tpList[] = (object) [
+                    'id' => $tp->id,
+                    'kode' => $tp->kode ?: 'TP',
+                    'deskripsi' => $tp->deskripsi ?: $tp->lingkup_materi,
+                    'score' => $numScore,
+                ];
+            }
+
+            if ($tpsInBlock->isEmpty() && $pm) {
+                $legacyAhs = NilaiAsesmenHarian::where('siswa_id', $siswa->id)
+                    ->where('penugasan_mengajar_id', $pm->id)
+                    ->whereIn('kode_ah', $ahKeys)
+                    ->orderBy('kode_ah')
+                    ->get();
+                foreach ($legacyAhs as $lah) {
+                    $tpList[] = (object) [
+                        'id' => null,
+                        'kode' => $lah->kode_ah,
+                        'deskripsi' => 'Asesmen Harian ' . $lah->kode_ah,
+                        'score' => $lah->nilai !== null ? (float) $lah->nilai : null,
+                    ];
                 }
             }
 
+            // Nilai Harian (NH)
+            $nhRec = $pm ? $allNhs->get($pm->id) : null;
+            $nhVal = $nhRec ? (float) $nhRec->nilai : 100.0;
+
             // Sumatif (STS atau SAS atau SAT)
+            $pmSumatif = $pm ? $allSumatifs->get($pm->id) : null;
             $sumatifVal = null;
             if ($pmSumatif) {
                 $rawSum = $sumatifCode === 'sts' ? $pmSumatif->sts : $pmSumatif->sas;
@@ -250,57 +293,31 @@ class RaporScoreService
                 }
             }
 
-            // Ambil dari NilaiAkhir jika ada
+            // Ambil dari NilaiAkhir jika sudah ada data_9m
             $na = $pm ? $nilaiAkademiks->get($pm->id) : null;
             $block9M = $na?->data_9m[$normKey] ?? null;
 
-            $score9M = null;
-            $descTinggi = null;
-            $descRendah = null;
-            $descManual = null;
-            $status = 'belum_lengkap';
-
             if ($block9M && is_array($block9M)) {
-                $score9M = isset($block9M['nilai_akhir']) && is_numeric($block9M['nilai_akhir']) ? (float) $block9M['nilai_akhir'] : null;
-                $descTinggi = $block9M['deskripsi_tertinggi'] ?? null;
-                $descRendah = $block9M['deskripsi_terendah'] ?? null;
-                $descManual = $block9M['deskripsi_manual'] ?? null;
-                $status = $block9M['status'] ?? 'kompeten';
-
-                // Strictly enforce validasi KKM & kelengkapan nilai
-                if ($hasBelowKkmAh || ($sumatifVal !== null && $sumatifVal < $kkm)) {
-                    $score9M = null;
-                    $status = 'belum_kompeten';
-                    $descTinggi = 'Nilai belum kompeten, silakan hubungi guru yang bersangkutan.';
-                    $descRendah = null;
-                } elseif ($hasEmptyAh || $sumatifVal === null) {
-                    $score9M = null;
-                    $status = 'belum_lengkap';
-                    $descTinggi = 'Nilai belum lengkap, silakan hubungi guru yang bersangkutan.';
-                    $descRendah = null;
-                }
+                $eval = $block9M;
             } else {
-                // Evaluasi on-the-fly jika rekap belum dijalankan
-                $hasAnyScore = $filledAhCount > 0 || $sumatifVal !== null;
-                if (!$hasAnyScore) {
-                    $score9M = null;
-                    $status = 'belum_lengkap';
-                    $descTinggi = 'Nilai belum lengkap, silakan hubungi guru yang bersangkutan.';
-                } elseif ($hasEmptyAh || $sumatifVal === null) {
-                    $score9M = null;
-                    $status = 'belum_lengkap';
-                    $descTinggi = 'Nilai belum lengkap, silakan hubungi guru yang bersangkutan.';
-                } elseif ($hasBelowKkmAh || ($sumatifVal !== null && $sumatifVal < $kkm)) {
-                    $score9M = null;
-                    $status = 'belum_kompeten';
-                    $descTinggi = 'Nilai belum kompeten, silakan hubungi guru yang bersangkutan.';
-                } else {
-                    $status = 'kompeten';
-                    $rataAh = $filledAhCount > 0 ? (array_sum(array_filter($ahScores, 'is_numeric')) / $filledAhCount) : 0;
-                    $score9M = round(($rataAh * 0.5) + ($sumatifVal * 0.5), 2);
-                    $descTinggi = 'Menunjukkan penguasaan materi pembelajaran yang baik pada periode ini.';
-                }
+                $eval = $calc->calculate9MBlock(
+                    $tpScoresMap,
+                    $nhVal,
+                    $sumatifVal,
+                    $kkm,
+                    $tpsInBlock,
+                    null,
+                    $settings
+                );
             }
+
+            $score9M = $eval['nilai_akhir'] ?? null;
+            $status = $eval['status'] ?? 'belum_lengkap';
+            $predikat = $eval['predikat'] ?? $calc->resolvePredikat($score9M, $kkm, $settings);
+            $descTinggi = $eval['deskripsi_tertinggi'] ?? '';
+            $descRendah = $eval['deskripsi_terendah'] ?? '';
+            $descManual = $eval['deskripsi_manual'] ?? null;
+            $narasiCapaian = $eval['narasi_capaian'] ?? ($descManual ?: trim($descTinggi . ($descRendah ? ' ' . $descRendah : '')));
 
             $rows->push((object) [
                 'is_seni' => false,
@@ -313,12 +330,16 @@ class RaporScoreService
                 'kelompok_nama' => $mapel->kelompokMapel?->nama ?? 'Muatan Umum',
                 'kelompok_urutan' => $mapel->kelompokMapel?->urutan ?? 99,
                 'mapel_urutan' => $mapel->urutan ?? 999,
-                'ah_scores' => $ahScores,
-                'sumatif' => $sumatifVal,
+                'tps' => $tpList,
+                'rata_tp' => $eval['rata_tp'] ?? null,
+                'nh' => $eval['nh'] ?? $nhVal,
+                'sumatif' => $eval['sumatif'] ?? $sumatifVal,
                 'nilai_akhir' => $score9M,
+                'predikat' => $predikat,
                 'deskripsi_tertinggi' => $descTinggi,
                 'deskripsi_terendah' => $descRendah,
                 'deskripsi_manual' => $descManual,
+                'narasi_capaian' => $narasiCapaian,
             ]);
         }
 
@@ -328,11 +349,6 @@ class RaporScoreService
             ->where('semester_id', $semester->id)
             ->where('status_keanggotaan', 'aktif')
             ->first();
-
-        $sbAhScores = [];
-        foreach ($ahKeys as $ah) {
-            $sbAhScores[$ah] = null;
-        }
 
         if ($sbAnggota && $sbAnggota->seniBudaya) {
             $cabangNama = $sbAnggota->seniBudaya->nama;
@@ -348,34 +364,55 @@ class RaporScoreService
                 default => null,
             };
 
+            // TPs Seni Budaya
+            $sbTps = SeniBudayaTp::where('seni_budaya_id', $sbAnggota->seni_budaya_id)
+                ->where('semester_id', $semester->id)
+                ->get();
+
+            $sbTpList = [];
+            foreach ($sbTps as $tp) {
+                $sbTpList[] = (object) [
+                    'id' => $tp->id,
+                    'kode' => $tp->kode ?: 'TP',
+                    'deskripsi' => $tp->deskripsi ?: $tp->materi,
+                    'score' => null,
+                ];
+            }
+
+            // Nilai Harian (Presensi)
+            $sbNh = $sbAnggota->nilai_presensi !== null ? (float) $sbAnggota->nilai_presensi : 100.0;
+
             // Nilai Akhir Seni Budaya
             $sbScore = $sbAnggota->getScoreForPeriod($normKey);
             if ($sbScore === null && $sbSumatif !== null) {
-                $calc = app(SeniBudayaService::class)->calculateGrade(
-                    (float) ($sbAnggota->nilai_presensi ?? 100),
+                $calcSb = app(SeniBudayaService::class)->calculateGrade(
+                    $sbNh,
                     (float) $sbSumatif,
                     (int) ($sbAnggota->seniBudaya->bobot_presensi ?? 30),
                     (int) ($sbAnggota->seniBudaya->bobot_penilaian ?? 70),
                     $sbKkm
                 );
-                $sbScore = $calc['nilai_akhir'];
+                $sbScore = $calcSb['nilai_akhir'];
             }
 
             // Validasi KKM & Kelengkapan
             if ($sbSumatif === null) {
                 $sbScore = null;
                 $sbStatus = 'belum_lengkap';
+                $sbPredikat = 'Belum Lengkap';
                 $sbDescTinggi = 'Nilai belum lengkap, silakan hubungi guru yang bersangkutan.';
                 $sbDescRendah = '';
                 $sbDescManual = null;
             } elseif ($sbSumatif < $sbKkm || ($sbScore !== null && $sbScore < $sbKkm)) {
                 $sbScore = null;
                 $sbStatus = 'belum_kompeten';
+                $sbPredikat = 'Belum Kompeten';
                 $sbDescTinggi = 'Nilai belum kompeten, silakan hubungi guru yang bersangkutan.';
                 $sbDescRendah = '';
                 $sbDescManual = null;
             } else {
                 $sbStatus = 'kompeten';
+                $sbPredikat = $calc->resolvePredikat($sbScore, $sbKkm, $settings);
                 $descEntry = $sbAnggota->getDescriptionForPeriod($normKey);
                 $sbDescTinggi = $descEntry['deskripsi_tertinggi'] ?: 'Menunjukkan penguasaan yang sangat baik dalam berkarya dan mengapresiasi seni.';
                 $sbDescRendah = $descEntry['deskripsi_terendah'] ?: '';
@@ -385,7 +422,7 @@ class RaporScoreService
             $sbItem = (object) [
                 'is_seni' => true,
                 'seni_cabang' => $cabangNama,
-                'seni_presensi' => $sbAnggota->nilai_presensi,
+                'seni_presensi' => $sbNh,
                 'kkm' => $sbKkm,
                 'status' => $sbStatus,
                 'mapel' => new Mapel(['kode' => 'SENI', 'nama' => $customMapelNama, 'urutan' => 6]),
@@ -395,12 +432,16 @@ class RaporScoreService
                 'kelompok_nama' => 'Muatan Umum',
                 'kelompok_urutan' => 1,
                 'mapel_urutan' => 6,
-                'ah_scores' => $sbAhScores,
+                'tps' => $sbTpList,
+                'rata_tp' => null,
+                'nh' => $sbNh,
                 'sumatif' => $sbSumatif,
                 'nilai_akhir' => $sbScore,
+                'predikat' => $sbPredikat,
                 'deskripsi_tertinggi' => $sbDescTinggi,
                 'deskripsi_terendah' => $sbDescRendah,
                 'deskripsi_manual' => $sbDescManual,
+                'narasi_capaian' => $sbDescManual ?: trim($sbDescTinggi . ($sbDescRendah ? ' ' . $sbDescRendah : '')),
             ];
             $rows->push($sbItem);
         } else {
@@ -418,12 +459,16 @@ class RaporScoreService
                 'kelompok_nama' => 'Muatan Umum',
                 'kelompok_urutan' => 1,
                 'mapel_urutan' => 6,
-                'ah_scores' => $sbAhScores,
+                'tps' => [],
+                'rata_tp' => null,
+                'nh' => null,
                 'sumatif' => null,
                 'nilai_akhir' => null,
+                'predikat' => 'Belum Lengkap',
                 'deskripsi_tertinggi' => 'Peserta didik belum terdaftar di cabang Seni Budaya, silakan hubungi koordinator Seni Budaya.',
                 'deskripsi_terendah' => '',
                 'deskripsi_manual' => null,
+                'narasi_capaian' => 'Peserta didik belum terdaftar di cabang Seni Budaya, silakan hubungi koordinator Seni Budaya.',
             ];
             $rows->push($sbItem);
         }
@@ -445,6 +490,9 @@ class RaporScoreService
      */
     public function getPemerintahAcademicRecords(Siswa $siswa, Semester $semester): Collection
     {
+        $calc = app(\App\Modules\Penilaian\Services\PenilaianScoreCalculator::class);
+        $settings = \App\Modules\Penilaian\Models\PengaturanPenilaian::getActive();
+
         $nilaiAkademiks = NilaiAkhir::with(['penugasanMengajar.mapel.kelompokMapel'])
             ->where('siswa_id', $siswa->id)
             ->whereHas('penugasanMengajar', fn($q) => $q->where('semester_id', $semester->id))
@@ -457,16 +505,21 @@ class RaporScoreService
             $mapel = $pm?->mapel;
             if (!$mapel) continue;
 
+            $kkm = (float) ($mapel->kkm_default ?? 75);
+            $predikat = $na->predikat ?? $calc->resolvePredikat($na->nilai_akhir, $kkm, $settings);
+
             $rows->push((object) [
                 'is_seni' => false,
                 'mapel' => $mapel,
                 'mapel_nama' => $mapel->nama,
+                'kkm' => $kkm,
                 'kelompok' => $mapel->kelompokMapel,
                 'kelompok_kode' => $mapel->kelompokMapel?->kode ?? 'A',
                 'kelompok_nama' => $mapel->kelompokMapel?->nama ?? 'Muatan Umum',
                 'kelompok_urutan' => $mapel->kelompokMapel?->urutan ?? 99,
                 'mapel_urutan' => $mapel->urutan ?? 999,
                 'nilai_akhir' => $na->nilai_akhir,
+                'predikat' => $predikat,
                 'deskripsi_tertinggi' => $na->deskripsi_tertinggi,
                 'deskripsi_terendah' => $na->deskripsi_terendah,
                 'deskripsi_manual' => $na->deskripsi_manual,
@@ -493,16 +546,19 @@ class RaporScoreService
                 return $kode === 'seni' || str_contains($nama, 'seni budaya');
             });
 
+            $sbKkm = (float) ($sbAnggota->seniBudaya?->kkm ?? 75);
             $sbItem = (object) [
                 'is_seni' => true,
                 'mapel' => $existingIndex !== false ? $rows[$existingIndex]->mapel : new Mapel(['kode' => 'SENI', 'nama' => $customMapelNama, 'urutan' => 6]),
                 'mapel_nama' => $customMapelNama,
+                'kkm' => $sbKkm,
                 'kelompok' => $existingIndex !== false ? $rows[$existingIndex]->kelompok : null,
                 'kelompok_kode' => 'A',
                 'kelompok_nama' => 'Muatan Umum',
                 'kelompok_urutan' => 1,
                 'mapel_urutan' => 6,
                 'nilai_akhir' => $sbScore,
+                'predikat' => $calc->resolvePredikat($sbScore, $sbKkm, $settings),
                 'deskripsi_tertinggi' => $sbDesc['deskripsi_tertinggi'] ?? $sbAnggota->deskripsi_tertinggi,
                 'deskripsi_terendah' => $sbDesc['deskripsi_terendah'] ?? $sbAnggota->deskripsi_terendah,
                 'deskripsi_manual' => $sbDesc['deskripsi_manual'] ?? $sbAnggota->deskripsi_manual,

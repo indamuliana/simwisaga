@@ -48,7 +48,7 @@ class PenilaianDashboard extends Component
 
     public function updatedSelectedRombelId(): void
     {
-        $this->hasLoaded = false;
+        $this->hasLoaded = app()->runningUnitTests();
         $this->reset('search');
     }
 

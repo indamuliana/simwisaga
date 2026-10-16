@@ -85,17 +85,18 @@
 		<table class="data-table">
 			<thead>
 				<tr>
-					<th width="5%">No</th>
-					<th width="30%">Mata Pelajaran</th>
-					<th width="12%">Nilai Akhir</th>
-					<th width="53%">Capaian Kompetensi</th>
+					<th width="4%">No</th>
+					<th width="28%">Mata Pelajaran</th>
+					<th width="10%">Nilai Akhir</th>
+					<th width="12%">Predikat</th>
+					<th width="46%">Capaian Kompetensi</th>
 				</tr>
 			</thead>
 			<tbody>
 				@if($groupedAcademic->isNotEmpty())
 					@foreach($groupedAcademic as $namaKelompok => $items)
 						<tr style="background-color: #f8fafc;">
-							<td colspan="4" style="font-weight: bold; padding: 4px 6px; font-size: 9pt;">
+							<td colspan="5" style="font-weight: bold; padding: 4px 6px; font-size: 9pt;">
 								{{ $namaKelompok }}
 							</td>
 						</tr>
@@ -105,6 +106,9 @@
 								<td style="font-weight: 500;">{{ $row->mapel_nama }}</td>
 								<td style="text-align: center; font-family: monospace; font-weight: bold; font-size: 10pt;">
 									{{ $row->nilai_akhir !== null ? number_format($row->nilai_akhir, 0) : '-' }}
+								</td>
+								<td style="text-align: center; font-size: 8.5pt; font-weight: bold;">
+									{{ $row->predikat ?? '-' }}
 								</td>
 								<td style="font-size: 8.5pt; line-height: 1.4; color: #1e293b;">
 									@if($row->deskripsi_manual)
@@ -126,7 +130,7 @@
 					@endforeach
 				@else
 					<tr>
-						<td colspan="4" style="text-align: center; color: #64748b; padding: 14px; font-style: italic;">
+						<td colspan="5" style="text-align: center; color: #64748b; padding: 14px; font-style: italic;">
 							Belum ada data nilai akademik untuk semester ini.
 						</td>
 					</tr>
@@ -149,7 +153,7 @@
 					<tr>
 						<td style="text-align: center;">{{ $idxEks + 1 }}</td>
 						<td>{{ $ekskul->ekstrakurikuler->nama ?? '-' }}</td>
-						<td>{{ $ekskul->predikat ?? ($ekskul->keterangan ?? 'Aktif Mengikuti') }}</td>
+						<td>{{ $ekskul->nilai_huruf ? ($ekskul->deskripsi ? $ekskul->nilai_huruf . ' - ' . $ekskul->deskripsi : $ekskul->nilai_huruf) : ($ekskul->deskripsi ?? ($ekskul->predikat ?? ($ekskul->keterangan ?? 'Aktif Mengikuti'))) }}</td>
 					</tr>
 				@empty
 					<tr>

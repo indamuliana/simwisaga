@@ -331,28 +331,28 @@
                                     <thead>
                                         <tr class="bg-surface-hover text-text-secondary text-[11px] font-bold border-b border-border">
                                             <th class="p-2.5 w-8 text-center">No</th>
-                                            <th class="p-2.5">Mata Pelajaran</th>
+                                            <th class="p-2.5">Mata Pelajaran & Capaian TP</th>
                                             <th class="p-2.5 text-center w-12 font-mono">KKM</th>
-                                            @foreach($previewData['periodMeta']['ah_keys'] as $ah)
-                                                <th class="p-2.5 text-center w-14 font-mono">{{ $ah }}</th>
-                                            @endforeach
+                                            <th class="p-2.5 text-center w-16 font-mono">Harian (NH)</th>
                                             <th class="p-2.5 text-center w-16 font-mono">{{ $previewData['periodMeta']['sumatif_label'] }}</th>
                                             <th class="p-2.5 text-center w-16 font-mono font-bold">NA</th>
+                                            <th class="p-2.5 text-center w-24">Predikat</th>
                                             <th class="p-2.5">Capaian Kompetensi</th>
                                         </tr>
                                     </thead>
                                     <tbody class="divide-y divide-border">
                                         @foreach($previewData['groupedAcademic'] as $namaKelompok => $items)
                                             <tr class="bg-surface-hover/60 font-bold text-[11px]">
-                                                <td colspan="{{ 5 + count($previewData['periodMeta']['ah_keys']) }}" class="p-2 px-3 text-text-main">
+                                                <td colspan="8" class="p-2 px-3 text-text-main">
                                                     {{ $namaKelompok }}
                                                 </td>
                                             </tr>
                                             @foreach($items as $idxItem => $row)
+                                                <!-- Parent Row: Mata Pelajaran -->
                                                 <tr class="hover:bg-surface-hover/30 {{ $row->is_seni ? 'bg-purple-50/20 dark:bg-purple-950/20' : '' }}">
-                                                    <td class="p-2.5 text-center text-text-secondary font-mono">{{ $idxItem + 1 }}</td>
+                                                    <td class="p-2.5 text-center text-text-secondary font-mono font-semibold">{{ $idxItem + 1 }}</td>
                                                     <td class="p-2.5">
-                                                        <div class="font-semibold text-text-main flex items-center gap-1.5">
+                                                        <div class="font-bold text-text-main flex items-center gap-1.5 text-xs">
                                                             @if($row->is_seni)
                                                                 <span class="text-purple-600">🎨</span>
                                                                 <span>{{ $row->mapel_nama }}</span>
@@ -370,26 +370,16 @@
                                                             @endif
                                                         </div>
                                                     </td>
-                                                    <td class="p-2.5 text-center font-mono text-[11px] text-text-muted">
+                                                    <td class="p-2.5 text-center font-mono text-[11px] text-text-muted font-semibold">
                                                         {{ (int) ($row->kkm ?? 75) }}
                                                     </td>
-                                                    @foreach($previewData['periodMeta']['ah_keys'] as $ah)
-                                                        @php
-                                                            $ahVal = isset($row->ah_scores[$ah]) ? $row->ah_scores[$ah] : null;
-                                                            $isAhBelow = $ahVal !== null && $ahVal < ($row->kkm ?? 75);
-                                                        @endphp
-                                                        <td class="p-2.5 text-center font-mono {{ $isAhBelow ? 'text-rose-600 font-bold bg-rose-50/50' : 'text-text-main' }}">
-                                                            {{ $ahVal !== null ? number_format($ahVal, 0) : '-' }}
-                                                        </td>
-                                                    @endforeach
-                                                    @php
-                                                        $sumVal = $row->sumatif;
-                                                        $isSumBelow = $sumVal !== null && $sumVal < ($row->kkm ?? 75);
-                                                    @endphp
-                                                    <td class="p-2.5 text-center font-mono {{ $isSumBelow ? 'text-rose-600 font-bold bg-rose-50/50' : 'text-text-main' }}">
-                                                        {{ $sumVal !== null ? number_format($sumVal, 0) : '-' }}
+                                                    <td class="p-2.5 text-center font-mono text-xs {{ ($row->nh !== null && $row->nh < ($row->kkm ?? 75)) ? 'text-rose-600 font-bold bg-rose-50/50' : 'text-text-main font-semibold' }}">
+                                                        {{ $row->nh !== null ? number_format($row->nh, 0) : '-' }}
                                                     </td>
-                                                    <td class="p-2.5 text-center font-mono font-bold">
+                                                    <td class="p-2.5 text-center font-mono text-xs {{ ($row->sumatif !== null && $row->sumatif < ($row->kkm ?? 75)) ? 'text-rose-600 font-bold bg-rose-50/50' : 'text-text-main font-semibold' }}">
+                                                        {{ $row->sumatif !== null ? number_format($row->sumatif, 0) : '-' }}
+                                                    </td>
+                                                    <td class="p-2.5 text-center font-mono font-bold text-xs">
                                                         @if($row->nilai_akhir !== null)
                                                             <span class="px-2 py-0.5 rounded-md bg-emerald-50 dark:bg-emerald-950/60 text-emerald-700 dark:text-emerald-300 font-bold">
                                                                 {{ number_format($row->nilai_akhir, 0) }}
@@ -400,14 +390,30 @@
                                                             </span>
                                                         @endif
                                                     </td>
+                                                    <td class="p-2.5 text-center text-xs">
+                                                        @php
+                                                            $pred = $row->predikat ?? '-';
+                                                            $predBadge = match(strtolower($pred)) {
+                                                                'mahir' => 'bg-emerald-100 text-emerald-800 dark:bg-emerald-950/60 dark:text-emerald-300 border-emerald-300',
+                                                                'cakap' => 'bg-blue-100 text-blue-800 dark:bg-blue-950/60 dark:text-blue-300 border-blue-300',
+                                                                'layak' => 'bg-amber-100 text-amber-800 dark:bg-amber-950/60 dark:text-amber-300 border-amber-300',
+                                                                'mulai berkembang' => 'bg-orange-100 text-orange-800 dark:bg-orange-950/60 dark:text-orange-300 border-orange-300',
+                                                                'belum kompeten' => 'bg-rose-100 text-rose-800 dark:bg-rose-950/60 dark:text-rose-300 border-rose-300 font-bold',
+                                                                default => 'bg-zinc-100 text-zinc-700 dark:bg-zinc-800 dark:text-zinc-300 border-zinc-300',
+                                                            };
+                                                        @endphp
+                                                        <span class="px-2 py-0.5 rounded text-[11px] font-semibold border {{ $predBadge }}">
+                                                            {{ $pred }}
+                                                        </span>
+                                                    </td>
                                                     <td class="p-2.5 text-[11px] leading-relaxed">
                                                         @if($row->status === 'belum_lengkap')
                                                             <span class="text-amber-700 dark:text-amber-400 font-medium">
-                                                                ⚠️ {{ $row->deskripsi_tertinggi }}
+                                                                ⚠️ {{ $row->deskripsi_tertinggi ?: 'Nilai belum lengkap, silakan hubungi guru yang bersangkutan.' }}
                                                             </span>
                                                         @elseif($row->status === 'belum_kompeten')
                                                             <span class="text-rose-700 dark:text-rose-400 font-medium">
-                                                                ❌ {{ $row->deskripsi_tertinggi }}
+                                                                ❌ {{ $row->deskripsi_tertinggi ?: 'Nilai belum kompeten, silakan hubungi guru yang bersangkutan.' }}
                                                             </span>
                                                         @elseif($row->deskripsi_manual)
                                                             <span class="text-amber-700 font-semibold">[Manual]</span> {{ $row->deskripsi_manual }}
@@ -419,6 +425,42 @@
                                                         @endif
                                                     </td>
                                                 </tr>
+
+                                                <!-- Child Rows: Rincian Tujuan Pembelajaran (TP) -->
+                                                @if(!empty($row->tps) && count($row->tps) > 0)
+                                                    @foreach($row->tps as $tp)
+                                                        <tr class="bg-surface-ground/30 hover:bg-surface-hover/20 text-[11px] border-b border-border/50">
+                                                            <td></td>
+                                                            <td class="py-1.5 px-2.5 pl-7 text-text-secondary">
+                                                                <div class="flex items-start gap-1.5">
+                                                                    <span class="text-primary font-bold shrink-0">↳</span>
+                                                                    <span><strong class="text-text-main">[{{ $tp->kode }}]</strong> {{ $tp->deskripsi }}</span>
+                                                                </div>
+                                                            </td>
+                                                            <td class="text-center font-mono text-[10px] text-text-muted">{{ (int)($row->kkm ?? 75) }}</td>
+                                                            <td class="text-center font-mono font-semibold" colspan="2">
+                                                                @if($tp->score !== null)
+                                                                    <span class="px-2 py-0.5 rounded text-[11px] {{ $tp->score < ($row->kkm ?? 75) ? 'bg-rose-100 text-rose-700 font-bold' : 'bg-surface text-text-main border border-border' }}">
+                                                                        Skor TP: {{ number_format($tp->score, 0) }}
+                                                                    </span>
+                                                                @else
+                                                                    <span class="text-text-muted font-mono">-</span>
+                                                                @endif
+                                                            </td>
+                                                            <td class="text-center text-text-muted">-</td>
+                                                            <td class="text-center">
+                                                                @if($tp->score !== null)
+                                                                    <span class="text-[10px] font-semibold {{ $tp->score >= ($row->kkm ?? 75) ? 'text-emerald-600' : 'text-rose-600' }}">
+                                                                        {{ $tp->score >= ($row->kkm ?? 75) ? 'Tuntas' : 'Remedial' }}
+                                                                    </span>
+                                                                @else
+                                                                    <span class="text-text-muted text-[10px]">-</span>
+                                                                @endif
+                                                            </td>
+                                                            <td class="text-text-muted text-[10px] italic">Tujuan Pembelajaran</td>
+                                                        </tr>
+                                                    @endforeach
+                                                @endif
                                             @endforeach
                                         @endforeach
                                     </tbody>

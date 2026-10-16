@@ -105,45 +105,45 @@
 			<thead>
 				<tr>
 					<th width="4%">No</th>
-					<th width="23%">Mata Pelajaran</th>
+					<th width="32%">Mata Pelajaran & Capaian TP</th>
 					<th width="5%">KKM</th>
-					@foreach($ahKeys as $ah)
-						<th width="6%">{{ $ah }}</th>
-					@endforeach
-					<th width="7%">{{ $sumatifLabel }}</th>
+					<th width="8%">Nilai Harian</th>
+					<th width="8%">{{ $sumatifLabel }}</th>
 					<th width="7%">Nilai Akhir</th>
-					<th width="42%">Capaian Kompetensi</th>
+					<th width="10%">Predikat</th>
+					<th width="26%">Capaian Kompetensi</th>
 				</tr>
 			</thead>
 			<tbody>
 				@if($groupedAcademic->isNotEmpty())
 					@foreach($groupedAcademic as $namaKelompok => $items)
 						<tr style="background-color: #f8fafc;">
-							<td colspan="{{ 5 + count($ahKeys) }}" style="font-weight: bold; padding: 3px 6px; font-size: 8.5pt;">
+							<td colspan="8" style="font-weight: bold; padding: 3px 6px; font-size: 8.5pt;">
 								{{ $namaKelompok }}
 							</td>
 						</tr>
 						@foreach($items as $idxItem => $row)
-							<tr>
-								<td style="text-align: center;">{{ $idxItem + 1 }}</td>
-								<td style="font-weight: 500;">{{ $row->mapel_nama }}</td>
+							<tr style="background-color: {{ $loop->iteration % 2 == 0 ? '#fff' : '#fcfcfc' }};">
+								<td style="text-align: center; font-weight: bold;">{{ $idxItem + 1 }}</td>
+								<td style="font-weight: bold; font-size: 8.5pt;">{{ $row->mapel_nama }}</td>
 								<td style="text-align: center; font-family: monospace; font-size: 8pt; color: #475569;">{{ (int) ($row->kkm ?? 75) }}</td>
-								@foreach($ahKeys as $ah)
-									<td style="text-align: center; font-family: monospace;">
-										{{ isset($row->ah_scores[$ah]) && $row->ah_scores[$ah] !== null ? number_format($row->ah_scores[$ah], 0) : '-' }}
-									</td>
-								@endforeach
-								<td style="text-align: center; font-family: monospace;">
+								<td style="text-align: center; font-family: monospace; {{ ($row->nh !== null && $row->nh < ($row->kkm ?? 75)) ? 'color: #b91c1c; font-weight: bold;' : '' }}">
+									{{ $row->nh !== null ? number_format($row->nh, 0) : '-' }}
+								</td>
+								<td style="text-align: center; font-family: monospace; {{ ($row->sumatif !== null && $row->sumatif < ($row->kkm ?? 75)) ? 'color: #b91c1c; font-weight: bold;' : '' }}">
 									{{ $row->sumatif !== null ? number_format($row->sumatif, 0) : '-' }}
 								</td>
 								<td style="text-align: center; font-family: monospace; font-weight: bold;">
 									{{ $row->nilai_akhir !== null ? number_format($row->nilai_akhir, 0) : '-' }}
 								</td>
-								<td style="font-size: 8pt; line-height: 1.35; color: #1e293b;">
+								<td style="text-align: center; font-size: 8pt; font-weight: bold;">
+									{{ $row->predikat ?? '-' }}
+								</td>
+								<td style="font-size: 8pt; line-height: 1.3; color: #1e293b;">
 									@if($row->status === 'belum_lengkap')
-										<span style="color: #b45309; font-weight: 600;">{{ $row->deskripsi_tertinggi }}</span>
+										<span style="color: #b45309; font-weight: 600;">{{ $row->deskripsi_tertinggi ?: 'Nilai belum lengkap, silakan hubungi guru yang bersangkutan.' }}</span>
 									@elseif($row->status === 'belum_kompeten')
-										<span style="color: #b91c1c; font-weight: 600;">{{ $row->deskripsi_tertinggi }}</span>
+										<span style="color: #b91c1c; font-weight: 600;">{{ $row->deskripsi_tertinggi ?: 'Nilai belum kompeten, silakan hubungi guru yang bersangkutan.' }}</span>
 									@elseif($row->deskripsi_manual)
 										{!! nl2br(e($row->deskripsi_manual)) !!}
 									@else
@@ -151,7 +151,7 @@
 											<div>{{ $row->deskripsi_tertinggi }}</div>
 										@endif
 										@if(!empty($row->deskripsi_terendah))
-											<div style="margin-top: 3px;">{{ $row->deskripsi_terendah }}</div>
+											<div style="margin-top: 2px;">{{ $row->deskripsi_terendah }}</div>
 										@endif
 										@if(empty($row->deskripsi_tertinggi) && empty($row->deskripsi_terendah))
 											<span style="color: #94a3b8; font-style: italic;">Belum ada deskripsi</span>
@@ -159,11 +159,46 @@
 									@endif
 								</td>
 							</tr>
+
+							<!-- Baris Bertingkat: Rincian TP Mata Pelajaran -->
+							@if(!empty($row->tps) && count($row->tps) > 0)
+								@foreach($row->tps as $tp)
+									<tr style="background-color: #f8fafc; font-size: 7.5pt;">
+										<td></td>
+										<td style="padding-left: 15px; color: #475569;">
+											<strong>↳ [{{ $tp->kode }}]</strong> {{ $tp->deskripsi }}
+										</td>
+										<td style="text-align: center; font-family: monospace; font-size: 7.5pt; color: #64748b;">
+											{{ (int)($row->kkm ?? 75) }}
+										</td>
+										<td colspan="2" style="text-align: center; font-family: monospace; font-size: 8pt;">
+											@if($tp->score !== null)
+												<span style="{{ $tp->score < ($row->kkm ?? 75) ? 'color: #b91c1c; font-weight: bold;' : 'font-weight: 600;' }}">
+													Skor TP: {{ number_format($tp->score, 0) }}
+												</span>
+											@else
+												-
+											@endif
+										</td>
+										<td style="text-align: center; color: #94a3b8;">-</td>
+										<td style="text-align: center; font-size: 7.5pt;">
+											@if($tp->score !== null)
+												<span style="color: {{ $tp->score >= ($row->kkm ?? 75) ? '#15803d' : '#b91c1c' }}; font-weight: bold;">
+													{{ $tp->score >= ($row->kkm ?? 75) ? 'Tuntas' : 'Remedial' }}
+												</span>
+											@else
+												-
+											@endif
+										</td>
+										<td style="color: #64748b; font-style: italic; font-size: 7.5pt;">Tujuan Pembelajaran</td>
+									</tr>
+								@endforeach
+							@endif
 						@endforeach
 					@endforeach
 				@else
 					<tr>
-						<td colspan="{{ 5 + count($ahKeys) }}" style="text-align: center; color: #64748b; padding: 12px; font-style: italic;">
+						<td colspan="8" style="text-align: center; color: #64748b; padding: 12px; font-style: italic;">
 							Belum ada data nilai akademik untuk periode ini.
 						</td>
 					</tr>
@@ -190,7 +225,7 @@
 								<tr>
 									<td style="text-align: center;">{{ $idxEks + 1 }}</td>
 									<td>{{ $ekskul->ekstrakurikuler->nama ?? '-' }}</td>
-									<td>{{ $ekskul->predikat ?? ($ekskul->keterangan ?? 'Aktif Mengikuti') }}</td>
+									<td>{{ $ekskul->nilai_huruf ? ($ekskul->deskripsi ? $ekskul->nilai_huruf . ' - ' . $ekskul->deskripsi : $ekskul->nilai_huruf) : ($ekskul->deskripsi ?? ($ekskul->predikat ?? ($ekskul->keterangan ?? 'Aktif Mengikuti'))) }}</td>
 								</tr>
 							@empty
 								<tr>

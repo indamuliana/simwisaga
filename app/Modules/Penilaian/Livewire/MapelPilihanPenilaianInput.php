@@ -12,6 +12,7 @@ use App\Modules\Kesiswaan\Models\Siswa;
 use App\Modules\Penilaian\Models\MapelPilihanTp;
 use App\Modules\Penilaian\Models\NilaiMapelPilihanAkhir;
 use App\Modules\Penilaian\Models\NilaiMapelPilihanFormatif;
+use App\Modules\Penilaian\Models\NilaiMapelPilihanHarian;
 use App\Modules\Penilaian\Models\NilaiMapelPilihanSumatif;
 use App\Modules\Penilaian\Services\MapelPilihanScoreService;
 use Livewire\Attributes\Layout;
@@ -53,12 +54,17 @@ class MapelPilihanPenilaianInput extends Component
 
     // View Mode & Semester selection
     public string $tabelTahunMode = 'semua'; // 'semua', 'ganjil', 'genap'
+    public string $activePeriode = '9M1';
+    public string $rekapPeriode = '9M1';
     public ?int $activeNilaiSemesterId = null;
     public ?int $semGanjilId = null;
     public ?int $semGenapId = null;
 
     // Grades State
-    public array $ahData = []; // [siswa_id => ['AH 1' => val, ...]]
+    public array $tpScores = []; // [siswa_id => [tp_id => score]]
+    public array $nhData = []; // [siswa_id => [target_periode => score]] (default 100)
+    public array $sumatifData = []; // [siswa_id => [target_periode => score]]
+    public array $ahData = []; // [siswa_id => ['AH 1' => val, ...]] (compatibility)
     public array $sumatifDataGanjil = []; // [siswa_id => ['sts' => val, 'sas' => val]]
     public array $sumatifDataGenap = []; // [siswa_id => ['sts' => val, 'sat' => val]]
     public array $rekapData = []; // [siswa_id => NilaiMapelPilihanAkhir]
@@ -101,6 +107,14 @@ class MapelPilihanPenilaianInput extends Component
         $this->loadSemesters();
         $this->loadSiswa();
         $this->loadAllTP();
+
+        $currSemObj = Semester::find($this->activeNilaiSemesterId);
+        $isGenap = $currSemObj && str_contains(strtolower($currSemObj->semester), 'genap');
+        $defaultP = $isGenap ? '9M3' : '9M1';
+        $this->activePeriode = request()->query('periode', $defaultP);
+        $this->rekapPeriode = $this->activePeriode;
+        $this->tp_target_periode = $this->activePeriode;
+
         $this->loadNilai();
     }
 
@@ -156,55 +170,141 @@ class MapelPilihanPenilaianInput extends Component
     {
         $siswaIds = collect($this->siswas)->pluck('id')->all();
 
-        // 1. Formatif (AH 1 s.d. AH 8)
+        // 1. Formatif TP & AH
+        $this->tpScores = [];
         $this->ahData = [];
         $formatifs = NilaiMapelPilihanFormatif::where('mapel_pilihan_id', $this->mapel_pilihan_id)
             ->whereIn('siswa_id', $siswaIds)
-            ->get()
-            ->groupBy('siswa_id');
+            ->get();
 
         $allAhCodes = ['AH 1', 'AH 2', 'AH 3', 'AH 4', 'AH 5', 'AH 6', 'AH 7', 'AH 8'];
 
-        foreach ($this->siswas as $siswa) {
-            $sId = $siswa->id;
-            $sFormatifs = $formatifs->get($sId, collect())->keyBy('kode_ah');
-            $this->ahData[$sId] = [];
+        // 2. Nilai Harian (NH)
+        $this->nhData = [];
+        $nhRecords = NilaiMapelPilihanHarian::where('mapel_pilihan_id', $this->mapel_pilihan_id)
+            ->whereIn('siswa_id', $siswaIds)
+            ->get();
 
-            foreach ($allAhCodes as $code) {
-                $val = $sFormatifs->get($code)?->nilai;
-                $this->ahData[$sId][$code] = ($val !== null && $val !== '') ? (float) $val : null;
-            }
-        }
-
-        // 2. Sumatif Ganjil & Genap
+        // 3. Sumatif
+        $this->sumatifData = [];
         $this->sumatifDataGanjil = [];
         $this->sumatifDataGenap = [];
-
         $sumatifs = NilaiMapelPilihanSumatif::where('mapel_pilihan_id', $this->mapel_pilihan_id)
             ->whereIn('siswa_id', $siswaIds)
-            ->get()
-            ->groupBy('semester_id');
+            ->get();
 
-        $sumGanjil = $this->semGanjilId ? $sumatifs->get($this->semGanjilId, collect())->keyBy('siswa_id') : collect();
-        $sumGenap = $this->semGenapId ? $sumatifs->get($this->semGenapId, collect())->keyBy('siswa_id') : collect();
+        $sumGanjil = $this->semGanjilId ? $sumatifs->where('semester_id', $this->semGanjilId)->keyBy('siswa_id') : collect();
+        $sumGenap = $this->semGenapId ? $sumatifs->where('semester_id', $this->semGenapId)->keyBy('siswa_id') : collect();
 
         foreach ($this->siswas as $siswa) {
             $sId = $siswa->id;
+            $this->tpScores[$sId] = [];
+            $sFormatifs = $formatifs->where('siswa_id', $sId);
+
+            foreach ($this->allTps as $tp) {
+                $f = $sFormatifs->firstWhere('mapel_pilihan_tp_id', $tp->id);
+                if (!$f && $tp->kode_ah) {
+                    $f = $sFormatifs->firstWhere('kode_ah', $tp->kode_ah);
+                }
+                $this->tpScores[$sId][$tp->id] = ($f && $f->nilai !== null) ? (float) $f->nilai : null;
+            }
+
+            $this->ahData[$sId] = [];
+            foreach ($allAhCodes as $code) {
+                $val = $sFormatifs->firstWhere('kode_ah', $code)?->nilai;
+                $this->ahData[$sId][$code] = ($val !== null && $val !== '') ? (float) $val : null;
+            }
+
+            // NH
+            $sNhs = $nhRecords->where('siswa_id', $sId)->keyBy('target_periode');
+            $this->nhData[$sId] = [
+                '9M1' => $sNhs->get('9M1')?->nilai !== null ? (float) $sNhs->get('9M1')->nilai : 100.0,
+                '9M2' => $sNhs->get('9M2')?->nilai !== null ? (float) $sNhs->get('9M2')->nilai : 100.0,
+                '9M3' => $sNhs->get('9M3')?->nilai !== null ? (float) $sNhs->get('9M3')->nilai : 100.0,
+                '9M4' => $sNhs->get('9M4')?->nilai !== null ? (float) $sNhs->get('9M4')->nilai : 100.0,
+            ];
+
+            // Sumatif
             $gRow = $sumGanjil->get($sId);
+            $eRow = $sumGenap->get($sId);
+
             $this->sumatifDataGanjil[$sId] = [
                 'sts' => $gRow?->sts_1 !== null ? (float) $gRow->sts_1 : null,
                 'sas' => $gRow?->sas !== null ? (float) $gRow->sas : null,
             ];
 
-            $eRow = $sumGenap->get($sId);
             $this->sumatifDataGenap[$sId] = [
                 'sts' => $eRow?->sts_2 !== null ? (float) $eRow->sts_2 : null,
-                'sas' => $eRow?->sat !== null ? (float) $eRow->sat : null, // sat mapped as sas key for ease
+                'sas' => $eRow?->sat !== null ? (float) $eRow->sat : null,
+            ];
+
+            $this->sumatifData[$sId] = [
+                '9M1' => $gRow?->sts_1 !== null ? (float) $gRow->sts_1 : null,
+                '9M2' => $gRow?->sas !== null ? (float) $gRow->sas : null,
+                '9M3' => $eRow?->sts_2 !== null ? (float) $eRow->sts_2 : null,
+                '9M4' => $eRow?->sat !== null ? (float) $eRow->sat : null,
             ];
         }
 
-        // 3. Load Rekap Akhir untuk semester aktif
+        // 4. Load Rekap Akhir untuk semester aktif
         $this->loadRekapForActiveSemester();
+    }
+
+    public function switchPeriode(string $periode): void
+    {
+        $this->activePeriode = $periode;
+        $this->rekapPeriode = $periode;
+        $this->tp_target_periode = $periode;
+        if (in_array($periode, ['9M1', '9M2']) && $this->semGanjilId) {
+            $this->activeNilaiSemesterId = $this->semGanjilId;
+            $this->loadRekapForActiveSemester();
+        } elseif (in_array($periode, ['9M3', '9M4']) && $this->semGenapId) {
+            $this->activeNilaiSemesterId = $this->semGenapId;
+            $this->loadRekapForActiveSemester();
+        }
+    }
+
+    public function switchRekapPeriode(string $mode): void
+    {
+        $this->rekapPeriode = $mode;
+        if (in_array($mode, ['9M1', '9M2']) && $this->semGanjilId) {
+            $this->activeNilaiSemesterId = $this->semGanjilId;
+            $this->loadRekapForActiveSemester();
+        } elseif (in_array($mode, ['9M3', '9M4']) && $this->semGenapId) {
+            $this->activeNilaiSemesterId = $this->semGenapId;
+            $this->loadRekapForActiveSemester();
+        }
+    }
+
+    public function getTpsForPeriode(string $periode)
+    {
+        return collect($this->allTps)->filter(function ($tp) use ($periode) {
+            if (!empty($tp->target_periode)) {
+                return $tp->target_periode === $periode;
+            }
+            $isGenap = in_array($periode, ['9M3', '9M4']);
+            $targetSemId = $isGenap ? $this->semGenapId : $this->semGanjilId;
+            if ($targetSemId && $tp->semester_id == $targetSemId) {
+                return $periode === ($isGenap ? '9M3' : '9M1');
+            }
+            return false;
+        })->sortBy('urutan')->values();
+    }
+
+    public function getActiveTpsProperty()
+    {
+        return $this->getTpsForPeriode($this->activePeriode);
+    }
+
+    public function getLabelSumatif(string $periode): string
+    {
+        return match ($periode) {
+            '9M1' => 'STS 1',
+            '9M2' => 'SAS',
+            '9M3' => 'STS 2',
+            '9M4' => 'SAT',
+            default => 'STS',
+        };
     }
 
     public function loadRekapForActiveSemester(): void
@@ -328,115 +428,135 @@ class MapelPilihanPenilaianInput extends Component
     {
         $this->guard('penilaian.tambah');
 
+        // Fallback synchronization from legacy ahData / sumatifDataGanjil / sumatifDataGenap
+        foreach ($this->siswas as $siswa) {
+            $sId = $siswa->id;
+            foreach ($this->allTps as $tp) {
+                if ((!isset($this->tpScores[$sId][$tp->id]) || $this->tpScores[$sId][$tp->id] === null || $this->tpScores[$sId][$tp->id] === '')
+                    && isset($this->ahData[$sId][$tp->kode_ah]) && $this->ahData[$sId][$tp->kode_ah] !== null && $this->ahData[$sId][$tp->kode_ah] !== '') {
+                    $this->tpScores[$sId][$tp->id] = $this->ahData[$sId][$tp->kode_ah];
+                }
+            }
+            if (!isset($this->nhData[$sId])) {
+                $this->nhData[$sId] = ['9M1' => 100.0, '9M2' => 100.0, '9M3' => 100.0, '9M4' => 100.0];
+            }
+            if ((!isset($this->sumatifData[$sId]['9M1']) || $this->sumatifData[$sId]['9M1'] === null) && isset($this->sumatifDataGanjil[$sId]['sts']) && $this->sumatifDataGanjil[$sId]['sts'] !== null && $this->sumatifDataGanjil[$sId]['sts'] !== '') {
+                $this->sumatifData[$sId]['9M1'] = $this->sumatifDataGanjil[$sId]['sts'];
+            }
+            if ((!isset($this->sumatifData[$sId]['9M2']) || $this->sumatifData[$sId]['9M2'] === null) && isset($this->sumatifDataGanjil[$sId]['sas']) && $this->sumatifDataGanjil[$sId]['sas'] !== null && $this->sumatifDataGanjil[$sId]['sas'] !== '') {
+                $this->sumatifData[$sId]['9M2'] = $this->sumatifDataGanjil[$sId]['sas'];
+            }
+            if ((!isset($this->sumatifData[$sId]['9M3']) || $this->sumatifData[$sId]['9M3'] === null) && isset($this->sumatifDataGenap[$sId]['sts']) && $this->sumatifDataGenap[$sId]['sts'] !== null && $this->sumatifDataGenap[$sId]['sts'] !== '') {
+                $this->sumatifData[$sId]['9M3'] = $this->sumatifDataGenap[$sId]['sts'];
+            }
+            if ((!isset($this->sumatifData[$sId]['9M4']) || $this->sumatifData[$sId]['9M4'] === null) && isset($this->sumatifDataGenap[$sId]['sas']) && $this->sumatifDataGenap[$sId]['sas'] !== null && $this->sumatifDataGenap[$sId]['sas'] !== '') {
+                $this->sumatifData[$sId]['9M4'] = $this->sumatifDataGenap[$sId]['sas'];
+            }
+        }
+
         $this->validate([
+            'tpScores.*.*' => 'nullable|numeric|min:0|max:100',
+            'nhData.*.*' => 'nullable|numeric|min:0|max:100',
+            'sumatifData.*.*' => 'nullable|numeric|min:0|max:100',
             'ahData.*.*' => 'nullable|numeric|min:0|max:100',
-            'sumatifDataGanjil.*.sts' => 'nullable|numeric|min:0|max:100',
-            'sumatifDataGanjil.*.sas' => 'nullable|numeric|min:0|max:100',
-            'sumatifDataGenap.*.sts' => 'nullable|numeric|min:0|max:100',
-            'sumatifDataGenap.*.sas' => 'nullable|numeric|min:0|max:100',
         ], [
-            'ahData.*.*.numeric' => 'Nilai asesmen harian (AH) harus berupa angka.',
-            'ahData.*.*.min' => 'Nilai asesmen harian tidak boleh kurang dari 0.',
-            'ahData.*.*.max' => 'Nilai asesmen harian tidak boleh lebih dari 100.',
-            'sumatifDataGanjil.*.sts.numeric' => 'Nilai STS Ganjil harus angka.',
-            'sumatifDataGanjil.*.sas.numeric' => 'Nilai SAS Ganjil harus angka.',
-            'sumatifDataGenap.*.sts.numeric' => 'Nilai STS Genap harus angka.',
-            'sumatifDataGenap.*.sas.numeric' => 'Nilai SAT Genap harus angka.',
+            'tpScores.*.*.numeric' => 'Nilai TP harus berupa angka.',
+            'tpScores.*.*.min' => 'Nilai TP minimal 0.',
+            'tpScores.*.*.max' => 'Nilai TP maksimal 100.',
+            'nhData.*.*.numeric' => 'Nilai Harian (NH) harus berupa angka.',
+            'nhData.*.*.min' => 'Nilai Harian (NH) minimal 0.',
+            'nhData.*.*.max' => 'Nilai Harian (NH) maksimal 100.',
+            'sumatifData.*.*.numeric' => 'Nilai STS/SAS/SAT harus berupa angka.',
+            'sumatifData.*.*.min' => 'Nilai STS/SAS/SAT minimal 0.',
+            'sumatifData.*.*.max' => 'Nilai STS/SAS/SAT maksimal 100.',
         ]);
 
         $scoreService = app(MapelPilihanScoreService::class);
 
-        // 1. Simpan Formatif (AH 1 s.d. AH 8)
-        foreach ($this->ahData as $siswaId => $scores) {
-            foreach ($scores as $ahCode => $val) {
-                $numVal = ($val !== null && $val !== '' && is_numeric($val)) ? (float) $val : null;
+        // 1. Simpan TP Formatif
+        foreach ($this->tpScores as $siswaId => $scores) {
+            foreach ($scores as $tpId => $val) {
+                $tp = collect($this->allTps)->firstWhere('id', (int)$tpId);
+                if (!$tp) continue;
 
-                // Tentukan semester untuk AH ini (AH 1-4 Ganjil, AH 5-8 Genap)
-                $isGenapAh = in_array($ahCode, ['AH 5', 'AH 6', 'AH 7', 'AH 8']);
-                $targetSemId = $isGenapAh ? $this->semGenapId : $this->semGanjilId;
-
-                if (!$targetSemId) continue;
-
-                if ($numVal !== null) {
+                if ($val !== null && $val !== '' && is_numeric($val)) {
                     NilaiMapelPilihanFormatif::updateOrCreate(
                         [
                             'mapel_pilihan_id' => $this->mapel_pilihan_id,
                             'siswa_id' => $siswaId,
-                            'semester_id' => $targetSemId,
-                            'kode_ah' => $ahCode,
+                            'mapel_pilihan_tp_id' => $tp->id,
                         ],
-                        ['nilai' => $numVal]
+                        [
+                            'semester_id' => $tp->semester_id,
+                            'kode_ah' => $tp->kode_ah,
+                            'nilai' => (float)$val,
+                        ]
                     );
                 } else {
                     NilaiMapelPilihanFormatif::where('mapel_pilihan_id', $this->mapel_pilihan_id)
                         ->where('siswa_id', $siswaId)
-                        ->where('semester_id', $targetSemId)
-                        ->where('kode_ah', $ahCode)
+                        ->where('mapel_pilihan_tp_id', $tp->id)
                         ->delete();
                 }
             }
         }
 
-        // 2. Simpan Sumatif Ganjil (STS 1 & SAS)
-        if ($this->semGanjilId) {
-            foreach ($this->sumatifDataGanjil as $siswaId => $vals) {
-                $sts = ($vals['sts'] !== null && $vals['sts'] !== '' && is_numeric($vals['sts'])) ? (float) $vals['sts'] : null;
-                $sas = ($vals['sas'] !== null && $vals['sas'] !== '' && is_numeric($vals['sas'])) ? (float) $vals['sas'] : null;
+        // 2. Simpan Nilai Harian (NH)
+        foreach ($this->nhData as $siswaId => $pScores) {
+            foreach ($pScores as $periode => $val) {
+                $nhVal = ($val !== null && $val !== '' && is_numeric($val)) ? (float)$val : 100.0;
+                NilaiMapelPilihanHarian::updateOrCreate(
+                    [
+                        'mapel_pilihan_id' => $this->mapel_pilihan_id,
+                        'siswa_id' => $siswaId,
+                        'target_periode' => $periode,
+                    ],
+                    ['nilai' => $nhVal]
+                );
+            }
+        }
 
-                if ($sts !== null || $sas !== null) {
+        // 3. Simpan Sumatif
+        foreach ($this->sumatifData as $siswaId => $pScores) {
+            if ($this->semGanjilId) {
+                $sts1 = isset($pScores['9M1']) && is_numeric($pScores['9M1']) ? (float)$pScores['9M1'] : null;
+                $sas = isset($pScores['9M2']) && is_numeric($pScores['9M2']) ? (float)$pScores['9M2'] : null;
+                if ($sts1 !== null || $sas !== null) {
                     NilaiMapelPilihanSumatif::updateOrCreate(
-                        [
-                            'mapel_pilihan_id' => $this->mapel_pilihan_id,
-                            'siswa_id' => $siswaId,
-                            'semester_id' => $this->semGanjilId,
-                        ],
-                        ['sts_1' => $sts, 'sas' => $sas]
+                        ['mapel_pilihan_id' => $this->mapel_pilihan_id, 'siswa_id' => $siswaId, 'semester_id' => $this->semGanjilId],
+                        ['sts_1' => $sts1, 'sas' => $sas]
                     );
                 } else {
-                    NilaiMapelPilihanSumatif::where('mapel_pilihan_id', $this->mapel_pilihan_id)
-                        ->where('siswa_id', $siswaId)
-                        ->where('semester_id', $this->semGanjilId)
-                        ->delete();
+                    NilaiMapelPilihanSumatif::where('mapel_pilihan_id', $this->mapel_pilihan_id)->where('siswa_id', $siswaId)->where('semester_id', $this->semGanjilId)->delete();
                 }
             }
 
-            $semG = Semester::find($this->semGanjilId);
-            if ($semG) {
-                $scoreService->calculateAndSaveRekap($this->mapelPilihan, $semG);
-            }
-        }
-
-        // 3. Simpan Sumatif Genap (STS 2 & SAT)
-        if ($this->semGenapId) {
-            foreach ($this->sumatifDataGenap as $siswaId => $vals) {
-                $sts2 = ($vals['sts'] !== null && $vals['sts'] !== '' && is_numeric($vals['sts'])) ? (float) $vals['sts'] : null;
-                $sat = ($vals['sas'] !== null && $vals['sas'] !== '' && is_numeric($vals['sas'])) ? (float) $vals['sas'] : null;
-
+            if ($this->semGenapId) {
+                $sts2 = isset($pScores['9M3']) && is_numeric($pScores['9M3']) ? (float)$pScores['9M3'] : null;
+                $sat = isset($pScores['9M4']) && is_numeric($pScores['9M4']) ? (float)$pScores['9M4'] : null;
                 if ($sts2 !== null || $sat !== null) {
                     NilaiMapelPilihanSumatif::updateOrCreate(
-                        [
-                            'mapel_pilihan_id' => $this->mapel_pilihan_id,
-                            'siswa_id' => $siswaId,
-                            'semester_id' => $this->semGenapId,
-                        ],
+                        ['mapel_pilihan_id' => $this->mapel_pilihan_id, 'siswa_id' => $siswaId, 'semester_id' => $this->semGenapId],
                         ['sts_2' => $sts2, 'sat' => $sat]
                     );
                 } else {
-                    NilaiMapelPilihanSumatif::where('mapel_pilihan_id', $this->mapel_pilihan_id)
-                        ->where('siswa_id', $siswaId)
-                        ->where('semester_id', $this->semGenapId)
-                        ->delete();
+                    NilaiMapelPilihanSumatif::where('mapel_pilihan_id', $this->mapel_pilihan_id)->where('siswa_id', $siswaId)->where('semester_id', $this->semGenapId)->delete();
                 }
-            }
-
-            $semE = Semester::find($this->semGenapId);
-            if ($semE) {
-                $scoreService->calculateAndSaveRekap($this->mapelPilihan, $semE);
             }
         }
 
+        // 4. Hitung Ulang Rekap
+        if ($this->semGanjilId) {
+            $semG = Semester::find($this->semGanjilId);
+            if ($semG) $scoreService->calculateAndSaveRekap($this->mapelPilihan, $semG);
+        }
+        if ($this->semGenapId) {
+            $semE = Semester::find($this->semGenapId);
+            if ($semE) $scoreService->calculateAndSaveRekap($this->mapelPilihan, $semE);
+        }
+
         $this->loadRekapForActiveSemester();
-        session()->flash('status', 'Nilai Formatif & Sumatif berhasil disimpan, rekapitulasi kelulusan otomatis diperbarui.');
+        session()->flash('status', 'Seluruh Nilai TP, Nilai Harian (NH), dan Sumatif berhasil disimpan.');
     }
 
     public function hitungUlangRekap(): void

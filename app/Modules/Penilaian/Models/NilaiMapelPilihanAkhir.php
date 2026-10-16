@@ -24,6 +24,7 @@ class NilaiMapelPilihanAkhir extends Model implements Auditable
         'deskripsi_tertinggi',
         'deskripsi_terendah',
         'deskripsi_manual',
+        'predikat',
         'status',
     ];
 
@@ -45,5 +46,17 @@ class NilaiMapelPilihanAkhir extends Model implements Auditable
     public function semester(): BelongsTo
     {
         return $this->belongsTo(Semester::class);
+    }
+
+    public function getRecordFor9M(string $period): ?array
+    {
+        $key = strtoupper(trim($period));
+        if (str_contains($key, '9M1') || str_contains($key, 'STS 1')) $key = '9M1';
+        elseif (str_contains($key, '9M2') || str_contains($key, 'SAS')) $key = '9M2';
+        elseif (str_contains($key, '9M3') || str_contains($key, 'STS 2')) $key = '9M3';
+        elseif (str_contains($key, '9M4') || str_contains($key, 'SAT')) $key = '9M4';
+
+        $data = $this->data_9m ?? [];
+        return $data[$key] ?? null;
     }
 }

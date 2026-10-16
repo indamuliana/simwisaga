@@ -10,11 +10,20 @@ use App\Modules\Kesiswaan\Models\Siswa;
 use App\Modules\Penilaian\Models\MapelPilihanTp;
 use App\Modules\Penilaian\Models\NilaiMapelPilihanAkhir;
 use App\Modules\Penilaian\Models\NilaiMapelPilihanFormatif;
+use App\Modules\Penilaian\Models\NilaiMapelPilihanHarian;
 use App\Modules\Penilaian\Models\NilaiMapelPilihanSumatif;
+use App\Modules\Penilaian\Models\PengaturanPenilaian;
 use Illuminate\Support\Collection;
 
 class MapelPilihanScoreService
 {
+    protected PenilaianScoreCalculator $calculator;
+
+    public function __construct(?PenilaianScoreCalculator $calculator = null)
+    {
+        $this->calculator = $calculator ?: new PenilaianScoreCalculator();
+    }
+
     /**
      * Hitung dan simpan rekap nilai akhir Mapel Pilihan untuk seluruh anggota siswa
      */
@@ -26,36 +35,14 @@ class MapelPilihanScoreService
         $block1Key = $isGenap ? '9M3' : '9M1';
         $block2Key = $isGenap ? '9M4' : '9M2';
 
-        $ahBlock1 = $isGenap ? ['AH 5', 'AH 6'] : ['AH 1', 'AH 2'];
-        $ahBlock2 = $isGenap ? ['AH 7', 'AH 8'] : ['AH 3', 'AH 4'];
-
         // Ambil Tujuan Pembelajaran untuk Mapel Pilihan dan Semester ini
-        $tps = MapelPilihanTp::where('mapel_pilihan_id', $mapelPilihan->id)
+        $allTps = MapelPilihanTp::where('mapel_pilihan_id', $mapelPilihan->id)
             ->where('semester_id', $semester->id)
             ->orderBy('urutan')
             ->get();
 
-        $ahMapping = [];
-        foreach ($tps as $tp) {
-            $ah = $tp->kode_ah ?: $tp->alokasi_ah;
-            if ($ah) {
-                $ahMapping[$ah][] = $tp;
-            }
-        }
-
-        $tpsBlock1 = collect();
-        foreach ($ahBlock1 as $ah) {
-            if (isset($ahMapping[$ah])) {
-                $tpsBlock1 = $tpsBlock1->merge($ahMapping[$ah]);
-            }
-        }
-
-        $tpsBlock2 = collect();
-        foreach ($ahBlock2 as $ah) {
-            if (isset($ahMapping[$ah])) {
-                $tpsBlock2 = $tpsBlock2->merge($ahMapping[$ah]);
-            }
-        }
+        $tpsBlock1 = $allTps->filter(fn($tp) => ($tp->target_periode === $block1Key) || empty($tp->target_periode));
+        $tpsBlock2 = $allTps->filter(fn($tp) => $tp->target_periode === $block2Key);
 
         // Ambil seluruh siswa anggota aktif
         $anggotas = MapelPilihanAnggota::with('siswa')
@@ -65,21 +52,27 @@ class MapelPilihanScoreService
 
         $siswaIds = $anggotas->pluck('siswa_id')->all();
 
-        // Ambil nilai formatif yang tersimpan
+        // Formatif
         $formatifs = NilaiMapelPilihanFormatif::where('mapel_pilihan_id', $mapelPilihan->id)
             ->where('semester_id', $semester->id)
             ->whereIn('siswa_id', $siswaIds)
             ->get()
             ->groupBy('siswa_id');
 
-        // Ambil nilai sumatif yang tersimpan
+        // Nilai Harian (NH)
+        $nhRecords = NilaiMapelPilihanHarian::where('mapel_pilihan_id', $mapelPilihan->id)
+            ->whereIn('siswa_id', $siswaIds)
+            ->get()
+            ->groupBy('siswa_id');
+
+        // Sumatif
         $sumatifs = NilaiMapelPilihanSumatif::where('mapel_pilihan_id', $mapelPilihan->id)
             ->where('semester_id', $semester->id)
             ->whereIn('siswa_id', $siswaIds)
             ->get()
             ->keyBy('siswa_id');
 
-        // Ambil rekap lama (untuk mempertahankan deskripsi manual yang sudah disunting)
+        // Rekap lama
         $existingAkhirs = NilaiMapelPilihanAkhir::where('mapel_pilihan_id', $mapelPilihan->id)
             ->where('semester_id', $semester->id)
             ->whereIn('siswa_id', $siswaIds)
@@ -87,111 +80,63 @@ class MapelPilihanScoreService
             ->keyBy('siswa_id');
 
         $computedResults = collect();
+        $settings = PengaturanPenilaian::getActive();
 
         foreach ($anggotas as $anggota) {
             $siswaId = $anggota->siswa_id;
             $existingNa = $existingAkhirs->get($siswaId);
             $currentData9m = $existingNa?->data_9m ?? [];
 
-            // Susun map nilai AH siswa
-            $siswaFormatifs = $formatifs->get($siswaId, collect())->keyBy('kode_ah');
-            $ahScoresMap = [];
-            foreach (['AH 1', 'AH 2', 'AH 3', 'AH 4', 'AH 5', 'AH 6', 'AH 7', 'AH 8'] as $ahCode) {
-                $ahScoresMap[$ahCode] = $siswaFormatifs->get($ahCode)?->nilai;
+            $sFormatifs = $formatifs->get($siswaId, collect());
+            $sFormatifTpMap = [];
+            foreach ($sFormatifs as $f) {
+                if ($f->mapel_pilihan_tp_id) {
+                    $sFormatifTpMap[$f->mapel_pilihan_tp_id] = $f->nilai;
+                } elseif ($f->kode_ah) {
+                    $matchingTp = $allTps->firstWhere('kode_ah', $f->kode_ah);
+                    if ($matchingTp) {
+                        $sFormatifTpMap[$matchingTp->id] = $f->nilai;
+                    }
+                }
             }
 
-            // Ambil sumatif
+            // NH
+            $sNhs = $nhRecords->get($siswaId, collect())->keyBy('target_periode');
+            $nh1 = $sNhs->get($block1Key)?->nilai ?? 100.0;
+            $nh2 = $sNhs->get($block2Key)?->nilai ?? 100.0;
+
+            // Sumatif
             $siswaSumatif = $sumatifs->get($siswaId);
             $sumatifVal1 = $isGenap ? $siswaSumatif?->sts_2 : $siswaSumatif?->sts_1;
             $sumatifVal2 = $isGenap ? $siswaSumatif?->sat : $siswaSumatif?->sas;
 
-            // Evaluasi Blok 1 (9M1 atau 9M3)
-            $resBlock1 = $this->evaluate9MBlock(
-                $siswaId,
-                $ahBlock1,
-                $tpsBlock1,
+            // Evaluasi Blok 1
+            $resBlock1 = $this->calculator->calculate9MBlock(
+                $sFormatifTpMap,
+                $nh1,
                 $sumatifVal1,
                 $kkm,
-                $ahScoresMap,
-                $currentData9m[$block1Key]['deskripsi_manual'] ?? null
+                $tpsBlock1,
+                $currentData9m[$block1Key]['deskripsi_manual'] ?? null,
+                $settings
             );
 
-            // Evaluasi Blok 2 (9M2 atau 9M4)
-            $resBlock2 = $this->evaluate9MBlock(
-                $siswaId,
-                $ahBlock2,
-                $tpsBlock2,
+            // Evaluasi Blok 2
+            $resBlock2 = $this->calculator->calculate9MBlock(
+                $sFormatifTpMap,
+                $nh2,
                 $sumatifVal2,
                 $kkm,
-                $ahScoresMap,
-                $currentData9m[$block2Key]['deskripsi_manual'] ?? null
+                $tpsBlock2,
+                $currentData9m[$block2Key]['deskripsi_manual'] ?? null,
+                $settings
             );
 
             $currentData9m[$block1Key] = $resBlock1;
             $currentData9m[$block2Key] = $resBlock2;
 
-            // Evaluasi Semester Penuh
-            $allAhThisSem = array_merge($ahBlock1, $ahBlock2);
-            $activeAhThisSem = [];
-            foreach ($allAhThisSem as $ah) {
-                if (!empty($ahMapping[$ah])) {
-                    $activeAhThisSem[] = $ah;
-                }
-            }
-
-            $filledAhs = [];
-            $semHasEmpty = false;
-            $semHasBelowKkm = false;
-
-            if (!empty($activeAhThisSem)) {
-                foreach ($activeAhThisSem as $ah) {
-                    $val = $ahScoresMap[$ah] ?? null;
-                    if ($val === null || $val === '' || !is_numeric($val)) {
-                        $semHasEmpty = true;
-                    } else {
-                        $num = (float) $val;
-                        $filledAhs[] = $num;
-                        if ($num < $kkm) {
-                            $semHasBelowKkm = true;
-                        }
-                    }
-                }
-            } else {
-                $semHasEmpty = true;
-            }
-
-            $stsVal = ($sumatifVal1 !== null && is_numeric($sumatifVal1)) ? (float) $sumatifVal1 : null;
-            $sasVal = ($sumatifVal2 !== null && is_numeric($sumatifVal2)) ? (float) $sumatifVal2 : null;
-
-            if ($stsVal === null || $sasVal === null) {
-                $semHasEmpty = true;
-            } else {
-                if ($stsVal < $kkm || $sasVal < $kkm) {
-                    $semHasBelowKkm = true;
-                }
-            }
-
-            $rataFormatifSem = !empty($filledAhs) ? round(array_sum($filledAhs) / count($filledAhs), 2) : null;
-
-            if ($semHasEmpty || $semHasBelowKkm) {
-                $nilaiAkhirSem = null;
-                $statusSem = $semHasBelowKkm ? 'belum_kompeten' : 'belum_lengkap';
-            } else {
-                $nilaiAkhirSem = round(($rataFormatifSem * 0.5) + (($stsVal ?? 0) * 0.25) + (($sasVal ?? 0) * 0.25), 2);
-                $statusSem = 'kompeten';
-            }
-
-            // Deskripsi semester penuh
-            if ($statusSem === 'belum_lengkap' || ($resBlock2['status'] ?? '') === 'belum_lengkap' || ($resBlock1['status'] ?? '') === 'belum_lengkap') {
-                $semDescTinggi = 'Nilai belum lengkap, silakan hubungi guru yang bersangkutan.';
-                $semDescRendah = '';
-            } elseif ($statusSem === 'belum_kompeten' || ($resBlock2['status'] ?? '') === 'belum_kompeten' || ($resBlock1['status'] ?? '') === 'belum_kompeten') {
-                $semDescTinggi = 'Nilai belum kompeten, silakan hubungi guru yang bersangkutan.';
-                $semDescRendah = '';
-            } else {
-                $semDescTinggi = $resBlock2['deskripsi_tertinggi'] ?: $resBlock1['deskripsi_tertinggi'];
-                $semDescRendah = $resBlock2['deskripsi_terendah'] ?: $resBlock1['deskripsi_terendah'];
-            }
+            // Semester
+            $semResult = $this->calculator->calculateSemester($resBlock1, $resBlock2, $kkm, $settings);
 
             $na = NilaiMapelPilihanAkhir::updateOrCreate(
                 [
@@ -200,12 +145,13 @@ class MapelPilihanScoreService
                     'semester_id' => $semester->id,
                 ],
                 [
-                    'nilai_akhir' => $nilaiAkhirSem,
+                    'nilai_akhir' => $semResult['nilai_akhir'],
+                    'predikat' => $semResult['predikat'],
+                    'status' => $semResult['status'],
+                    'deskripsi_tertinggi' => $resBlock2['deskripsi_tertinggi'] ?: $resBlock1['deskripsi_tertinggi'],
+                    'deskripsi_terendah' => $resBlock2['deskripsi_terendah'] ?: $resBlock1['deskripsi_terendah'],
+                    'deskripsi_manual' => $resBlock2['deskripsi_manual'] ?: $resBlock1['deskripsi_manual'],
                     'data_9m' => $currentData9m,
-                    'deskripsi_tertinggi' => $semDescTinggi,
-                    'deskripsi_terendah' => $semDescRendah,
-                    'deskripsi_manual' => $resBlock2['deskripsi_manual'] ?: ($resBlock1['deskripsi_manual'] ?? null),
-                    'status' => $statusSem,
                 ]
             );
 
@@ -216,220 +162,12 @@ class MapelPilihanScoreService
     }
 
     /**
-     * Evaluasi satu blok 9 minggu untuk satu siswa Mapel Pilihan
-     */
-    public function evaluate9MBlock(
-        int $siswaId,
-        array $ahCodes,
-        Collection $tpsInBlock,
-        $sumatifVal,
-        float $kkm,
-        array $ahScoresMap,
-        ?string $existingManualOverride = null
-    ): array {
-        // 1. Identifikasi AH aktif pada blok ini
-        $activeAhCodes = [];
-        foreach ($ahCodes as $ah) {
-            $tpsForAh = $tpsInBlock->filter(fn($tp) => ($tp->kode_ah ?: $tp->alokasi_ah) === $ah);
-            if ($tpsForAh->isNotEmpty()) {
-                $activeAhCodes[] = $ah;
-            }
-        }
-
-        // Kumpulkan nilai AH aktif & periksa kondisi kosong / di bawah KKM
-        $ahScores = [];
-        $hasEmptyAh = false;
-        $hasBelowKkm = false;
-
-        if (!empty($activeAhCodes)) {
-            foreach ($activeAhCodes as $ah) {
-                $score = $ahScoresMap[$ah] ?? null;
-                if ($score === null || $score === '' || !is_numeric($score)) {
-                    $hasEmptyAh = true;
-                } else {
-                    $numScore = (float) $score;
-                    $ahScores[$ah] = $numScore;
-                    if ($numScore < $kkm) {
-                        $hasBelowKkm = true;
-                    }
-                }
-            }
-        }
-
-        // 2. Evaluasi Sumatif (STS atau SAS atau SAT)
-        $sumatif = null;
-        $hasSumatif = false;
-        if ($sumatifVal !== null && $sumatifVal !== '' && is_numeric($sumatifVal)) {
-            $sumatif = (float) $sumatifVal;
-            $hasSumatif = true;
-            if ($sumatif < $kkm) {
-                $hasBelowKkm = true;
-            }
-        }
-
-        // Kasus: Belum ada nilai sama sekali
-        $hasAnyScoreEntered = !empty($ahScores) || $hasSumatif;
-        if (!$hasAnyScoreEntered) {
-            return [
-                'status' => 'belum_ada_nilai',
-                'rata_formatif' => null,
-                'sumatif' => null,
-                'nilai_akhir' => null,
-                'deskripsi_tertinggi' => '',
-                'deskripsi_terendah' => '',
-                'deskripsi_manual' => $existingManualOverride ?: null,
-            ];
-        }
-
-        $rataFormatif = !empty($ahScores) ? round(array_sum($ahScores) / count($ahScores), 2) : null;
-        $hasEmptyScore = $hasEmptyAh || !$hasSumatif || (empty($activeAhCodes) && $tpsInBlock->isNotEmpty());
-
-        if ($hasEmptyScore) {
-            return [
-                'status' => 'belum_lengkap',
-                'rata_formatif' => $rataFormatif,
-                'sumatif' => $sumatif,
-                'nilai_akhir' => null,
-                'deskripsi_tertinggi' => 'Nilai belum lengkap, silakan hubungi guru yang bersangkutan.',
-                'deskripsi_terendah' => '',
-                'deskripsi_manual' => $existingManualOverride ?: null,
-            ];
-        }
-
-        if ($hasBelowKkm) {
-            return [
-                'status' => 'belum_kompeten',
-                'rata_formatif' => $rataFormatif,
-                'sumatif' => $sumatif,
-                'nilai_akhir' => null,
-                'deskripsi_tertinggi' => 'Nilai belum kompeten, silakan hubungi guru yang bersangkutan.',
-                'deskripsi_terendah' => '',
-                'deskripsi_manual' => $existingManualOverride ?: null,
-            ];
-        }
-
-        // Semua lengkap dan >= KKM
-        $nilaiAkhir = null;
-        if ($rataFormatif !== null && $sumatif !== null) {
-            $nilaiAkhir = round(($rataFormatif * 0.5) + ($sumatif * 0.5), 2);
-        } elseif ($rataFormatif !== null) {
-            $nilaiAkhir = $rataFormatif;
-        } elseif ($sumatif !== null) {
-            $nilaiAkhir = $sumatif;
-        }
-
-        // Bangun narasi capaian TP
-        $tpScores = [];
-        foreach ($tpsInBlock as $tp) {
-            $ah = $tp->kode_ah ?: $tp->alokasi_ah;
-            $score = $ahScoresMap[$ah] ?? null;
-            if ($score !== null && $score !== '' && is_numeric($score)) {
-                $tpScores[$tp->id] = (float) $score;
-            }
-        }
-
-        $descTinggi = '';
-        $descRendah = '';
-
-        if (!empty($tpScores)) {
-            $countTps = count($tpScores);
-
-            if ($countTps === 1) {
-                $onlyTpId = array_key_first($tpScores);
-                $onlyScore = $tpScores[$onlyTpId];
-                $onlyTp = $tpsInBlock->firstWhere('id', $onlyTpId);
-                $tpDesc = lcfirst(rtrim($onlyTp->deskripsi_tp ?? $onlyTp->deskripsi ?? '', '.'));
-
-                if ($onlyScore >= 85) {
-                    $descTinggi = 'Menunjukkan penguasaan yang sangat baik dalam ' . $tpDesc . '.';
-                } elseif ($onlyScore >= $kkm) {
-                    $descTinggi = 'Menunjukkan penguasaan yang baik dalam ' . $tpDesc . '.';
-                } else {
-                    $descTinggi = 'Cukup menguasai dalam ' . $tpDesc . '.';
-                }
-
-                if ($onlyScore >= $kkm) {
-                    $descRendah = 'Perlu pemantapan lebih lanjut dalam ' . $tpDesc . ' secara berkelanjutan.';
-                } else {
-                    $descRendah = 'Perlu bimbingan lebih lanjut dalam ' . $tpDesc . '.';
-                }
-            } else {
-                $maxScore = max($tpScores);
-                $minScore = min($tpScores);
-
-                if ($maxScore == $minScore) {
-                    $tpIds = array_keys($tpScores);
-                    $firstTpId = $tpIds[0];
-                    $otherTpIds = array_slice($tpIds, 1);
-
-                    $firstTp = $tpsInBlock->firstWhere('id', $firstTpId);
-                    $firstDesc = lcfirst(rtrim($firstTp->deskripsi_tp ?? $firstTp->deskripsi ?? '', '.'));
-
-                    if ($maxScore >= 85) {
-                        $descTinggi = 'Menunjukkan penguasaan yang sangat baik dalam ' . $firstDesc . '.';
-                    } elseif ($maxScore >= $kkm) {
-                        $descTinggi = 'Menunjukkan penguasaan yang baik dalam ' . $firstDesc . '.';
-                    } else {
-                        $descTinggi = 'Cukup menguasai dalam ' . $firstDesc . '.';
-                    }
-
-                    $otherTps = $tpsInBlock->whereIn('id', $otherTpIds);
-                    $tpOtherDesc = $otherTps->map(fn($t) => lcfirst(rtrim($t->deskripsi_tp ?? $t->deskripsi ?? '', '.')))->values()->all();
-                    $joinedOtherDesc = count($tpOtherDesc) > 1 ? implode(' dan ', $tpOtherDesc) : ($tpOtherDesc[0] ?? '');
-
-                    if ($minScore >= $kkm) {
-                        $descRendah = 'Perlu pemantapan dalam ' . $joinedOtherDesc . '.';
-                    } else {
-                        $descRendah = 'Perlu bimbingan dalam ' . $joinedOtherDesc . '.';
-                    }
-                } else {
-                    $highestTpIds = array_keys(array_filter($tpScores, fn($s) => $s == $maxScore));
-                    $lowestTpIds = array_keys(array_filter($tpScores, fn($s) => $s == $minScore));
-
-                    $highestTps = $tpsInBlock->whereIn('id', $highestTpIds);
-                    $tpDescTinggi = $highestTps->map(fn($t) => lcfirst(rtrim($t->deskripsi_tp ?? $t->deskripsi ?? '', '.')))->values()->all();
-                    $joinedDescTinggi = count($tpDescTinggi) > 1 ? implode(' serta ', $tpDescTinggi) : ($tpDescTinggi[0] ?? '');
-
-                    if ($maxScore >= 85) {
-                        $descTinggi = 'Menunjukkan penguasaan yang sangat baik dalam ' . $joinedDescTinggi . '.';
-                    } elseif ($maxScore >= $kkm) {
-                        $descTinggi = 'Menunjukkan penguasaan yang baik dalam ' . $joinedDescTinggi . '.';
-                    } else {
-                        $descTinggi = 'Cukup menguasai dalam ' . $joinedDescTinggi . '.';
-                    }
-
-                    $lowestTps = $tpsInBlock->whereIn('id', $lowestTpIds);
-                    $tpDescRendah = $lowestTps->map(fn($t) => lcfirst(rtrim($t->deskripsi_tp ?? $t->deskripsi ?? '', '.')))->values()->all();
-                    $joinedDescRendah = count($tpDescRendah) > 1 ? implode(' dan ', $tpDescRendah) : ($tpDescRendah[0] ?? '');
-
-                    if ($minScore >= $kkm) {
-                        $descRendah = 'Perlu pemantapan dalam ' . $joinedDescRendah . '.';
-                    } else {
-                        $descRendah = 'Perlu bimbingan dalam ' . $joinedDescRendah . '.';
-                    }
-                }
-            }
-        }
-
-        return [
-            'status' => 'kompeten',
-            'rata_formatif' => $rataFormatif,
-            'sumatif' => $sumatif,
-            'nilai_akhir' => $nilaiAkhir,
-            'deskripsi_tertinggi' => $descTinggi,
-            'deskripsi_terendah' => $descRendah,
-            'deskripsi_manual' => $existingManualOverride ?: null,
-        ];
-    }
-
-    /**
      * Mengambil seluruh data nilai Mapel Pilihan untuk satu siswa pada Rapor Wikrama (9 Minggu)
      */
     public function getStudentRecordsForWikrama(Siswa $siswa, Semester $semester, string $periodKey): Collection
     {
         $taId = $semester->tahun_ajaran_id;
 
-        // Ambil semua keanggotaan Mapil aktif siswa
         $anggotas = MapelPilihanAnggota::with('mapelPilihan')
             ->where('siswa_id', $siswa->id)
             ->where('status', 'aktif')
@@ -444,13 +182,6 @@ class MapelPilihanScoreService
         }
 
         $isGenap = str_contains(strtolower($semester->semester), 'genap');
-        $ahKeys = match (strtoupper(trim($periodKey))) {
-            '9M1', 'STS 1', 'PTS 1' => ['AH 1', 'AH 2'],
-            '9M2', 'SAS', 'PAS 1' => ['AH 3', 'AH 4'],
-            '9M3', 'STS 2', 'PTS 2' => ['AH 5', 'AH 6'],
-            '9M4', 'SAT', 'PAT', 'PAS 2' => ['AH 7', 'AH 8'],
-            default => $isGenap ? ['AH 5', 'AH 6'] : ['AH 1', 'AH 2'],
-        };
         $normKey = match (strtoupper(trim($periodKey))) {
             '9M1', 'STS 1', 'PTS 1' => '9M1',
             '9M2', 'SAS', 'PAS 1' => '9M2',
@@ -460,6 +191,7 @@ class MapelPilihanScoreService
         };
 
         $rows = collect();
+        $settings = PengaturanPenilaian::getActive();
 
         foreach ($anggotas as $anggota) {
             $mapil = $anggota->mapelPilihan;
@@ -469,21 +201,47 @@ class MapelPilihanScoreService
 
             $kkm = (float) ($mapil->kkm_default ?? 75);
 
-            // Ambil formatif untuk periode ini
+            // TPs untuk periode ini
+            $tps = MapelPilihanTp::where('mapel_pilihan_id', $mapil->id)
+                ->where('semester_id', $semester->id)
+                ->where(function ($q) use ($normKey) {
+                    $q->where('target_periode', $normKey)
+                      ->orWhereNull('target_periode');
+                })
+                ->orderBy('urutan')
+                ->get();
+
+            // Formatif
             $formatifs = NilaiMapelPilihanFormatif::where('mapel_pilihan_id', $mapil->id)
                 ->where('siswa_id', $siswa->id)
                 ->where('semester_id', $semester->id)
-                ->whereIn('kode_ah', $ahKeys)
-                ->get()
-                ->keyBy('kode_ah');
+                ->get();
 
-            $ahScores = [];
-            foreach ($ahKeys as $ah) {
-                $val = $formatifs->get($ah)?->nilai;
-                $ahScores[$ah] = ($val !== null && $val !== '' && is_numeric($val)) ? (float) $val : null;
+            $tpScoresMap = [];
+            $tpList = [];
+            foreach ($tps as $tp) {
+                $f = $formatifs->firstWhere('mapel_pilihan_tp_id', $tp->id);
+                if (!$f && $tp->kode_ah) {
+                    $f = $formatifs->firstWhere('kode_ah', $tp->kode_ah);
+                }
+                $val = $f?->nilai;
+                $score = ($val !== null && $val !== '' && is_numeric($val)) ? (float) $val : null;
+                $tpScoresMap[$tp->id] = $score;
+                $tpList[] = (object) [
+                    'kode' => $tp->kode_tp ?: 'TP',
+                    'deskripsi' => $tp->deskripsi_tp ?: $tp->lingkup_materi,
+                    'score' => $score,
+                ];
             }
 
-            // Ambil sumatif
+            // NH
+            $nhRecord = NilaiMapelPilihanHarian::where('mapel_pilihan_id', $mapil->id)
+                ->where('siswa_id', $siswa->id)
+                ->where('target_periode', $normKey)
+                ->first();
+            $nhVal = $nhRecord ? (float) $nhRecord->nilai : 100.0;
+
+            // Sumatif
             $sumatifRecord = NilaiMapelPilihanSumatif::where('mapel_pilihan_id', $mapil->id)
                 ->where('siswa_id', $siswa->id)
                 ->where('semester_id', $semester->id)
@@ -497,7 +255,7 @@ class MapelPilihanScoreService
                 default => null,
             };
 
-            // Ambil Nilai Akhir
+            // Ambil dari NilaiAkhir jika sudah ada
             $na = NilaiMapelPilihanAkhir::where('mapel_pilihan_id', $mapil->id)
                 ->where('siswa_id', $siswa->id)
                 ->where('semester_id', $semester->id)
@@ -505,33 +263,20 @@ class MapelPilihanScoreService
 
             $block9M = $na?->data_9m[$normKey] ?? null;
 
-            $score9M = null;
-            $descTinggi = null;
-            $descRendah = null;
-            $descManual = null;
-            $status = 'belum_lengkap';
-
             if ($block9M) {
-                $status = $block9M['status'] ?? 'belum_lengkap';
-                $score9M = $block9M['nilai_akhir'] ?? null;
-                $descTinggi = $block9M['deskripsi_tertinggi'] ?? null;
-                $descRendah = $block9M['deskripsi_terendah'] ?? null;
-                $descManual = $block9M['deskripsi_manual'] ?? null;
+                $calcResult = $block9M;
             } else {
-                // Evaluasi on-the-fly jika belum pernah calculateRekap
-                $tps = MapelPilihanTp::where('mapel_pilihan_id', $mapil->id)
-                    ->where('semester_id', $semester->id)
-                    ->whereIn('kode_ah', $ahKeys)
-                    ->get();
-
-                $eval = $this->evaluate9MBlock($siswa->id, $ahKeys, $tps, $sumatifVal, $kkm, $ahScores);
-                $status = $eval['status'];
-                $score9M = $eval['nilai_akhir'];
-                $descTinggi = $eval['deskripsi_tertinggi'];
-                $descRendah = $eval['deskripsi_terendah'];
+                $calcResult = $this->calculator->calculate9MBlock(
+                    $tpScoresMap,
+                    $nhVal,
+                    $sumatifVal,
+                    $kkm,
+                    $tps,
+                    null,
+                    $settings
+                );
             }
 
-            // Pseudo-model Mapel untuk keseragaman view
             $mapelObj = new Mapel([
                 'id' => 'mapil_' . $mapil->id,
                 'kode' => $mapil->kode,
@@ -547,18 +292,22 @@ class MapelPilihanScoreService
                 'mapel' => $mapelObj,
                 'mapel_nama' => $mapil->nama,
                 'kkm' => $kkm,
-                'status' => $status,
+                'status' => $calcResult['status'] ?? 'belum_lengkap',
                 'kelompok' => null,
                 'kelompok_kode' => 'C',
                 'kelompok_nama' => 'Mata Pelajaran Pilihan',
                 'kelompok_urutan' => 3,
                 'mapel_urutan' => 100 + $mapil->id,
-                'ah_scores' => $ahScores,
-                'sumatif' => $sumatifVal,
-                'nilai_akhir' => $score9M,
-                'deskripsi_tertinggi' => $descTinggi,
-                'deskripsi_terendah' => $descRendah,
-                'deskripsi_manual' => $descManual,
+                'tps' => $tpList,
+                'rata_tp' => $calcResult['rata_tp'] ?? null,
+                'nh' => $calcResult['nh'] ?? $nhVal,
+                'sumatif' => $calcResult['sumatif'] ?? $sumatifVal,
+                'nilai_akhir' => $calcResult['nilai_akhir'] ?? null,
+                'predikat' => $calcResult['predikat'] ?? $this->calculator->resolvePredikat($calcResult['nilai_akhir'] ?? null, $kkm, $settings),
+                'deskripsi_tertinggi' => $calcResult['deskripsi_tertinggi'] ?? '',
+                'deskripsi_terendah' => $calcResult['deskripsi_terendah'] ?? '',
+                'deskripsi_manual' => $calcResult['deskripsi_manual'] ?? null,
+                'narasi_capaian' => $calcResult['narasi_capaian'] ?? '',
             ]);
         }
 
@@ -586,6 +335,7 @@ class MapelPilihanScoreService
         }
 
         $rows = collect();
+        $settings = PengaturanPenilaian::getActive();
 
         foreach ($anggotas as $anggota) {
             $mapil = $anggota->mapelPilihan;
@@ -602,6 +352,7 @@ class MapelPilihanScoreService
 
             $scoreSem = $na?->nilai_akhir;
             $status = $na?->status ?? 'belum_lengkap';
+            $predikat = $na?->predikat ?? $this->calculator->resolvePredikat($scoreSem, $kkm, $settings);
             $descTinggi = $na?->deskripsi_tertinggi ?? 'Nilai belum lengkap, silakan hubungi guru yang bersangkutan.';
             $descRendah = $na?->deskripsi_terendah ?? '';
             $descManual = $na?->deskripsi_manual;
@@ -628,6 +379,7 @@ class MapelPilihanScoreService
                 'kelompok_urutan' => 3,
                 'mapel_urutan' => 100 + $mapil->id,
                 'nilai_akhir' => $scoreSem,
+                'predikat' => $predikat,
                 'deskripsi_tertinggi' => $descTinggi,
                 'deskripsi_terendah' => $descRendah,
                 'deskripsi_manual' => $descManual,

@@ -553,7 +553,7 @@
                     <div class="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-2">
                         @foreach($legerData['mapel_list'] as $mId => $mInfo)
                             <button type="button"
-                                    wire:click="$set('selectedMapelId', {{ $mId }})"
+                                    wire:click="$set('selectedMapelId', '{{ $mId }}')"
                                     class="p-2 rounded-lg border text-left transition-all flex items-center justify-between cursor-pointer {{ $selectedMapelId == $mId ? 'border-primary bg-primary/5 text-primary ring-1 ring-primary' : 'border-border bg-surface hover:bg-surface-hover text-text-main' }}">
                                 <div class="min-w-0 pr-2">
                                     <div class="text-xs font-bold truncate">{{ $mInfo['nama'] }}</div>

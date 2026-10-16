@@ -18,10 +18,16 @@ class NilaiMapelPilihanFormatif extends Model implements Auditable
     protected $fillable = [
         'mapel_pilihan_id',
         'siswa_id',
+        'mapel_pilihan_tp_id',
         'semester_id',
         'kode_ah',
         'nilai',
     ];
+
+    public function tujuanPembelajaran(): BelongsTo
+    {
+        return $this->belongsTo(MapelPilihanTp::class, 'mapel_pilihan_tp_id');
+    }
 
     protected $casts = [
         'nilai' => 'decimal:2',

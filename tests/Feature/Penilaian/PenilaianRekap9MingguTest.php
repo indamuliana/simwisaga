@@ -227,12 +227,12 @@ class PenilaianRekap9MingguTest extends TestCase
         // 2. Verifikasi Blok 9M2:
         // Rata formatif = (88 + 86) / 2 = 87
         // Sumatif SAS = 90
-        // Karena semua nilai >= KKM 75, NA 9M2 = (87 * 0.5) + (90 * 0.5) = 88.5
+        // Karena semua nilai >= KKM 75, NA 9M2 = (87 * 0.5) + (90 * 0.3) + (100 * 0.2) = 90.5
         $m2 = $data9m['9M2'];
         $this->assertEquals(87.0, (float) $m2['rata_formatif']);
         $this->assertEquals(90.0, (float) $m2['sumatif']);
         $this->assertEquals('kompeten', $m2['status']);
-        $this->assertEquals(88.5, (float) $m2['nilai_akhir']);
+        $this->assertEquals(90.5, (float) $m2['nilai_akhir']);
 
         // Deskripsi 9M2: selalu 2 baris (TP 3 = 88 penguasaan tinggi, TP 4 = 86 pemantapan)
         $this->assertStringContainsString('menganalisis geometri ruang', $m2['deskripsi_tertinggi']);

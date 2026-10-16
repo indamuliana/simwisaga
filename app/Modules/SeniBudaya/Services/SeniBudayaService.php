@@ -77,7 +77,7 @@ class SeniBudayaService
             );
         }
 
-        // Tentukan Predikat Huruf
+        // Tentukan Predikat Huruf & Capaian KM
         if ($finalScore >= 90) {
             $predikat = 'A';
         } elseif ($finalScore >= 80) {
@@ -88,9 +88,13 @@ class SeniBudayaService
             $predikat = 'D';
         }
 
+        $calcKm = app(\App\Modules\Penilaian\Services\PenilaianScoreCalculator::class);
+        $predikatKm = $calcKm->resolvePredikat($finalScore, $kkm);
+
         return [
             'nilai_akhir' => $finalScore,
             'nilai_huruf' => $predikat,
+            'predikat' => $predikatKm,
         ];
     }
 

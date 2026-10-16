@@ -58,4 +58,14 @@ class EkstrakurikulerAnggota extends Model
     {
         return $this->hasMany(EkskulPresensiDetail::class, 'siswa_id', 'siswa_id');
     }
+
+    public function getPredikatAttribute(): ?string
+    {
+        return $this->nilai_huruf;
+    }
+
+    public function getKeteranganAttribute(): ?string
+    {
+        return $this->deskripsi;
+    }
 }

@@ -31,7 +31,7 @@ class RekapPenilaianIndex extends Component
     public ?int $selectedSemesterId = null;
     public string $filterTingkat = 'semua'; // 'semua', 'X', 'XI', 'XII'
     public ?int $selectedRombelId = null;
-    public ?int $selectedMapelId = null;
+    public $selectedMapelId = null;
     public ?int $selectedRayonId = null;
     public string $search = '';
     public bool $hasLoaded = false;

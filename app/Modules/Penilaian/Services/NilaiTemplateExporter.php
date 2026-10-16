@@ -25,8 +25,111 @@ class NilaiTemplateExporter
     public function __construct(PenugasanMengajar $penugasan, array $selectedColumns = [], string $rombelScope = 'current')
     {
         $this->penugasan = $penugasan;
-        $this->selectedColumns = !empty($selectedColumns) ? $selectedColumns : self::ALL_COLUMNS;
         $this->rombelScope = $rombelScope;
+        $this->selectedColumns = !empty($selectedColumns) ? $selectedColumns : self::getColumnsByScope($penugasan, 'semua');
+    }
+
+    /**
+     * Mengambil seluruh Tujuan Pembelajaran untuk penugasan ini (sepanjang tahun ajaran)
+     */
+    public static function getAllTujuanPembelajaran(PenugasanMengajar $penugasan): \Illuminate\Support\Collection
+    {
+        $taId = $penugasan->semester?->tahun_ajaran_id;
+        $semGanjil = \App\Modules\Akademik\Models\Semester::where('tahun_ajaran_id', $taId)->where('semester', 'ganjil')->first();
+        $semGenap = \App\Modules\Akademik\Models\Semester::where('tahun_ajaran_id', $taId)->where('semester', 'genap')->first();
+
+        $pmGanjil = PenugasanMengajar::where('rombel_id', $penugasan->rombel_id)
+            ->where('mapel_id', $penugasan->mapel_id)
+            ->where('semester_id', $semGanjil?->id)
+            ->first();
+        $pmGenap = PenugasanMengajar::where('rombel_id', $penugasan->rombel_id)
+            ->where('mapel_id', $penugasan->mapel_id)
+            ->where('semester_id', $semGenap?->id)
+            ->first();
+
+        $pmIds = array_values(array_unique(array_filter([$penugasan->id, $pmGanjil?->id, $pmGenap?->id])));
+
+        return \App\Modules\Penilaian\Models\TujuanPembelajaran::whereIn('penugasan_mengajar_id', $pmIds)
+            ->orderBy('urutan')
+            ->orderBy('id')
+            ->get();
+    }
+
+    /**
+     * Menghasilkan daftar kolom template secara dinamis berdasarkan Tujuan Pembelajaran yang ada
+     */
+    public static function getColumnsByScope(PenugasanMengajar $penugasan, string $scope = 'semua', ?string $activePeriode = null): array
+    {
+        $tps = self::getAllTujuanPembelajaran($penugasan);
+
+        // Jika belum ada TP sama sekali, fallback ke kolom AH legacy
+        if ($tps->isEmpty()) {
+            if ($scope === 'ganjil') {
+                return ['AH 1', 'AH 2', 'STS 1', 'AH 3', 'AH 4', 'SAS'];
+            } elseif ($scope === 'genap') {
+                return ['AH 5', 'AH 6', 'STS 2', 'AH 7', 'AH 8', 'SAT'];
+            } elseif ($scope === 'periode_aktif') {
+                return match ($activePeriode) {
+                    '9M1' => ['AH 1', 'AH 2', 'STS 1'],
+                    '9M2' => ['AH 3', 'AH 4', 'SAS'],
+                    '9M3' => ['AH 5', 'AH 6', 'STS 2'],
+                    '9M4' => ['AH 7', 'AH 8', 'SAT'],
+                    default => ['AH 1', 'AH 2', 'STS 1'],
+                };
+            }
+            return self::ALL_COLUMNS;
+        }
+
+        $tpsByPeriod = function ($p) use ($tps) {
+            return $tps->filter(function ($t) use ($p) {
+                $tpPeriod = $t->target_periode;
+                if (empty($tpPeriod)) {
+                    $tpPeriod = match ($t->alokasi_ah) {
+                        'AH 1', 'AH 2' => '9M1',
+                        'AH 3', 'AH 4' => '9M2',
+                        'AH 5', 'AH 6' => '9M3',
+                        'AH 7', 'AH 8' => '9M4',
+                        default => '9M1',
+                    };
+                }
+                return $tpPeriod === $p;
+            });
+        };
+
+        $getColsForPeriod = function ($p) use ($tpsByPeriod) {
+            $pTps = $tpsByPeriod($p);
+            $cols = [];
+            foreach ($pTps as $tp) {
+                $cols[] = $tp->kode;
+            }
+            $cols[] = "NH {$p}";
+            $sumatif = match ($p) {
+                '9M1' => 'STS 1',
+                '9M2' => 'SAS',
+                '9M3' => 'STS 2',
+                '9M4' => 'SAT',
+                default => 'STS 1',
+            };
+            $cols[] = $sumatif;
+            return $cols;
+        };
+
+        if ($scope === 'periode_aktif') {
+            $p = $activePeriode ?: '9M1';
+            return $getColsForPeriod($p);
+        } elseif ($scope === 'ganjil') {
+            return array_merge($getColsForPeriod('9M1'), $getColsForPeriod('9M2'));
+        } elseif ($scope === 'genap') {
+            return array_merge($getColsForPeriod('9M3'), $getColsForPeriod('9M4'));
+        }
+
+        // Default: 'semua'
+        return array_merge(
+            $getColsForPeriod('9M1'),
+            $getColsForPeriod('9M2'),
+            $getColsForPeriod('9M3'),
+            $getColsForPeriod('9M4')
+        );
     }
 
     /**
@@ -102,10 +205,52 @@ class NilaiTemplateExporter
             $headers[] = $col;
         }
 
+        $allTps = self::getAllTujuanPembelajaran($this->penugasan)->keyBy(fn($t) => strtoupper(trim($t->kode)));
+
         $rowIdx = 5;
         $colIdx = 1;
         foreach ($headers as $headerText) {
             $sheet->setCellValueExplicit([$colIdx, $rowIdx], $headerText, \PhpOffice\PhpSpreadsheet\Cell\DataType::TYPE_STRING);
+
+            // Tambahkan komentar/keterangan informatif jika kolom asesmen
+            $cleanKey = strtoupper(trim($headerText));
+            if ($tp = $allTps->get($cleanKey)) {
+                $commentText = "Tujuan Pembelajaran: {$tp->kode}\n{$tp->deskripsi}";
+                if (!empty($tp->lingkup_materi)) {
+                    $commentText .= "\nLingkup: {$tp->lingkup_materi}";
+                }
+                if (!empty($tp->target_periode)) {
+                    $commentText .= "\nPeriode: {$tp->target_periode}";
+                }
+                $sheet->getComment([$colIdx, $rowIdx])
+                    ->setAuthor('SIRAGA')
+                    ->setWidth('260pt')
+                    ->setHeight('65pt')
+                    ->getText()
+                    ->createTextRun($commentText);
+            } elseif (preg_match('/^NH(?:\s*(?:9M[1-4]|[1-4]))?$/i', $cleanKey)) {
+                $sheet->getComment([$colIdx, $rowIdx])
+                    ->setAuthor('SIRAGA')
+                    ->setWidth('220pt')
+                    ->setHeight('45pt')
+                    ->getText()
+                    ->createTextRun("Nilai Harian (NH): Nilai subjektif guru (Skala 0-100, default 100).");
+            } elseif (in_array($cleanKey, ['STS 1', 'SAS', 'STS 2', 'SAT'])) {
+                $sumLabel = match($cleanKey) {
+                    'STS 1' => 'Sumatif Tengah Semester 1',
+                    'SAS' => 'Sumatif Akhir Semester',
+                    'STS 2' => 'Sumatif Tengah Semester 2',
+                    'SAT' => 'Sumatif Akhir Tahun',
+                    default => 'Asesmen Sumatif',
+                };
+                $sheet->getComment([$colIdx, $rowIdx])
+                    ->setAuthor('SIRAGA')
+                    ->setWidth('220pt')
+                    ->setHeight('45pt')
+                    ->getText()
+                    ->createTextRun("Nilai {$sumLabel} (Skala 0-100).");
+            }
+
             $colIdx++;
         }
 

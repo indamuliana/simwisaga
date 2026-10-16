@@ -164,6 +164,56 @@ class RekapPenilaianService
             }
         }
 
+        // Ambil data keanggotaan dan nilai Mapel Pilihan siswa rombel ini
+        $mapilAnggotas = \App\Modules\Akademik\Models\MapelPilihanAnggota::with(['mapelPilihan.pengajar'])
+            ->whereIn('siswa_id', $siswaIds)
+            ->where('status', 'aktif')
+            ->where(function ($q) use ($semester) {
+                $q->where('tahun_ajaran_id', $semester->tahun_ajaran_id)
+                  ->orWhereNull('tahun_ajaran_id');
+            })
+            ->get();
+
+        $mapilAkhirRecords = \App\Modules\Penilaian\Models\NilaiMapelPilihanAkhir::where('semester_id', $semester->id)
+            ->whereIn('siswa_id', $siswaIds)
+            ->get()
+            ->groupBy('mapel_pilihan_id');
+
+        $mapilFormatifRecords = \App\Modules\Penilaian\Models\NilaiMapelPilihanFormatif::where('semester_id', $semester->id)
+            ->whereIn('siswa_id', $siswaIds)
+            ->get()
+            ->groupBy('mapel_pilihan_id');
+
+        $mapilSumatifRecords = \App\Modules\Penilaian\Models\NilaiMapelPilihanSumatif::where('semester_id', $semester->id)
+            ->whereIn('siswa_id', $siswaIds)
+            ->get()
+            ->groupBy('mapel_pilihan_id');
+
+        // Sertakan Mapel Pilihan aktif di Kelompok C (Mata Pelajaran Pilihan)
+        foreach ($mapilAnggotas as $mAnggota) {
+            $mapil = $mAnggota->mapelPilihan;
+            if (!$mapil || !$mapil->is_active) {
+                continue;
+            }
+
+            $mapelKey = 'mapil_' . $mapil->id;
+            if (!isset($mapelList[$mapelKey])) {
+                $mapelList[$mapelKey] = [
+                    'id' => $mapelKey,
+                    'is_mapil' => true,
+                    'mapil_id' => $mapil->id,
+                    'kode' => $mapil->kode,
+                    'nama' => $mapil->nama,
+                    'kkm' => (int) ($mapil->kkm_default ?? 75),
+                    'kelompok_label' => 'Kelompok C (Mata Pelajaran Pilihan)',
+                    'kelompok_urutan' => 3,
+                    'mapel_urutan' => 100 + $mapil->id,
+                    'penugasan_id' => null,
+                    'guru' => $mapil->pengajar?->nama_lengkap ?? $mapil->pengajar?->name ?? 'Tim Pengajar Mapil',
+                ];
+            }
+        }
+
         // Urutkan mapel berdasarkan kelompok lalu urutan mapel
         uasort($mapelList, function ($a, $b) {
             if ($a['kelompok_urutan'] === $b['kelompok_urutan']) {
@@ -171,6 +221,13 @@ class RekapPenilaianService
             }
             return $a['kelompok_urutan'] <=> $b['kelompok_urutan'];
         });
+
+        $penilaianSettings = \App\Modules\Penilaian\Models\PengaturanPenilaian::getActive();
+        $bobotTp = $penilaianSettings->bobot_tp ?? 50;
+        $bobotSts = $penilaianSettings->bobot_sts ?? 30;
+        $bobotNh = $penilaianSettings->bobot_nh ?? 20;
+        $totalBobot = ($bobotTp + $bobotSts + $bobotNh) ?: 100;
+        $defaultNh = (float) ($penilaianSettings->nh_default_value ?? 100);
 
         // 2. Matriks Nilai Siswa
         $siswaRows = [];
@@ -202,10 +259,48 @@ class RekapPenilaianService
                 $sas = null;
                 $cabangNama = null;
 
+                $isMapil = !empty($mInfo['is_mapil']);
+                $mapilId = $mInfo['mapil_id'] ?? null;
+                $isAnggotaMapil = $isMapil && $mapilAnggotas->where('mapel_pilihan_id', $mapilId)->contains('siswa_id', $siswa->id);
+
                 $isSeniBudaya = (strtolower($mInfo['kode']) === 'seni' || str_contains(strtolower($mInfo['nama']), 'seni budaya'));
                 $sb = null;
 
-                if ($isSeniBudaya && $sbRecords->has($siswa->id)) {
+                if ($isMapil) {
+                    if ($isAnggotaMapil) {
+                        $naMapil = isset($mapilAkhirRecords[$mapilId])
+                            ? $mapilAkhirRecords[$mapilId]->firstWhere('siswa_id', $siswa->id)
+                            : null;
+
+                        if ($naMapil && ($naMapil->nilai_akhir !== null || $naMapil->rata_formatif !== null)) {
+                            $scoreVal = $naMapil->nilai_akhir !== null ? (float) $naMapil->nilai_akhir : null;
+                            $rataFormatif = $naMapil->rata_formatif !== null ? (float) $naMapil->rata_formatif : null;
+                            $sts = $isGenap
+                                ? (!is_null($naMapil->sts_2) ? (float) $naMapil->sts_2 : null)
+                                : (!is_null($naMapil->sts_1) ? (float) $naMapil->sts_1 : null);
+                            $sas = $isGenap
+                                ? (!is_null($naMapil->sat) ? (float) $naMapil->sat : null)
+                                : (!is_null($naMapil->sas) ? (float) $naMapil->sas : null);
+                            $descTertinggi = $naMapil->deskripsi_tertinggi ?? '';
+                            $descTerendah = $naMapil->deskripsi_terendah ?? '';
+                        } else {
+                            $fList = isset($mapilFormatifRecords[$mapilId])
+                                ? $mapilFormatifRecords[$mapilId]->where('siswa_id', $siswa->id)
+                                : collect();
+                            $sumRec = isset($mapilSumatifRecords[$mapilId])
+                                ? $mapilSumatifRecords[$mapilId]->firstWhere('siswa_id', $siswa->id)
+                                : null;
+
+                            if ($fList->isNotEmpty() || $sumRec) {
+                                $rataFormatif = $fList->isNotEmpty() ? round($fList->avg('nilai'), 2) : 0;
+                                $sts = $sumRec ? (float) ($isGenap ? ($sumRec->sts_2 ?? 0) : ($sumRec->sts_1 ?? 0)) : 0;
+                                $sas = $sumRec ? (float) ($isGenap ? ($sumRec->sat ?? 0) : ($sumRec->sas ?? 0)) : 0;
+                                $sumatifPart = $sas ?: $sts;
+                                $scoreVal = round((($rataFormatif * $bobotTp) + ($sumatifPart * $bobotSts) + ($defaultNh * $bobotNh)) / $totalBobot, 2);
+                            }
+                        }
+                    }
+                } elseif ($isSeniBudaya && $sbRecords->has($siswa->id)) {
                     $sb = $sbRecords->get($siswa->id);
                     if ($sb) {
                         $scoreVal = $sb->nilai_akhir !== null ? (float) $sb->nilai_akhir : null;
@@ -226,7 +321,8 @@ class RekapPenilaianService
                     $rataFormatif = $ahList->isNotEmpty() ? round($ahList->avg('nilai'), 2) : 0;
                     $sts = $sumatif && !is_null($sumatif->sts) ? (float) $sumatif->sts : 0;
                     $sas = $sumatif && !is_null($sumatif->sas) ? (float) $sumatif->sas : 0;
-                    $scoreVal = round(($rataFormatif * 0.5) + ($sts * 0.25) + ($sas * 0.25), 2);
+                    $sumatifPart = $sas ?: $sts;
+                    $scoreVal = round((($rataFormatif * $bobotTp) + ($sumatifPart * $bobotSts) + ($defaultNh * $bobotNh)) / $totalBobot, 2);
                 }
 
                 $isBelowKkm = ($scoreVal !== null && $scoreVal < $kkm);
@@ -504,6 +600,14 @@ class RekapPenilaianService
             ->get()
             ->keyBy('siswa_id');
 
+        // Ambil Nilai Mapel Pilihan aktif semester ini untuk seluruh siswa di atas
+        $mapilRayonRecords = \App\Modules\Penilaian\Models\NilaiMapelPilihanAkhir::with('mapelPilihan')
+            ->whereIn('siswa_id', $siswaIds)
+            ->where('semester_id', $semester->id)
+            ->whereNotNull('nilai_akhir')
+            ->get()
+            ->groupBy('siswa_id');
+
         // Asosiasikan data nilai per siswa
         $studentMetrics = [];
         foreach ($siswas as $siswa) {
@@ -533,6 +637,21 @@ class RekapPenilaianService
                     $countMapel++;
                     if ($sbScore < $sbKkm) {
                         $belowKkmCount++;
+                    }
+                }
+            }
+
+            // Tambahkan nilai Mapel Pilihan jika ada
+            if ($mapilRayonRecords->has($siswa->id)) {
+                foreach ($mapilRayonRecords->get($siswa->id) as $mapilAkhir) {
+                    $mScore = (float) $mapilAkhir->nilai_akhir;
+                    if ($mScore > 0) {
+                        $mKkm = (int) ($mapilAkhir->mapelPilihan?->kkm_default ?? 75);
+                        $totalNilai += $mScore;
+                        $countMapel++;
+                        if ($mScore < $mKkm) {
+                            $belowKkmCount++;
+                        }
                     }
                 }
             }

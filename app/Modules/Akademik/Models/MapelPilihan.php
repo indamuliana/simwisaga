@@ -48,6 +48,11 @@ class MapelPilihan extends Model implements Auditable
         return $this->belongsTo(Pegawai::class, 'guru_id');
     }
 
+    public function pengajar(): BelongsTo
+    {
+        return $this->guru();
+    }
+
     public function guruPendamping(): BelongsTo
     {
         return $this->belongsTo(Pegawai::class, 'guru_pendamping_id');

@@ -127,6 +127,56 @@ class TranskripNilaiService
         }
         $latestSb = $sbAnggotas->where('status_keanggotaan', 'aktif')->last() ?? $sbAnggotas->last();
 
+        // Integrasi Mapel Pilihan jika siswa terdaftar / memiliki nilai
+        $mapilAnggotas = collect();
+        $mapilAkhirs = collect();
+        if (class_exists(\App\Modules\Akademik\Models\MapelPilihanAnggota::class)) {
+            $mapilAnggotas = \App\Modules\Akademik\Models\MapelPilihanAnggota::with('mapelPilihan')
+                ->where('siswa_id', $siswaId)
+                ->where('status', 'aktif')
+                ->get();
+        }
+        if (class_exists(\App\Modules\Penilaian\Models\NilaiMapelPilihanAkhir::class)) {
+            $mapilAkhirs = \App\Modules\Penilaian\Models\NilaiMapelPilihanAkhir::with(['mapelPilihan', 'semester'])
+                ->where('siswa_id', $siswaId)
+                ->whereNotNull('nilai_akhir')
+                ->get();
+        }
+
+        foreach ($mapilAnggotas as $mAnggota) {
+            $mapil = $mAnggota->mapelPilihan;
+            if (!$mapil) continue;
+            $mKey = 90000 + $mapil->id;
+            if (!$kurikulumMapels->has($mKey)) {
+                $mObj = new Mapel([
+                    'kode' => $mapil->kode,
+                    'nama' => $mapil->nama,
+                    'kkm_default' => $mapil->kkm_default ?? 75,
+                    'urutan' => 100 + $mapil->id,
+                ]);
+                $mObj->id = $mKey;
+                $mObj->is_mapil = true;
+                $kurikulumMapels->put($mKey, $mObj);
+            }
+        }
+
+        foreach ($mapilAkhirs as $naMapil) {
+            $mapil = $naMapil->mapelPilihan;
+            if (!$mapil) continue;
+            $mKey = 90000 + $mapil->id;
+            if (!$kurikulumMapels->has($mKey)) {
+                $mObj = new Mapel([
+                    'kode' => $mapil->kode,
+                    'nama' => $mapil->nama,
+                    'kkm_default' => $mapil->kkm_default ?? 75,
+                    'urutan' => 100 + $mapil->id,
+                ]);
+                $mObj->id = $mKey;
+                $mObj->is_mapil = true;
+                $kurikulumMapels->put($mKey, $mObj);
+            }
+        }
+
         // Kelompokkan mapel berdasarkan KelompokMapel (A, B, C, D)
         $kelompokMaster = KelompokMapel::orderBy('urutan')->get();
         if ($kelompokMaster->isEmpty()) {
@@ -136,6 +186,20 @@ class TranskripNilaiService
                 (object) ['id' => 3, 'kode' => 'C', 'nama' => 'Muatan Lokal', 'urutan' => 3],
                 (object) ['id' => 4, 'kode' => 'D', 'nama' => 'Projek Penguatan Profil Pelajar Pancasila (P5) & PKL', 'urutan' => 4],
             ]);
+        }
+
+        // Pastikan kelompok Mata Pelajaran Pilihan ada jika ada mapil
+        $hasMapil = $kurikulumMapels->contains(fn($m) => !empty($m->is_mapil));
+        if ($hasMapil) {
+            $hasGroupPilihan = $kelompokMaster->contains(fn($km) => str_contains(strtolower($km->nama), 'pilihan'));
+            if (!$hasGroupPilihan) {
+                $kelompokMaster->push((object) [
+                    'id' => 'pilihan',
+                    'kode' => 'C',
+                    'nama' => 'Mata Pelajaran Pilihan',
+                    'urutan' => 2.5,
+                ]);
+            }
         }
 
         // Matriks nilai siswa: [mapel_id][semester_index] = score
@@ -181,16 +245,34 @@ class TranskripNilaiService
             }
         }
 
+        // Petakan nilai Mapel Pilihan ke semester index
+        foreach ($mapilAkhirs as $naMapil) {
+            $mKey = 90000 + $naMapil->mapel_pilihan_id;
+            $semIdx = $semesterIdToIdx[$naMapil->semester_id] ?? null;
+            if (!$semIdx && $naMapil->semester) {
+                $semIdx = self::getSemesterIndex($currentTingkat, $naMapil->semester->semester);
+            }
+            if ($semIdx && $naMapil->nilai_akhir !== null) {
+                $studentScores[$mKey][$semIdx] = (float) $naMapil->nilai_akhir;
+            }
+        }
+
         // Susun baris mapel per kelompok
         $groupedMapels = [];
         $allMapelAverages = [];
         $totalSemesterScores = array_fill(1, 6, []);
 
-        foreach ($kelompokMaster as $km) {
+        foreach ($kelompokMaster->sortBy('urutan') as $km) {
             $kmKode = $km->kode;
             $kmNama = $km->nama;
 
             $mapelsInGroup = $kurikulumMapels->filter(function ($m) use ($km) {
+                if ($km->id === 'pilihan' || str_contains(strtolower($km->nama), 'pilihan')) {
+                    return !empty($m->is_mapil);
+                }
+                if (!empty($m->is_mapil)) {
+                    return false;
+                }
                 return $m->kelompok_mapel_id == $km->id ||
                     (empty($m->kelompok_mapel_id) && strtolower($m->kelompok ?? '') === strtolower($km->kode));
             })->sortBy('urutan');
@@ -376,6 +458,16 @@ class TranskripNilaiService
                 ->groupBy('siswa_id');
         }
 
+        // Ambil data nilai Mapel Pilihan untuk siswa rombel ini
+        $allMapilAkhirs = collect();
+        if (class_exists(\App\Modules\Penilaian\Models\NilaiMapelPilihanAkhir::class)) {
+            $allMapilAkhirs = \App\Modules\Penilaian\Models\NilaiMapelPilihanAkhir::with('semester')
+                ->whereIn('siswa_id', $siswas->pluck('id'))
+                ->whereNotNull('nilai_akhir')
+                ->get()
+                ->groupBy('siswa_id');
+        }
+
         $studentRows = [];
         $cohortKumulatifs = [];
 
@@ -414,6 +506,17 @@ class TranskripNilaiService
                 $sName = $sb->semester?->semester ?? 'ganjil';
                 $semIdx = self::getSemesterIndex($tingkat, $sName);
                 $semScores[$semIdx][] = (float) $sb->nilai_akhir;
+            }
+
+            // Tambahkan nilai Mapel Pilihan siswa ke agregasi semester
+            $mapilList = $allMapilAkhirs->get($siswa->id) ?? collect();
+            foreach ($mapilList as $naMapil) {
+                if ($naMapil->nilai_akhir === null) {
+                    continue;
+                }
+                $sName = $naMapil->semester?->semester ?? 'ganjil';
+                $semIdx = self::getSemesterIndex($tingkat, $sName);
+                $semScores[$semIdx][] = (float) $naMapil->nilai_akhir;
             }
 
             // Hitung rata-rata per semester
@@ -586,6 +689,35 @@ class TranskripNilaiService
             }
         }
 
+        // Tambahkan Mapel Pilihan ke komparasi mapel jika ada
+        if (class_exists(\App\Modules\Penilaian\Models\NilaiMapelPilihanAkhir::class)) {
+            $allMapilAkhirsComp = \App\Modules\Penilaian\Models\NilaiMapelPilihanAkhir::with(['semester', 'mapelPilihan'])
+                ->whereIn('siswa_id', $siswaIds)
+                ->whereNotNull('nilai_akhir')
+                ->get();
+
+            foreach ($allMapilAkhirsComp as $naMapil) {
+                $mapil = $naMapil->mapelPilihan;
+                if (!$mapil) continue;
+                $mKey = 90000 + $mapil->id;
+                if (!$mapels->contains('id', $mKey)) {
+                    $mObj = new Mapel([
+                        'kode' => $mapil->kode,
+                        'nama' => $mapil->nama,
+                        'kkm_default' => $mapil->kkm_default ?? 75,
+                        'urutan' => 100 + $mapil->id,
+                    ]);
+                    $mObj->id = $mKey;
+                    $mObj->is_mapil = true;
+                    $mapels->push($mObj);
+                }
+
+                $sName = $naMapil->semester?->semester ?? 'ganjil';
+                $semIdx = self::getSemesterIndex($tingkat, $sName);
+                $mapelScores[$mKey][$semIdx][] = (float) $naMapil->nilai_akhir;
+            }
+        }
+
         $comparisonRows = [];
         foreach ($mapels as $m) {
             $semAvgs = [];
@@ -607,7 +739,7 @@ class TranskripNilaiService
                 'mapel_id' => $m->id,
                 'kode' => $m->kode,
                 'nama' => $m->nama,
-                'kelompok' => $m->kelompokMapel?->nama ?? 'Muatan Umum',
+                'kelompok' => !empty($m->is_mapil) ? 'Mata Pelajaran Pilihan' : ($m->kelompokMapel?->nama ?? 'Muatan Umum'),
                 'kkm' => $kkm,
                 'semesters' => $semAvgs,
                 'rata_overall' => $rataOverall,

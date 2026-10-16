@@ -12,6 +12,11 @@ return [
             'permission' => 'penilaian.lihat',
         ],
         [
+            'label' => 'Pengaturan Bobot & Predikat',
+            'route' => 'penilaian.pengaturan',
+            'permission' => 'penilaian.edit',
+        ],
+        [
             'label' => 'Penilaian Mapil',
             'route' => 'penilaian.mapil.index',
             'permission' => 'penilaian.lihat',

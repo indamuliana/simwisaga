@@ -227,7 +227,7 @@ class MapelPilihanRaporTest extends TestCase
         $this->assertEquals('C', $mapilRecord->kelompok_kode);
         $this->assertEquals('Mata Pelajaran Pilihan', $mapilRecord->kelompok_nama);
         $this->assertEquals('kompeten', $mapilRecord->status);
-        $this->assertEquals(85.00, $mapilRecord->nilai_akhir);
+        $this->assertEquals(88.00, $mapilRecord->nilai_akhir);
 
         $grouped = $service->groupAcademicRecords($records);
         $this->assertTrue($grouped->has('C. Mata Pelajaran Pilihan'));

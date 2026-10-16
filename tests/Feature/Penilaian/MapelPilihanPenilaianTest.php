@@ -286,8 +286,9 @@ class MapelPilihanPenilaianTest extends TestCase
         $block = $na->data_9m['9M1'];
         $this->assertEquals('kompeten', $block['status']);
 
-        // Rata formatif = (90 + 78) / 2 = 84. NA = (84 * 0.5) + (86 * 0.5) = 85.00
-        $this->assertEquals(85.00, $block['nilai_akhir']);
+        // Rata formatif = (90 + 78) / 2 = 84. STS = 86. NH default = 100.
+        // NA = (84 * 0.5) + (86 * 0.3) + (100 * 0.2) = 42 + 25.8 + 20 = 87.80
+        $this->assertEquals(87.80, $block['nilai_akhir']);
 
         // Narasi Kurikulum Merdeka 2 baris
         $this->assertNotEmpty($block['deskripsi_tertinggi']);

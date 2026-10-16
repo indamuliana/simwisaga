@@ -307,14 +307,125 @@ class PenilaianImportTest extends TestCase
         @unlink($filePath);
     }
 
+    public function test_template_exporter_menghasilkan_kolom_tp_dan_nh_sesuai_penugasan(): void
+    {
+        $cols = NilaiTemplateExporter::getColumnsByScope($this->pmGanjil, 'periode_aktif', '9M1');
+        $this->assertEquals(['TP 1', 'TP 2', 'NH 9M1', 'STS 1'], $cols);
+
+        $colsGanjil = NilaiTemplateExporter::getColumnsByScope($this->pmGanjil, 'ganjil');
+        $this->assertEquals(['TP 1', 'TP 2', 'NH 9M1', 'STS 1', 'NH 9M2', 'SAS'], $colsGanjil);
+
+        $exporter = new NilaiTemplateExporter($this->pmGanjil, $cols);
+        $spreadsheet = $exporter->buildSpreadsheet();
+        $sheet = $spreadsheet->getActiveSheet();
+
+        $this->assertEquals('TP 1', $sheet->getCell('E5')->getValue());
+        $this->assertEquals('TP 2', $sheet->getCell('F5')->getValue());
+        $this->assertEquals('NH 9M1', $sheet->getCell('G5')->getValue());
+        $this->assertEquals('STS 1', $sheet->getCell('H5')->getValue());
+
+        // Verifikasi keberadaan comment informatif
+        $this->assertTrue($sheet->getComment('E5')->getText()->getPlainText() !== '');
+        $this->assertStringContainsString('Memahami konsep dasar', $sheet->getComment('E5')->getText()->getPlainText());
+    }
+
+    public function test_importer_memvalidasi_dan_menyimpan_nilai_langsung_per_tp_dan_nh(): void
+    {
+        $filePath = $this->createTemporaryExcelFile(
+            ['No', 'NIS', 'Nama Siswa', 'Rombel', 'TP 1', 'TP 2', 'NH 9M1', 'STS 1'],
+            [
+                ['1', '10001001', 'Ahmad Santoso', 'X HTL 1', '85', '90', '95', '88'],
+            ]
+        );
+
+        $importer = new NilaiImporter();
+        $parsed = $importer->validateAndParse($filePath, $this->pmGanjil, ['TP 1', 'TP 2', 'NH 9M1', 'STS 1']);
+
+        $this->assertTrue($parsed['success']);
+        $this->assertEquals(1, $parsed['valid_count']);
+        $this->assertEquals(0, $parsed['error_count']);
+        $this->assertEquals(['TP 1', 'TP 2', 'NH 9M1', 'STS 1'], $parsed['detected_columns']);
+        $this->assertEquals(85, $parsed['valid_rows'][0]['scores']['TP 1']);
+        $this->assertEquals(90, $parsed['valid_rows'][0]['scores']['TP 2']);
+        $this->assertEquals(95, $parsed['valid_rows'][0]['scores']['NH 9M1']);
+        $this->assertEquals(88, $parsed['valid_rows'][0]['scores']['STS 1']);
+
+        $res = $importer->commitImport($parsed['valid_rows'], $this->pmGanjil);
+        $this->assertEquals(1, $res['saved_students']);
+
+        // Verifikasi NilaiFormatif tersimpan langsung per TP
+        $this->assertDatabaseHas('nilai_formatifs', [
+            'siswa_id' => $this->siswa1->id,
+            'tujuan_pembelajaran_id' => $this->tp1->id,
+            'nilai' => 85,
+        ]);
+        $this->assertDatabaseHas('nilai_formatifs', [
+            'siswa_id' => $this->siswa1->id,
+            'tujuan_pembelajaran_id' => $this->tp2->id,
+            'nilai' => 90,
+        ]);
+
+        // Verifikasi NilaiHarian tersimpan untuk 9M1
+        $this->assertDatabaseHas('nilai_harians', [
+            'siswa_id' => $this->siswa1->id,
+            'penugasan_mengajar_id' => $this->pmGanjil->id,
+            'target_periode' => '9M1',
+            'nilai' => 95,
+        ]);
+
+        // Verifikasi NilaiSumatif STS 1 tersimpan
+        $this->assertDatabaseHas('nilai_sumatifs', [
+            'siswa_id' => $this->siswa1->id,
+            'penugasan_mengajar_id' => $this->pmGanjil->id,
+            'sts' => 88,
+        ]);
+
+        @unlink($filePath);
+    }
+
+    public function test_importer_mengenali_berbagai_format_header_tp_dan_variasi_penamaan(): void
+    {
+        $filePath = $this->createTemporaryExcelFile(
+            ['No', 'NIS', 'Nama Siswa', 'Rombel', 'TP 1: Memahami dasar', 'TP 2 - Jurnal', 'Harian', 'STS'],
+            [
+                ['1', '10001001', 'Ahmad Santoso', 'X HTL 1', '79', '84', '92', '80'],
+            ]
+        );
+
+        $importer = new NilaiImporter();
+        $parsed = $importer->validateAndParse($filePath, $this->pmGanjil);
+
+        $this->assertTrue($parsed['success']);
+        $this->assertEquals(1, $parsed['valid_count']);
+        $this->assertContains('TP 1', $parsed['detected_columns']);
+        $this->assertContains('TP 2', $parsed['detected_columns']);
+        $this->assertContains('STS 1', $parsed['detected_columns']);
+
+        $res = $importer->commitImport($parsed['valid_rows'], $this->pmGanjil);
+        $this->assertEquals(1, $res['saved_students']);
+
+        $this->assertDatabaseHas('nilai_formatifs', [
+            'siswa_id' => $this->siswa1->id,
+            'tujuan_pembelajaran_id' => $this->tp1->id,
+            'nilai' => 79,
+        ]);
+        $this->assertDatabaseHas('nilai_formatifs', [
+            'siswa_id' => $this->siswa1->id,
+            'tujuan_pembelajaran_id' => $this->tp2->id,
+            'nilai' => 84,
+        ]);
+
+        @unlink($filePath);
+    }
+
     public function test_livewire_alur_import_modal_buka_tutup_preset_dan_preview(): void
     {
         $this->actingAs($this->guruUser);
 
         $filePath = $this->createTemporaryExcelFile(
-            ['No', 'NIS', 'Nama Siswa', 'Rombel', 'AH 1'],
+            ['No', 'NIS', 'Nama Siswa', 'Rombel', 'TP 1', 'NH 9M1', 'STS 1'],
             [
-                ['1', '10001001', 'Ahmad Santoso', 'X HTL 1', '78'],
+                ['1', '10001001', 'Ahmad Santoso', 'X HTL 1', '78', '95', '85'],
             ]
         );
 
@@ -326,9 +437,12 @@ class PenilaianImportTest extends TestCase
             ->call('openImportModal')
             ->assertSet('showImportModal', true)
             ->assertSet('importStep', 'select')
-            // Coba preset
+            // Coba preset ganjil
             ->call('setImportPreset', 'ganjil')
-            ->assertSet('importSelectedColumns', ['AH 1', 'AH 2', 'STS 1', 'AH 3', 'AH 4', 'SAS'])
+            ->assertSet('importSelectedColumns', ['TP 1', 'TP 2', 'NH 9M1', 'STS 1', 'NH 9M2', 'SAS'])
+            // Coba preset periode aktif (9M1)
+            ->call('setImportPreset', 'periode_aktif')
+            ->assertSet('importSelectedColumns', ['TP 1', 'TP 2', 'NH 9M1', 'STS 1'])
             // Upload & preview
             ->set('importFile', $uploadedFile)
             ->call('uploadAndPreview')
@@ -341,10 +455,23 @@ class PenilaianImportTest extends TestCase
             ->assertSet('showImportModal', false)
             ->assertSee('Berhasil mengimpor nilai untuk');
 
-        $this->assertDatabaseHas('nilai_asesmen_harians', [
+        $this->assertDatabaseHas('nilai_formatifs', [
             'siswa_id' => $this->siswa1->id,
-            'kode_ah' => 'AH 1',
+            'tujuan_pembelajaran_id' => $this->tp1->id,
             'nilai' => 78,
+        ]);
+
+        $this->assertDatabaseHas('nilai_harians', [
+            'siswa_id' => $this->siswa1->id,
+            'penugasan_mengajar_id' => $this->pmGanjil->id,
+            'target_periode' => '9M1',
+            'nilai' => 95,
+        ]);
+
+        $this->assertDatabaseHas('nilai_sumatifs', [
+            'siswa_id' => $this->siswa1->id,
+            'penugasan_mengajar_id' => $this->pmGanjil->id,
+            'sts' => 85,
         ]);
 
         @unlink($filePath);
