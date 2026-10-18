@@ -75,7 +75,9 @@ class SiswaDapodikTest extends TestCase
 
     public function test_import_sample_dapodik_berhasil_membuat_19_siswa_dan_akun_login_nis_ddmmyyyy(): void
     {
-        $samplePath = base_path('DATABASE_SISWA_SAMPLE.xlsx');
+        $samplePath = file_exists(database_path('seeders/data/sample_dapodik.xlsx'))
+            ? database_path('seeders/data/sample_dapodik.xlsx')
+            : base_path('DATABASE_SISWA_SAMPLE.xlsx');
         $this->assertFileExists($samplePath);
 
         $importer = new DapodikImporter($this->ta);

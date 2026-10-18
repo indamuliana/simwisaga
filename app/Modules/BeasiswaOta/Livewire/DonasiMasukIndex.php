@@ -8,6 +8,7 @@ use App\Modules\BeasiswaOta\Models\DonasiMasuk;
 use App\Modules\BeasiswaOta\Models\Donatur;
 use App\Modules\BeasiswaOta\Models\KasMutasi;
 use App\Modules\BeasiswaOta\Models\Kelompok;
+use App\Modules\BeasiswaOta\Services\OtaKasService;
 use Livewire\Component;
 use Livewire\WithPagination;
 
@@ -24,6 +25,16 @@ class DonasiMasukIndex extends Component
     public function delete(int $id)
     {
         $donasi = DonasiMasuk::findOrFail($id);
+
+        $posKas = ($donasi->tipe_donatur === 'rutin' && $donasi->kelompok_id) ? 'kelompok' : 'insidental';
+        $currentSaldo = $posKas === 'kelompok'
+            ? OtaKasService::getSaldoKelompok($donasi->kelompok_id)
+            : OtaKasService::getSaldoInsidental();
+
+        if ($currentSaldo < (float) $donasi->nominal) {
+            session()->flash('error', 'Donasi tidak dapat dibatalkan karena dananya telah terpakai/dialokasikan.');
+            return;
+        }
 
         // Hapus mutasi kas terkait
         KasMutasi::where(function ($q) use ($donasi) {
@@ -43,6 +54,13 @@ class DonasiMasukIndex extends Component
     {
         $donasis = DonasiMasuk::where('batch_kode', $batchKode)->get();
         if ($donasis->isEmpty()) {
+            return;
+        }
+
+        $totalBatch = $donasis->sum('nominal');
+        $kelompokId = $donasis->first()->kelompok_id;
+        if ($kelompokId && OtaKasService::getSaldoKelompok($kelompokId) < $totalBatch) {
+            session()->flash('error', 'Batch setoran kolektif tidak dapat dibatalkan karena dananya telah terpakai/dialokasikan.');
             return;
         }
 

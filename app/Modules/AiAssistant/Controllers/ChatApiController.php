@@ -66,22 +66,33 @@ class ChatApiController extends Controller
             $sqlQuery = trim(str_replace(['```sql', '```'], '', $sqlResponse));
 
             // Validasi keamanan: Pastikan hanya SELECT
-            if (empty($sqlQuery) || stripos($sqlQuery, 'SELECT') !== 0) {
+            if (empty($sqlQuery) || !preg_match('/^SELECT\s+/i', $sqlQuery)) {
                 // Jika bukan query SQL yang valid atau AI memutuskan tidak butuh query
                 return $this->generateFinalAnswer($apiKey, $userMessage, [], $personaStyle, $basePrompt);
             }
 
-            // Mencegah query destruktif
-            $forbiddenKeywords = ['INSERT ', 'UPDATE ', 'DELETE ', 'DROP ', 'TRUNCATE ', 'ALTER ', 'CREATE '];
-            foreach ($forbiddenKeywords as $keyword) {
-                if (stripos($sqlQuery, $keyword) !== false) {
-                    throw new \Exception("Query tidak diizinkan.");
+            // Bersihkan semicolon di akhir, tolak multi-query
+            $cleanedSql = rtrim($sqlQuery, "; \t\n\r");
+            if (str_contains($cleanedSql, ';')) {
+                throw new \Exception("Query multi-statement tidak diizinkan.");
+            }
+
+            // Mencegah query destruktif, akses ke tabel sensitif, dan ekstraksi kredensial
+            $forbiddenPatterns = [
+                '/\b(INSERT|UPDATE|DELETE|DROP|TRUNCATE|ALTER|CREATE|REPLACE|GRANT|REVOKE)\b/i',
+                '/\b(users|audits|sessions|password_resets|cache|failed_jobs|personal_access_tokens)\b/i',
+                '/\b(password|remember_token|secret)\b/i',
+                '/\b(INTO\s+OUTFILE|INTO\s+DUMPFILE|LOAD_FILE|BENCHMARK|SLEEP)\b/i',
+            ];
+            foreach ($forbiddenPatterns as $pattern) {
+                if (preg_match($pattern, $cleanedSql)) {
+                    throw new \Exception("Query tidak diizinkan karena mengakses data sensitif atau operasi terlarang.");
                 }
             }
 
             // 3. Eksekusi SQL
             try {
-                $queryResult = DB::select($sqlQuery);
+                $queryResult = DB::select($cleanedSql);
             } catch (\Exception $e) {
                 Log::error("Error mengeksekusi AI SQL: " . $e->getMessage() . " | Query: " . $sqlQuery);
                 $queryResult = []; // Anggap kosong jika error
@@ -136,6 +147,11 @@ class ChatApiController extends Controller
 
     private function getDatabaseSchema()
     {
+        $sensitiveColumns = [
+            'nik', 'no_kk', 'no_akta_lahir', 'nomor_rekening_bank', 'rekening_atas_nama',
+            'hp', 'telepon', 'email', 'user_id', 'foto_path', 'skhun', 'no_peserta_un', 'no_seri_ijazah'
+        ];
+
         $schema = "";
         foreach ($this->relevantTables as $table) {
             try {
@@ -143,6 +159,9 @@ class ChatApiController extends Controller
                 $schema .= "Tabel: $table\nKolom: ";
                 $colNames = [];
                 foreach ($columns as $column) {
+                    if (in_array(strtolower($column->Field), $sensitiveColumns)) {
+                        continue;
+                    }
                     $colNames[] = $column->Field . " (" . $column->Type . ")";
                 }
                 $schema .= implode(", ", $colNames) . "\n\n";

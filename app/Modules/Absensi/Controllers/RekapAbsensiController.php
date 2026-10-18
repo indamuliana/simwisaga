@@ -12,6 +12,8 @@ class RekapAbsensiController extends Controller
 {
     public function cetakPdf(Request $request, RekapAbsensiService $service)
     {
+        abort_unless(auth()->user()->isSuperAdmin() || auth()->user()->can('absensi.rekap.cetak') || auth()->user()->can('absensi.rekap.lihat'), 403, 'Anda tidak memiliki wewenang untuk mencetak rekap absensi.');
+
         $data = $service->getRekapData($request->all());
         $data['school'] = School::current();
 

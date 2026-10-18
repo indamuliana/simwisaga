@@ -24,6 +24,8 @@ class OtaSettingIndex extends Component
 
     public function mount()
     {
+        $this->guard('beasiswa_ota.setting');
+
         $this->currentBgPath = OtaSetting::get('certificate_bg_path');
         $this->defaultTargetKelompok = (float) OtaSetting::get('default_target_kelompok', 2000000);
         $this->titimangsaKota = OtaSetting::get('titimangsa_kota', 'Garut');
@@ -35,6 +37,8 @@ class OtaSettingIndex extends Component
 
     public function saveSettings()
     {
+        $this->guard('beasiswa_ota.setting');
+
         $this->validate([
             'defaultTargetKelompok' => 'required|numeric|min:0',
             'titimangsaKota' => 'required|string|max:100',

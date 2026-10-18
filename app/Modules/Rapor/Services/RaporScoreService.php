@@ -28,6 +28,10 @@ use Illuminate\Support\Collection;
 class RaporScoreService
 {
     protected ?PenilaianScoreCalculator $calculator = null;
+    protected array $cohortCache = [];
+    protected array $penugasansCache = [];
+    protected array $strukturKurikulumCache = [];
+    protected mixed $mapelSeniCache = null;
 
     public function getCalculator(): PenilaianScoreCalculator
     {
@@ -35,6 +39,67 @@ class RaporScoreService
             $this->calculator = new PenilaianScoreCalculator();
         }
         return $this->calculator;
+    }
+
+    /**
+     * Preload catatan, absensi, ekskul, dan prestasi untuk seluruh cohort siswa sekaligus.
+     * Mengeliminasi query N+1 pada saat cetak rapor massal.
+     */
+    public function preloadCohort(Collection $siswas, Semester $semester, ?int $periodeRaporId = null): void
+    {
+        $siswaIds = $siswas->pluck('id')->filter()->all();
+        if (empty($siswaIds)) {
+            return;
+        }
+
+        // 1. Preload Catatan Wali Kelas
+        $catatans = CatatanWaliKelas::whereIn('siswa_id', $siswaIds)
+            ->where('semester_id', $semester->id)
+            ->get();
+        foreach ($siswaIds as $sId) {
+            $this->cohortCache['catatan'][$sId] = $catatans->where('siswa_id', $sId);
+        }
+
+        // 2. Preload Absensi Harian (S/I/A)
+        $absensiGrouped = AbsensiHarian::whereIn('siswa_id', $siswaIds)
+            ->where('semester_id', $semester->id)
+            ->get()
+            ->groupBy('siswa_id');
+        foreach ($siswaIds as $sId) {
+            $abs = $absensiGrouped->get($sId, collect())->groupBy('status');
+            $this->cohortCache['absen'][$sId] = [
+                'sakit' => isset($abs['Sakit']) ? count($abs['Sakit']) : 0,
+                'izin' => isset($abs['Izin']) ? count($abs['Izin']) : 0,
+                'alpa' => isset($abs['Alpa']) ? count($abs['Alpa']) : 0,
+            ];
+        }
+
+        // 3. Preload Ekstrakurikuler
+        $ekskulsGrouped = EkstrakurikulerAnggota::with('ekstrakurikuler')
+            ->whereIn('siswa_id', $siswaIds)
+            ->where('semester_id', $semester->id)
+            ->where(function ($q) {
+                $q->whereNull('status_keanggotaan')->orWhere('status_keanggotaan', 'aktif');
+            })
+            ->get()
+            ->groupBy('siswa_id');
+        foreach ($siswaIds as $sId) {
+            $this->cohortCache['ekskul'][$sId] = $ekskulsGrouped->get($sId, collect());
+        }
+
+        // 4. Preload Prestasi
+        if (class_exists(\App\Modules\Prestasi\Models\Prestasi::class)) {
+            $prestasis = \App\Modules\Prestasi\Models\Prestasi::with(['pembimbingPegawai', 'siswas'])
+                ->whereHas('siswas', fn($q) => $q->whereIn('siswas.id', $siswaIds))
+                ->where('semester_id', $semester->id)
+                ->approved()
+                ->when($periodeRaporId, fn($q) => $q->where(fn($sub) => $sub->where('periode_rapor_id', $periodeRaporId)->orWhereNull('periode_rapor_id')))
+                ->orderBy('tanggal_perolehan', 'desc')
+                ->get();
+            foreach ($siswaIds as $sId) {
+                $this->cohortCache['prestasi'][$sId] = $prestasis->filter(fn($p) => $p->siswas->contains('id', $sId))->values();
+            }
+        }
     }
     /**
      * Menentukan target period key (9M1, 9M2, 9M3, 9M4, atau Semester) dari PeriodeRapor
@@ -130,12 +195,16 @@ class RaporScoreService
 
         $rombel = $siswa->rombel;
 
-        // 1. Ambil Penugasan Mengajar untuk rombel siswa pada semester ini
-        $penugasans = PenugasanMengajar::with(['mapel.kelompokMapel', 'pegawai', 'tujuanPembelajarans'])
-            ->where('rombel_id', $siswa->rombel_id)
-            ->where('semester_id', $semester->id)
-            ->get()
-            ->keyBy('mapel_id');
+        // 1. Ambil Penugasan Mengajar untuk rombel siswa pada semester ini (dengan memoization)
+        $penugasanKey = "{$siswa->rombel_id}_{$semester->id}";
+        if (!isset($this->penugasansCache[$penugasanKey])) {
+            $this->penugasansCache[$penugasanKey] = PenugasanMengajar::with(['mapel.kelompokMapel', 'pegawai', 'tujuanPembelajarans'])
+                ->where('rombel_id', $siswa->rombel_id)
+                ->where('semester_id', $semester->id)
+                ->get()
+                ->keyBy('mapel_id');
+        }
+        $penugasans = $this->penugasansCache[$penugasanKey];
 
         // 2. Ambil Nilai Akhir yang sudah tersimpan untuk siswa ini di semester ini
         $nilaiAkademiks = NilaiAkhir::with(['penugasanMengajar.mapel.kelompokMapel'])
@@ -147,23 +216,27 @@ class RaporScoreService
         // 3. Susun daftar Mata Pelajaran terstruktur lengkap kurikulum
         $mapelList = collect();
 
-        // 3a. Dari Struktur Kurikulum jika ada
+        // 3a. Dari Struktur Kurikulum jika ada (dengan memoization)
         if ($rombel) {
-            $strukturKurikulums = StrukturKurikulum::with(['mapel.kelompokMapel'])
-                ->where('tahun_ajaran_id', $rombel->tahun_ajaran_id)
-                ->where('jurusan_id', $rombel->jurusan_id)
-                ->where('tingkat', $rombel->tingkat)
-                ->where(function ($q) use ($isGenap) {
-                    if ($isGenap) {
-                        $q->where('jp_genap', '>', 0)
-                            ->orWhere(fn($sub) => $sub->where('jp_ganjil', 0)->where('jp_genap', 0)->where('jp_per_minggu', '>', 0));
-                    } else {
-                        $q->where('jp_ganjil', '>', 0)
-                            ->orWhere(fn($sub) => $sub->where('jp_ganjil', 0)->where('jp_genap', 0)->where('jp_per_minggu', '>', 0));
-                    }
-                })
-                ->orderBy('urutan')
-                ->get();
+            $skKey = "{$rombel->tahun_ajaran_id}_{$rombel->jurusan_id}_{$rombel->tingkat}_" . ($isGenap ? 'genap' : 'ganjil');
+            if (!isset($this->strukturKurikulumCache[$skKey])) {
+                $this->strukturKurikulumCache[$skKey] = StrukturKurikulum::with(['mapel.kelompokMapel'])
+                    ->where('tahun_ajaran_id', $rombel->tahun_ajaran_id)
+                    ->where('jurusan_id', $rombel->jurusan_id)
+                    ->where('tingkat', $rombel->tingkat)
+                    ->where(function ($q) use ($isGenap) {
+                        if ($isGenap) {
+                            $q->where('jp_genap', '>', 0)
+                                ->orWhere(fn($sub) => $sub->where('jp_ganjil', 0)->where('jp_genap', 0)->where('jp_per_minggu', '>', 0));
+                        } else {
+                            $q->where('jp_ganjil', '>', 0)
+                                ->orWhere(fn($sub) => $sub->where('jp_ganjil', 0)->where('jp_genap', 0)->where('jp_per_minggu', '>', 0));
+                        }
+                    })
+                    ->orderBy('urutan')
+                    ->get();
+            }
+            $strukturKurikulums = $this->strukturKurikulumCache[$skKey];
 
             foreach ($strukturKurikulums as $sk) {
                 if ($sk->mapel && !$mapelList->has($sk->mapel_id)) {
@@ -187,18 +260,20 @@ class RaporScoreService
             }
         }
 
-        // Pastikan Mapel Seni Budaya terdaftar jika belum ada di list
+        // Pastikan Mapel Seni Budaya terdaftar jika belum ada di list (dengan memoization)
         $hasSeniMapel = $mapelList->contains(function ($m) {
             return strtolower($m->kode) === 'seni' || str_contains(strtolower($m->nama), 'seni budaya');
         });
 
         if (!$hasSeniMapel) {
-            $mapelSeni = Mapel::with('kelompokMapel')
-                ->where('kode', 'SENI')
-                ->orWhere('nama', 'like', '%Seni Budaya%')
-                ->first();
-            if ($mapelSeni) {
-                $mapelList->put($mapelSeni->id, $mapelSeni);
+            if ($this->mapelSeniCache === null) {
+                $this->mapelSeniCache = Mapel::with('kelompokMapel')
+                    ->where('kode', 'SENI')
+                    ->orWhere('nama', 'like', '%Seni Budaya%')
+                    ->first() ?: false;
+            }
+            if ($this->mapelSeniCache) {
+                $mapelList->put($this->mapelSeniCache->id, $this->mapelSeniCache);
             }
         }
 
@@ -600,6 +675,18 @@ class RaporScoreService
      */
     public function getCatatanForSiswa(int $siswaId, int $semesterId, ?int $periodeRaporId = null): string
     {
+        if (isset($this->cohortCache['catatan'][$siswaId])) {
+            $catatans = $this->cohortCache['catatan'][$siswaId];
+            if ($periodeRaporId) {
+                $cat = $catatans->first(fn($c) => $c->periode_rapor_id == $periodeRaporId);
+                if ($cat && !empty($cat->catatan)) {
+                    return $cat->catatan;
+                }
+            }
+            $fallbackCat = $catatans->first(fn($c) => is_null($c->periode_rapor_id));
+            return $fallbackCat?->catatan ?? '';
+        }
+
         if ($periodeRaporId) {
             $cat = CatatanWaliKelas::where('siswa_id', $siswaId)
                 ->where('semester_id', $semesterId)
@@ -624,6 +711,10 @@ class RaporScoreService
      */
     public function getPrestasiForSiswa(int $siswaId, int $semesterId, ?int $periodeRaporId = null): Collection
     {
+        if (isset($this->cohortCache['prestasi'][$siswaId])) {
+            return $this->cohortCache['prestasi'][$siswaId];
+        }
+
         if (!class_exists(\App\Modules\Prestasi\Models\Prestasi::class)) {
             return collect();
         }
@@ -650,6 +741,10 @@ class RaporScoreService
      */
     public function getRekapAbsen(int $siswaId, int $semesterId): array
     {
+        if (isset($this->cohortCache['absen'][$siswaId])) {
+            return $this->cohortCache['absen'][$siswaId];
+        }
+
         $absensi = AbsensiHarian::where('siswa_id', $siswaId)
             ->where('semester_id', $semesterId)
             ->get()
@@ -667,6 +762,10 @@ class RaporScoreService
      */
     public function getEkskuls(int $siswaId, int $semesterId): Collection
     {
+        if (isset($this->cohortCache['ekskul'][$siswaId])) {
+            return $this->cohortCache['ekskul'][$siswaId];
+        }
+
         return EkstrakurikulerAnggota::with('ekstrakurikuler')
             ->where('siswa_id', $siswaId)
             ->where('semester_id', $semesterId)

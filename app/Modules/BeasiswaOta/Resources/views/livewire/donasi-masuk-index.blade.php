@@ -12,6 +12,16 @@
         </div>
     @endif
 
+    @if(session()->has('error'))
+        <div class="p-4 bg-rose-50 dark:bg-rose-950/40 border border-rose-200 dark:border-rose-800 rounded-xl text-rose-800 dark:text-rose-200 text-sm flex items-center justify-between shadow-xs">
+            <div class="flex items-center gap-2">
+                <svg class="w-5 h-5 text-rose-600 shrink-0" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 8v4m0 4h.01M21 12a9 9 0 11-18 0 9 9 0 0118 0z"/></svg>
+                <span>{{ session('error') }}</span>
+            </div>
+            <button type="button" onclick="this.parentElement.remove()" class="text-rose-500 hover:text-rose-700">&times;</button>
+        </div>
+    @endif
+
     <div class="card border border-border rounded-2xl p-6 bg-surface shadow-xs space-y-4">
         <div class="flex flex-col md:flex-row justify-between items-start md:items-center gap-4">
             <!-- Filter & Search -->

@@ -9,6 +9,7 @@ use App\Modules\Penilaian\Livewire\PenilaianInput;
 use App\Modules\Penilaian\Livewire\RekapPenilaianIndex;
 use App\Modules\Penilaian\Livewire\TranskripPenilaianIndex;
 use App\Modules\Penilaian\Services\TranskripNilaiService;
+use App\Modules\Kesiswaan\Models\Siswa;
 use App\Modules\Sistem\Models\School;
 use Barryvdh\DomPDF\Facade\Pdf;
 
@@ -21,6 +22,9 @@ Route::middleware(['web', 'auth'])->group(function () {
     Route::get('/penilaian/rekap', RekapPenilaianIndex::class)->name('penilaian.rekap');
     Route::get('/penilaian/transkrip', TranskripPenilaianIndex::class)->name('penilaian.transkrip');
     Route::get('/penilaian/transkrip/{siswa_id}/pdf', function ($siswa_id, TranskripNilaiService $service) {
+        $siswa = Siswa::findOrFail((int) $siswa_id);
+        abort_unless(auth()->user()->canViewStudent($siswa), 403, 'Anda tidak memiliki hak akses untuk mencetak transkrip siswa ini.');
+
         $data = $service->getSiswaTranskripData((int) $siswa_id);
         $sekolah = School::current();
         $pdf = Pdf::loadView('penilaian::pdf.transkrip-siswa', compact('data', 'sekolah'))

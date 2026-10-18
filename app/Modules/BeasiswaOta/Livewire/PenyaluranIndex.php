@@ -300,6 +300,11 @@ class PenyaluranIndex extends Component
     {
         $alokasi = Alokasi::findOrFail($id);
 
+        if ($alokasi->surplus_dialihkan > 0 && OtaKasService::getSaldoInsidental() < (float) $alokasi->surplus_dialihkan) {
+            session()->flash('error_rutin', 'Penyaluran tidak dapat dibatalkan karena surplus yang dialihkan ke kas insidental telah terpakai.');
+            return;
+        }
+
         KasMutasi::where('referensi_tipe', 'alokasi')
             ->where('referensi_id', $alokasi->id)
             ->delete();

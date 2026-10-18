@@ -15,12 +15,14 @@ class AiAssistantController extends Controller
 
     public function settingsView()
     {
+        abort_unless(auth()->user()->isSuperAdmin() || auth()->user()->can('sistem.sekolah.edit'), 403);
         $setting = AiSetting::first() ?? new AiSetting();
         return view('aiassistant::settings', compact('setting'));
     }
 
     public function settingsUpdate(Request $request)
     {
+        abort_unless(auth()->user()->isSuperAdmin() || auth()->user()->can('sistem.sekolah.edit'), 403);
         $request->validate([
             'name' => 'required|string|max:255',
             'style' => 'nullable|string',

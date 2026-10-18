@@ -25,6 +25,15 @@ Route::middleware(['web', 'auth'])->group(function () {
         $periodeId = request('periode_id');
         $tanggal = request('tanggal', date('Y-m-d'));
 
+        $user = auth()->user();
+        $isAuthorizedBulk = $user->isSuperAdmin() || $user->can('rapor.cetak') || (
+            $user->pegawai && (
+                ($scope === 'rombel' && \App\Modules\Akademik\Models\Rombel::where('id', $targetId)->where('wali_kelas_id', $user->pegawai->id)->exists()) ||
+                ($scope === 'rayon' && \App\Modules\Akademik\Models\Rayon::where('id', $targetId)->where('pembimbing_id', $user->pegawai->id)->exists())
+            )
+        );
+        abort_unless($isAuthorizedBulk, 403, 'Anda tidak memiliki hak akses untuk mencetak massal rombel/rayon ini.');
+
         $semester = Semester::where('is_active', true)->firstOrFail();
         $sekolah = School::current();
         $periode = $periodeId ? PeriodeRapor::find($periodeId) : null;
@@ -42,6 +51,7 @@ Route::middleware(['web', 'auth'])->group(function () {
         }
 
         $service = app(RaporScoreService::class);
+        $service->preloadCohort($siswas, $semester, $periode?->id);
         $targetKey = $service->resolveTargetPeriodKey($periode, $semester);
         $periodMeta = $service->getPeriodMeta($targetKey);
 
@@ -82,6 +92,15 @@ Route::middleware(['web', 'auth'])->group(function () {
         $semesterId = request('semester_id');
         $tanggal = request('tanggal', date('Y-m-d'));
 
+        $user = auth()->user();
+        $isAuthorizedBulk = $user->isSuperAdmin() || $user->can('rapor.cetak') || (
+            $user->pegawai && (
+                ($scope === 'rombel' && \App\Modules\Akademik\Models\Rombel::where('id', $targetId)->where('wali_kelas_id', $user->pegawai->id)->exists()) ||
+                ($scope === 'rayon' && \App\Modules\Akademik\Models\Rayon::where('id', $targetId)->where('pembimbing_id', $user->pegawai->id)->exists())
+            )
+        );
+        abort_unless($isAuthorizedBulk, 403, 'Anda tidak memiliki hak akses untuk mencetak massal rombel/rayon ini.');
+
         $semester = $semesterId ? Semester::findOrFail($semesterId) : Semester::where('is_active', true)->firstOrFail();
         $sekolah = School::current();
 
@@ -98,6 +117,7 @@ Route::middleware(['web', 'auth'])->group(function () {
         }
 
         $service = app(RaporScoreService::class);
+        $service->preloadCohort($siswas, $semester, null);
         $studentsData = [];
 
         foreach ($siswas as $siswa) {
@@ -131,6 +151,8 @@ Route::middleware(['web', 'auth'])->group(function () {
     // 3. Cetak Dokumen Rapor Wikrama Individual
     Route::get('/rapor/{siswa_id}/wikrama-nilai', function ($siswa_id) {
         $siswa = Siswa::with(['rombel.jurusan', 'rombel.waliKelas', 'rayon.pembimbing'])->findOrFail($siswa_id);
+        abort_unless(auth()->user()->canViewStudent($siswa), 403, 'Anda tidak memiliki hak akses untuk melihat rapor siswa ini.');
+
         $semester = Semester::where('is_active', true)->firstOrFail();
         $sekolah = School::current();
         $tanggal = request('tanggal', date('Y-m-d'));
@@ -173,6 +195,8 @@ Route::middleware(['web', 'auth'])->group(function () {
     // 4. Cetak Dokumen Rapor Pemerintah Individual
     $renderPemerintahSingle = function ($siswa_id) {
         $siswa = Siswa::with(['rombel.jurusan', 'rombel.waliKelas', 'rayon.pembimbing', 'riwayatAkademiks'])->findOrFail($siswa_id);
+        abort_unless(auth()->user()->canViewStudent($siswa), 403, 'Anda tidak memiliki hak akses untuk melihat rapor siswa ini.');
+
         $semesterId = request('semester_id');
         $semester = $semesterId ? Semester::findOrFail($semesterId) : Semester::where('is_active', true)->firstOrFail();
         $sekolah = School::current();
@@ -212,6 +236,7 @@ Route::middleware(['web', 'auth'])->group(function () {
     // 5. Dokumen Cover & Identitas Individual
     Route::get('/rapor/{siswa_id}/cover', function ($siswa_id) {
         $siswa = Siswa::with('rombel.jurusan')->findOrFail($siswa_id);
+        abort_unless(auth()->user()->canViewStudent($siswa), 403, 'Anda tidak memiliki hak akses untuk melihat dokumen siswa ini.');
         $sekolah = School::current();
 
         $pdf = Pdf::loadView('rapor::pdf.cover', compact('siswa', 'sekolah'))->setPaper('A4', 'portrait');
@@ -220,6 +245,7 @@ Route::middleware(['web', 'auth'])->group(function () {
 
     Route::get('/rapor/{siswa_id}/identitas', function ($siswa_id) {
         $siswa = Siswa::findOrFail($siswa_id);
+        abort_unless(auth()->user()->canViewStudent($siswa), 403, 'Anda tidak memiliki hak akses untuk melihat identitas siswa ini.');
 
         $pdf = Pdf::loadView('rapor::pdf.identitas', compact('siswa'))->setPaper('A4', 'portrait');
         return $pdf->stream('Rapor_Identitas_' . $siswa->nisn . '.pdf');

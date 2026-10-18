@@ -11,8 +11,16 @@ Route::get('/', function () {
         return redirect()->route('dashboard');
     }
 
-    return redirect()->route('login');
+    $sekolah = \App\Modules\Sistem\Models\School::current();
+    $jurusans = rescue(fn () => \App\Modules\Akademik\Models\Jurusan::where('is_active', true)->get(), collect());
+    $landingBlocks = rescue(fn () => app(\App\Core\Modules\ModuleRegistry::class)->landingBlocks(), []);
+
+    return view('welcome', compact('sekolah', 'jurusans', 'landingBlocks'));
 })->name('home');
+
+Route::get('/berita', \App\Modules\AdministrasiWeb\Livewire\PublicArticleList::class)->name('web.berita.index');
+Route::get('/berita/{slug}', \App\Modules\AdministrasiWeb\Livewire\PublicArticleDetail::class)->name('web.berita.detail');
+Route::get('/halaman/{slug}', \App\Modules\AdministrasiWeb\Livewire\PublicPageDetail::class)->name('web.page.detail');
 
 Route::middleware('guest')->group(function () {
     Route::get('/login', Login::class)->name('login');

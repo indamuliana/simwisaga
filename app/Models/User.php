@@ -95,4 +95,41 @@ class User extends Authenticatable implements Auditable
 
         return null;
     }
+
+    /**
+     * Memeriksa apakah pengguna memiliki hak akses untuk melihat data/rapor siswa tertentu.
+     */
+    public function canViewStudent(Siswa $siswa): bool
+    {
+        if ($this->isSuperAdmin() || $this->can('rapor.cetak') || $this->can('kesiswaan.siswa.lihat')) {
+            return true;
+        }
+
+        $pegawai = $this->relationLoaded('pegawai') ? $this->pegawai : $this->pegawai()->first();
+        if ($pegawai) {
+            $rombel = $siswa->relationLoaded('rombel') ? $siswa->rombel : $siswa->rombel()->first();
+            if ($rombel) {
+                if ($rombel->wali_kelas_id === $pegawai->id) {
+                    return true;
+                }
+                if ($pegawai->penugasanMengajars()->where('rombel_id', $rombel->id)->exists()) {
+                    return true;
+                }
+            }
+            $rayon = $siswa->relationLoaded('rayon') ? $siswa->rayon : $siswa->rayon()->first();
+            if ($rayon && $rayon->pembimbing_id === $pegawai->id) {
+                return true;
+            }
+        }
+
+        if ($this->hasRole('Siswa') && ($this->username === $siswa->nipd || $this->username === $siswa->nisn)) {
+            return true;
+        }
+
+        if ($this->hasRole('Orang Tua') && ($this->username === 'ortu_' . $siswa->nipd || $this->username === 'ortu_' . $siswa->nisn)) {
+            return true;
+        }
+
+        return false;
+    }
 }

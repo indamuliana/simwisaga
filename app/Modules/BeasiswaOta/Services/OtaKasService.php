@@ -212,6 +212,12 @@ class OtaKasService
             $kelompok, $siswa, $details, $totalNominal, $surplusDialihkan,
             $tanggal, $semesterId, $tahunAjaranId, $catatan, $userId
         ) {
+            $saldoKelompok = static::getSaldoKelompok($kelompok->id);
+            $totalKeluar = $totalNominal + $surplusDialihkan;
+            if ($saldoKelompok < $totalKeluar) {
+                throw new \InvalidArgumentException("Saldo kas kelompok #{$kelompok->id} ({$kelompok->nama_kelompok}) tidak mencukupi (Saldo: Rp " . number_format($saldoKelompok, 0, ',', '.') . ", Dibutuhkan: Rp " . number_format($totalKeluar, 0, ',', '.') . ").");
+            }
+
             $alokasi = Alokasi::create([
                 'tipe_alokasi' => 'rutin_semester',
                 'kelompok_id' => $kelompok->id,
@@ -304,6 +310,11 @@ class OtaKasService
             $siswa, $details, $totalNominal,
             $tanggal, $semesterId, $tahunAjaranId, $catatan, $userId
         ) {
+            $saldoInsidental = static::getSaldoInsidental();
+            if ($saldoInsidental < $totalNominal) {
+                throw new \InvalidArgumentException("Saldo kas insidental tidak mencukupi (Saldo: Rp " . number_format($saldoInsidental, 0, ',', '.') . ", Dibutuhkan: Rp " . number_format($totalNominal, 0, ',', '.') . ").");
+            }
+
             $alokasi = Alokasi::create([
                 'tipe_alokasi' => 'insidental',
                 'kelompok_id' => null,
