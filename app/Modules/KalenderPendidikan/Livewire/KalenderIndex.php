@@ -31,6 +31,8 @@ class KalenderIndex extends Component
     public ?int $agendaId = null;
 
     // Form fields
+    public $created_by = null;
+    public $koordinator = '';
     public $judul = '';
     public $deskripsi = '';
     public $tgl_mulai = '';
@@ -53,6 +55,8 @@ class KalenderIndex extends Component
     protected function rules(): array
     {
         return [
+            'created_by' => 'required|exists:users,id',
+            'koordinator' => 'nullable|string|max:255',
             'judul' => 'required|string|max:255',
             'tgl_mulai' => 'required|date',
             'tgl_selesai' => 'required|date|after_or_equal:tgl_mulai',
@@ -74,6 +78,7 @@ class KalenderIndex extends Component
         }
         $this->tgl_mulai = now()->toDateString();
         $this->tgl_selesai = now()->toDateString();
+        $this->created_by = Auth::id();
     }
 
     public function openCreateModal(?string $date = null): void
@@ -85,6 +90,8 @@ class KalenderIndex extends Component
         $targetDate = $date ?: now()->toDateString();
         $this->tgl_mulai = $targetDate;
         $this->tgl_selesai = $targetDate;
+        $this->created_by = Auth::id();
+        $this->koordinator = '';
         $this->judul = '';
         $this->deskripsi = '';
         $this->is_all_day = true;
@@ -123,6 +130,8 @@ class KalenderIndex extends Component
         $this->isEditing = true;
         $this->agendaId = $this->selectedAgenda->id;
 
+        $this->created_by = $this->selectedAgenda->created_by;
+        $this->koordinator = $this->selectedAgenda->koordinator ?? '';
         $this->judul = $this->selectedAgenda->judul;
         $this->deskripsi = $this->selectedAgenda->deskripsi;
         $this->tgl_mulai = $this->selectedAgenda->tgl_mulai->format('Y-m-d');
@@ -167,6 +176,8 @@ class KalenderIndex extends Component
 
             $data = [
                 'kategori_id' => $this->kategori_id,
+                'created_by' => $this->created_by ?: $agenda->created_by,
+                'koordinator' => $this->koordinator ?: null,
                 'judul' => $this->judul,
                 'deskripsi' => $this->deskripsi,
                 'tgl_mulai' => $this->tgl_mulai,
@@ -202,7 +213,8 @@ class KalenderIndex extends Component
                 'tahun_ajaran_id' => $activeTa?->id,
                 'semester_id' => $activeSm?->id,
                 'kategori_id' => $this->kategori_id,
-                'created_by' => $user->id,
+                'created_by' => $this->created_by ?: $user->id,
+                'koordinator' => $this->koordinator ?: null,
                 'judul' => $this->judul,
                 'deskripsi' => $this->deskripsi,
                 'tgl_mulai' => $this->tgl_mulai,
@@ -330,12 +342,25 @@ class KalenderIndex extends Component
             $agendaListQuery->where('audiens', $this->filterAudiens);
         }
 
+        $usersList = User::whereHas('roles', function ($q) {
+            $q->whereNotIn('name', ['Siswa', 'Orang Tua']);
+        })->orderBy('name')->get(['id', 'name']);
+
+        if ($usersList->isEmpty()) {
+            $usersList = User::orderBy('name')->take(50)->get(['id', 'name']);
+        }
+
+        if ($user && ! $usersList->contains('id', $user->id)) {
+            $usersList->prepend($user);
+        }
+
         $upcomingAgendas = $agendaListQuery->limit(25)->get();
         $this->eventsJson = json_encode($events);
 
         return view('kalenderpendidikan::livewire.kalender-index', [
             'eventsJson' => $this->eventsJson,
             'kategoris' => $kategoris,
+            'usersList' => $usersList,
             'canManageFlag' => $canManageFlag,
             'upcomingAgendas' => $upcomingAgendas,
         ]);

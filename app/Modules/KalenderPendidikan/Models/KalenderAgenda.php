@@ -32,6 +32,7 @@ class KalenderAgenda extends Model implements Auditable
         'is_all_day',
         'warna',
         'lokasi',
+        'koordinator',
         'audiens',
         'status',
         'is_final',

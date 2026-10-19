@@ -238,4 +238,34 @@ class KalenderPendidikanTest extends TestCase
         $response->assertSee('#FFF1F2', false);
         $response->assertSee('.dark .fc .fc-day-sat', false);
     }
+
+    public function test_create_agenda_defaults_pembuat_to_creator_and_saves_koordinator(): void
+    {
+        Livewire::actingAs($this->guru)
+            ->test(KalenderIndex::class)
+            ->call('openCreateModal')
+            ->assertSet('created_by', $this->guru->id)
+            ->assertSet('koordinator', '')
+            ->set('judul', 'Lomba Kebersihan Kelas')
+            ->set('kategori_id', $this->kategori->id)
+            ->set('koordinator', 'Waka Kesiswaan & OSIS')
+            ->set('tgl_mulai', '2026-11-10')
+            ->set('tgl_selesai', '2026-11-10')
+            ->set('status', 'internal')
+            ->set('audiens', 'semua')
+            ->set('recurrence_type', 'none')
+            ->call('saveAgenda');
+
+        $agenda = KalenderAgenda::where('judul', 'Lomba Kebersihan Kelas')->first();
+        $this->assertNotNull($agenda);
+        $this->assertEquals($this->guru->id, $agenda->created_by);
+        $this->assertEquals('Waka Kesiswaan & OSIS', $agenda->koordinator);
+
+        // Uji tampilan detail modal
+        Livewire::actingAs($this->guru)
+            ->test(KalenderIndex::class)
+            ->call('openDetailModal', $agenda->id)
+            ->assertSee('Waka Kesiswaan & OSIS')
+            ->assertSee($this->guru->name);
+    }
 }

@@ -144,7 +144,10 @@
                     @if($agenda->deskripsi)
                         <div style="font-size: 7.5pt; color: #555;">{{ $agenda->deskripsi }}</div>
                     @endif
-                    <div style="font-size: 7.5pt; color: #777;">Audiens: {{ ucfirst($agenda->audiens) }}</div>
+                    @if($agenda->koordinator)
+                        <div style="font-size: 7.5pt; color: #1e3a8a;"><strong>Pelaksana:</strong> {{ $agenda->koordinator }}</div>
+                    @endif
+                    <div style="font-size: 7.5pt; color: #777;">Pembuat: {{ $agenda->creator?->name ?? 'Sistem' }} | Audiens: {{ ucfirst($agenda->audiens) }}</div>
                 </td>
                 <td>
                     <span class="badge" style="background-color: {{ $agenda->display_warna }}">

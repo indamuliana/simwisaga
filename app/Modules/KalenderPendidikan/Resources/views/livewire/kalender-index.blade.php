@@ -172,6 +172,13 @@
                             {{ $item->judul }}
                         </h4>
 
+                        @if($item->koordinator)
+                        <div class="text-[10px] text-text-muted truncate mt-0.5 flex items-center gap-1">
+                            <span class="font-medium text-text-secondary">PJ:</span>
+                            <span class="truncate">{{ $item->koordinator }}</span>
+                        </div>
+                        @endif
+
                         <div class="flex items-center justify-between text-[10px] text-text-muted mt-1">
                             <span>{{ $item->tgl_mulai->translatedFormat('d M') }}{{ $item->tgl_mulai->format('Y-m-d') !== $item->tgl_selesai->format('Y-m-d') ? ' - '.$item->tgl_selesai->translatedFormat('d M') : '' }}</span>
                             <span class="truncate max-w-[95px]">{{ $item->lokasi ?: ($item->is_all_day ? 'Sepanjang Hari' : substr($item->jam_mulai,0,5)) }}</span>
@@ -208,6 +215,40 @@
                     <label class="block text-xs font-semibold text-text-muted mb-1">Nama / Judul Kegiatan <span class="text-rose-500">*</span></label>
                     <input type="text" wire:model="judul" placeholder="Contoh: Penilaian Tengah Semester (PTS) Gasal" class="input w-full @error('judul') border-rose-500 @enderror">
                     @error('judul') <span class="text-xs text-rose-500 mt-1 block">{{ $message }}</span> @enderror
+                </div>
+
+                {{-- Pembuat (Default Akun Login) & Pelaksana/Koordinator --}}
+                <div class="grid grid-cols-1 sm:grid-cols-2 gap-3">
+                    <div>
+                        <label class="block text-xs font-semibold text-text-muted mb-1">
+                            Pembuat Agenda <span class="text-rose-500">*</span>
+                        </label>
+                        <select wire:model="created_by" class="input w-full @error('created_by') border-rose-500 @enderror">
+                            @foreach($usersList as $u)
+                                <option value="{{ $u->id }}">
+                                    {{ $u->name }} {{ $u->id === auth()->id() ? '(Akun Anda)' : '' }}
+                                </option>
+                            @endforeach
+                        </select>
+                        <span class="text-[10px] text-text-muted mt-0.5 block">
+                            Default diisi otomatis oleh akun Anda
+                        </span>
+                        @error('created_by') <span class="text-xs text-rose-500 mt-1 block">{{ $message }}</span> @enderror
+                    </div>
+
+                    <div>
+                        <label class="block text-xs font-semibold text-text-muted mb-1">
+                            Pelaksana / Koordinator
+                        </label>
+                        <input type="text" 
+                               wire:model="koordinator" 
+                               placeholder="Contoh: Waka Kesiswaan / Budi Santoso, S.Pd" 
+                               class="input w-full @error('koordinator') border-rose-500 @enderror">
+                        <span class="text-[10px] text-text-muted mt-0.5 block">
+                            Dapat diisi manual nama atau jabatan
+                        </span>
+                        @error('koordinator') <span class="text-xs text-rose-500 mt-1 block">{{ $message }}</span> @enderror
+                    </div>
                 </div>
 
                 <div class="grid grid-cols-1 sm:grid-cols-2 gap-3">
@@ -399,14 +440,19 @@
                 </div>
                 @endif
 
-                <div class="pt-2 border-t border-border grid grid-cols-1 sm:grid-cols-2 gap-1 text-[11px] text-text-muted">
+                <div class="pt-2 border-t border-border grid grid-cols-1 sm:grid-cols-2 gap-2 text-[11px] text-text-muted">
                     <div>
-                        <span class="font-medium">Dibuat oleh:</span> {{ $selectedAgenda->creator?->name ?? 'Sistem' }}
+                        <span class="font-medium text-text-main">Pembuat (Akun):</span>
+                        <span class="text-text-secondary">{{ $selectedAgenda->creator?->name ?? 'Sistem' }}</span>
+                    </div>
+                    <div>
+                        <span class="font-medium text-text-main">Pelaksana / Koordinator:</span>
+                        <span class="text-text-secondary">{{ $selectedAgenda->koordinator ?: '-' }}</span>
                     </div>
                     @if($selectedAgenda->is_final && $selectedAgenda->validator)
-                    <div>
+                    <div class="sm:col-span-2">
                         <span class="font-medium text-emerald-600">Diverifikasi oleh:</span> {{ $selectedAgenda->validator->name }}
-                        <span class="block text-[10px]">{{ $selectedAgenda->finalized_at?->translatedFormat('d M Y H:i') }}</span>
+                        <span class="text-[10px]">({{ $selectedAgenda->finalized_at?->translatedFormat('d M Y H:i') }})</span>
                     </div>
                     @endif
                 </div>
