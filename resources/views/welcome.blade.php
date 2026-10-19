@@ -956,14 +956,14 @@
                 <div class="absolute inset-0 bg-slate-950/92 dark:bg-slate-950/96 backdrop-blur-[1px]"></div>
             </div>
 
-            <div class="max-w-5xl mx-auto px-4 sm:px-6 lg:px-8 text-center relative z-10" data-animate>
+            <div class="w-full max-w-[1680px] mx-auto px-4 sm:px-6 lg:px-10 xl:px-16 text-center relative z-10" data-animate>
                 <span class="google-tag bg-blue-950/80 text-blue-300 border-blue-700/60 shadow-lg">
                     <span class="w-1.5 h-1.5 rounded-full bg-blue-400"></span>
                     <span>{{ $cfg['welcome']['tag'] ?? 'Filosofi Pendidikan Wikrama' }}</span>
                 </span>
                 
                 <!-- Modern Sans & Monospace Combined Manifesto Quote -->
-                <div class="mt-8 p-6 sm:p-10 rounded-3xl bg-slate-900/95 border border-white/15 text-left sm:text-center max-w-4xl mx-auto shadow-2xl backdrop-blur-md">
+                <div class="mt-8 p-6 sm:p-10 rounded-3xl bg-slate-900/95 border border-white/15 text-left sm:text-center w-full max-w-5xl mx-auto shadow-2xl backdrop-blur-md">
                     <span class="font-mono-code text-xs font-bold uppercase tracking-wider text-blue-400 block mb-3">
                         [ MANIFESTO PENDIDIKAN WIKRAMA ]
                     </span>
@@ -979,7 +979,7 @@
                 </div>
 
                 <!-- 4 Core Educational Pillars -->
-                <div class="mt-14 grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-6 text-left">
+                <div class="mt-14 grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-4 sm:gap-6 text-left w-full">
                     @foreach($cfg['welcome']['pillars'] ?? [] as $idx => $pil)
                     <div class="p-6 rounded-3xl bg-slate-900/80 border border-white/10 hover:border-blue-500/50 transition-all duration-300 backdrop-blur-sm flex flex-col justify-between h-full group" data-animate data-animate-delay="{{ $idx + 1 }}">
                         <div>
@@ -1864,6 +1864,91 @@
             </div>
         </section>
 
+        <!-- ── 10.B Kalender Pendidikan & Agenda Kegiatan Terdekat ── -->
+        <section class="py-16 sm:py-20 bg-slate-50 dark:bg-[#060D1A] border-t border-slate-200/80 dark:border-slate-800" id="agenda-sekolah">
+            <div class="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
+                <div class="flex flex-col md:flex-row md:items-end justify-between mb-10 gap-4" data-animate>
+                    <div>
+                        <span class="google-tag">
+                            <span class="w-1.5 h-1.5 rounded-full bg-emerald-500"></span>
+                            <span>Agenda &amp; Kalender Pendidikan</span>
+                        </span>
+                        <h2 class="text-3xl sm:text-4xl font-bold tracking-tight text-slate-900 dark:text-white mt-4">
+                            Kegiatan Sekolah Terdekat
+                        </h2>
+                        <p class="mt-3 text-base text-slate-600 dark:text-slate-300 max-w-2xl">
+                            Jadwal asesmen, kegiatan kurikulum, agenda kesiswaan, dan hari libur resmi yang telah disahkan.
+                        </p>
+                    </div>
+                    @auth
+                    <a href="{{ route('kalender.index') }}" class="btn-google-outline text-xs sm:text-sm !py-2.5 !px-5 shrink-0">
+                        <span>Buka Kalender Penuh</span>
+                        <span class="group-hover-arrow">&rarr;</span>
+                    </a>
+                    @else
+                    <a href="{{ route('login') }}" class="btn-google-outline text-xs sm:text-sm !py-2.5 !px-5 shrink-0">
+                        <span>Masuk ke SIRAGA</span>
+                        <span class="group-hover-arrow">&rarr;</span>
+                    </a>
+                    @endauth
+                </div>
+
+                @php
+                    $upcomingAgendas = class_exists(\App\Modules\KalenderPendidikan\Models\KalenderAgenda::class)
+                        ? \App\Modules\KalenderPendidikan\Models\KalenderAgenda::with('kategori')
+                            ->where('status', 'publik')
+                            ->where('tgl_selesai', '>=', now()->toDateString())
+                            ->orderBy('tgl_mulai')
+                            ->limit(4)
+                            ->get()
+                        : collect();
+                @endphp
+
+                <div class="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-6">
+                    @forelse($upcomingAgendas as $idx => $agenda)
+                    <div class="google-card p-5 flex flex-col justify-between" data-animate data-animate-delay="{{ $idx + 1 }}">
+                        <div>
+                            <div class="flex items-center justify-between mb-3">
+                                <span class="px-2.5 py-1 rounded-full text-[10px] font-mono-code font-bold text-white shadow-xs" style="background-color: {{ $agenda->display_warna }}">
+                                    {{ $agenda->kategori?->nama ?? 'Kegiatan' }}
+                                </span>
+                                @if($agenda->is_final)
+                                    <span class="text-[10px] font-bold text-emerald-600 dark:text-emerald-400 bg-emerald-50 dark:bg-emerald-950/60 px-2 py-0.5 rounded border border-emerald-300 dark:border-emerald-800">
+                                        ✓ FINAL
+                                    </span>
+                                @endif
+                            </div>
+
+                            <div class="flex items-baseline gap-2 mb-2">
+                                <span class="text-2xl font-black text-slate-900 dark:text-white">{{ $agenda->tgl_mulai->format('d') }}</span>
+                                <span class="text-xs font-bold uppercase tracking-wider text-slate-500 dark:text-slate-400">{{ $agenda->tgl_mulai->translatedFormat('M Y') }}</span>
+                            </div>
+
+                            <h3 class="text-base font-bold text-slate-900 dark:text-white leading-snug line-clamp-2">
+                                {{ $agenda->judul }}
+                            </h3>
+
+                            @if($agenda->deskripsi)
+                            <p class="mt-2 text-xs text-slate-600 dark:text-slate-400 line-clamp-2">
+                                {{ $agenda->deskripsi }}
+                            </p>
+                            @endif
+                        </div>
+
+                        <div class="pt-4 mt-4 border-t border-slate-100 dark:border-slate-800 text-xs text-slate-500 dark:text-slate-400 flex items-center justify-between">
+                            <span>{{ $agenda->is_all_day ? 'Sepanjang Hari' : substr($agenda->jam_mulai,0,5).' WIB' }}</span>
+                            <span class="truncate max-w-[120px]">{{ $agenda->lokasi ?: 'Sekolah' }}</span>
+                        </div>
+                    </div>
+                    @empty
+                    <div class="col-span-full py-12 text-center text-slate-500 text-sm google-card">
+                        Belum ada agenda kegiatan publik terdekat yang dipublikasikan.
+                    </div>
+                    @endforelse
+                </div>
+            </div>
+        </section>
+
         <!-- ── 11. National Education Report Card (Rapor Mutu Kemendikdasmen RI) ── -->
         <section class="py-16 sm:py-24 bg-slate-50 dark:bg-[#060D1A]" id="rapor-mutu">
             <div class="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
@@ -1924,9 +2009,9 @@
 
         <!-- ── 12. Filosofi Pilar 1: Tiada Pendidikan Bermutu, Tanpa Pendidikan Karakter ── -->
         <section class="py-16 sm:py-24 bg-white dark:bg-[#071324] border-t border-slate-200/80 dark:border-slate-800" id="pilar-karakter">
-            <div class="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
+            <div class="w-full max-w-[1680px] mx-auto px-4 sm:px-6 lg:px-10 xl:px-16">
                 <div class="flex flex-col md:flex-row md:items-end md:justify-between gap-6 mb-12" data-animate>
-                    <div class="max-w-2xl">
+                    <div class="max-w-3xl">
                         <span class="google-tag">
                             <span class="w-1.5 h-1.5 rounded-full bg-blue-500"></span>
                             <span>{{ $cfg['pilar_karakter']['tag'] ?? 'Pilar Mutu & Karakter' }}</span>
@@ -2024,8 +2109,8 @@
 
         <!-- ── 14. Filosofi Pilar 3: Tiada Masyarakat Pembelajar Sekolah, Tanpa Pemimpin Perubahan Sekolah ── -->
         <section class="py-16 sm:py-24 bg-white dark:bg-[#071324] border-t border-slate-200/80 dark:border-slate-800" id="pilar-pemimpin">
-            <div class="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
-                <div class="text-center max-w-3xl mx-auto mb-12" data-animate>
+            <div class="w-full max-w-[1680px] mx-auto px-4 sm:px-6 lg:px-10 xl:px-16">
+                <div class="text-center max-w-4xl mx-auto mb-12" data-animate>
                     <span class="google-tag">
                         <span class="w-1.5 h-1.5 rounded-full bg-blue-500"></span>
                         <span>{{ $cfg['pilar_pemimpin']['tag'] ?? 'SMK Wikrama 1 Garut' }}</span>
@@ -2075,7 +2160,7 @@
 
         <!-- ── 15. Sekolah Teladan Nasional: Partner, Prestasi & Rekognisi Resmi ── -->
         <section class="py-16 sm:py-24 bg-slate-50 dark:bg-[#060D1A] border-t border-slate-200/80 dark:border-slate-800" id="sekolah-teladan">
-            <div class="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
+            <div class="w-full max-w-[1680px] mx-auto px-4 sm:px-6 lg:px-10 xl:px-16">
                 <div class="text-center max-w-3xl mx-auto mb-12" data-animate>
                     <span class="google-tag">
                         <span class="w-1.5 h-1.5 rounded-full bg-blue-500"></span>
