@@ -65,12 +65,9 @@
                 <label class="block font-medium text-text-main mb-1">Sumber Dana</label>
                 <select wire:model.live="filterSumberDana" class="w-full rounded-xl border border-border bg-bg text-text-main py-2 px-3">
                     <option value="">Semua Sumber Dana</option>
-                    <option value="BOS Reguler">BOS Reguler</option>
-                    <option value="BOS Kinerja">BOS Kinerja</option>
-                    <option value="BOPD">BOPD</option>
-                    <option value="Komite">Komite</option>
-                    <option value="Bantuan Pemerintah">Bantuan Pemerintah</option>
-                    <option value="Yayasan">Yayasan</option>
+                    @foreach($sumberDanas as $s)
+                        <option value="{{ $s->nama }}">{{ $s->nama }} ({{ $s->kode }})</option>
+                    @endforeach
                 </select>
             </div>
         </div>

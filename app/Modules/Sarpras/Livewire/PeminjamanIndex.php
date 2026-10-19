@@ -5,6 +5,7 @@ namespace App\Modules\Sarpras\Livewire;
 use App\Modules\Sarpras\Models\Aset;
 use App\Modules\Sarpras\Models\Peminjaman;
 use Illuminate\Support\Facades\Auth;
+use Illuminate\Support\Facades\DB;
 use Livewire\Attributes\Layout;
 use Livewire\Attributes\Title;
 use Livewire\Component;
@@ -68,31 +69,43 @@ class PeminjamanIndex extends Component
             'batas_kembali' => 'required|date|after_or_equal:tanggal_pinjam',
         ]);
 
-        $aset = Aset::findOrFail($this->aset_id);
-        if ($aset->status !== 'Tersedia') {
-            $this->addError('aset_id', 'Aset ini sedang tidak tersedia untuk dipinjam.');
-            return;
+        $sukses = false;
+        $nomorPeminjaman = '';
+        $namaBarang = '';
+
+        DB::transaction(function () use (&$sukses, &$nomorPeminjaman, &$namaBarang) {
+            $aset = Aset::lockForUpdate()->findOrFail($this->aset_id);
+            if ($aset->status !== 'Tersedia') {
+                $this->addError('aset_id', 'Aset ini sedang tidak tersedia untuk dipinjam.');
+                return;
+            }
+
+            $peminjaman = Peminjaman::create([
+                'nomor_peminjaman' => Peminjaman::generateNomor(),
+                'aset_id' => $aset->id,
+                'peminjam_nama' => $this->peminjam_nama,
+                'peminjam_tipe' => $this->peminjam_tipe,
+                'user_id' => Auth::id(),
+                'kontak_peminjam' => $this->kontak_peminjam,
+                'keperluan' => $this->keperluan,
+                'tanggal_pinjam' => $this->tanggal_pinjam,
+                'batas_kembali' => $this->batas_kembali,
+                'kondisi_awal' => $aset->kondisi,
+                'status' => 'Dipinjam',
+                'created_by' => Auth::id(),
+            ]);
+
+            $aset->update(['status' => 'Dipinjam']);
+
+            $nomorPeminjaman = $peminjaman->nomor_peminjaman;
+            $namaBarang = $aset->nama_barang;
+            $sukses = true;
+        });
+
+        if ($sukses) {
+            session()->flash('message', "Peminjaman aset {$namaBarang} berhasil dicatat ({$nomorPeminjaman}).");
+            $this->showCreateModal = false;
         }
-
-        $peminjaman = Peminjaman::create([
-            'nomor_peminjaman' => Peminjaman::generateNomor(),
-            'aset_id' => $aset->id,
-            'peminjam_nama' => $this->peminjam_nama,
-            'peminjam_tipe' => $this->peminjam_tipe,
-            'user_id' => Auth::id(),
-            'kontak_peminjam' => $this->kontak_peminjam,
-            'keperluan' => $this->keperluan,
-            'tanggal_pinjam' => $this->tanggal_pinjam,
-            'batas_kembali' => $this->batas_kembali,
-            'kondisi_awal' => $aset->kondisi,
-            'status' => 'Dipinjam',
-            'created_by' => Auth::id(),
-        ]);
-
-        $aset->update(['status' => 'Dipinjam']);
-
-        session()->flash('message', "Peminjaman aset {$aset->nama_barang} berhasil dicatat ({$peminjaman->nomor_peminjaman}).");
-        $this->showCreateModal = false;
     }
 
     public function openReturn(int $id)
@@ -106,6 +119,8 @@ class PeminjamanIndex extends Component
 
     public function processReturn()
     {
+        abort_unless(Auth::user()->can('sarpras.peminjaman.kembali'), 403);
+
         if (!$this->activePeminjaman) {
             return;
         }

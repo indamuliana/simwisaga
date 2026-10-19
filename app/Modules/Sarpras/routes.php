@@ -26,8 +26,8 @@ Route::prefix('sarpras')->group(function () {
     Route::get('/laporan', LaporanIndex::class)->name('sarpras.laporan')->middleware('permission:sarpras.laporan.lihat');
 
     // Cetak Dokumen & PDF
-    Route::get('/cetak/bast/{id?}', [CetakDokumenController::class, 'cetakBast'])->name('sarpras.cetak.bast');
-    Route::get('/cetak/pemusnahan/{id?}', [CetakDokumenController::class, 'cetakPemusnahan'])->name('sarpras.cetak.pemusnahan');
-    Route::get('/cetak/laporan-pdf', [CetakDokumenController::class, 'cetakLaporanPdf'])->name('sarpras.cetak.laporan-pdf');
-    Route::get('/cetak/label-qr', [CetakDokumenController::class, 'cetakLabelQr'])->name('sarpras.cetak.label-qr');
+    Route::get('/cetak/bast/{id?}', [CetakDokumenController::class, 'cetakBast'])->name('sarpras.cetak.bast')->middleware('permission:sarpras.aset.cetak');
+    Route::get('/cetak/pemusnahan/{id?}', [CetakDokumenController::class, 'cetakPemusnahan'])->name('sarpras.cetak.pemusnahan')->middleware('permission:sarpras.aset.cetak');
+    Route::get('/cetak/laporan-pdf', [CetakDokumenController::class, 'cetakLaporanPdf'])->name('sarpras.cetak.laporan-pdf')->middleware('permission:sarpras.laporan.cetak');
+    Route::get('/cetak/label-qr', [CetakDokumenController::class, 'cetakLabelQr'])->name('sarpras.cetak.label-qr')->middleware('permission:sarpras.aset.cetak');
 });

@@ -7,6 +7,7 @@ use App\Modules\Sarpras\Models\BhpMutasi;
 use App\Modules\Sarpras\Models\Kategori;
 use App\Modules\Sarpras\Models\Ruangan;
 use Illuminate\Support\Facades\Auth;
+use Illuminate\Support\Facades\DB;
 use Livewire\Attributes\Layout;
 use Livewire\Attributes\Title;
 use Livewire\Component;
@@ -154,33 +155,41 @@ class BhpIndex extends Component
             return;
         }
 
-        $b = Bhp::lockForUpdate()->findOrFail($this->mutasiBhp->id);
+        $sisaStok = 0;
+        $sukses = false;
 
-        if ($this->mutasiJenis === 'keluar' && $b->stok_saat_ini < $this->mutasiJumlah) {
-            $this->addError('mutasiJumlah', "Stok tidak mencukupi! Sisa stok saat ini hanya {$b->stok_saat_ini} {$b->satuan}.");
-            return;
+        DB::transaction(function () use (&$sisaStok, &$sukses) {
+            $b = Bhp::lockForUpdate()->findOrFail($this->mutasiBhp->id);
+
+            if ($this->mutasiJenis === 'keluar' && $b->stok_saat_ini < $this->mutasiJumlah) {
+                $this->addError('mutasiJumlah', "Stok tidak mencukupi! Sisa stok saat ini hanya {$b->stok_saat_ini} {$b->satuan}.");
+                return;
+            }
+
+            $sisaStok = $this->mutasiJenis === 'masuk'
+                ? ($b->stok_saat_ini + $this->mutasiJumlah)
+                : ($b->stok_saat_ini - $this->mutasiJumlah);
+
+            BhpMutasi::create([
+                'bhp_id' => $b->id,
+                'jenis' => $this->mutasiJenis,
+                'tanggal' => $this->mutasiTanggal,
+                'jumlah' => $this->mutasiJumlah,
+                'sisa_stok_setelahnya' => $sisaStok,
+                'ruangan_id' => $this->mutasiRuanganId,
+                'penerima' => $this->mutasiPenerima,
+                'keterangan' => $this->mutasiKeterangan,
+                'created_by' => Auth::id(),
+            ]);
+
+            $b->update(['stok_saat_ini' => $sisaStok]);
+            $sukses = true;
+        });
+
+        if ($sukses) {
+            session()->flash('message', "Mutasi {$this->mutasiJenis} berhasil dicatat. Saldo baru: {$sisaStok} {$this->mutasiBhp->satuan}.");
+            $this->showMutasiModal = false;
         }
-
-        $sisaStok = $this->mutasiJenis === 'masuk'
-            ? ($b->stok_saat_ini + $this->mutasiJumlah)
-            : ($b->stok_saat_ini - $this->mutasiJumlah);
-
-        BhpMutasi::create([
-            'bhp_id' => $b->id,
-            'jenis' => $this->mutasiJenis,
-            'tanggal' => $this->mutasiTanggal,
-            'jumlah' => $this->mutasiJumlah,
-            'sisa_stok_setelahnya' => $sisaStok,
-            'ruangan_id' => $this->mutasiRuanganId,
-            'penerima' => $this->mutasiPenerima,
-            'keterangan' => $this->mutasiKeterangan,
-            'created_by' => Auth::id(),
-        ]);
-
-        $b->update(['stok_saat_ini' => $sisaStok]);
-
-        session()->flash('message', "Mutasi {$this->mutasiJenis} berhasil dicatat. Saldo baru: {$sisaStok} {$b->satuan}.");
-        $this->showMutasiModal = false;
     }
 
     public function showHistory(int $id)

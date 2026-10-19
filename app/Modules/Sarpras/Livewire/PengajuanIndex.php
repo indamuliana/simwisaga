@@ -103,6 +103,7 @@ class PengajuanIndex extends Component
 
         switch ($this->actionType) {
             case 'review':
+                abort_unless(Auth::user()->can('sarpras.pengajuan.review'), 403);
                 $p->update([
                     'status' => 'Review Sarpras',
                     'catatan_sarpras' => $this->actionCatatan ?: 'Layak diproses ke Kepala Sekolah.',
@@ -111,6 +112,7 @@ class PengajuanIndex extends Component
                 break;
 
             case 'approve_kepsek':
+                abort_unless(Auth::user()->can('sarpras.pengajuan.approve'), 403);
                 $p->update([
                     'status' => 'Disetujui Kepsek',
                     'catatan_kepsek' => $this->actionCatatan ?: 'Disetujui untuk diproses anggarannya.',
@@ -120,6 +122,7 @@ class PengajuanIndex extends Component
                 break;
 
             case 'realisasi_bendahara':
+                abort_unless(Auth::user()->can('sarpras.pengajuan.realisasi'), 403);
                 $p->update([
                     'status' => 'Realisasi Bendahara',
                     'catatan_bendahara' => $this->actionCatatan ?: 'Anggaran telah dialokasikan / barang sedang dibeli.',
@@ -128,6 +131,7 @@ class PengajuanIndex extends Component
                 break;
 
             case 'selesai':
+                abort_unless(Auth::user()->can('sarpras.pengajuan.realisasi') || Auth::user()->can('sarpras.pengajuan.review'), 403);
                 $p->update([
                     'status' => 'Selesai',
                 ]);
@@ -135,6 +139,7 @@ class PengajuanIndex extends Component
                 break;
 
             case 'tolak':
+                abort_unless(Auth::user()->can('sarpras.pengajuan.review') || Auth::user()->can('sarpras.pengajuan.approve'), 403);
                 $p->update([
                     'status' => 'Ditolak',
                     'catatan_sarpras' => $p->status === 'Diajukan' ? ($this->actionCatatan ?: 'Ditolak oleh Sarpras.') : $p->catatan_sarpras,

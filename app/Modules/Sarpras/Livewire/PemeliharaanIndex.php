@@ -96,6 +96,8 @@ class PemeliharaanIndex extends Component
 
     public function processAction()
     {
+        abort_unless(Auth::user()->can('sarpras.pemeliharaan.proses'), 403);
+
         if (!$this->activeTicket) {
             return;
         }
@@ -158,7 +160,10 @@ class PemeliharaanIndex extends Component
         }
 
         $pemeliharaans = $query->latest()->paginate(10);
-        $allAsets = Aset::where('kondisi', '!=', 'Dimusnahkan')->orderBy('nama_barang')->get();
+        $allAsets = Aset::where('kondisi', '!=', 'Dimusnahkan')
+            ->orderBy('nama_barang')
+            ->select('id', 'kode_aset', 'nama_barang')
+            ->get();
 
         return view('sarpras::livewire.pemeliharaan-index', compact('pemeliharaans', 'allAsets'));
     }

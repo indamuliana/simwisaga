@@ -6,6 +6,7 @@ use App\Modules\Sarpras\Exports\AsetExport;
 use App\Modules\Sarpras\Models\Aset;
 use App\Modules\Sarpras\Models\Kategori;
 use App\Modules\Sarpras\Models\Ruangan;
+use App\Modules\Sarpras\Models\SumberDana;
 use Livewire\Attributes\Layout;
 use Livewire\Attributes\Title;
 use Livewire\Component;
@@ -55,6 +56,7 @@ class LaporanIndex extends Component
 
         $ruangans = Ruangan::where('is_active', true)->orderBy('nama_ruangan')->get();
         $kategoris = Kategori::asetTetap()->orderBy('nama')->get();
+        $sumberDanas = SumberDana::where('is_active', true)->orderBy('nama')->get();
 
         return view('sarpras::livewire.laporan-index', compact(
             'asets',
@@ -63,7 +65,8 @@ class LaporanIndex extends Component
             'kondisiBaik',
             'kondisiRusak',
             'ruangans',
-            'kategoris'
+            'kategoris',
+            'sumberDanas'
         ));
     }
 }

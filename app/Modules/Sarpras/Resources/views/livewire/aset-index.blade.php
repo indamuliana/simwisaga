@@ -24,6 +24,19 @@
         </div>
     @endif
 
+    {{-- Alert Error Message --}}
+    @if(session()->has('error'))
+        <div class="p-4 rounded-xl bg-rose-50 dark:bg-rose-900/30 border border-rose-200 dark:border-rose-800 text-rose-700 dark:text-rose-300 text-sm flex items-center justify-between">
+            <div class="flex items-center gap-2">
+                <svg class="w-5 h-5 text-rose-600 shrink-0" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                    <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 8v4m0 4h.01M21 12a9 9 0 11-18 0 9 9 0 0118 0z" />
+                </svg>
+                <span>{{ session('error') }}</span>
+            </div>
+            <button type="button" @click="$el.closest('div.p-4').remove()" class="text-rose-500 hover:text-rose-700 text-lg">&times;</button>
+        </div>
+    @endif
+
     {{-- Filter & Action Bar --}}
     <div class="bg-surface border border-border rounded-2xl p-4 shadow-xs space-y-4">
         <div class="flex flex-col md:flex-row gap-3 items-stretch md:items-center justify-between">

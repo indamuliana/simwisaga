@@ -241,6 +241,11 @@ class AsetIndex extends Component
     public function delete(int $id)
     {
         $aset = Aset::findOrFail($id);
+        if ($aset->status === 'Dipinjam') {
+            session()->flash('error', "Aset '{$aset->kode_aset}' ({$aset->nama_barang}) sedang dalam status Dipinjam dan tidak dapat dihapus.");
+            return;
+        }
+
         $kode = $aset->kode_aset;
         $aset->delete();
         session()->flash('message', "Aset {$kode} berhasil dihapus.");

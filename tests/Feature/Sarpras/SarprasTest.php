@@ -332,6 +332,45 @@ class SarprasTest extends TestCase
         $responseLabelQr = $this->get(route('sarpras.cetak.label-qr'));
         $responseLabelQr->assertStatus(200);
         $responseLabelQr->assertSee('Lembar Cetak Stiker Label QR Code Aset');
+
+        // Pengguna tanpa permission cetak harus ditolak (403 Forbidden)
+        $this->actingAs($this->guruUser);
+        $this->get(route('sarpras.cetak.bast'))->assertStatus(403);
+        $this->get(route('sarpras.cetak.laporan-pdf'))->assertStatus(403);
+    }
+
+    public function test_borrowed_asset_cannot_be_deleted(): void
+    {
+        $aset = Aset::firstOrFail();
+        $aset->update(['status' => 'Dipinjam']);
+
+        Livewire::actingAs($this->sarprasUser)
+            ->test(AsetIndex::class)
+            ->call('delete', $aset->id);
+
+        $this->assertDatabaseHas('sarpras_asets', ['id' => $aset->id]);
+    }
+
+    public function test_unauthorized_user_cannot_approve_procurement(): void
+    {
+        $kategori = Kategori::firstOrFail();
+        $pengajuan = Pengajuan::create([
+            'nomor_pengajuan' => Pengajuan::generateNomor(),
+            'user_id' => $this->guruUser->id,
+            'nama_barang' => 'Scanner Dokumen',
+            'kategori_id' => $kategori->id,
+            'jumlah' => 1,
+            'estimasi_harga_satuan' => 2000000,
+            'total_estimasi' => 2000000,
+            'urgensi' => 'Sedang',
+            'status' => 'Review Sarpras',
+        ]);
+
+        Livewire::actingAs($this->guruUser)
+            ->test(PengajuanIndex::class)
+            ->call('openAction', $pengajuan->id, 'approve_kepsek')
+            ->call('processAction')
+            ->assertStatus(403);
     }
 
     public function test_bulk_asset_creation_and_batch_qr_printing(): void
