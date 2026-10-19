@@ -20,12 +20,20 @@ class Pengguna extends Component
 {
     use GuardsPermission, WithPagination;
 
+    public string $activeTab = 'staff'; // 'staff', 'siswa', 'ortu', 'semua'
     public string $search = '';
     public string $roleFilter = '';
     public string $statusFilter = '';
     public string $linkedFilter = '';
     public bool $showModal = false;
     public ?int $userId = null;
+
+    public function setTab(string $tab): void
+    {
+        $this->activeTab = in_array($tab, ['staff', 'siswa', 'ortu', 'semua'], true) ? $tab : 'staff';
+        $this->roleFilter = '';
+        $this->resetPage();
+    }
 
     // Field Pengguna
     public string $name = '';
@@ -290,7 +298,45 @@ class Pengguna extends Component
 
     public function render()
     {
+        $countStaff = User::where(function ($q) {
+            $q->whereHas('pegawai')
+                ->orWhere(function ($sub) {
+                    $sub->whereDoesntHave('roles', fn ($r) => $r->whereIn('name', ['Siswa', 'Orang Tua']))
+                        ->where('username', 'not like', 'ortu_%');
+                });
+        })->count();
+
+        $countSiswa = User::where(function ($q) {
+            $q->whereHas('siswa')->orWhereHas('roles', fn ($r) => $r->where('name', 'Siswa'));
+        })->count();
+
+        $countOrtu = User::where(function ($q) {
+            $q->whereHas('roles', fn ($r) => $r->where('name', 'Orang Tua'))->orWhere('username', 'like', 'ortu_%');
+        })->count();
+
+        $countSemua = User::count();
+
         $query = User::with(['roles', 'pegawai', 'siswa.rombel'])
+            ->when($this->activeTab === 'staff', function ($q) {
+                $q->where(function ($sub) {
+                    $sub->whereHas('pegawai')
+                        ->orWhere(function ($inner) {
+                            $inner->whereDoesntHave('roles', fn ($r) => $r->whereIn('name', ['Siswa', 'Orang Tua']))
+                                ->where('username', 'not like', 'ortu_%');
+                        });
+                });
+            })
+            ->when($this->activeTab === 'siswa', function ($q) {
+                $q->where(function ($sub) {
+                    $sub->whereHas('siswa')->orWhereHas('roles', fn ($r) => $r->where('name', 'Siswa'));
+                });
+            })
+            ->when($this->activeTab === 'ortu', function ($q) {
+                $q->where(function ($sub) {
+                    $sub->whereHas('roles', fn ($r) => $r->where('name', 'Orang Tua'))
+                        ->orWhere('username', 'like', 'ortu_%');
+                });
+            })
             ->when($this->search, function ($q) {
                 $q->where(function ($sub) {
                     $sub->where('name', 'like', "%{$this->search}%")
@@ -316,7 +362,20 @@ class Pengguna extends Component
             ->orderBy('id', 'desc');
 
         $users = $query->paginate(15);
-        $roles = Role::orderBy('name')->get();
+
+        // Filter roles untuk dropdown filter sesuai tab yang aktif
+        $rolesQuery = Role::orderBy('name');
+        if ($this->activeTab === 'staff') {
+            $rolesQuery->whereNotIn('name', ['Siswa', 'Orang Tua']);
+        } elseif ($this->activeTab === 'siswa') {
+            $rolesQuery->where('name', 'Siswa');
+        } elseif ($this->activeTab === 'ortu') {
+            $rolesQuery->where('name', 'Orang Tua');
+        }
+        $filterRoles = $rolesQuery->get();
+
+        // Semua roles untuk modal penugasan role
+        $allRoles = Role::orderBy('name')->get();
 
         // Daftar Pegawai dan Siswa untuk dropdown penautan
         $availablePegawais = Pegawai::where(function ($q) {
@@ -341,9 +400,14 @@ class Pengguna extends Component
 
         return view('sistem::livewire.pengguna', [
             'users' => $users,
-            'roles' => $roles,
+            'roles' => $allRoles,
+            'filterRoles' => $filterRoles,
             'availablePegawais' => $availablePegawais,
             'availableSiswas' => $availableSiswas,
+            'countStaff' => $countStaff,
+            'countSiswa' => $countSiswa,
+            'countOrtu' => $countOrtu,
+            'countSemua' => $countSemua,
         ]);
     }
 }

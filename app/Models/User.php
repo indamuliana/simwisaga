@@ -93,6 +93,22 @@ class User extends Authenticatable implements Auditable
             ];
         }
 
+        if ($this->hasRole('Orang Tua') || str_starts_with($this->username, 'ortu_')) {
+            $nipd = str_starts_with($this->username, 'ortu_') ? substr($this->username, 5) : null;
+            $siswa = $nipd ? Siswa::with('rombel')->where('nipd', $nipd)->first() : null;
+            if ($siswa) {
+                return [
+                    'type' => 'ortu',
+                    'label' => 'Orang Tua',
+                    'name' => 'Wali dari ' . $siswa->nama,
+                    'identifier' => 'NIPD: ' . $siswa->nipd,
+                    'detail' => $siswa->rombel?->nama ?? 'Tanpa Rombel',
+                    'student_name' => $siswa->nama,
+                    'student_rombel' => $siswa->rombel?->nama ?? '-',
+                ];
+            }
+        }
+
         return null;
     }
 

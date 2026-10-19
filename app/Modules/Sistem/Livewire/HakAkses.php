@@ -23,6 +23,12 @@ class HakAkses extends Component
     public array $roleScopes = [];
     public string $search = '';
 
+    // Master Role State
+    public bool $showRoleModal = false;
+    public string $roleModalMode = 'manage'; // 'manage', 'create', 'edit'
+    public ?int $roleId = null;
+    public string $roleName = '';
+
     public const STANDARD_ACTIONS = ['lihat', 'tambah', 'edit', 'hapus', 'cetak'];
 
     public const AVAILABLE_SCOPES = [
@@ -145,9 +151,124 @@ class HakAkses extends Component
         session()->flash('status', "Hak akses untuk role '{$role->name}' berhasil diperbarui.");
     }
 
+    public function openCreateRole(): void
+    {
+        $this->guard('sistem.hakakses.edit');
+        $this->roleId = null;
+        $this->roleName = '';
+        $this->roleModalMode = 'create';
+        $this->showRoleModal = true;
+        $this->resetErrorBag();
+    }
+
+    public function openEditRole(int $id): void
+    {
+        $this->guard('sistem.hakakses.edit');
+        $role = Role::findOrFail($id);
+        if ($role->name === User::SUPER_ADMIN_ROLE) {
+            session()->flash('error', 'Role Super Admin dilindungi sistem dan tidak dapat diubah namanya.');
+            return;
+        }
+        $this->roleId = $role->id;
+        $this->roleName = $role->name;
+        $this->roleModalMode = 'edit';
+        $this->showRoleModal = true;
+        $this->resetErrorBag();
+    }
+
+    public function openManageRoles(): void
+    {
+        $this->guard('sistem.hakakses.edit');
+        $this->roleModalMode = 'manage';
+        $this->showRoleModal = true;
+    }
+
+    public function closeRoleModal(): void
+    {
+        $this->showRoleModal = false;
+        $this->roleId = null;
+        $this->roleName = '';
+        $this->resetErrorBag();
+    }
+
+    public function saveRole(): void
+    {
+        $this->guard('sistem.hakakses.edit');
+
+        $this->validate([
+            'roleName' => [
+                'required',
+                'string',
+                'max:50',
+                \Illuminate\Validation\Rule::unique('roles', 'name')->ignore($this->roleId),
+            ],
+        ], [], ['roleName' => 'nama role']);
+
+        $cleanName = trim($this->roleName);
+
+        if ($this->roleId) {
+            $role = Role::findOrFail($this->roleId);
+            if ($role->name === User::SUPER_ADMIN_ROLE) {
+                session()->flash('error', 'Role Super Admin tidak dapat diubah.');
+                return;
+            }
+            $oldName = $role->name;
+            $role->name = $cleanName;
+            $role->save();
+            $message = "Role '{$oldName}' berhasil diubah menjadi '{$cleanName}'.";
+        } else {
+            $role = Role::create(['name' => $cleanName, 'guard_name' => 'web']);
+            \Illuminate\Support\Facades\DB::table('role_scopes')->insertOrIgnore([
+                'role_id' => $role->id,
+                'scope' => 'semua',
+                'created_at' => now(),
+                'updated_at' => now(),
+            ]);
+            $message = "Role '{$cleanName}' berhasil dibuat. Silakan atur hak aksesnya.";
+        }
+
+        app(\Spatie\Permission\PermissionRegistrar::class)->forgetCachedPermissions();
+
+        $this->selectRole((string) $role->id);
+        $this->closeRoleModal();
+        session()->flash('status', $message);
+    }
+
+    public function deleteRole(int $id): void
+    {
+        $this->guard('sistem.hakakses.edit');
+        $role = Role::findOrFail($id);
+
+        if ($role->name === User::SUPER_ADMIN_ROLE) {
+            session()->flash('error', 'Role Super Admin dilindungi sistem dan tidak dapat dihapus.');
+            return;
+        }
+
+        $userCount = $role->users()->count();
+        if ($userCount > 0) {
+            session()->flash('error', "Role '{$role->name}' tidak dapat dihapus karena masih digunakan oleh {$userCount} pengguna.");
+            return;
+        }
+
+        $roleName = $role->name;
+        $role->delete();
+
+        app(\Spatie\Permission\PermissionRegistrar::class)->forgetCachedPermissions();
+
+        $firstRole = Role::where('name', '!=', User::SUPER_ADMIN_ROLE)->first();
+        if ($firstRole) {
+            $this->selectRole((string) $firstRole->id);
+        } else {
+            $this->selectedRoleId = null;
+            $this->rolePermissions = [];
+        }
+
+        session()->flash('status', "Role '{$roleName}' berhasil dihapus.");
+    }
+
     public function render()
     {
-        $roles = Role::where('name', '!=', User::SUPER_ADMIN_ROLE)->orderBy('id')->get();
+        $roles = Role::where('name', '!=', User::SUPER_ADMIN_ROLE)->withCount('users')->orderBy('id')->get();
         $selectedRole = $this->selectedRoleId ? Role::find($this->selectedRoleId) : null;
 
         $filteredMatrix = $this->matrix;

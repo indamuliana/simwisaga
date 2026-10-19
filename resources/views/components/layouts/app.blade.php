@@ -181,14 +181,58 @@
                     </span>
                 </button>
 
-                <div class="hidden text-right text-sm leading-tight sm:block">
-                    <p class="font-medium text-text-main">{{ auth()->user()->name }}</p>
-                    <p class="text-xs text-text-muted">{{ auth()->user()->getRoleNames()->join(', ') ?: 'Tanpa role' }}</p>
+                <!-- User Profile & Action Dropdown -->
+                <div x-data="{ profileOpen: false }" class="relative">
+                    <button type="button" 
+                            @click="profileOpen = !profileOpen"
+                            @click.outside="profileOpen = false"
+                            class="flex items-center gap-2.5 p-1 rounded-xl hover:bg-surface-hover transition-colors text-left focus:outline-hidden"
+                            aria-expanded="false">
+                        <div class="w-8 h-8 rounded-xl bg-primary-soft text-primary font-bold flex items-center justify-center text-xs shrink-0 border border-primary/20">
+                            {{ strtoupper(substr(auth()->user()->name, 0, 2)) }}
+                        </div>
+                        <div class="hidden text-left text-xs leading-tight sm:block max-w-[140px] truncate">
+                            <p class="font-bold text-text-main truncate">{{ auth()->user()->name }}</p>
+                            <p class="text-[10px] text-text-muted truncate">{{ auth()->user()->getRoleNames()->join(', ') ?: 'Tanpa role' }}</p>
+                        </div>
+                        <svg class="w-3.5 h-3.5 text-text-muted transition-transform duration-200" :class="{ 'rotate-180': profileOpen }" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M19 9l-7 7-7-7" />
+                        </svg>
+                    </button>
+
+                    <!-- Dropdown Menu -->
+                    <div x-show="profileOpen" 
+                         x-cloak
+                         x-transition:enter="transition ease-out duration-150"
+                         x-transition:enter-start="opacity-0 scale-95"
+                         x-transition:enter-end="opacity-100 scale-100"
+                         x-transition:leave="transition ease-in duration-100"
+                         x-transition:leave-start="opacity-100 scale-100"
+                         x-transition:leave-end="opacity-0 scale-95"
+                         class="absolute right-0 mt-2 w-52 rounded-2xl bg-surface border border-border shadow-xl py-1.5 z-30 divide-y divide-border">
+                        <div class="px-3.5 py-2.5">
+                            <p class="text-xs font-bold text-text-main truncate">{{ auth()->user()->name }}</p>
+                            <p class="text-[10px] text-text-muted truncate mt-0.5">{{ auth()->user()->username }} &bull; {{ auth()->user()->getRoleNames()->first() ?: 'User' }}</p>
+                        </div>
+                        <div class="py-1">
+                            <button type="button" 
+                                    @click="profileOpen = false; $dispatch('open-change-password-modal')"
+                                    class="w-full px-3.5 py-2 text-xs font-semibold text-text-main hover:bg-surface-hover transition-colors flex items-center gap-2">
+                                <span>🔑</span>
+                                <span>Ganti Password</span>
+                            </button>
+                        </div>
+                        <div class="py-1">
+                            <form method="POST" action="{{ route('logout') }}">
+                                @csrf
+                                <button type="submit" class="w-full px-3.5 py-2 text-xs font-semibold text-rose-600 dark:text-rose-400 hover:bg-rose-50 dark:hover:bg-rose-950/30 transition-colors flex items-center gap-2">
+                                    <span>🚪</span>
+                                    <span>Keluar dari Akun</span>
+                                </button>
+                            </form>
+                        </div>
+                    </div>
                 </div>
-                <form method="POST" action="{{ route('logout') }}">
-                    @csrf
-                    <button class="btn btn-secondary px-3 py-1.5 sm:px-4 sm:py-2 text-xs sm:text-sm">Keluar</button>
-                </form>
             </div>
         </header>
 
@@ -202,6 +246,7 @@
         </main>
     </div>
 
+    @livewire('core.auth.modal-change-password')
     @livewireScripts
     @stack('scripts')
 </body>

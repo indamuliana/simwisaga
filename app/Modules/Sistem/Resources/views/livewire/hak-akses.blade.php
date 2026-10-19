@@ -12,8 +12,20 @@
                 Atur izin akses fitur (Lihat, Tambah, Edit, Hapus, Cetak, dan Aksi Khusus) serta batasan scope data per role.
             </p>
         </div>
-        @if ($selectedRole)
-            <div class="flex items-center gap-2">
+        <div class="flex flex-wrap items-center gap-2">
+            <button type="button" 
+                    wire:click="openManageRoles" 
+                    class="px-4 py-2.5 rounded-xl border border-border bg-surface hover:bg-surface-hover text-text-main text-xs font-bold shadow-2xs transition-all flex items-center gap-1.5">
+                <span>⚙️</span>
+                <span>Kelola Master Role</span>
+            </button>
+            <button type="button" 
+                    wire:click="openCreateRole" 
+                    class="px-4 py-2.5 rounded-xl bg-primary-soft hover:bg-primary/20 text-primary border border-primary/30 text-xs font-bold transition-all flex items-center gap-1.5">
+                <span>➕</span>
+                <span>Buat Role Baru</span>
+            </button>
+            @if ($selectedRole)
                 <button wire:click="save" class="px-5 py-2.5 rounded-xl bg-primary hover:bg-primary-hover text-white text-xs font-bold shadow-xs transition-all flex items-center gap-2" wire:loading.attr="disabled">
                     <svg class="w-4 h-4" fill="none" viewBox="0 0 24 24" stroke="currentColor">
                         <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M5 13l4 4L19 7" />
@@ -21,8 +33,8 @@
                     <span wire:loading.remove wire:target="save">Simpan Perubahan</span>
                     <span wire:loading wire:target="save">Menyimpan...</span>
                 </button>
-            </div>
-        @endif
+            @endif
+        </div>
     </div>
 
     @if (session('status'))
@@ -31,22 +43,44 @@
             <span>{{ session('status') }}</span>
         </div>
     @endif
+    @if (session('error'))
+        <div class="rounded-xl border border-rose-200 bg-rose-50 dark:bg-rose-950/40 p-4 text-xs font-medium text-rose-800 dark:text-rose-300 flex items-center gap-2 shadow-xs">
+            <span>❌</span>
+            <span>{{ session('error') }}</span>
+        </div>
+    @endif
 
     <!-- Pemilih Role Tabs -->
     <div class="border-b border-border bg-surface p-2 rounded-2xl border shadow-xs">
-        <nav class="flex flex-wrap gap-1.5" aria-label="Tabs">
+        <nav class="flex flex-wrap items-center gap-1.5" aria-label="Tabs">
             @foreach ($roles as $role)
-                <button type="button"
-                    wire:click="selectRole('{{ $role->id }}')"
-                    class="whitespace-nowrap px-3.5 py-2 rounded-xl text-xs font-bold transition-all flex items-center gap-2 {{ $selectedRoleId == $role->id ? 'bg-primary text-white shadow-xs' : 'text-text-secondary hover:text-text-main hover:bg-surface-hover' }}">
-                    <span>{{ $role->name }}</span>
-                    @if($selectedRoleId == $role->id)
-                        <span class="px-1.5 py-0.2 rounded-full bg-white/20 text-white text-[10px]">
-                            {{ count($rolePermissions) }}
+                <div class="inline-flex items-center rounded-xl transition-all {{ $selectedRoleId == $role->id ? 'bg-primary text-white shadow-xs' : 'text-text-secondary hover:text-text-main hover:bg-surface-hover' }}">
+                    <button type="button"
+                        wire:click="selectRole('{{ $role->id }}')"
+                        class="whitespace-nowrap px-3 py-2 text-xs font-bold flex items-center gap-1.5 focus:outline-hidden">
+                        <span>{{ $role->name }}</span>
+                        <span class="px-1.5 py-0.2 rounded-full text-[10px] {{ $selectedRoleId == $role->id ? 'bg-white/20 text-white' : 'bg-surface-raised text-text-muted border border-border' }}" title="{{ $role->users_count }} pengguna aktif">
+                            {{ $role->users_count }} user
                         </span>
+                    </button>
+                    @if($selectedRoleId == $role->id && !in_array($role->name, ['Super Admin']))
+                        <button type="button" 
+                                wire:click="openEditRole({{ $role->id }})" 
+                                title="Ubah Nama Role"
+                                class="pr-2.5 pl-0.5 text-white/80 hover:text-white transition-colors">
+                            <svg class="w-3.5 h-3.5" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                                <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M15.232 5.232l3.536 3.536m-2.036-5.036a2.5 2.5 0 113.536 3.536L6.5 21.036H3v-3.572L16.732 3.732z" />
+                            </svg>
+                        </button>
                     @endif
-                </button>
+                </div>
             @endforeach
+            <button type="button"
+                    wire:click="openCreateRole"
+                    class="px-3 py-2 rounded-xl text-xs font-bold text-primary hover:bg-primary-soft border border-dashed border-primary/40 transition-colors flex items-center gap-1">
+                <span>➕</span>
+                <span>Tambah Role</span>
+            </button>
         </nav>
     </div>
 
@@ -218,6 +252,157 @@
                     <span wire:loading.remove wire:target="save">Simpan Perubahan</span>
                     <span wire:loading wire:target="save">Menyimpan...</span>
                 </button>
+            </div>
+        </div>
+    @endif
+
+    <!-- Modal Kelola Master Role -->
+    @if ($showRoleModal)
+        <div class="fixed inset-0 z-50 flex items-center justify-center p-4 bg-slate-950/70 backdrop-blur-xs"
+             x-data
+             @keydown.escape.window="$wire.closeRoleModal()">
+            <div class="relative w-full {{ $roleModalMode === 'manage' ? 'max-w-2xl' : 'max-w-md' }} bg-surface rounded-2xl border border-border shadow-2xl p-6 space-y-5"
+                 @click.outside="$wire.closeRoleModal()">
+                
+                <!-- Header Modal -->
+                <div class="flex items-center justify-between border-b border-border pb-3">
+                    <div class="flex items-center gap-2">
+                        <div class="w-8 h-8 rounded-xl bg-primary-soft text-primary flex items-center justify-center text-sm font-bold">
+                            {{ $roleModalMode === 'manage' ? '⚙️' : ($roleModalMode === 'edit' ? '✏️' : '➕') }}
+                        </div>
+                        <div>
+                            <h3 class="text-base font-bold text-text-main">
+                                {{ $roleModalMode === 'manage' ? 'Master Role Pengguna' : ($roleModalMode === 'edit' ? 'Ubah Nama Role' : 'Tambah Role Baru') }}
+                            </h3>
+                            <p class="text-[11px] text-text-muted">
+                                {{ $roleModalMode === 'manage' ? 'Daftar semua role dan jumlah pengguna aktif' : 'Tentukan nama peran untuk hak akses sistem' }}
+                            </p>
+                        </div>
+                    </div>
+                    <button type="button" 
+                            wire:click="closeRoleModal" 
+                            class="rounded-lg p-1.5 text-text-muted hover:text-text-main hover:bg-surface-raised transition-colors">
+                        <svg class="w-5 h-5" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M6 18L18 6M6 6l12 12" />
+                        </svg>
+                    </button>
+                </div>
+
+                <!-- Konten Modal: Manage List vs Form Create/Edit -->
+                @if ($roleModalMode === 'manage')
+                    <div class="space-y-4">
+                        <div class="flex items-center justify-between">
+                            <span class="text-xs text-text-muted">Total <strong>{{ count($roles) }}</strong> role terdaftar</span>
+                            <button type="button" 
+                                    wire:click="openCreateRole"
+                                    class="btn btn-primary px-3 py-1.5 text-xs font-bold flex items-center gap-1 shadow-2xs">
+                                <span>➕</span>
+                                <span>Tambah Role Baru</span>
+                            </button>
+                        </div>
+
+                        <div class="max-h-[55vh] overflow-y-auto rounded-xl border border-border">
+                            <table class="w-full divide-y divide-border text-xs">
+                                <thead class="bg-surface-hover/80 text-text-secondary text-[10px] uppercase font-bold sticky top-0">
+                                    <tr>
+                                        <th class="py-2.5 px-3 text-left">Nama Role</th>
+                                        <th class="py-2.5 px-3 text-center">Pengguna</th>
+                                        <th class="py-2.5 px-3 text-center">Tipe</th>
+                                        <th class="py-2.5 px-3 text-right">Aksi</th>
+                                    </tr>
+                                </thead>
+                                <tbody class="divide-y divide-border divide-dashed">
+                                    @foreach ($roles as $r)
+                                        <tr class="hover:bg-surface-hover/50 transition-colors">
+                                            <td class="py-2.5 px-3 font-semibold text-text-main">
+                                                <button type="button" 
+                                                        wire:click="selectRole('{{ $r->id }}'); closeRoleModal();" 
+                                                        class="hover:text-primary hover:underline text-left">
+                                                    {{ $r->name }}
+                                                </button>
+                                            </td>
+                                            <td class="py-2.5 px-3 text-center">
+                                                <span class="px-2 py-0.5 rounded-full text-[10px] font-bold {{ $r->users_count > 0 ? 'bg-primary-soft text-primary' : 'bg-surface-raised text-text-muted border border-border' }}">
+                                                    {{ $r->users_count }} akun
+                                                </span>
+                                            </td>
+                                            <td class="py-2.5 px-3 text-center">
+                                                @if (in_array($r->name, ['Super Admin', 'Guru', 'Operator', 'Siswa', 'Orang Tua']))
+                                                    <span class="text-[10px] font-medium text-text-muted">Sistem</span>
+                                                @else
+                                                    <span class="text-[10px] font-bold text-emerald-600 dark:text-emerald-400">Kustom</span>
+                                                @endif
+                                            </td>
+                                            <td class="py-2.5 px-3 text-right">
+                                                <div class="flex items-center justify-end gap-1.5">
+                                                    @if ($r->name !== 'Super Admin')
+                                                        <button type="button" 
+                                                                wire:click="openEditRole({{ $r->id }})" 
+                                                                class="p-1 rounded text-text-muted hover:text-primary hover:bg-surface-raised transition-colors" 
+                                                                title="Ubah Nama">
+                                                            <svg class="w-3.5 h-3.5" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                                                                <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M15.232 5.232l3.536 3.536m-2.036-5.036a2.5 2.5 0 113.536 3.536L6.5 21.036H3v-3.572L16.732 3.732z"/>
+                                                            </svg>
+                                                        </button>
+                                                        @if ($r->users_count === 0 && !in_array($r->name, ['Guru', 'Operator', 'Siswa', 'Orang Tua']))
+                                                            <button type="button" 
+                                                                    wire:click="deleteRole({{ $r->id }})" 
+                                                                    wire:confirm="Yakin ingin menghapus role '{{ $r->name }}'?"
+                                                                    class="p-1 rounded text-text-muted hover:text-rose-600 hover:bg-rose-50 dark:hover:bg-rose-950/30 transition-colors" 
+                                                                    title="Hapus Role">
+                                                                <svg class="w-3.5 h-3.5" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                                                                    <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M19 7l-.867 12.142A2 2 0 0116.138 21H7.862a2 2 0 01-1.995-1.858L5 7m5 4v6m4-6v6m1-10V4a1 1 0 00-1-1h-4a1 1 0 00-1 1v3M4 7h16"/>
+                                                                </svg>
+                                                            </button>
+                                                        @endif
+                                                    @endif
+                                                </div>
+                                            </td>
+                                        </tr>
+                                    @endforeach
+                                </tbody>
+                            </table>
+                        </div>
+                    </div>
+                @else
+                    <!-- Form Input Nama Role -->
+                    <form wire:submit="saveRole" class="space-y-4">
+                        <div>
+                            <label class="block text-xs font-semibold text-text-main mb-1">
+                                Nama Role <span class="text-rose-500">*</span>
+                            </label>
+                            <input type="text" 
+                                   wire:model="roleName" 
+                                   placeholder="Contoh: Instruktur Ekskul, Pembina OSIS, Pengawas..."
+                                   class="w-full text-xs rounded-xl border-border bg-surface text-text-main focus:ring-primary focus:border-primary">
+                            <p class="text-[10px] text-text-muted mt-1">Nama role unik yang akan digunakan untuk penugasan akun dan matriks perizinan.</p>
+                            @error('roleName')
+                                <p class="text-[11px] text-rose-500 mt-1 font-medium">{{ $message }}</p>
+                            @enderror
+                        </div>
+
+                        <div class="flex items-center justify-between pt-3 border-t border-border">
+                            <button type="button" 
+                                    wire:click="openManageRoles" 
+                                    class="text-xs text-text-muted hover:text-primary transition-colors flex items-center gap-1">
+                                &larr; Kembali ke Daftar Role
+                            </button>
+                            <div class="flex items-center gap-2">
+                                <button type="button" 
+                                        wire:click="closeRoleModal" 
+                                        class="btn btn-secondary px-4 py-2 text-xs font-semibold">
+                                    Batal
+                                </button>
+                                <button type="submit" 
+                                        class="btn btn-primary px-5 py-2 text-xs font-bold shadow-xs flex items-center gap-1.5"
+                                        wire:loading.attr="disabled">
+                                    <span wire:loading.remove wire:target="saveRole">Simpan Role</span>
+                                    <span wire:loading wire:target="saveRole">Menyimpan...</span>
+                                </button>
+                            </div>
+                        </div>
+                    </form>
+                @endif
             </div>
         </div>
     @endif
