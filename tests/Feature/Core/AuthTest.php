@@ -116,11 +116,12 @@ class AuthTest extends TestCase
         $this->assertFalse($biasa->can('apa.saja.lihat'));
     }
 
-    public function test_seeder_membuat_11_role_dan_super_admin(): void
+    public function test_seeder_membuat_roles_dan_super_admin(): void
     {
         $this->seed(RolesSeeder::class);
 
-        $this->assertDatabaseCount('roles', 12);
+        $this->assertDatabaseCount('roles', count(RolesSeeder::ROLES));
         $this->assertDatabaseHas('roles', ['name' => 'Koordinator Alumni']);
+        $this->assertDatabaseHas('roles', ['name' => 'Koordinator Sarpras']);
     }
 }

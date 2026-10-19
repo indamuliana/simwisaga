@@ -22,6 +22,7 @@ class RolesSeeder extends Seeder
         'Kurikulum',
         'Kesiswaan',
         'Koordinator Alumni',
+        'Koordinator Sarpras',
         User::SUPER_ADMIN_ROLE,
     ];
 
