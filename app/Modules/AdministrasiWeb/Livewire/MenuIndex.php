@@ -12,6 +12,7 @@ class MenuIndex extends Component
 
     public bool $showModal = false;
     public ?int $editingId = null;
+    public ?int $parent_id = null;
 
     public string $label = '';
     public string $url = '';
@@ -27,17 +28,27 @@ class MenuIndex extends Component
             'target' => 'required|in:_self,_blank',
             'urutan' => 'required|integer|min:0',
             'is_active' => 'boolean',
+            'parent_id' => 'nullable|exists:web_menus,id',
         ];
     }
 
-    public function openCreateModal(): void
+    public function openCreateModal(?int $parentId = null): void
     {
         $this->resetValidation();
         $this->editingId = null;
+        $this->parent_id = $parentId;
         $this->label = '';
         $this->url = '';
         $this->target = '_self';
-        $maxUrutan = WebMenu::where('lokasi', $this->activeTab)->max('urutan') ?? 0;
+
+        $query = WebMenu::where('lokasi', $this->activeTab);
+        if ($parentId) {
+            $query->where('parent_id', $parentId);
+        } else {
+            $query->whereNull('parent_id');
+        }
+        $maxUrutan = $query->max('urutan') ?? 0;
+
         $this->urutan = $maxUrutan + 1;
         $this->is_active = true;
         $this->showModal = true;
@@ -48,6 +59,7 @@ class MenuIndex extends Component
         $this->resetValidation();
         $menu = WebMenu::findOrFail($id);
         $this->editingId = $menu->id;
+        $this->parent_id = $menu->parent_id;
         $this->label = $menu->label;
         $this->url = $menu->url;
         $this->target = $menu->target;
@@ -62,8 +74,13 @@ class MenuIndex extends Component
 
         $validated = $this->validate();
         $validated['lokasi'] = $this->activeTab;
+        $validated['parent_id'] = $this->parent_id ?: null;
 
         if ($this->editingId) {
+            // Cegah cyclic parenting
+            if ($this->parent_id == $this->editingId) {
+                $validated['parent_id'] = null;
+            }
             $menu = WebMenu::findOrFail($this->editingId);
             $menu->update($validated);
             session()->flash('message', 'Menu navigasi berhasil diperbarui.');
@@ -89,6 +106,7 @@ class MenuIndex extends Component
 
         $menu = WebMenu::findOrFail($id);
         $previous = WebMenu::where('lokasi', $this->activeTab)
+            ->where('parent_id', $menu->parent_id)
             ->where('urutan', '<', $menu->urutan)
             ->orderBy('urutan', 'desc')
             ->first();
@@ -106,6 +124,7 @@ class MenuIndex extends Component
 
         $menu = WebMenu::findOrFail($id);
         $next = WebMenu::where('lokasi', $this->activeTab)
+            ->where('parent_id', $menu->parent_id)
             ->where('urutan', '>', $menu->urutan)
             ->orderBy('urutan', 'asc')
             ->first();
@@ -122,6 +141,8 @@ class MenuIndex extends Component
         abort_unless(auth()->user()->can('web.menu.edit'), 403, 'Anda tidak memiliki hak akses untuk menghapus menu navigasi.');
 
         $menu = WebMenu::findOrFail($id);
+        // Hapus juga sub-menu jika ada
+        WebMenu::where('parent_id', $id)->delete();
         $menu->delete();
         session()->flash('message', 'Menu berhasil dihapus.');
     }
@@ -129,12 +150,24 @@ class MenuIndex extends Component
     #[Layout('components.layouts.app')]
     public function render()
     {
+        if (WebMenu::count() === 0) {
+            WebMenu::seedDefaultMenus();
+        }
+
+        $parentMenus = WebMenu::where('lokasi', $this->activeTab)
+            ->whereNull('parent_id')
+            ->orderBy('urutan')
+            ->get();
+
         $menus = WebMenu::where('lokasi', $this->activeTab)
+            ->whereNull('parent_id')
+            ->with('allChildren')
             ->orderBy('urutan')
             ->get();
 
         return view('administrasiweb::livewire.menu-index', [
             'menus' => $menus,
+            'parentMenus' => $parentMenus,
         ]);
     }
 }

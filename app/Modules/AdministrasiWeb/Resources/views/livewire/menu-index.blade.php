@@ -11,7 +11,7 @@
             </p>
         </div>
 
-        <button type="button" wire:click="openCreateModal" class="btn-primary inline-flex items-center gap-2 self-start sm:self-auto px-4 py-2 text-sm rounded-xl">
+        <button type="button" wire:click="openCreateModal()" class="btn-primary inline-flex items-center gap-2 self-start sm:self-auto px-4 py-2 text-sm rounded-xl">
             <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 4v16m8-8H4"></path></svg>
             <span>Tambah Menu</span>
         </button>
@@ -52,7 +52,8 @@
                 </thead>
                 <tbody class="divide-y divide-slate-100 dark:divide-slate-800">
                     @forelse ($menus as $m)
-                    <tr class="hover:bg-slate-50/50 dark:hover:bg-slate-800/40 transition-colors">
+                    <!-- Baris Menu Utama (Parent) -->
+                    <tr class="hover:bg-slate-50/50 dark:hover:bg-slate-800/40 transition-colors bg-white dark:bg-slate-900 font-medium">
                         <td class="py-3 px-4 text-center">
                             <div class="inline-flex items-center gap-1">
                                 <button type="button" wire:click="moveUp({{ $m->id }})" title="Pindah ke atas" class="p-1 rounded hover:bg-slate-200 dark:hover:bg-slate-700 text-slate-500">
@@ -66,8 +67,15 @@
                                 </button>
                             </div>
                         </td>
-                        <td class="py-3 px-4 font-semibold text-slate-900 dark:text-white">
-                            {{ $m->label }}
+                        <td class="py-3 px-4 font-bold text-slate-900 dark:text-white">
+                            <div class="flex items-center gap-2">
+                                <span>{{ $m->label }}</span>
+                                @if($activeTab === 'header' && $m->allChildren->isNotEmpty())
+                                    <span class="text-[10px] font-mono px-2 py-0.5 rounded-full bg-blue-50 dark:bg-blue-950/60 text-blue-600 dark:text-blue-400 border border-blue-200 dark:border-blue-800">
+                                        Induk ({{ $m->allChildren->count() }} Sub-menu)
+                                    </span>
+                                @endif
+                            </div>
                         </td>
                         <td class="py-3 px-4 font-mono text-xs text-blue-600 dark:text-blue-400">
                             {{ $m->url }}
@@ -82,15 +90,72 @@
                                 {{ $m->is_active ? 'Aktif' : 'Nonaktif' }}
                             </button>
                         </td>
-                        <td class="py-3 px-4 text-right space-x-2">
+                        <td class="py-3 px-4 text-right space-x-1.5 whitespace-nowrap">
+                            @if($activeTab === 'header')
+                            <button type="button" wire:click="openCreateModal({{ $m->id }})" class="text-xs text-emerald-600 dark:text-emerald-400 font-bold hover:underline" title="Tambah Sub-menu di bawah {{ $m->label }}">
+                                + Sub
+                            </button>
+                            <span class="text-slate-300 dark:text-slate-700">|</span>
+                            @endif
                             <button type="button" wire:click="edit({{ $m->id }})" class="text-xs text-blue-600 dark:text-blue-400 font-bold hover:underline">
                                 Edit
                             </button>
-                            <button type="button" wire:click="delete({{ $m->id }})" wire:confirm="Hapus tautan menu ini?" class="text-xs text-rose-600 dark:text-rose-400 font-bold hover:underline">
+                            <button type="button" wire:click="delete({{ $m->id }})" wire:confirm="Hapus menu {{ $m->label }} beserta seluruh sub-menunya?" class="text-xs text-rose-600 dark:text-rose-400 font-bold hover:underline">
                                 Hapus
                             </button>
                         </td>
                     </tr>
+
+                    <!-- Baris Sub-menu (Anak) jika ada -->
+                    @if($activeTab === 'header' && $m->allChildren->isNotEmpty())
+                        @foreach($m->allChildren as $child)
+                        <tr class="hover:bg-slate-50/70 dark:hover:bg-slate-800/60 transition-colors bg-slate-50/40 dark:bg-slate-900/40 text-xs">
+                            <td class="py-2.5 px-4 text-center">
+                                <div class="inline-flex items-center gap-1 pl-4">
+                                    <button type="button" wire:click="moveUp({{ $child->id }})" title="Pindah ke atas" class="p-0.5 rounded hover:bg-slate-200 dark:hover:bg-slate-700 text-slate-400">
+                                        ▲
+                                    </button>
+                                    <span class="font-mono text-[11px] px-1.5 py-0.5 rounded bg-white dark:bg-slate-800 text-slate-600 dark:text-slate-400 border border-slate-200 dark:border-slate-700">
+                                        {{ $child->urutan }}
+                                    </span>
+                                    <button type="button" wire:click="moveDown({{ $child->id }})" title="Pindah ke bawah" class="p-0.5 rounded hover:bg-slate-200 dark:hover:bg-slate-700 text-slate-400">
+                                        ▼
+                                    </button>
+                                </div>
+                            </td>
+                            <td class="py-2.5 px-4">
+                                <div class="pl-6 flex items-center gap-2">
+                                    <span class="text-slate-400 font-mono text-sm">↳</span>
+                                    <span class="font-semibold text-slate-800 dark:text-slate-200">{{ $child->label }}</span>
+                                    <span class="text-[9px] font-mono px-1.5 py-0.5 rounded bg-slate-200/70 dark:bg-slate-800 text-slate-600 dark:text-slate-400">
+                                        Sub
+                                    </span>
+                                </div>
+                            </td>
+                            <td class="py-2.5 px-4 font-mono text-xs text-blue-500 dark:text-blue-400">
+                                {{ $child->url }}
+                            </td>
+                            <td class="py-2.5 px-4 text-center">
+                                <span class="text-[11px] px-2 py-0.5 rounded-full {{ $child->target === '_blank' ? 'bg-amber-50 dark:bg-amber-950/60 text-amber-700 dark:text-amber-400' : 'text-slate-500' }}">
+                                    {{ $child->target === '_blank' ? 'Tab Baru ↗' : 'Tab Sama' }}
+                                </span>
+                            </td>
+                            <td class="py-2.5 px-4 text-center">
+                                <button type="button" wire:click="toggleActive({{ $child->id }})" class="text-[11px] font-semibold px-2 py-0.5 rounded-full transition-colors {{ $child->is_active ? 'bg-emerald-100 dark:bg-emerald-950/80 text-emerald-800 dark:text-emerald-300' : 'bg-rose-100 dark:bg-rose-950/80 text-rose-800 dark:text-rose-300' }}">
+                                    {{ $child->is_active ? 'Aktif' : 'Nonaktif' }}
+                                </button>
+                            </td>
+                            <td class="py-2.5 px-4 text-right space-x-2 whitespace-nowrap">
+                                <button type="button" wire:click="edit({{ $child->id }})" class="text-xs text-blue-600 dark:text-blue-400 hover:underline">
+                                    Edit
+                                </button>
+                                <button type="button" wire:click="delete({{ $child->id }})" wire:confirm="Hapus sub-menu {{ $child->label }}?" class="text-xs text-rose-600 dark:text-rose-400 hover:underline">
+                                    Hapus
+                                </button>
+                            </td>
+                        </tr>
+                        @endforeach
+                    @endif
                     @empty
                     <tr>
                         <td colspan="6" class="py-8 text-center text-slate-500 dark:text-slate-400 text-sm">
@@ -115,6 +180,24 @@
             </div>
 
             <form wire:submit.prevent="save" class="space-y-4">
+                @if($activeTab === 'header')
+                <div>
+                    <label class="block text-xs font-semibold text-slate-700 dark:text-slate-300 mb-1">Induk Menu (Parent)</label>
+                    <select wire:model="parent_id" class="w-full px-3 py-2 rounded-xl border border-slate-300 dark:border-slate-700 bg-white dark:bg-slate-800 text-sm text-slate-900 dark:text-white focus:ring-2 focus:ring-blue-500 focus:outline-none">
+                        <option value="">-- Menu Utama (Root / Tanpa Induk) --</option>
+                        @foreach($parentMenus as $pm)
+                            @if(!$editingId || $editingId !== $pm->id)
+                                <option value="{{ $pm->id }}">{{ $pm->label }}</option>
+                            @endif
+                        @endforeach
+                    </select>
+                    <p class="text-[11px] text-slate-500 dark:text-slate-400 mt-1">
+                        Pilih menu induk jika menu ini merupakan sub-menu (dropdown) dari menu utama.
+                    </p>
+                    @error('parent_id') <span class="text-xs text-rose-600">{{ $message }}</span> @enderror
+                </div>
+                @endif
+
                 <div>
                     <label class="block text-xs font-semibold text-slate-700 dark:text-slate-300 mb-1">Label Menu *</label>
                     <input type="text" wire:model="label" placeholder="Contoh: Program Keahlian, Visi Misi..." class="w-full px-3 py-2 rounded-xl border border-slate-300 dark:border-slate-700 bg-white dark:bg-slate-800 text-sm text-slate-900 dark:text-white focus:ring-2 focus:ring-blue-500 focus:outline-none">

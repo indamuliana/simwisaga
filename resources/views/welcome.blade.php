@@ -135,6 +135,68 @@
             border-color: rgba(59, 130, 246, 0.4);
         }
 
+        /* ── Dinamika Siswa JIS Card System (Ukuran Presisi Identik 3 Pilar) ── */
+        .student-moment-card {
+            width: 286px !important;
+            min-width: 286px !important;
+            max-width: 286px !important;
+            height: 480px !important;
+            min-height: 480px !important;
+            max-height: 480px !important;
+            flex-shrink: 0 !important;
+        }
+
+        @media (max-width: 640px) {
+            .student-moment-card {
+                width: 280px !important;
+                min-width: 280px !important;
+                max-width: 280px !important;
+                height: 440px !important;
+                min-height: 440px !important;
+                max-height: 440px !important;
+            }
+        }
+
+        /* ── Full-Width Edge-to-Edge Dinamika Siswa Track Layout ── */
+        .dinamika-fullwidth-wrapper {
+            width: 100%;
+            position: relative;
+            z-index: 10;
+            padding-left: 1rem;
+            padding-right: 0;
+        }
+        @media (min-width: 640px) {
+            .dinamika-fullwidth-wrapper {
+                padding-left: 1.5rem;
+            }
+        }
+        @media (min-width: 1024px) {
+            .dinamika-fullwidth-wrapper {
+                padding-left: 2rem;
+            }
+        }
+        @media (min-width: 1280px) {
+            .dinamika-fullwidth-wrapper {
+                /* Presisi sejajar dengan sisi kiri kontainer max-w-7xl */
+                padding-left: max(2rem, calc((100vw - 80rem) / 2 + 2rem));
+            }
+        }
+
+        .dinamika-cards-track {
+            padding-right: 1.5rem;
+        }
+        @media (min-width: 640px) {
+            .dinamika-cards-track {
+                padding-right: 2rem;
+            }
+        }
+        @media (min-width: 1280px) {
+            .dinamika-cards-track {
+                /* Padding akhir saat di-scroll mentok ke ujung kanan */
+                padding-right: max(2rem, calc((100vw - 80rem) / 2 + 2rem));
+            }
+        }
+
         /* Inner media radius follows concentric rule: R_inner = R_outer - padding */
         .google-card-inner {
             border-radius: 16px;
@@ -630,7 +692,7 @@
 
     <!-- ── Tier 2: Main Header Navigation ── -->
     <header class="sticky top-0 z-40 bg-white/95 dark:bg-[#071324]/95 backdrop-blur-md border-b border-slate-200/80 dark:border-slate-800 transition-all duration-300">
-        <div class="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 h-16 sm:h-20 flex items-center justify-between gap-2.5 sm:gap-4">
+        <div class="w-full max-w-[1680px] mx-auto px-4 sm:px-6 lg:px-10 xl:px-16 h-16 sm:h-20 flex items-center justify-between gap-2.5 sm:gap-4">
             
             <!-- School Brand Crest -->
             <a href="#beranda" class="flex items-center space-x-2 sm:space-x-3.5 group shrink-0 min-w-0">
@@ -648,25 +710,80 @@
                 </div>
             </a>
 
-            <!-- Desktop Navigation Menu (Streamlined Institutional Categories) -->
-            <nav class="hidden lg:flex items-center space-x-3 xl:space-x-5 text-xs xl:text-sm font-semibold text-slate-700 dark:text-slate-200">
+            <!-- Desktop Navigation Menu (Dynamic Database Menus & Alpine.js Dropdowns) -->
+            <nav class="hidden lg:flex items-center space-x-1 xl:space-x-2 text-xs xl:text-sm font-semibold text-slate-700 dark:text-slate-200"
+                 x-data="{ activeDropdown: null }"
+                 @click.outside="activeDropdown = null">
                 @if($headerMenus->isNotEmpty())
                     @foreach($headerMenus as $m)
-                        <a href="{{ $m->url }}" target="{{ $m->target }}" class="hover:text-blue-600 py-1 transition-colors">{{ $m->label }}</a>
+                        @if($m->children->isNotEmpty())
+                            <!-- Dropdown Menu: {{ $m->label }} -->
+                            <div class="relative" @mouseenter="activeDropdown = 'menu-{{ $m->id }}'" @mouseleave="activeDropdown = null">
+                                <button type="button" 
+                                        @click="activeDropdown = (activeDropdown === 'menu-{{ $m->id }}' ? null : 'menu-{{ $m->id }}')"
+                                        class="px-2.5 py-1.5 rounded-lg hover:text-blue-600 hover:bg-slate-100/60 dark:hover:bg-slate-800/60 transition-colors inline-flex items-center gap-1 cursor-pointer"
+                                        :class="activeDropdown === 'menu-{{ $m->id }}' ? 'text-blue-600 bg-slate-100/80 dark:bg-slate-800/80' : ''">
+                                    <span>{{ $m->label }}</span>
+                                    <svg class="w-3.5 h-3.5 transition-transform duration-200" :class="activeDropdown === 'menu-{{ $m->id }}' ? 'rotate-180 text-blue-600' : 'text-slate-400'" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                                        <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M19 9l-7 7-7-7" />
+                                    </svg>
+                                </button>
+                                <div x-show="activeDropdown === 'menu-{{ $m->id }}'" 
+                                     x-cloak
+                                     x-transition:enter="transition ease-out duration-150"
+                                     x-transition:enter-start="opacity-0 translate-y-1 scale-95"
+                                     x-transition:enter-end="opacity-100 translate-y-0 scale-100"
+                                     x-transition:leave="transition ease-in duration-100"
+                                     x-transition:leave-start="opacity-100 translate-y-0 scale-100"
+                                     x-transition:leave-end="opacity-0 translate-y-1 scale-95"
+                                     class="absolute left-0 mt-1 min-w-[200px] w-auto max-w-xs rounded-2xl bg-white dark:bg-slate-900 shadow-xl border border-slate-200/80 dark:border-slate-800 p-2 z-50">
+                                    @foreach($m->children as $child)
+                                        <a href="{{ $child->url }}" 
+                                           target="{{ $child->target }}" 
+                                           @click="activeDropdown = null" 
+                                           class="block px-3 py-2 rounded-xl text-xs font-semibold text-slate-800 dark:text-slate-100 hover:bg-slate-100 dark:hover:bg-slate-800 hover:text-blue-600 dark:hover:text-blue-400 transition-colors">
+                                            {{ $child->label }}
+                                        </a>
+                                    @endforeach
+                                </div>
+                            </div>
+                        @else
+                            <a href="{{ $m->url }}" target="{{ $m->target }}" class="px-2.5 py-1.5 rounded-lg hover:text-blue-600 hover:bg-slate-100/60 dark:hover:bg-slate-800/60 transition-colors">
+                                {{ $m->label }}
+                            </a>
+                        @endif
                     @endforeach
                 @else
-                    <a href="#beranda" class="hover:text-blue-600 py-1 transition-colors">Beranda</a>
-                    <a href="#filosofi" class="hover:text-blue-600 py-1 transition-colors">Profil</a>
-                    <a href="#jurusan" class="hover:text-blue-600 py-1 transition-colors">4 Jurusan</a>
-                    <a href="#dinamika-siswa" class="hover:text-blue-600 py-1 transition-colors">Dinamika Siswa</a>
-                    <a href="#fasilitas" class="hover:text-blue-600 py-1 transition-colors">Fasilitas</a>
-                    <a href="#berita" class="hover:text-blue-600 py-1 transition-colors">Berita</a>
-                    <a href="#kontak" class="hover:text-blue-600 py-1 transition-colors">Kontak</a>
+                    <a href="#beranda" class="px-2.5 py-1.5 rounded-lg hover:text-blue-600 hover:bg-slate-100/60 dark:hover:bg-slate-800/60 transition-colors">Beranda</a>
+                    <a href="#filosofi" class="px-2.5 py-1.5 rounded-lg hover:text-blue-600 hover:bg-slate-100/60 dark:hover:bg-slate-800/60 transition-colors">Profil</a>
+                    <a href="#jurusan" class="px-2.5 py-1.5 rounded-lg hover:text-blue-600 hover:bg-slate-100/60 dark:hover:bg-slate-800/60 transition-colors">Jurusan</a>
+                    <a href="#dinamika-siswa" class="px-2.5 py-1.5 rounded-lg hover:text-blue-600 hover:bg-slate-100/60 dark:hover:bg-slate-800/60 transition-colors">Kesiswaan</a>
+                    <a href="#agenda" class="px-2.5 py-1.5 rounded-lg hover:text-blue-600 hover:bg-slate-100/60 dark:hover:bg-slate-800/60 transition-colors">Informasi</a>
+                    <a href="#kontak" class="px-2.5 py-1.5 rounded-lg hover:text-blue-600 hover:bg-slate-100/60 dark:hover:bg-slate-800/60 transition-colors">Kontak</a>
                 @endif
             </nav>
 
-            <!-- Actions: SPMB & Mobile Menu Toggle -->
+            <!-- Actions: Auth Button, SPMB & Mobile Menu Toggle -->
             <div class="flex items-center space-x-2 sm:space-x-3 shrink-0">
+                @auth
+                    <a href="{{ route('dashboard') }}" 
+                       class="btn-google-primary text-xs sm:text-sm !py-1.5 !px-3 sm:!py-2.5 sm:!px-4 inline-flex items-center gap-1.5 shadow-xs group"
+                       title="Akses Sistem Informasi SIRAGA">
+                        <svg class="w-4 h-4 text-white shrink-0" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M4 5a1 1 0 011-1h14a1 1 0 011 1v2a1 1 0 01-1 1H5a1 1 0 01-1-1V5zM4 13a1 1 0 011-1h6a1 1 0 011 1v6a1 1 0 01-1 1H5a1 1 0 01-1-1v-6zM16 13a1 1 0 011-1h4a1 1 0 011 1v6a1 1 0 01-1 1h-4a1 1 0 01-1-1v-6z" />
+                        </svg>
+                        <span class="font-bold">Dashboard</span>
+                    </a>
+                @else
+                    <a href="{{ route('login') }}" 
+                       class="btn-google-outline text-xs sm:text-sm !py-1.5 !px-3 sm:!py-2.5 sm:!px-4 inline-flex items-center gap-1.5 shadow-xs">
+                        <svg class="w-3.5 h-3.5 text-slate-500 dark:text-slate-400 shrink-0" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M11 16l-4-4m0 0l4-4m-4 4h14m-5 4v1a3 3 0 01-3 3H6a3 3 0 01-3-3V7a3 3 0 013-3h7a3 3 0 013 3v1" />
+                        </svg>
+                        <span>Masuk</span>
+                    </a>
+                @endauth
+
                 <a href="{{ $cfg['branding']['spmb_url'] ?? 'https://spmb.smkwikrama1garut.sch.id/' }}" 
                    target="_blank" 
                    rel="noopener" 
@@ -707,25 +824,85 @@
              x-transition:leave-start="opacity-100 translate-y-0"
              x-transition:leave-end="opacity-0 -translate-y-4"
              class="lg:hidden absolute top-full inset-x-0 bg-white dark:bg-slate-900 border-b border-slate-200 dark:border-slate-800 z-40 p-5 shadow-2xl max-h-[calc(100vh-5rem)] overflow-y-auto">
-            <div class="flex flex-col space-y-2 text-sm font-semibold text-slate-800 dark:text-slate-100">
-                @if($headerMenus->isNotEmpty())
-                    @foreach($headerMenus as $m)
-                        <a href="{{ $m->url }}" target="{{ $m->target }}" @click="mobileMenu = false" class="p-2 rounded-lg hover:bg-slate-50 dark:hover:bg-slate-800">{{ $m->label }}</a>
-                    @endforeach
+            <div class="flex flex-col space-y-3 text-sm font-semibold text-slate-800 dark:text-slate-100">
+                @auth
+                    <div class="p-3 rounded-xl bg-blue-50/80 dark:bg-blue-950/40 border border-blue-200/80 dark:border-blue-900/60 flex items-center justify-between">
+                        <div class="min-w-0 pr-2">
+                            <span class="text-[10px] font-mono-code font-bold uppercase tracking-wider text-blue-600 dark:text-blue-400 block">Sesi Login Aktif</span>
+                            <span class="text-xs font-bold text-slate-900 dark:text-white truncate block">{{ auth()->user()->name }}</span>
+                            <span class="text-[10px] text-slate-500 dark:text-slate-400 capitalize block">{{ auth()->user()->role ?? 'Pengguna' }}</span>
+                        </div>
+                        <a href="{{ route('dashboard') }}" class="btn-google-primary text-xs !py-1.5 !px-3 shrink-0 inline-flex items-center gap-1">
+                            <span>Dashboard</span>
+                            <span>&rarr;</span>
+                        </a>
+                    </div>
                 @else
-                    <div class="pb-1 text-[11px] font-mono-code font-bold uppercase tracking-wider text-slate-400">Jelajahi Portal</div>
-                    <div class="grid grid-cols-2 gap-1.5">
-                        <a href="#beranda" @click="mobileMenu = false" class="p-2 rounded-lg hover:bg-slate-50 dark:hover:bg-slate-800">Beranda Utama</a>
-                        <a href="#filosofi" @click="mobileMenu = false" class="p-2 rounded-lg hover:bg-slate-50 dark:hover:bg-slate-800">Tentang Kami</a>
-                        <a href="#jurusan" @click="mobileMenu = false" class="p-2 rounded-lg hover:bg-slate-50 dark:hover:bg-slate-800">4 Jurusan Unggulan</a>
-                        <a href="#dinamika-siswa" @click="mobileMenu = false" class="p-2 rounded-lg hover:bg-slate-50 dark:hover:bg-slate-800">Dinamika Siswa</a>
-                        <a href="#fasilitas" @click="mobileMenu = false" class="p-2 rounded-lg hover:bg-slate-50 dark:hover:bg-slate-800">Fasilitas &amp; Lab</a>
-                        <a href="#berita" @click="mobileMenu = false" class="p-2 rounded-lg hover:bg-slate-50 dark:hover:bg-slate-800">Berita &amp; Prestasi</a>
-                        <a href="#suara-komunitas" @click="mobileMenu = false" class="p-2 rounded-lg hover:bg-slate-50 dark:hover:bg-slate-800">Testimoni</a>
-                        <a href="#kontak" @click="mobileMenu = false" class="p-2 rounded-lg hover:bg-slate-50 dark:hover:bg-slate-800">Kontak Kami</a>
+                    <div class="pb-1">
+                        <a href="{{ route('login') }}" class="btn-google-outline w-full text-center text-xs py-2.5 flex items-center justify-center gap-1.5">
+                            <svg class="w-4 h-4 text-slate-500" fill="none" viewBox="0 0 24 24" stroke="currentColor"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M11 16l-4-4m0 0l4-4m-4 4h14m-5 4v1a3 3 0 01-3 3H6a3 3 0 01-3-3V7a3 3 0 013-3h7a3 3 0 013 3v1" /></svg>
+                            <span>Masuk ke Portal SIRAGA</span>
+                        </a>
+                    </div>
+                @endauth
+
+                @if($headerMenus->isNotEmpty())
+                    <div class="space-y-3">
+                        @foreach($headerMenus as $m)
+                            @if($m->children->isNotEmpty())
+                                <div>
+                                    <span class="text-[10px] font-mono-code font-bold uppercase tracking-wider text-slate-400 dark:text-slate-500 block px-2 pb-1">
+                                        {{ $m->label }}
+                                    </span>
+                                    <div class="grid grid-cols-2 gap-1.5">
+                                        @foreach($m->children as $child)
+                                            <a href="{{ $child->url }}" 
+                                               target="{{ $child->target }}" 
+                                               @click="mobileMenu = false" 
+                                               class="p-2 rounded-lg hover:bg-slate-50 dark:hover:bg-slate-800 text-xs font-semibold text-slate-800 dark:text-slate-200">
+                                                {{ $child->label }}
+                                            </a>
+                                        @endforeach
+                                    </div>
+                                </div>
+                            @else
+                                <a href="{{ $m->url }}" 
+                                   target="{{ $m->target }}" 
+                                   @click="mobileMenu = false" 
+                                   class="p-2 rounded-lg hover:bg-slate-50 dark:hover:bg-slate-800 text-xs font-bold text-slate-800 dark:text-slate-100 block">
+                                    {{ $m->label }}
+                                </a>
+                            @endif
+                        @endforeach
+                    </div>
+                @else
+                    <div class="space-y-3">
+                        <div>
+                            <span class="text-[10px] font-mono-code font-bold uppercase tracking-wider text-slate-400 dark:text-slate-500 block px-2 pb-1">Profil &amp; Keunggulan</span>
+                            <div class="grid grid-cols-2 gap-1.5">
+                                <a href="#beranda" @click="mobileMenu = false" class="p-2 rounded-lg hover:bg-slate-50 dark:hover:bg-slate-800 text-xs">Beranda</a>
+                                <a href="#filosofi" @click="mobileMenu = false" class="p-2 rounded-lg hover:bg-slate-50 dark:hover:bg-slate-800 text-xs">Filosofi &amp; Karakter</a>
+                                <a href="#mengenal" @click="mobileMenu = false" class="p-2 rounded-lg hover:bg-slate-50 dark:hover:bg-slate-800 text-xs">Mengenal Wikrama</a>
+                                <a href="#rapor-mutu" @click="mobileMenu = false" class="p-2 rounded-lg hover:bg-slate-50 dark:hover:bg-slate-800 text-xs">Rapor Mutu Kemdikbud</a>
+                                <a href="#sekolah-teladan" @click="mobileMenu = false" class="p-2 rounded-lg hover:bg-slate-50 dark:hover:bg-slate-800 text-xs">Sekolah Teladan</a>
+                            </div>
+                        </div>
+
+                        <div>
+                            <span class="text-[10px] font-mono-code font-bold uppercase tracking-wider text-slate-400 dark:text-slate-500 block px-2 pb-1">Akademik &amp; Kesiswaan</span>
+                            <div class="grid grid-cols-2 gap-1.5">
+                                <a href="#jurusan" @click="mobileMenu = false" class="p-2 rounded-lg hover:bg-slate-50 dark:hover:bg-slate-800 text-xs">4 Jurusan Kejuruan</a>
+                                <a href="#agenda" @click="mobileMenu = false" class="p-2 rounded-lg hover:bg-slate-50 dark:hover:bg-slate-800 text-xs text-blue-600 dark:text-blue-400 font-bold">Agenda Kegiatan</a>
+                                <a href="#dinamika-siswa" @click="mobileMenu = false" class="p-2 rounded-lg hover:bg-slate-50 dark:hover:bg-slate-800 text-xs">Dinamika Siswa</a>
+                                <a href="#fasilitas" @click="mobileMenu = false" class="p-2 rounded-lg hover:bg-slate-50 dark:hover:bg-slate-800 text-xs">Fasilitas Lab</a>
+                                <a href="#berita" @click="mobileMenu = false" class="p-2 rounded-lg hover:bg-slate-50 dark:hover:bg-slate-800 text-xs">Berita &amp; Prestasi</a>
+                                <a href="#suara-komunitas" @click="mobileMenu = false" class="p-2 rounded-lg hover:bg-slate-50 dark:hover:bg-slate-800 text-xs">Testimoni Komunitas</a>
+                                <a href="#kontak" @click="mobileMenu = false" class="p-2 rounded-lg hover:bg-slate-50 dark:hover:bg-slate-800 text-xs">Kontak &amp; Lokasi</a>
+                            </div>
+                        </div>
                     </div>
                 @endif
-                <div class="pt-4 mt-2 border-t border-slate-200 dark:border-slate-800 flex flex-col gap-2">
+                <div class="pt-3 mt-2 border-t border-slate-200 dark:border-slate-800 flex flex-col gap-2">
                     <a href="{{ $cfg['branding']['spmb_url'] ?? 'https://spmb.smkwikrama1garut.sch.id/' }}" target="_blank" rel="noopener" class="btn-google-gold text-center text-xs py-3 shadow-sm">
                         Daftar SPMB Online Sekarang &rarr;
                     </a>
@@ -1323,12 +1500,73 @@
             </div>
         </section>
 
-        <!-- ── 6.5. "Dinamika Kehidupan & Prestasi Siswa" (Student Life & Moments) ── -->
-        <section class="py-12 sm:py-20 lg:py-24 bg-slate-900 text-white relative overflow-hidden" id="dinamika-siswa" x-data="{ studentTab: 'all' }">
-            <!-- Background Texture with Student Photo Accent -->
+        <!-- ── 6.5. "Dinamika Kehidupan & Prestasi Siswa" (Student Life & Moments - JIS Single-Row Carousel) ── -->
+        @php
+            $studentMomentsData = $cfg['student_moments'] ?? [];
+            $rawItems = $studentMomentsData['items'] ?? [];
+            $activeCards = array_values(array_filter($rawItems, fn($it) => ($it['is_active'] ?? true) === true));
+        @endphp
+        <section class="py-12 sm:py-20 lg:py-24 bg-slate-950 text-white relative overflow-hidden" 
+                 id="dinamika-siswa" 
+                 x-data="{
+                     scrollAnimId: null,
+                     getStep() {
+                         const track = this.$refs.cardTrack;
+                         if (!track || !track.firstElementChild) return 310;
+                         return track.firstElementChild.offsetWidth + 24;
+                     },
+                     smoothScroll(delta) {
+                         const track = this.$refs.cardTrack;
+                         if (!track) return;
+                         
+                         if (this.scrollAnimId) {
+                             cancelAnimationFrame(this.scrollAnimId);
+                         }
+                         
+                         const start = track.scrollLeft;
+                         const maxScroll = track.scrollWidth - track.clientWidth;
+                         const target = Math.max(0, Math.min(start + delta, maxScroll));
+                         const distance = target - start;
+                         
+                         if (Math.abs(distance) < 2) return;
+                         
+                         const duration = 500;
+                         const startTime = performance.now();
+                         track.style.scrollSnapType = 'none';
+                         track.style.scrollBehavior = 'auto';
+                         
+                         // Smooth decelerating cubic curve
+                         const easeOutCubic = (t) => (--t) * t * t + 1;
+                         
+                         const step = (currentTime) => {
+                             const elapsed = currentTime - startTime;
+                             const progress = Math.min(elapsed / duration, 1);
+                             const ease = easeOutCubic(progress);
+                             
+                             track.scrollLeft = start + (distance * ease);
+                             
+                             if (progress < 1) {
+                                 this.scrollAnimId = requestAnimationFrame(step);
+                             } else {
+                                 track.scrollLeft = target;
+                                 track.style.scrollSnapType = 'x proximity';
+                                 this.scrollAnimId = null;
+                             }
+                         };
+                         
+                         this.scrollAnimId = requestAnimationFrame(step);
+                     },
+                     scrollPrev() {
+                         this.smoothScroll(-this.getStep());
+                     },
+                     scrollNext() {
+                         this.smoothScroll(this.getStep());
+                     }
+                 }">
+            <!-- Subtle Atmospheric Background Texture -->
             <div class="absolute inset-0 z-0 opacity-15 pointer-events-none">
                 <img src="{{ asset('images/web/activity-outdoor.jpg') }}" alt="Student Life Backdrop" class="w-full h-full object-cover">
-                <div class="absolute inset-0 bg-slate-950/90"></div>
+                <div class="absolute inset-0 bg-slate-950/95"></div>
             </div>
 
             <div class="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 relative z-10">
@@ -1336,114 +1574,107 @@
                 <div class="text-center max-w-3xl mx-auto mb-10 sm:mb-14" data-animate>
                     <span class="inline-flex items-center gap-2 px-3.5 py-1.5 rounded-full text-xs font-semibold bg-blue-900/60 text-blue-300 border border-blue-700/60 shadow-xs mb-3">
                         <span class="w-2 h-2 rounded-full bg-blue-400 animate-pulse"></span>
-                        <span class="font-mono-code font-bold uppercase tracking-wider">{{ $cfg['student_moments']['tag'] ?? 'Dinamika Kehidupan Siswa' }}</span>
+                        <span class="font-mono-code font-bold uppercase tracking-wider">{{ $studentMomentsData['tag'] ?? 'Dinamika Kehidupan Siswa' }}</span>
                     </span>
                     <h2 class="text-2xl sm:text-4xl md:text-5xl font-bold tracking-tight text-white mt-2">
-                        {{ $cfg['student_moments']['title'] ?? 'Tumbuh, Berkarya, & Berprestasi Bersama Wikrama' }}
+                        {{ $studentMomentsData['title'] ?? 'Tumbuh, Berkarya, & Berprestasi Bersama Wikrama' }}
                     </h2>
                     <p class="mt-3 sm:mt-4 text-sm sm:text-lg text-slate-300 leading-relaxed font-normal">
-                        {{ $cfg['student_moments']['subtitle'] ?? 'Setiap hari di SMK Wikrama 1 Garut diisi dengan antusiasme belajar nyata, pembiasaan karakter luhur, dan torehan prestasi nasional.' }}
+                        {{ $studentMomentsData['subtitle'] ?? 'Setiap hari di SMK Wikrama 1 Garut diisi dengan antusiasme belajar nyata, pembiasaan karakter luhur, dan torehan prestasi nasional.' }}
                     </p>
-
-                    <!-- Filter Categories -->
-                    <div class="mt-8 flex flex-wrap items-center justify-center gap-1.5 sm:gap-2">
-                        <button type="button" 
-                                @click="studentTab = 'all'" 
-                                :class="studentTab === 'all' ? 'bg-blue-600 text-white font-bold shadow-md shadow-blue-500/20' : 'bg-slate-800 text-slate-300 hover:text-white font-semibold'"
-                                class="px-3.5 sm:px-5 py-1.5 sm:py-2 rounded-full text-xs sm:text-sm transition-all cursor-pointer">
-                            Semua Momen ({{ count($cfg['student_moments']['items'] ?? []) }})
-                        </button>
-                        <button type="button" 
-                                @click="studentTab = 'prestasi'" 
-                                :class="studentTab === 'prestasi' ? 'bg-amber-500 text-slate-950 font-bold shadow-md shadow-amber-500/20' : 'bg-slate-800 text-slate-300 hover:text-white font-semibold'"
-                                class="px-3.5 sm:px-5 py-1.5 sm:py-2 rounded-full text-xs sm:text-sm transition-all cursor-pointer flex items-center gap-1.5">
-                            <span>🏆</span>
-                            <span>Prestasi Nasional</span>
-                        </button>
-                        <button type="button" 
-                                @click="studentTab = 'kejuruan'" 
-                                :class="studentTab === 'kejuruan' ? 'bg-indigo-600 text-white font-bold shadow-md shadow-indigo-500/20' : 'bg-slate-800 text-slate-300 hover:text-white font-semibold'"
-                                class="px-3.5 sm:px-5 py-1.5 sm:py-2 rounded-full text-xs sm:text-sm transition-all cursor-pointer flex items-center gap-1.5">
-                            <span>💻</span>
-                            <span>Praktik Kejuruan</span>
-                        </button>
-                        <button type="button" 
-                                @click="studentTab = 'karakter'" 
-                                :class="studentTab === 'karakter' ? 'bg-emerald-600 text-white font-bold shadow-md shadow-emerald-500/20' : 'bg-slate-800 text-slate-300 hover:text-white font-semibold'"
-                                class="px-3.5 sm:px-5 py-1.5 sm:py-2 rounded-full text-xs sm:text-sm transition-all cursor-pointer flex items-center gap-1.5">
-                            <span>🕌</span>
-                            <span>Karakter & Spiritual</span>
-                        </button>
-                        <button type="button" 
-                                @click="studentTab = 'lingkungan'" 
-                                :class="studentTab === 'lingkungan' ? 'bg-cyan-600 text-white font-bold shadow-md shadow-cyan-500/20' : 'bg-slate-800 text-slate-300 hover:text-white font-semibold'"
-                                class="px-3.5 sm:px-5 py-1.5 sm:py-2 rounded-full text-xs sm:text-sm transition-all cursor-pointer flex items-center gap-1.5">
-                            <span>🌾</span>
-                            <span>Cinta Lingkungan</span>
-                        </button>
-                    </div>
                 </div>
+            </div>
 
-                <!-- Masonry / Responsive Grid -->
-                <div class="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6 sm:gap-8">
-                    @foreach($cfg['student_moments']['items'] ?? [] as $idx => $m)
-                    <div x-show="studentTab === 'all' || studentTab === '{{ $m['category'] }}'"
-                         x-transition:enter="transition ease-out duration-300"
-                         x-transition:enter-start="opacity-0 scale-95"
-                         x-transition:enter-end="opacity-100 scale-100"
-                         class="group relative rounded-3xl overflow-hidden bg-slate-800/90 border border-white/10 hover:border-blue-400/50 transition-all duration-300 shadow-xl flex flex-col justify-between"
-                         data-animate data-animate-delay="{{ ($idx % 3) + 1 }}">
-                        
-                        <!-- Image Container with Zoom & Click to Preview -->
-                        <div class="relative h-60 w-full overflow-hidden bg-slate-950 cursor-pointer"
-                             @click="openImageModal('{{ asset($m['image']) }}', '{{ $m['title'] }}', '{{ $m['cat_label'] }}')">
-                            <img src="{{ asset($m['image']) }}" 
-                                 alt="{{ $m['title'] }}" 
-                                 class="w-full h-full object-cover group-hover:scale-105 transition-transform duration-700 ease-out" 
-                                 loading="lazy">
-                            <div class="absolute inset-0 bg-gradient-to-t from-slate-950/80 via-transparent to-black/30"></div>
-                            
-                            <!-- Badges -->
-                            <div class="absolute top-3.5 left-3.5 right-3.5 flex items-center justify-between">
-                                <span class="px-3 py-1 rounded-full text-[10px] font-mono-code font-bold uppercase tracking-wider bg-white/95 text-slate-900 shadow-md">
-                                    {{ $m['badge'] }}
-                                </span>
-                                <span class="px-2.5 py-0.5 rounded-full text-[10px] font-semibold bg-black/60 text-slate-200 backdrop-blur-md">
-                                    {{ $m['cat_label'] }}
-                                </span>
-                            </div>
+            <!-- Full-Width Carousel Area (Edge-to-Edge Single-Row Track) -->
+            <div class="dinamika-fullwidth-wrapper">
+                <div class="flex flex-col lg:flex-row items-stretch gap-6 sm:gap-8">
+                    <!-- Left Navigation: JIS-style Diamond Arrow Buttons -->
+                    <div class="flex lg:flex-col items-center justify-center gap-4 sm:gap-5 shrink-0 py-2 lg:py-0 self-center">
+                        <!-- Diamond Prev Button -->
+                        <button type="button" 
+                                @click="scrollPrev()" 
+                                class="w-10 h-10 sm:w-11 sm:h-11 border border-white/30 hover:border-blue-400 hover:bg-blue-600/20 rotate-45 flex items-center justify-center transition-all duration-300 cursor-pointer shadow-xl active:scale-95 group lg:-translate-x-2"
+                                title="Geser ke Kiri (Sebelumnya)">
+                            <svg class="w-4 h-4 -rotate-45 text-slate-300 group-hover:text-blue-300 group-hover:-translate-x-0.5 transition-all" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                                <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M15 19l-7-7 7-7" />
+                            </svg>
+                        </button>
 
-                            <!-- Hover Overlay -->
-                            <div class="absolute inset-0 bg-blue-600/20 opacity-0 group-hover:opacity-100 transition-opacity flex items-center justify-center">
-                                <span class="text-xs font-bold uppercase tracking-wider bg-black/70 text-white px-3.5 py-1.5 rounded-full border border-white/30 backdrop-blur-xs flex items-center gap-1.5">
-                                    <svg class="w-3.5 h-3.5 text-amber-300" fill="none" viewBox="0 0 24 24" stroke="currentColor"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M21 21l-6-6m2-5a7 7 0 11-14 0 7 7 0 0114 0zM10 7v6m3-3H7"/></svg>
-                                    <span>Lihat Foto Penuh</span>
-                                </span>
-                            </div>
-                        </div>
+                        <!-- Diamond Next Button -->
+                        <button type="button" 
+                                @click="scrollNext()" 
+                                class="w-10 h-10 sm:w-11 sm:h-11 border border-white/30 hover:border-blue-400 hover:bg-blue-600/20 rotate-45 flex items-center justify-center transition-all duration-300 cursor-pointer shadow-xl active:scale-95 group lg:translate-x-2"
+                                title="Geser ke Kanan (Berikutnya)">
+                            <svg class="w-4 h-4 -rotate-45 text-slate-300 group-hover:text-blue-300 group-hover:translate-x-0.5 transition-all" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                                <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9 5l7 7-7 7" />
+                            </svg>
+                        </button>
+                    </div>
 
-                        <!-- Card Content -->
-                        <div class="p-6 flex flex-col justify-between flex-grow">
-                            <div>
-                                <h3 class="text-base sm:text-lg font-bold text-white leading-snug group-hover:text-blue-300 transition-colors">
-                                    {{ $m['title'] }}
-                                </h3>
-                                <p class="text-xs sm:text-sm text-slate-300 mt-2.5 leading-relaxed font-normal">
-                                    {{ $m['desc'] }}
-                                </p>
+                    <!-- Single-Row Cards Track (Horizontal Smooth Scroll) -->
+                    <div class="min-w-0 flex-1 relative">
+                        <div x-ref="cardTrack" 
+                             class="dinamika-cards-track flex items-stretch gap-6 overflow-x-auto no-scrollbar pb-6 pt-2 snap-x snap-proximity focus:outline-hidden"
+                             style="scrollbar-width: none; -ms-overflow-style: none; -webkit-overflow-scrolling: touch;">
+                            @forelse($activeCards as $cIdx => $card)
+                            <div class="student-moment-card group relative shrink-0 rounded-3xl overflow-hidden bg-slate-900 shadow-xl snap-start cursor-pointer border border-white/10 hover:border-blue-400/60 transition-all duration-500"
+                                 style="width: 286px; min-width: 286px; max-width: 286px; height: 480px; min-height: 480px; max-height: 480px;"
+                                 data-animate data-animate-delay="{{ ($cIdx % 4) + 1 }}">
+                                
+                                <!-- Background Full-Bleed Image -->
+                                <img src="{{ \App\Modules\AdministrasiWeb\Models\WebSetting::resolveImageUrl($card['image'] ?? null, 'images/web/campus-environment.jpg') }}" 
+                                     alt="{{ $card['title'] ?? 'Dinamika Siswa' }}" 
+                                     class="w-full h-full object-cover group-hover:scale-105 transition-transform duration-700 ease-out" 
+                                     style="width: 100%; height: 100%; object-fit: cover;"
+                                     loading="lazy">
+
+                                <!-- Normal (Idle) State: Bottom Dark Gradient & Title -->
+                                <div class="absolute inset-0 bg-gradient-to-t from-slate-950 via-slate-950/40 to-transparent pointer-events-none transition-opacity duration-300 group-hover:opacity-0"></div>
+                                <div class="absolute bottom-6 left-6 right-6 z-10 transition-all duration-300 group-hover:opacity-0 group-hover:translate-y-2 pointer-events-none">
+                                    @if(!empty($card['badge']))
+                                    <span class="inline-block text-[10px] font-mono-code font-bold uppercase tracking-wider text-blue-300 bg-blue-950/70 border border-blue-700/50 px-2.5 py-0.5 rounded-full mb-2 backdrop-blur-xs">
+                                        {{ $card['badge'] }}
+                                    </span>
+                                    @endif
+                                    <h3 class="text-base sm:text-lg font-bold text-white leading-snug">
+                                        {{ $card['title'] ?? '' }}
+                                    </h3>
+                                    <p class="text-xs text-slate-300 mt-1.5 line-clamp-1 opacity-80">
+                                        {{ $card['cta_text'] ?? 'Lebih Lanjut' }} &rarr;
+                                    </p>
+                                </div>
+
+                                <!-- Hover State: Dark Full Overlay, Title, Line Divider, Description, & CTA Button -->
+                                <div class="absolute inset-0 z-20 p-6 flex flex-col justify-end bg-slate-950/88 backdrop-blur-xs opacity-0 group-hover:opacity-100 transition-all duration-300 transform translate-y-1 group-hover:translate-y-0">
+                                    @if(!empty($card['badge']))
+                                    <span class="inline-block text-[10px] font-mono-code font-bold uppercase tracking-wider text-blue-300 mb-1">
+                                        {{ $card['badge'] }}
+                                    </span>
+                                    @endif
+                                    <h3 class="text-base sm:text-lg font-bold text-white leading-snug">
+                                        {{ $card['title'] ?? '' }}
+                                    </h3>
+                                    <div class="w-10 h-0.5 bg-blue-500 my-3 rounded-full"></div>
+                                    <p class="text-xs sm:text-sm text-slate-200 leading-relaxed font-normal mb-5 line-clamp-5">
+                                        {{ $card['desc'] ?? '' }}
+                                    </p>
+                                    <div>
+                                        <a href="{{ $card['url'] ?? '#' }}" 
+                                           target="{{ $card['target'] ?? '_self' }}"
+                                           class="inline-flex items-center gap-1.5 text-xs sm:text-sm font-bold text-white hover:text-blue-300 transition-colors group/btn">
+                                            <span class="border-b border-white/50 group-hover/btn:border-blue-300 pb-0.5">{{ $card['cta_text'] ?? 'Lebih Lanjut' }}</span>
+                                            <span class="transition-transform group-hover/btn:translate-x-1">&rarr;</span>
+                                        </a>
+                                    </div>
+                                </div>
                             </div>
-                            <div class="mt-5 pt-4 border-t border-white/10 flex items-center justify-between text-xs">
-                                <span class="font-mono-code text-[11px] text-amber-400 font-bold uppercase">Wikrama Student Life</span>
-                                <button type="button" 
-                                        @click="openImageModal('{{ asset($m['image']) }}', '{{ $m['title'] }}', '{{ $m['cat_label'] }}')"
-                                        class="text-blue-400 hover:text-blue-300 font-bold inline-flex items-center gap-1 cursor-pointer">
-                                    <span>Perbesar</span>
-                                    <span class="group-hover-arrow">&rarr;</span>
-                                </button>
+                            @empty
+                            <div class="py-12 text-center text-slate-400 w-full">
+                                <p>Belum ada card momen siswa yang aktif.</p>
                             </div>
+                            @endforelse
                         </div>
                     </div>
-                    @endforeach
                 </div>
             </div>
         </section>
@@ -1846,86 +2077,189 @@
         </section>
 
         <!-- ── 10.B Kalender Pendidikan & Agenda Kegiatan Terdekat ── -->
-        <section class="py-12 sm:py-16 lg:py-20 bg-slate-50 dark:bg-[#060D1A] border-t border-slate-200/80 dark:border-slate-800" id="agenda-sekolah">
-            <div class="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
-                <div class="flex flex-col md:flex-row md:items-end justify-between mb-8 sm:mb-10 gap-4" data-animate>
-                    <div>
+        <section class="py-14 sm:py-20 lg:py-24 bg-slate-50 dark:bg-[#060D1A] border-t border-slate-200/80 dark:border-slate-800" id="agenda">
+            <div id="agenda-sekolah" class="scroll-mt-24"></div>
+            <div class="w-full max-w-[1680px] mx-auto px-4 sm:px-6 lg:px-10 xl:px-16">
+                <div class="flex flex-col md:flex-row md:items-end justify-between mb-10 sm:mb-12 gap-6" data-animate>
+                    <div class="max-w-3xl">
                         <span class="google-tag">
                             <span class="w-1.5 h-1.5 rounded-full bg-emerald-500"></span>
-                            <span>Agenda &amp; Kalender Pendidikan</span>
+                            <span>{{ $cfg['agenda']['tag'] ?? 'Agenda & Kalender Akademik' }}</span>
                         </span>
-                        <h2 class="text-2xl sm:text-4xl font-bold tracking-tight text-slate-900 dark:text-white mt-3 sm:mt-4">
-                            Kegiatan Sekolah Terdekat
+                        <h2 class="text-2xl sm:text-4xl md:text-5xl font-bold tracking-tight text-slate-900 dark:text-white mt-3 sm:mt-4">
+                            {{ $cfg['agenda']['title'] ?? 'Agenda Kegiatan Sekolah Terdekat' }}
                         </h2>
-                        <p class="mt-2 sm:mt-3 text-sm sm:text-base text-slate-600 dark:text-slate-300 max-w-2xl">
-                            Jadwal asesmen, kegiatan kurikulum, agenda kesiswaan, dan hari libur resmi yang telah disahkan.
+                        <p class="mt-3 text-sm sm:text-base text-slate-600 dark:text-slate-300 leading-relaxed">
+                            {{ $cfg['agenda']['subtitle'] ?? 'Jadwal sertifikasi kompetensi industri, pembinaan karakter santri, uji vokasi, dan agenda penting SMK Wikrama 1 Garut.' }}
                         </p>
                     </div>
-                    @auth
-                    <a href="{{ route('kalender.index') }}" class="btn-google-outline text-xs sm:text-sm !py-2.5 !px-5 shrink-0 w-full sm:w-auto text-center justify-center">
-                        <span>Buka Kalender Penuh</span>
-                        <span class="group-hover-arrow">&rarr;</span>
-                    </a>
-                    @else
-                    <a href="{{ route('login') }}" class="btn-google-outline text-xs sm:text-sm !py-2.5 !px-5 shrink-0 w-full sm:w-auto text-center justify-center">
-                        <span>Masuk ke SIRAGA</span>
-                        <span class="group-hover-arrow">&rarr;</span>
-                    </a>
-                    @endauth
+
+                    <div class="flex flex-wrap items-center gap-3 shrink-0">
+                        <a href="{{ $cfg['agenda']['calendar_pdf_url'] ?? 'https://smkwikrama1garut.sch.id/' }}" 
+                           target="_blank" 
+                           rel="noopener"
+                           class="btn-google-outline text-xs sm:text-sm !py-2.5 !px-5 inline-flex items-center justify-center gap-2 group w-full sm:w-auto">
+                            <svg class="w-4 h-4 text-red-500 shrink-0 group-hover:scale-110 transition-transform" fill="currentColor" viewBox="0 0 20 20">
+                                <path fill-rule="evenodd" d="M4 4a2 2 0 012-2h4.586A2 2 0 0112 2.586L15.414 6A2 2 0 0116 7.414V16a2 2 0 01-2 2H6a2 2 0 01-2-2V4zm2 6a1 1 0 011-1h6a1 1 0 110 2H7a1 1 0 01-1-1zm1 3a1 1 0 100 2h6a1 1 0 100-2H7z" clip-rule="evenodd" />
+                            </svg>
+                            <span>{{ $cfg['agenda']['btn_calendar_text'] ?? 'Unduh Kalender Akademik (PDF)' }}</span>
+                            <span class="text-xs">&darr;</span>
+                        </a>
+                        @auth
+                        <a href="{{ route('kalender.index') }}" class="btn-google-primary text-xs sm:text-sm !py-2.5 !px-5 inline-flex items-center justify-center gap-2 shrink-0 w-full sm:w-auto">
+                            <span>Buka Kalender SIRAGA</span>
+                            <span>&rarr;</span>
+                        </a>
+                        @endauth
+                    </div>
                 </div>
 
                 @php
-                    $upcomingAgendas = class_exists(\App\Modules\KalenderPendidikan\Models\KalenderAgenda::class)
+                    $dbAgendas = class_exists(\App\Modules\KalenderPendidikan\Models\KalenderAgenda::class)
                         ? \App\Modules\KalenderPendidikan\Models\KalenderAgenda::with('kategori')
                             ->where('status', 'publik')
                             ->where('tgl_selesai', '>=', now()->toDateString())
                             ->orderBy('tgl_mulai')
-                            ->limit(4)
+                            ->limit(3)
                             ->get()
                         : collect();
+                    $agendaFallbackItems = $cfg['agenda']['items'] ?? [];
                 @endphp
 
-                <div class="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-6">
-                    @forelse($upcomingAgendas as $idx => $agenda)
-                    <div class="google-card p-5 flex flex-col justify-between" data-animate data-animate-delay="{{ $idx + 1 }}">
-                        <div>
-                            <div class="flex items-center justify-between mb-3">
-                                <span class="px-2.5 py-1 rounded-full text-[10px] font-mono-code font-bold text-white shadow-xs" style="background-color: {{ $agenda->display_warna }}">
-                                    {{ $agenda->kategori?->nama ?? 'Kegiatan' }}
-                                </span>
-                                @if($agenda->is_final)
-                                    <span class="text-[10px] font-bold text-emerald-600 dark:text-emerald-400 bg-emerald-50 dark:bg-emerald-950/60 px-2 py-0.5 rounded border border-emerald-300 dark:border-emerald-800">
-                                        ✓ FINAL
-                                    </span>
-                                @endif
+                <div class="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6 sm:gap-8">
+                    @if($dbAgendas->isNotEmpty())
+                        @foreach($dbAgendas as $idx => $agenda)
+                        <article class="google-card group relative p-6 sm:p-7 flex flex-col justify-between hover:shadow-xl hover:border-blue-400 dark:hover:border-blue-500 transition-all duration-300 rounded-3xl" data-animate data-animate-delay="{{ $idx + 1 }}">
+                            <div>
+                                <!-- Header Date & Badge -->
+                                <div class="flex items-start justify-between gap-3 mb-5">
+                                    <div class="flex flex-col items-center justify-center shrink-0 w-16 rounded-2xl overflow-hidden border border-slate-200/80 dark:border-slate-700/80 shadow-xs bg-slate-50 dark:bg-slate-800/80">
+                                        <span class="w-full text-center py-1 bg-gradient-to-r from-blue-600 to-indigo-600 text-white font-mono-code font-bold text-[10px] tracking-widest uppercase">
+                                            {{ strtoupper($agenda->tgl_mulai->translatedFormat('M')) }}
+                                        </span>
+                                        <div class="py-1.5 px-2 flex flex-col items-center">
+                                            <span class="text-2xl sm:text-3xl font-black text-slate-900 dark:text-white leading-none tracking-tight">
+                                                {{ $agenda->tgl_mulai->format('d') }}
+                                            </span>
+                                            <span class="text-[9px] font-mono-code font-bold text-slate-400 dark:text-slate-500 mt-0.5">
+                                                {{ $agenda->tgl_mulai->format('Y') }}
+                                            </span>
+                                        </div>
+                                    </div>
+
+                                    <div class="flex flex-col items-end gap-1.5 text-right">
+                                        <span class="px-3 py-1 rounded-full text-[11px] font-bold text-white shadow-xs" style="background-color: {{ $agenda->display_warna }}">
+                                            {{ $agenda->kategori?->nama ?? 'Kegiatan' }}
+                                        </span>
+                                        @if($agenda->is_final)
+                                        <span class="text-[10px] font-mono-code font-bold text-emerald-600 dark:text-emerald-400 bg-emerald-50 dark:bg-emerald-950/60 px-2 py-0.5 rounded border border-emerald-300 dark:border-emerald-800">
+                                            ✓ FINAL
+                                        </span>
+                                        @endif
+                                    </div>
+                                </div>
+
+                                <h3 class="text-lg sm:text-xl font-bold text-slate-900 dark:text-white group-hover:text-blue-600 dark:group-hover:text-blue-400 transition-colors leading-snug line-clamp-2">
+                                    {{ $agenda->judul }}
+                                </h3>
+
+                                <p class="mt-2.5 text-xs sm:text-sm text-slate-600 dark:text-slate-300 leading-relaxed line-clamp-3">
+                                    {{ $agenda->deskripsi ?: 'Agenda kurikulum dan kegiatan resmi SMK Wikrama 1 Garut yang telah disahkan.' }}
+                                </p>
                             </div>
 
-                            <div class="flex items-baseline gap-2 mb-2">
-                                <span class="text-2xl font-black text-slate-900 dark:text-white">{{ $agenda->tgl_mulai->format('d') }}</span>
-                                <span class="text-xs font-bold uppercase tracking-wider text-slate-500 dark:text-slate-400">{{ $agenda->tgl_mulai->translatedFormat('M Y') }}</span>
+                            <div class="pt-4 mt-6 border-t border-slate-100 dark:border-slate-800 flex flex-col sm:flex-row sm:items-center justify-between gap-2 text-xs text-slate-500 dark:text-slate-400">
+                                <div class="flex items-center gap-1.5 shrink-0">
+                                    <svg class="w-4 h-4 text-blue-500 shrink-0" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                                        <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 8v4l3 3m6-3a9 9 0 11-18 0 9 9 0 0118 0z" />
+                                    </svg>
+                                    <span class="font-medium">{{ $agenda->is_all_day ? 'Sepanjang Hari' : substr($agenda->jam_mulai,0,5).' WIB' }}</span>
+                                </div>
+                                <div class="flex items-center gap-1.5 min-w-0">
+                                    <svg class="w-4 h-4 text-amber-500 shrink-0" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                                        <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M17.657 16.657L13.414 20.9a1.998 1.998 0 01-2.827 0l-4.244-4.243a8 8 0 1111.314 0z" />
+                                        <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M15 11a3 3 0 11-6 0 3 3 0 016 0z" />
+                                    </svg>
+                                    <span class="font-medium truncate" title="{{ $agenda->lokasi ?: 'Sekolah' }}">{{ $agenda->lokasi ?: 'Sekolah' }}</span>
+                                </div>
+                            </div>
+                        </article>
+                        @endforeach
+                    @else
+                        @foreach($agendaFallbackItems as $idx => $item)
+                        <article class="google-card group relative p-6 sm:p-7 flex flex-col justify-between hover:shadow-xl hover:border-blue-400 dark:hover:border-blue-500 transition-all duration-300 rounded-3xl" data-animate data-animate-delay="{{ $idx + 1 }}">
+                            <div>
+                                <!-- Header Date & Badge -->
+                                <div class="flex items-start justify-between gap-3 mb-5">
+                                    <div class="flex flex-col items-center justify-center shrink-0 w-16 rounded-2xl overflow-hidden border border-slate-200/80 dark:border-slate-700/80 shadow-xs bg-slate-50 dark:bg-slate-800/80">
+                                        <span class="w-full text-center py-1 bg-gradient-to-r from-blue-600 to-indigo-600 text-white font-mono-code font-bold text-[10px] tracking-widest uppercase">
+                                            {{ $item['month'] }}
+                                        </span>
+                                        <div class="py-1.5 px-2 flex flex-col items-center">
+                                            <span class="text-2xl sm:text-3xl font-black text-slate-900 dark:text-white leading-none tracking-tight">
+                                                {{ $item['day'] }}
+                                            </span>
+                                            <span class="text-[9px] font-mono-code font-bold text-slate-400 dark:text-slate-500 mt-0.5">
+                                                {{ $item['year'] }}
+                                            </span>
+                                        </div>
+                                    </div>
+
+                                    <div class="flex flex-col items-end gap-1.5 text-right">
+                                        <span class="px-3 py-1 rounded-full text-[11px] font-bold {{ $item['category_badge'] ?? 'bg-blue-100 text-blue-700 dark:bg-blue-900/60 dark:text-blue-300' }}">
+                                            {{ $item['category'] }}
+                                        </span>
+                                        @if(!empty($item['badge']))
+                                        <span class="text-[10px] font-mono-code font-semibold px-2 py-0.5 rounded-md bg-slate-100 dark:bg-slate-800 text-slate-600 dark:text-slate-300 border border-slate-200/60 dark:border-slate-700/60">
+                                            {{ $item['badge'] }}
+                                        </span>
+                                        @endif
+                                    </div>
+                                </div>
+
+                                <h3 class="text-lg sm:text-xl font-bold text-slate-900 dark:text-white group-hover:text-blue-600 dark:group-hover:text-blue-400 transition-colors leading-snug line-clamp-2">
+                                    {{ $item['title'] }}
+                                </h3>
+
+                                <p class="mt-2.5 text-xs sm:text-sm text-slate-600 dark:text-slate-300 leading-relaxed line-clamp-3">
+                                    {{ $item['desc'] }}
+                                </p>
                             </div>
 
-                            <h3 class="text-base font-bold text-slate-900 dark:text-white leading-snug line-clamp-2">
-                                {{ $agenda->judul }}
-                            </h3>
+                            <div class="pt-4 mt-6 border-t border-slate-100 dark:border-slate-800 flex flex-col sm:flex-row sm:items-center justify-between gap-2 text-xs text-slate-500 dark:text-slate-400">
+                                <div class="flex items-center gap-1.5 shrink-0">
+                                    <svg class="w-4 h-4 text-blue-500 shrink-0" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                                        <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 8v4l3 3m6-3a9 9 0 11-18 0 9 9 0 0118 0z" />
+                                    </svg>
+                                    <span class="font-medium">{{ $item['time'] }}</span>
+                                </div>
+                                <div class="flex items-center gap-1.5 min-w-0">
+                                    <svg class="w-4 h-4 text-amber-500 shrink-0" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                                        <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M17.657 16.657L13.414 20.9a1.998 1.998 0 01-2.827 0l-4.244-4.243a8 8 0 1111.314 0z" />
+                                        <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M15 11a3 3 0 11-6 0 3 3 0 016 0z" />
+                                    </svg>
+                                    <span class="font-medium truncate" title="{{ $item['location'] }}">{{ $item['location'] }}</span>
+                                </div>
+                            </div>
+                        </article>
+                        @endforeach
+                    @endif
+                </div>
 
-                            @if($agenda->deskripsi)
-                            <p class="mt-2 text-xs text-slate-600 dark:text-slate-400 line-clamp-2">
-                                {{ $agenda->deskripsi }}
-                            </p>
-                            @endif
-                        </div>
-
-                        <div class="pt-4 mt-4 border-t border-slate-100 dark:border-slate-800 text-xs text-slate-500 dark:text-slate-400 flex items-center justify-between">
-                            <span>{{ $agenda->is_all_day ? 'Sepanjang Hari' : substr($agenda->jam_mulai,0,5).' WIB' }}</span>
-                            <span class="truncate max-w-[120px]">{{ $agenda->lokasi ?: 'Sekolah' }}</span>
-                        </div>
+                <!-- Bottom Information Banner -->
+                <div class="mt-8 sm:mt-10 p-4 sm:p-5 rounded-2xl bg-white dark:bg-slate-900 border border-slate-200/80 dark:border-slate-800 flex flex-col sm:flex-row items-center justify-between gap-4 text-xs shadow-xs" data-animate>
+                    <div class="flex items-center gap-3 text-slate-600 dark:text-slate-300">
+                        <span class="w-8 h-8 rounded-xl bg-blue-50 dark:bg-blue-950/60 text-blue-600 dark:text-blue-400 flex items-center justify-center shrink-0 border border-blue-200 dark:border-blue-900">
+                            <svg class="w-4 h-4" fill="none" viewBox="0 0 24 24" stroke="currentColor"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M13 16h-1v-4h-1m1-4h.01M21 12a9 9 0 11-18 0 9 9 0 0118 0z"/></svg>
+                        </span>
+                        <span>Seluruh agenda kurikulum disesuaikan dengan kalender akademik resmi Dinas Pendidikan &amp; Dunia Industri mitra SMK Wikrama 1 Garut.</span>
                     </div>
-                    @empty
-                    <div class="col-span-full py-12 text-center text-slate-500 text-sm google-card">
-                        Belum ada agenda kegiatan publik terdekat yang dipublikasikan.
-                    </div>
-                    @endforelse
+                    @auth
+                    <a href="{{ route('kalender.index') }}" class="text-blue-600 dark:text-blue-400 font-bold hover:underline inline-flex items-center gap-1 shrink-0">
+                        <span>Kelola Kalender di SIRAGA</span>
+                        <span>&rarr;</span>
+                    </a>
+                    @endauth
                 </div>
             </div>
         </section>
@@ -2353,7 +2687,8 @@
                             <li><a href="#beranda" class="hover:text-white transition-colors">Beranda Utama</a></li>
                             <li><a href="#filosofi" class="hover:text-white transition-colors">Filosofi &amp; Visi Misi</a></li>
                             <li><a href="#mengenal" class="hover:text-white transition-colors">Mengenal Lebih Dekat</a></li>
-                            <li><a href="#jurusan" class="hover:text-white transition-colors">3 Pilar Kompetensi Keahlian</a></li>
+                            <li><a href="#jurusan" class="hover:text-white transition-colors">4 Jurusan Kejuruan Unggulan</a></li>
+                            <li><a href="#agenda" class="hover:text-white transition-colors">Agenda Kegiatan Terdekat</a></li>
                             <li><a href="#dinamika-siswa" class="hover:text-white transition-colors">Dinamika Siswa &amp; Prestasi</a></li>
                             <li><a href="#fakta" class="hover:text-white transition-colors">Kehidupan Siswa (Fast Facts)</a></li>
                             <li><a href="#suara-komunitas" class="hover:text-white transition-colors">Suara Komunitas (Testimoni)</a></li>

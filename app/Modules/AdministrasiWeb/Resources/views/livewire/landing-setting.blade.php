@@ -51,6 +51,11 @@
                 class="py-2.5 px-4 text-xs sm:text-sm font-bold rounded-t-xl transition-all border-b-2 {{ $activeTab === 'welcome' ? 'border-primary text-primary bg-surface' : 'border-transparent text-text-secondary hover:text-text-main' }}">
             📖 Filosofi &amp; Manifesto
         </button>
+        <button type="button" 
+                wire:click="$set('activeTab', 'student_moments')" 
+                class="py-2.5 px-4 text-xs sm:text-sm font-bold rounded-t-xl transition-all border-b-2 {{ $activeTab === 'student_moments' ? 'border-primary text-primary bg-surface' : 'border-transparent text-text-secondary hover:text-text-main' }}">
+            🎓 Dinamika Siswa
+        </button>
     </div>
 
     <form wire:submit="save" class="space-y-6">
@@ -409,6 +414,151 @@
         </div>
         @endif
 
+        {{-- ── TAB 5: DINAMIKA SISWA & CAROUSEL CARDS ── --}}
+        @if ($activeTab === 'student_moments')
+        <div class="space-y-6">
+            <!-- Header Settings Card -->
+            <div class="card space-y-4">
+                <div class="border-b border-border pb-3">
+                    <h2 class="text-base font-bold text-text-main">Judul &amp; Informasi Section Dinamika Siswa</h2>
+                    <p class="text-xs text-text-secondary">Teks pembuka yang tampil di atas baris card carousel pada landing page.</p>
+                </div>
+
+                <div class="grid gap-4 sm:grid-cols-2">
+                    <div>
+                        <label class="label">Badge Tag Kecil</label>
+                        <input type="text" wire:model="student_moments.tag" class="input" placeholder="Dinamika Kehidupan Siswa">
+                    </div>
+                    <div>
+                        <label class="label">Judul Utama Section</label>
+                        <input type="text" wire:model="student_moments.title" class="input" placeholder="Tumbuh, Berkarya, &amp; Berprestasi Bersama Wikrama">
+                    </div>
+                    <div class="sm:col-span-2">
+                        <label class="label">Subjudul / Deskripsi Pengantar</label>
+                        <textarea wire:model="student_moments.subtitle" rows="2" class="input" placeholder="Deskripsi pengantar..."></textarea>
+                    </div>
+                </div>
+            </div>
+
+            <!-- Cards Management Card -->
+            <div class="card space-y-4">
+                <div class="flex flex-col sm:flex-row sm:items-center sm:justify-between gap-3 border-b border-border pb-3">
+                    <div>
+                        <h2 class="text-base font-bold text-text-main">Daftar Card Dinamika Siswa (Format 1 Baris Carousel)</h2>
+                        <p class="text-xs text-text-secondary">
+                            Foto penuh vertikal bergaya JIS. Saat disorot (hover), tirai gelap naik menampilkan deskripsi dan tombol tautan.
+                        </p>
+                    </div>
+                    <button type="button" 
+                            wire:click="openCreateCardModal" 
+                            class="btn btn-sm btn-primary inline-flex items-center gap-1.5 self-start sm:self-auto cursor-pointer">
+                        <svg class="w-4 h-4" fill="none" viewBox="0 0 24 24" stroke="currentColor"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 4v16m8-8H4"/></svg>
+                        <span>+ Tambah Card Baru</span>
+                    </button>
+                </div>
+
+                <!-- Cards Table / Visual List -->
+                @if (empty($student_moments['items']))
+                <div class="text-center py-8 text-text-muted">
+                    <p class="text-sm">Belum ada card dinamika siswa. Klik tombol di atas untuk menambahkan card pertama.</p>
+                </div>
+                @else
+                <div class="space-y-3">
+                    @foreach ($student_moments['items'] as $cIdx => $card)
+                    <div class="p-3.5 sm:p-4 rounded-2xl border border-border bg-surface hover:border-primary/40 transition-all flex flex-col md:flex-row md:items-center justify-between gap-4 shadow-2xs {{ !($card['is_active'] ?? true) ? 'opacity-60 bg-surface-raised/40' : '' }}">
+                        <div class="flex items-center gap-3.5 min-w-0">
+                            <!-- Drag/Order badge -->
+                            <div class="flex flex-col items-center gap-1 shrink-0">
+                                <button type="button" 
+                                        wire:click="moveCardUp({{ $cIdx }})" 
+                                        @if($cIdx === 0) disabled @endif
+                                        class="p-1 rounded hover:bg-surface-raised text-text-muted hover:text-text-main disabled:opacity-30 disabled:cursor-not-allowed"
+                                        title="Pindah ke Atas">
+                                    <svg class="w-3.5 h-3.5" fill="none" viewBox="0 0 24 24" stroke="currentColor"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M5 15l7-7 7 7"/></svg>
+                                </button>
+                                <span class="font-mono-code text-[11px] font-bold text-text-muted bg-surface-raised px-1.5 py-0.5 rounded">
+                                    #{{ $cIdx + 1 }}
+                                </span>
+                                <button type="button" 
+                                        wire:click="moveCardDown({{ $cIdx }})" 
+                                        @if($cIdx === count($student_moments['items']) - 1) disabled @endif
+                                        class="p-1 rounded hover:bg-surface-raised text-text-muted hover:text-text-main disabled:opacity-30 disabled:cursor-not-allowed"
+                                        title="Pindah ke Bawah">
+                                    <svg class="w-3.5 h-3.5" fill="none" viewBox="0 0 24 24" stroke="currentColor"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M19 9l-7 7-7-7"/></svg>
+                                </button>
+                            </div>
+
+                            <!-- Thumbnail Image -->
+                            <div class="w-16 h-20 sm:w-20 sm:h-24 rounded-xl overflow-hidden bg-slate-900 shrink-0 border border-border relative">
+                                <img src="{{ \App\Modules\AdministrasiWeb\Models\WebSetting::resolveImageUrl($card['image'] ?? null, 'images/web/campus-environment.jpg') }}" 
+                                     alt="{{ $card['title'] ?? 'Card' }}" 
+                                     class="w-full h-full object-cover">
+                                @if(!empty($card['badge']))
+                                <span class="absolute bottom-1 left-1 right-1 truncate text-[9px] font-bold px-1 py-0.5 rounded bg-black/70 text-white text-center">
+                                    {{ $card['badge'] }}
+                                </span>
+                                @endif
+                            </div>
+
+                            <!-- Text Details -->
+                            <div class="min-w-0">
+                                <div class="flex items-center gap-2 flex-wrap">
+                                    <h3 class="text-sm font-bold text-text-main truncate">
+                                        {{ $card['title'] ?? 'Tanpa Judul' }}
+                                    </h3>
+                                    @if(!($card['is_active'] ?? true))
+                                    <span class="badge badge-neutral text-[10px]">Nonaktif</span>
+                                    @else
+                                    <span class="badge badge-success text-[10px]">Aktif</span>
+                                    @endif
+                                </div>
+                                <p class="text-xs text-text-secondary line-clamp-2 mt-1 leading-relaxed">
+                                    {{ $card['desc'] ?? '-' }}
+                                </p>
+                                <div class="flex items-center gap-3 mt-2 text-[11px] text-text-muted flex-wrap">
+                                    <span class="font-mono-code text-primary truncate max-w-xs">
+                                        🔗 {{ $card['url'] ?? '#' }} ({{ $card['target'] ?? '_self' }})
+                                    </span>
+                                    <span>&bull;</span>
+                                    <span class="font-medium text-text-main">
+                                        Tombol: {{ $card['cta_text'] ?? 'Lebih Lanjut' }} &rarr;
+                                    </span>
+                                </div>
+                            </div>
+                        </div>
+
+                        <!-- Action Buttons -->
+                        <div class="flex items-center gap-2 shrink-0 self-end md:self-center pt-2 md:pt-0 border-t md:border-t-0 border-border w-full md:w-auto justify-end">
+                            <button type="button" 
+                                    wire:click="toggleCardActive({{ $cIdx }})" 
+                                    class="btn btn-xs {{ ($card['is_active'] ?? true) ? 'btn-outline' : 'btn-primary' }}"
+                                    title="Ubah Status Aktif">
+                                {{ ($card['is_active'] ?? true) ? 'Sembunyikan' : 'Aktifkan' }}
+                            </button>
+                            <button type="button" 
+                                    wire:click="openEditCardModal({{ $cIdx }})" 
+                                    class="btn btn-xs btn-outline inline-flex items-center gap-1"
+                                    title="Edit Card">
+                                <svg class="w-3.5 h-3.5" fill="none" viewBox="0 0 24 24" stroke="currentColor"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M11 5H6a2 2 0 00-2 2v11a2 2 0 002 2h11a2 2 0 002-2v-5m-1.414-9.414a2 2 0 112.828 2.828L11.828 15H9v-2.828l8.586-8.586z"/></svg>
+                                <span>Edit</span>
+                            </button>
+                            <button type="button" 
+                                    wire:click="deleteCard({{ $cIdx }})" 
+                                    wire:confirm="Yakin ingin menghapus card '{{ $card['title'] }}'?" 
+                                    class="btn btn-xs btn-danger inline-flex items-center gap-1"
+                                    title="Hapus Card">
+                                <svg class="w-3.5 h-3.5" fill="none" viewBox="0 0 24 24" stroke="currentColor"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M19 7l-.867 12.142A2 2 0 0116.138 21H7.862a2 2 0 01-1.995-1.858L5 7m5 4v6m4-6v6m1-10V4a1 1 0 00-1-1h-4a1 1 0 00-1 1v3M4 7h16"/></svg>
+                                <span>Hapus</span>
+                            </button>
+                        </div>
+                    </div>
+                    @endforeach
+                </div>
+                @endif
+            </div>
+        </div>
+        @endif
+
         <!-- Floating/Sticky Save Button Bar -->
         <div class="sticky bottom-4 z-20 flex items-center justify-between p-4 rounded-2xl bg-surface/90 backdrop-blur-md border border-border shadow-xl">
             <span class="text-xs text-text-secondary hidden sm:inline">
@@ -424,4 +574,100 @@
             </div>
         </div>
     </form>
+
+    {{-- ── MODAL FORM TAMBAH / EDIT CARD DINAMIKA SISWA ── --}}
+    @if ($showCardModal)
+    <div class="fixed inset-0 z-50 flex items-center justify-center p-4 bg-black/60 backdrop-blur-xs overflow-y-auto">
+        <div class="bg-surface border border-border rounded-3xl p-6 sm:p-8 max-w-xl w-full shadow-2xl space-y-5 my-8">
+            <div class="flex items-center justify-between border-b border-border pb-3">
+                <h3 class="text-lg font-bold text-text-main">
+                    {{ $cardIndexEditing !== null ? 'Edit Card Dinamika Siswa' : 'Tambah Card Dinamika Siswa' }}
+                </h3>
+                <button type="button" wire:click="closeCardModal" class="p-1 rounded-lg text-text-muted hover:text-text-main hover:bg-surface-raised cursor-pointer">
+                    <svg class="w-5 h-5" fill="none" viewBox="0 0 24 24" stroke="currentColor"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M6 18L18 6M6 6l12 12"/></svg>
+                </button>
+            </div>
+
+            <div class="space-y-4">
+                <!-- Foto Card Preview & Upload -->
+                <div>
+                    <label class="label">Foto Card (Portrait Vertikal Penuh)</label>
+                    <div class="flex items-center gap-4">
+                        <div class="w-20 h-28 rounded-xl overflow-hidden bg-slate-900 border border-border shrink-0 shadow-inner">
+                            <img src="{{ $this->cardImagePreview }}" alt="Preview" class="w-full h-full object-cover">
+                        </div>
+                        <div class="flex-1 space-y-1.5">
+                            <input type="file" wire:model="cardImageFile" accept="image/*" class="input text-xs py-1.5">
+                            <p class="text-[11px] text-text-muted">
+                                Format JPG/PNG/WebP, disarankan rasio 3:4 atau 9:16 (tinggi ~800px). Maks 5MB.
+                            </p>
+                            @error('cardImageFile') <span class="error">{{ $message }}</span> @enderror
+                        </div>
+                    </div>
+                </div>
+
+                <!-- Judul & Badge -->
+                <div class="grid gap-3 sm:grid-cols-2">
+                    <div class="sm:col-span-2">
+                        <label class="label">Judul Card <span class="text-danger">*</span></label>
+                        <input type="text" wire:model="cardForm.title" class="input" placeholder="Contoh: Prestasi Juara 1 Taekwondo Nasional">
+                        @error('cardForm.title') <span class="error">{{ $message }}</span> @enderror
+                    </div>
+                    <div>
+                        <label class="label">Badge Tag (Opsional)</label>
+                        <input type="text" wire:model="cardForm.badge" class="input" placeholder="Contoh: Juara 1 Nasional">
+                        @error('cardForm.badge') <span class="error">{{ $message }}</span> @enderror
+                    </div>
+                    <div>
+                        <label class="label">Target Link</label>
+                        <select wire:model="cardForm.target" class="input">
+                            <option value="_self">Tab Saat Ini (_self)</option>
+                            <option value="_blank">Tab Baru (_blank)</option>
+                        </select>
+                        @error('cardForm.target') <span class="error">{{ $message }}</span> @enderror
+                    </div>
+                </div>
+
+                <!-- Deskripsi Hover -->
+                <div>
+                    <label class="label">Deskripsi (Muncul Saat Card di-Hover) <span class="text-danger">*</span></label>
+                    <textarea wire:model="cardForm.desc" rows="3" class="input text-xs" placeholder="Tuliskan cerita singkat atau deskripsi kegiatan yang menginspirasi..."></textarea>
+                    @error('cardForm.desc') <span class="error">{{ $message }}</span> @enderror
+                </div>
+
+                <!-- URL & CTA Text -->
+                <div class="grid gap-3 sm:grid-cols-2">
+                    <div>
+                        <label class="label">URL Link Tujuan <span class="text-danger">*</span></label>
+                        <input type="text" wire:model="cardForm.url" class="input" placeholder="https://... atau #agenda atau /berita/...">
+                        @error('cardForm.url') <span class="error">{{ $message }}</span> @enderror
+                    </div>
+                    <div>
+                        <label class="label">Teks Tombol Aksi <span class="text-danger">*</span></label>
+                        <input type="text" wire:model="cardForm.cta_text" class="input" placeholder="Lebih Lanjut / Pelajari Selengkapnya">
+                        @error('cardForm.cta_text') <span class="error">{{ $message }}</span> @enderror
+                    </div>
+                </div>
+
+                <!-- Checkbox Aktif -->
+                <div class="flex items-center gap-2 pt-2">
+                    <input type="checkbox" id="card_is_active" wire:model="cardForm.is_active" class="rounded border-border text-primary focus:ring-primary w-4 h-4">
+                    <label for="card_is_active" class="text-sm font-semibold text-text-main cursor-pointer">
+                        Aktifkan &amp; tampilkan card ini pada carousel beranda
+                    </label>
+                </div>
+            </div>
+
+            <!-- Modal Action Buttons -->
+            <div class="flex items-center justify-end gap-3 pt-4 border-t border-border">
+                <button type="button" wire:click="closeCardModal" class="btn btn-outline text-xs cursor-pointer">
+                    Batal
+                </button>
+                <button type="button" wire:click="saveCard" class="btn btn-primary text-xs px-5 cursor-pointer">
+                    Simpan Card
+                </button>
+            </div>
+        </div>
+    </div>
+    @endif
 </div>
