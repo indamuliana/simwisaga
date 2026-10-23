@@ -630,20 +630,20 @@
 
     <!-- ── Tier 2: Main Header Navigation ── -->
     <header class="sticky top-0 z-40 bg-white/95 dark:bg-[#071324]/95 backdrop-blur-md border-b border-slate-200/80 dark:border-slate-800 transition-all duration-300">
-        <div class="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 h-18 sm:h-20 flex items-center justify-between gap-3 sm:gap-4">
+        <div class="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 h-16 sm:h-20 flex items-center justify-between gap-2.5 sm:gap-4">
             
             <!-- School Brand Crest -->
-            <a href="#beranda" class="flex items-center space-x-2.5 sm:space-x-3.5 group shrink-0 min-w-0">
+            <a href="#beranda" class="flex items-center space-x-2 sm:space-x-3.5 group shrink-0 min-w-0">
                 <div class="p-1 rounded-xl bg-slate-50 dark:bg-slate-800 border border-slate-200 dark:border-slate-700 shadow-xs group-hover:scale-105 transition-transform shrink-0">
-                    <img src="{{ $logoUrl }}" alt="Logo {{ $schoolName }}" class="h-9 sm:h-11 w-auto object-contain">
+                    <img src="{{ $logoUrl }}" alt="Logo {{ $schoolName }}" class="h-8 sm:h-11 w-auto object-contain">
                 </div>
-                <div class="min-w-0 max-w-[130px] xs:max-w-[190px] sm:max-w-none">
-                    <span class="text-sm sm:text-lg font-bold text-slate-900 dark:text-white tracking-tight block leading-tight group-hover:text-blue-600 transition-colors truncate">
+                <div class="min-w-0 max-w-[160px] sm:max-w-none">
+                    <span class="text-xs sm:text-lg font-bold text-slate-900 dark:text-white tracking-tight block leading-tight group-hover:text-blue-600 transition-colors truncate">
                         {{ $schoolName }}
                     </span>
-                    <span class="text-[9.5px] sm:text-xs font-semibold text-slate-500 dark:text-slate-400 flex items-center gap-1 sm:gap-1.5 truncate">
+                    <span class="text-[9px] sm:text-xs font-semibold text-slate-500 dark:text-slate-400 flex items-center gap-1 sm:gap-1.5 truncate">
                         <span class="w-1.5 h-1.5 sm:w-2 sm:h-2 rounded-full bg-emerald-500 shrink-0"></span>
-                        <span class="truncate">{{ $cfg['branding']['school_type'] ?? 'Islamic Boarding School' }} &bull; {{ $appName }}</span>
+                        <span class="truncate">{{ $cfg['branding']['school_type'] ?? 'Islamic Boarding School' }}</span>
                     </span>
                 </div>
             </a>
@@ -665,30 +665,20 @@
                 @endif
             </nav>
 
-            <!-- Actions: SPMB & Portal Login -->
+            <!-- Actions: SPMB & Mobile Menu Toggle -->
             <div class="flex items-center space-x-2 sm:space-x-3 shrink-0">
                 <a href="{{ $cfg['branding']['spmb_url'] ?? 'https://spmb.smkwikrama1garut.sch.id/' }}" 
                    target="_blank" 
                    rel="noopener" 
-                   class="btn-google-gold text-xs sm:text-sm !py-2 !px-3 sm:!py-2.5 sm:!px-5 inline-flex items-center gap-1 sm:gap-1.5 shadow-xs">
+                   class="btn-google-gold text-xs sm:text-sm !py-1.5 !px-3 sm:!py-2.5 sm:!px-5 inline-flex items-center gap-1 sm:gap-1.5 shadow-xs">
                     <span>Daftar SPMB</span>
                     <span class="text-xs">&rarr;</span>
                 </a>
 
-                @auth
-                    <a href="{{ route('dashboard') }}" class="btn-google-primary text-xs sm:text-sm !py-2.5 !px-4 hidden sm:inline-flex items-center gap-1 shadow-xs">
-                        <span>Dashboard</span>
-                    </a>
-                @else
-                    <a href="{{ route('login') }}" class="btn-google-outline text-xs sm:text-sm !py-2.5 !px-4 hidden sm:inline-flex items-center gap-1">
-                        <span>Masuk Portal</span>
-                    </a>
-                @endauth
-
                 <!-- Mobile Menu Hamburger Button -->
                 <button type="button" 
                         @click="mobileMenu = !mobileMenu"
-                        class="lg:hidden p-2 rounded-xl text-slate-700 dark:text-slate-200 hover:bg-slate-100 dark:hover:bg-slate-800 cursor-pointer"
+                        class="lg:hidden p-1.5 sm:p-2 rounded-xl text-slate-700 dark:text-slate-200 hover:bg-slate-100 dark:hover:bg-slate-800 cursor-pointer"
                         aria-label="Buka Menu Navigasi">
                     <svg class="w-6 h-6" fill="none" viewBox="0 0 24 24" stroke="currentColor">
                         <path x-show="!mobileMenu" stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M4 6h16M4 12h16M4 18h16" />
@@ -716,7 +706,7 @@
              x-transition:leave="transition ease-in duration-150"
              x-transition:leave-start="opacity-100 translate-y-0"
              x-transition:leave-end="opacity-0 -translate-y-4"
-             class="lg:hidden fixed top-18 inset-x-0 bg-white dark:bg-slate-900 border-b border-slate-200 dark:border-slate-800 z-40 p-5 shadow-2xl max-h-[82vh] overflow-y-auto">
+             class="lg:hidden absolute top-full inset-x-0 bg-white dark:bg-slate-900 border-b border-slate-200 dark:border-slate-800 z-40 p-5 shadow-2xl max-h-[calc(100vh-5rem)] overflow-y-auto">
             <div class="flex flex-col space-y-2 text-sm font-semibold text-slate-800 dark:text-slate-100">
                 @if($headerMenus->isNotEmpty())
                     @foreach($headerMenus as $m)
@@ -736,25 +726,16 @@
                     </div>
                 @endif
                 <div class="pt-4 mt-2 border-t border-slate-200 dark:border-slate-800 flex flex-col gap-2">
-                    <a href="{{ $cfg['branding']['spmb_url'] ?? 'https://spmb.smkwikrama1garut.sch.id/' }}" target="_blank" rel="noopener" class="btn-google-gold text-center text-xs py-3">
+                    <a href="{{ $cfg['branding']['spmb_url'] ?? 'https://spmb.smkwikrama1garut.sch.id/' }}" target="_blank" rel="noopener" class="btn-google-gold text-center text-xs py-3 shadow-sm">
                         Daftar SPMB Online Sekarang &rarr;
                     </a>
-                    @auth
-                        <a href="{{ route('dashboard') }}" class="btn-google-primary text-center text-xs py-3">
-                            Buka Dashboard {{ $appName }}
-                        </a>
-                    @else
-                        <a href="{{ route('login') }}" class="btn-google-outline text-center text-xs py-3">
-                            Masuk Portal {{ $appName }}
-                        </a>
-                    @endauth
                 </div>
             </div>
         </div>
     </header>
 
     <!-- ── Main Content Landmark ── -->
-    <main class="flex-grow" id="beranda">
+    <main class="flex-grow">
 
         @php
             $heroBgSetting = $cfg['hero']['background_image'] ?? 'images/web/campus-environment.jpg';
@@ -768,7 +749,7 @@
         @endphp
 
         <!-- ── 1. Hero Section: Modern Split-Showcase (High-Contrast Dark Theme) ── -->
-        <section class="relative overflow-hidden pt-12 pb-16 sm:pt-16 sm:pb-24 bg-slate-950 text-white" id="beranda" data-mouse-glow style="background-color: #020617;">
+        <section class="relative overflow-hidden pt-8 pb-12 sm:pt-16 sm:pb-24 bg-slate-950 text-white" id="beranda" data-mouse-glow style="background-color: #020617;">
             
             <!-- Background Image with Dynamic Dark Overlay & Dimming (strictly positioned above image and below text) -->
             <div class="absolute inset-0 z-0 pointer-events-none overflow-hidden" style="background-color: #020617;">
@@ -786,37 +767,37 @@
             </div>
 
             <div class="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 relative z-10 w-full">
-                <div class="grid grid-cols-1 lg:grid-cols-12 gap-10 lg:gap-8 items-center">
+                <div class="grid grid-cols-1 lg:grid-cols-12 gap-8 lg:gap-8 items-center">
                     
                     <!-- ── Left Column: Hero Narrative, SPMB CTA & Trust Proof ── -->
                     <div class="lg:col-span-7 text-center lg:text-left">
                         
                         <!-- Eyebrow Pill Tag with Monospace Code Accent -->
-                        <div class="inline-flex items-center gap-2 px-3.5 py-1.5 rounded-full text-xs font-semibold bg-blue-950/80 text-blue-300 border border-blue-700/60 mb-6 shadow-lg" data-animate>
-                            <span class="w-2 h-2 rounded-full bg-blue-400 animate-ping"></span>
-                            <span class="font-mono-code font-bold text-amber-400">[ SPMB 2026/2027 ]</span>
-                            <span>{{ $cfg['hero']['tag'] ?? 'SMK Pusat Keunggulan • ISLAMIC BOARDING SCHOOL' }}</span>
+                        <div class="inline-flex items-center gap-1.5 sm:gap-2 px-3 py-1 sm:px-3.5 sm:py-1.5 rounded-full text-[11px] sm:text-xs font-semibold bg-blue-950/80 text-blue-300 border border-blue-700/60 mb-5 sm:mb-6 shadow-lg max-w-full" data-animate>
+                            <span class="w-2 h-2 rounded-full bg-blue-400 animate-ping shrink-0"></span>
+                            <span class="font-mono-code font-bold text-amber-400 shrink-0">[ SPMB 2026/2027 ]</span>
+                            <span class="truncate">{{ $cfg['hero']['tag'] ?? 'SMK Pusat Keunggulan • ISLAMIC BOARDING SCHOOL' }}</span>
                         </div>
 
                         <!-- Main Title with Clean Hierarchy & Google AI Typography -->
-                        <h1 class="text-3xl sm:text-5xl md:text-6xl font-extrabold text-white tracking-tight leading-[1.12]" data-animate data-animate-delay="1">
+                        <h1 class="text-3xl sm:text-5xl md:text-6xl font-extrabold text-white tracking-tight leading-[1.14]" data-animate data-animate-delay="1">
                             {{ $cfg['hero']['title_line1'] ?? 'Solusi Pendidikan Akhlak Berkualitas' }} <br>
                             <span class="bg-gradient-to-r from-blue-400 via-indigo-300 to-pink-400 bg-clip-text text-transparent">
                                 {{ $cfg['hero']['title_highlight'] ?? 'Terbaik bagi Masa Depan' }}
                             </span>
-                            <span class="block mt-2.5 text-2xl sm:text-3xl md:text-4xl font-bold text-slate-100">
+                            <span class="block mt-2 text-xl sm:text-3xl md:text-4xl font-bold text-slate-100">
                                 <span class="bg-gradient-to-r from-amber-400 to-orange-400 bg-clip-text text-transparent" x-text="typewriterText">Teknologi &amp; AI</span>
-                                <span class="inline-block w-1 h-6 sm:h-8 bg-blue-400 align-middle ml-1 animate-pulse"></span>
+                                <span class="inline-block w-1 h-5 sm:h-8 bg-blue-400 align-middle ml-1 animate-pulse"></span>
                             </span>
                         </h1>
 
                         <!-- Lead Paragraph: Crisp, Readable White/Slate Text -->
-                        <p class="mt-6 text-base sm:text-lg text-slate-300 leading-relaxed max-w-2xl mx-auto lg:mx-0 font-normal" data-animate data-animate-delay="2">
+                        <p class="mt-4 sm:mt-6 text-sm sm:text-lg text-slate-300 leading-relaxed max-w-2xl mx-auto lg:mx-0 font-normal" data-animate data-animate-delay="2">
                             {{ $cfg['hero']['description'] ?? 'Keahlian teknologi, ketangkasan bisnis digital, dan standar pelayanan prima hospitaliti dipadukan harmonis dengan keteguhan adab dan integritas spiritual Al-Qur\'an.' }}
                         </p>
 
                         <!-- Action Buttons Group (Clean 2-Action Hierarchy + Tertiary Link) -->
-                        <div class="mt-8 flex flex-col sm:flex-row items-center justify-center lg:justify-start gap-4" data-animate data-animate-delay="3">
+                        <div class="mt-6 sm:mt-8 flex flex-col sm:flex-row flex-wrap items-center justify-center lg:justify-start gap-3 sm:gap-4" data-animate data-animate-delay="3">
                             <a href="{{ $cfg['branding']['spmb_url'] ?? 'https://spmb.smkwikrama1garut.sch.id/' }}" 
                                target="_blank" 
                                rel="noopener" 
@@ -840,16 +821,16 @@
                         </div>
 
                         <!-- Technical Monospace Metrics Strip -->
-                        <div class="mt-12 pt-8 border-t border-white/10 grid grid-cols-2 sm:grid-cols-4 gap-6 text-center sm:text-left" data-animate data-animate-delay="4">
+                        <div class="mt-8 sm:mt-12 pt-6 sm:pt-8 border-t border-white/10 grid grid-cols-2 sm:grid-cols-4 gap-4 sm:gap-6 text-center sm:text-left" data-animate data-animate-delay="4">
                             @foreach($cfg['hero']['stats'] ?? [] as $st)
                             <div class="pr-2">
-                                <div class="text-2xl sm:text-3xl font-extrabold font-mono-code text-blue-400">
+                                <div class="text-xl sm:text-3xl font-extrabold font-mono-code text-blue-400">
                                     {{ $st['number'] }}
                                 </div>
                                 <div class="text-xs font-bold text-white mt-1 leading-snug">
                                     {{ $st['label'] }}
                                 </div>
-                                <div class="text-[11px] text-slate-400 mt-0.5 font-medium">
+                                <div class="text-[10px] sm:text-[11px] text-slate-400 mt-0.5 font-medium">
                                     {{ $st['sub'] }}
                                 </div>
                             </div>
@@ -861,15 +842,15 @@
                     <div class="lg:col-span-5 w-full max-w-lg mx-auto lg:mx-0" data-animate>
                         <div class="p-3 sm:p-4 rounded-3xl bg-slate-900/90 border border-white/15 shadow-2xl backdrop-blur-md transition-all duration-300">
                             
-                            <!-- Interactive Tab Switcher (Horizontal Swipe on Mobile, 5-col Grid on Tablet/Desktop) -->
-                            <div class="flex overflow-x-auto no-scrollbar sm:grid sm:grid-cols-5 gap-1 p-1 bg-slate-950/80 border border-white/10 rounded-2xl mb-3">
+                            <!-- Interactive Tab Switcher (Horizontal Swipe on Mobile, Even Distribution on Tablet/Desktop) -->
+                            <div class="flex overflow-x-auto no-scrollbar gap-1 p-1 bg-slate-950/80 border border-white/10 rounded-2xl mb-3">
                                 @foreach($cfg['hero']['slides'] ?? [] as $sl)
                                 <button type="button" 
-                                        @click="activeHeroTab = '{{ $sl['id'] }}'; heroAutoPlay = false"
+                                        @click="activeHeroTab = '{{ $sl['id'] }}'; heroAutoPlay = false" 
                                         :class="activeHeroTab === '{{ $sl['id'] }}' 
                                             ? 'bg-blue-600 text-white font-bold shadow-xs' 
-                                            : 'text-slate-300 font-medium hover:text-white'"
-                                        class="shrink-0 sm:shrink flex-1 py-1.5 sm:py-2 px-2.5 sm:px-1 rounded-xl text-[10.5px] sm:text-xs transition-all text-center whitespace-nowrap sm:truncate cursor-pointer">
+                                            : 'text-slate-300 font-medium hover:text-white'" 
+                                        class="shrink-0 flex-1 py-1.5 sm:py-2 px-2.5 sm:px-2 rounded-xl text-[11px] font-semibold transition-all text-center whitespace-nowrap cursor-pointer">
                                     {{ $sl['tab_name'] }}
                                 </button>
                                 @endforeach
@@ -949,25 +930,25 @@
         </section>
 
         <!-- ── 2. "Welcome to Wikrama" Signature Manifesto Section ── -->
-        <section class="py-20 sm:py-28 relative overflow-hidden bg-slate-950 text-white" id="filosofi">
+        <section class="py-12 sm:py-20 lg:py-28 relative overflow-hidden bg-slate-950 text-white" id="filosofi">
             <!-- Background Student Activity Image with Dark Elegant Overlay (above image, below text) -->
             <div class="absolute inset-0 z-0 pointer-events-none">
                 <img src="{{ asset('images/web/activity-spiritual.jpg') }}" alt="Kegiatan Ibadah & Karakter Siswa Wikrama" class="w-full h-full object-cover object-center opacity-25 filter blur-[2px] brightness-[0.20] contrast-125">
                 <div class="absolute inset-0 bg-slate-950/92 dark:bg-slate-950/96 backdrop-blur-[1px]"></div>
             </div>
 
-            <div class="w-full max-w-[1680px] mx-auto px-4 sm:px-6 lg:px-10 xl:px-16 text-center relative z-10" data-animate>
+            <div class="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 text-center relative z-10" data-animate>
                 <span class="google-tag bg-blue-950/80 text-blue-300 border-blue-700/60 shadow-lg">
                     <span class="w-1.5 h-1.5 rounded-full bg-blue-400"></span>
                     <span>{{ $cfg['welcome']['tag'] ?? 'Filosofi Pendidikan Wikrama' }}</span>
                 </span>
                 
                 <!-- Modern Sans & Monospace Combined Manifesto Quote -->
-                <div class="mt-8 p-6 sm:p-10 rounded-3xl bg-slate-900/95 border border-white/15 text-left sm:text-center w-full max-w-5xl mx-auto shadow-2xl backdrop-blur-md">
+                <div class="mt-6 sm:mt-8 p-5 sm:p-10 rounded-3xl bg-slate-900/95 border border-white/15 text-left sm:text-center w-full max-w-5xl mx-auto shadow-2xl backdrop-blur-md">
                     <span class="font-mono-code text-xs font-bold uppercase tracking-wider text-blue-400 block mb-3">
                         [ MANIFESTO PENDIDIKAN WIKRAMA ]
                     </span>
-                    <blockquote class="font-sans text-xl sm:text-2xl md:text-3xl text-white leading-relaxed font-medium tracking-tight">
+                    <blockquote class="font-sans text-lg sm:text-2xl md:text-3xl text-white leading-relaxed font-medium tracking-tight">
                         &ldquo;{{ $cfg['welcome']['quote'] ?? 'Di SMK Wikrama 1 Garut, kami mempersiapkan anak bangsa dari berbagai daerah untuk menjadi yang terbaik dalam keahlian yang mereka tekuni, sekaligus menjadi pribadi yang membawa kemaslahatan terbaik bagi keluarga, masyarakat, dan masa depan peradaban.' }}&rdquo;
                     </blockquote>
                     <div class="mt-6 pt-4 border-t border-white/10 flex flex-col sm:flex-row items-start sm:items-center justify-between gap-2 text-xs">
@@ -979,7 +960,7 @@
                 </div>
 
                 <!-- 4 Core Educational Pillars -->
-                <div class="mt-14 grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-4 sm:gap-6 text-left w-full">
+                <div class="mt-10 sm:mt-14 grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-4 sm:gap-6 text-left w-full">
                     @foreach($cfg['welcome']['pillars'] ?? [] as $idx => $pil)
                     <div class="p-6 rounded-3xl bg-slate-900/80 border border-white/10 hover:border-blue-500/50 transition-all duration-300 backdrop-blur-sm flex flex-col justify-between h-full group" data-animate data-animate-delay="{{ $idx + 1 }}">
                         <div>
@@ -1000,19 +981,19 @@
         </section>
 
         <!-- ── 3. "Get to Know Wikrama" Editorial Tabbed Showcase ── -->
-        <section class="py-16 sm:py-24 bg-slate-50 dark:bg-[#060D1A]" id="mengenal">
+        <section class="py-12 sm:py-20 lg:py-24 bg-slate-50 dark:bg-[#060D1A]" id="mengenal">
             <div class="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
                 
                 <!-- Section Header -->
-                <div class="text-center max-w-3xl mx-auto mb-12 sm:mb-14" data-animate>
+                <div class="text-center max-w-3xl mx-auto mb-10 sm:mb-14" data-animate>
                     <span class="google-tag">
                         <span class="w-1.5 h-1.5 rounded-full bg-blue-500"></span>
                         <span>{{ $cfg['get_to_know']['tag'] ?? 'Mengenal Lebih Dekat' }}</span>
                     </span>
-                    <h2 class="text-3xl sm:text-4xl md:text-5xl font-bold tracking-tight text-slate-900 dark:text-white mt-4">
+                    <h2 class="text-2xl sm:text-4xl md:text-5xl font-bold tracking-tight text-slate-900 dark:text-white mt-3 sm:mt-4">
                         {{ $cfg['get_to_know']['title'] ?? 'Menemukan Potensi Sejati di Wikrama' }}
                     </h2>
-                    <p class="mt-4 text-base sm:text-lg text-slate-600 dark:text-slate-300 leading-relaxed font-normal">
+                    <p class="mt-3 sm:mt-4 text-sm sm:text-lg text-slate-600 dark:text-slate-300 leading-relaxed font-normal">
                         {{ $cfg['get_to_know']['subtitle'] ?? 'Jelajahi ekosistem pembelajaran holistik yang menggabungkan keunggulan akademik, riset teknologi industri, dan pembinaan kepemimpinan islami.' }}
                     </p>
 
@@ -1048,13 +1029,13 @@
                     @foreach($cfg['get_to_know']['tabs']['admissions']['cards'] ?? [] as $idx => $c)
                     <div class="google-card overflow-hidden flex flex-col justify-between h-full group">
                         <div>
-                            <div class="aspect-[16/10] w-full google-card-inner relative bg-slate-950 m-2 !w-[calc(100%-16px)]">
+                            <div class="aspect-[16/10] w-full relative overflow-hidden bg-slate-950">
                                 <img src="{{ asset($c['image']) }}" alt="{{ $c['title'] }}" class="w-full h-full object-cover group-hover:scale-105 transition-transform duration-500" loading="lazy">
                                 <span class="absolute top-3 left-3 bg-white/95 dark:bg-slate-900/95 text-blue-700 dark:text-blue-300 font-mono-code text-[10px] font-bold px-3 py-1 rounded-full shadow-xs">
                                     {{ $c['badge'] }}
                                 </span>
                             </div>
-                            <div class="p-6 pt-3">
+                            <div class="p-6 pt-4">
                                 <h3 class="text-lg font-bold text-slate-900 dark:text-white mb-2 leading-snug group-hover:text-blue-600 transition-colors">
                                     {{ $c['title'] }}
                                 </h3>
@@ -1082,13 +1063,13 @@
                     @foreach($cfg['get_to_know']['tabs']['academics']['cards'] ?? [] as $idx => $c)
                     <div class="google-card overflow-hidden flex flex-col justify-between h-full group">
                         <div>
-                            <div class="aspect-[16/10] w-full google-card-inner relative bg-slate-950 m-2 !w-[calc(100%-16px)]">
+                            <div class="aspect-[16/10] w-full relative overflow-hidden bg-slate-950">
                                 <img src="{{ asset($c['image']) }}" alt="{{ $c['title'] }}" class="w-full h-full object-cover group-hover:scale-105 transition-transform duration-500" loading="lazy">
                                 <span class="absolute top-3 left-3 bg-white/95 dark:bg-slate-900/95 text-blue-700 dark:text-blue-300 font-mono-code text-[10px] font-bold px-3 py-1 rounded-full shadow-xs">
                                     {{ $c['badge'] }}
                                 </span>
                             </div>
-                            <div class="p-5 pt-3">
+                            <div class="p-5 pt-4">
                                 <h3 class="text-base font-bold text-slate-900 dark:text-white mb-2 leading-snug group-hover:text-blue-600 transition-colors">
                                     {{ $c['title'] }}
                                 </h3>
@@ -1116,13 +1097,13 @@
                     @foreach($cfg['get_to_know']['tabs']['boarding']['cards'] ?? [] as $idx => $c)
                     <div class="google-card overflow-hidden flex flex-col justify-between h-full group">
                         <div>
-                            <div class="aspect-[16/10] w-full google-card-inner relative bg-slate-950 m-2 !w-[calc(100%-16px)]">
+                            <div class="aspect-[16/10] w-full relative overflow-hidden bg-slate-950">
                                 <img src="{{ asset($c['image']) }}" alt="{{ $c['title'] }}" class="w-full h-full object-cover group-hover:scale-105 transition-transform duration-500" loading="lazy">
                                 <span class="absolute top-3 left-3 bg-white/95 dark:bg-slate-900/95 text-blue-700 dark:text-blue-300 font-mono-code text-[10px] font-bold px-3 py-1 rounded-full shadow-xs">
                                     {{ $c['badge'] }}
                                 </span>
                             </div>
-                            <div class="p-6 pt-3">
+                            <div class="p-6 pt-4">
                                 <h3 class="text-lg font-bold text-slate-900 dark:text-white mb-2 leading-snug group-hover:text-blue-600 transition-colors">
                                     {{ $c['title'] }}
                                 </h3>
@@ -1144,7 +1125,7 @@
         </section>
 
         <!-- ── 4. "Where Graduates Succeed" Partner Marquee Ribbon ── -->
-        <section class="py-12 sm:py-16 bg-white dark:bg-[#071324] overflow-hidden transition-colors duration-300" id="mitra" data-mouse-glow>
+        <section class="py-10 sm:py-16 bg-white dark:bg-[#071324] overflow-hidden transition-colors duration-300" id="mitra" data-mouse-glow>
             <div class="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 text-center mb-6 sm:mb-8" data-animate>
                 <span class="google-tag mb-3">
                     <span class="w-1.5 h-1.5 rounded-full bg-blue-500"></span>
@@ -1191,18 +1172,18 @@
         </section>
 
         <!-- ── 5. "Life at Wikrama" Fast Facts ── -->
-        <section class="py-16 sm:py-24 bg-slate-50 dark:bg-[#060D1A]" id="fakta">
+        <section class="py-12 sm:py-20 lg:py-24 bg-slate-50 dark:bg-[#060D1A]" id="fakta">
             <div class="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
                 
-                <div class="text-center max-w-3xl mx-auto mb-12 sm:mb-14" data-animate>
+                <div class="text-center max-w-3xl mx-auto mb-10 sm:mb-14" data-animate>
                     <span class="google-tag">
                         <span class="w-1.5 h-1.5 rounded-full bg-blue-500"></span>
                         <span>Life at Wikrama &bull; Data &amp; Fakta</span>
                     </span>
-                    <h2 class="text-3xl sm:text-4xl md:text-5xl font-bold tracking-tight text-slate-900 dark:text-white mt-4">
+                    <h2 class="text-2xl sm:text-4xl md:text-5xl font-bold tracking-tight text-slate-900 dark:text-white mt-3 sm:mt-4">
                         Capaian Nyata yang Membanggakan
                     </h2>
-                    <p class="mt-4 text-base sm:text-lg text-slate-600 dark:text-slate-300 leading-relaxed font-normal">
+                    <p class="mt-3 sm:mt-4 text-sm sm:text-lg text-slate-600 dark:text-slate-300 leading-relaxed font-normal">
                         Standar mutu dan konsistensi pendidikan vokasi yang diakui secara resmi di tingkat nasional dan internasional.
                     </p>
                 </div>
@@ -1213,7 +1194,7 @@
                     <div class="google-card overflow-hidden flex flex-col justify-between h-full group" data-animate data-animate-delay="{{ $idx + 1 }}">
                         <div>
                             <!-- Photo Header -->
-                            <div class="aspect-[16/10] w-full google-card-inner relative bg-slate-950 m-2 !w-[calc(100%-16px)]">
+                            <div class="aspect-[16/10] w-full relative overflow-hidden bg-slate-950">
                                 <img src="{{ asset($f['image']) }}" alt="{{ $f['label'] }}" class="w-full h-full object-cover group-hover:scale-105 transition-transform duration-500" loading="lazy">
                                 <span class="absolute top-3 left-3 bg-white/95 dark:bg-slate-900/95 text-blue-700 dark:text-blue-300 font-mono-code text-[10px] font-bold px-2.5 py-0.5 rounded-full shadow-xs">
                                     {{ $f['tag'] }}
@@ -1221,7 +1202,7 @@
                             </div>
 
                             <!-- Big Bold Hero Number & Content -->
-                            <div class="p-6 pt-3">
+                            <div class="p-6 pt-4">
                                 <div class="text-3xl sm:text-4xl font-bold font-mono-code text-blue-600 dark:text-blue-400 mb-2">
                                     {{ $f['number'] }}
                                 </div>
@@ -1240,18 +1221,18 @@
         </section>
 
         <!-- ── 6. 3 Pilar Kejuruan / 4 Jurusan Unggulan ── -->
-        <section class="py-16 sm:py-24 bg-white dark:bg-[#071324]" id="jurusan" x-data="{ activePillar: 'all' }" data-mouse-glow>
+        <section class="py-12 sm:py-20 lg:py-24 bg-white dark:bg-[#071324]" id="jurusan" x-data="{ activePillar: 'all' }" data-mouse-glow>
             <div class="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 relative z-10">
                 
-                <div class="text-center max-w-3xl mx-auto mb-12 sm:mb-14" data-animate>
+                <div class="text-center max-w-3xl mx-auto mb-10 sm:mb-14" data-animate>
                     <span class="google-tag">
                         <span class="w-1.5 h-1.5 rounded-full bg-blue-500"></span>
                         <span>Program Keahlian Vokasi Terakreditasi</span>
                     </span>
-                    <h2 class="text-3xl sm:text-4xl md:text-5xl font-bold tracking-tight text-slate-900 dark:text-white mt-4">
+                    <h2 class="text-2xl sm:text-4xl md:text-5xl font-bold tracking-tight text-slate-900 dark:text-white mt-3 sm:mt-4">
                         3 Pilar Kompetensi Masa Depan
                     </h2>
-                    <p class="mt-4 text-base sm:text-lg text-slate-600 dark:text-slate-300 leading-relaxed font-normal">
+                    <p class="mt-3 sm:mt-4 text-sm sm:text-lg text-slate-600 dark:text-slate-300 leading-relaxed font-normal">
                         Kurikulum link-and-match dengan industri terkemuka dalam bidang <strong class="text-blue-600 dark:text-blue-400">Teknologi Informasi &amp; AI</strong>, <strong class="text-emerald-700 dark:text-emerald-400">Bisnis Digital</strong>, dan <strong class="text-amber-700 dark:text-amber-400">Pariwisata &amp; Hospitaliti</strong>.
                     </p>
 
@@ -1298,7 +1279,7 @@
                          data-animate data-animate-delay="{{ $idx + 1 }}">
                         <div>
                             <!-- Photo Header -->
-                            <div class="aspect-[16/10] w-full google-card-inner relative bg-slate-950 m-2 !w-[calc(100%-16px)]">
+                            <div class="aspect-[16/10] w-full relative overflow-hidden bg-slate-950">
                                 <img src="{{ asset($jur['image']) }}" alt="{{ $jur['name'] }}" class="w-full h-full object-cover group-hover:scale-105 transition-transform duration-500" loading="lazy">
                                 <div class="absolute inset-0 bg-gradient-to-t from-slate-950/70 via-transparent to-transparent"></div>
                                 <span class="absolute top-3 left-3 px-3 py-1 rounded-full text-[10px] font-bold shadow-xs {{ $jur['badge_bg'] }}">
@@ -1310,7 +1291,7 @@
                             </div>
 
                             <!-- Body Info -->
-                            <div class="p-5 pt-3">
+                            <div class="p-5 pt-4">
                                 <h3 class="text-base sm:text-lg font-bold text-slate-900 dark:text-white mb-2 leading-snug group-hover:text-blue-600 transition-colors">
                                     {{ $jur['name'] }}
                                 </h3>
@@ -1343,7 +1324,7 @@
         </section>
 
         <!-- ── 6.5. "Dinamika Kehidupan & Prestasi Siswa" (Student Life & Moments) ── -->
-        <section class="py-16 sm:py-24 bg-slate-900 text-white relative overflow-hidden" id="dinamika-siswa" x-data="{ studentTab: 'all' }">
+        <section class="py-12 sm:py-20 lg:py-24 bg-slate-900 text-white relative overflow-hidden" id="dinamika-siswa" x-data="{ studentTab: 'all' }">
             <!-- Background Texture with Student Photo Accent -->
             <div class="absolute inset-0 z-0 opacity-15 pointer-events-none">
                 <img src="{{ asset('images/web/activity-outdoor.jpg') }}" alt="Student Life Backdrop" class="w-full h-full object-cover">
@@ -1352,15 +1333,15 @@
 
             <div class="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 relative z-10">
                 <!-- Section Header -->
-                <div class="text-center max-w-3xl mx-auto mb-12 sm:mb-14" data-animate>
+                <div class="text-center max-w-3xl mx-auto mb-10 sm:mb-14" data-animate>
                     <span class="inline-flex items-center gap-2 px-3.5 py-1.5 rounded-full text-xs font-semibold bg-blue-900/60 text-blue-300 border border-blue-700/60 shadow-xs mb-3">
                         <span class="w-2 h-2 rounded-full bg-blue-400 animate-pulse"></span>
                         <span class="font-mono-code font-bold uppercase tracking-wider">{{ $cfg['student_moments']['tag'] ?? 'Dinamika Kehidupan Siswa' }}</span>
                     </span>
-                    <h2 class="text-3xl sm:text-4xl md:text-5xl font-bold tracking-tight text-white mt-2">
+                    <h2 class="text-2xl sm:text-4xl md:text-5xl font-bold tracking-tight text-white mt-2">
                         {{ $cfg['student_moments']['title'] ?? 'Tumbuh, Berkarya, & Berprestasi Bersama Wikrama' }}
                     </h2>
-                    <p class="mt-4 text-base sm:text-lg text-slate-300 leading-relaxed font-normal">
+                    <p class="mt-3 sm:mt-4 text-sm sm:text-lg text-slate-300 leading-relaxed font-normal">
                         {{ $cfg['student_moments']['subtitle'] ?? 'Setiap hari di SMK Wikrama 1 Garut diisi dengan antusiasme belajar nyata, pembiasaan karakter luhur, dan torehan prestasi nasional.' }}
                     </p>
 
@@ -1468,13 +1449,13 @@
         </section>
 
         <!-- ── 7. Leadership & Institutional Vision ── -->
-        <section class="py-16 sm:py-24 bg-slate-50 dark:bg-[#060D1A]" id="profil">
+        <section class="py-12 sm:py-20 lg:py-24 bg-slate-50 dark:bg-[#060D1A]" id="profil">
             <div class="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
-                <div class="grid grid-cols-1 lg:grid-cols-12 gap-10 lg:gap-14 items-center">
+                <div class="grid grid-cols-1 lg:grid-cols-12 gap-8 lg:gap-14 items-center">
                     
                     <!-- Principal Card -->
                     <div class="lg:col-span-5" data-animate>
-                        <div class="google-card p-6 sm:p-8">
+                        <div class="google-card p-5 sm:p-8">
                             <div class="flex flex-col sm:flex-row items-center sm:items-start text-center sm:text-left gap-5">
                                 <div class="shrink-0 relative">
                                     <div class="w-28 sm:w-32 h-36 sm:h-40 rounded-2xl overflow-hidden border border-slate-200 dark:border-slate-700 shadow-md bg-white mx-auto">
@@ -1508,7 +1489,7 @@
                                 <span class="w-1.5 h-1.5 rounded-full bg-blue-500"></span>
                                 <span>Visi &amp; Komitmen Kelembagaan</span>
                             </span>
-                            <h2 class="text-2xl sm:text-3xl md:text-4xl font-bold tracking-tight text-slate-900 dark:text-white mt-4">
+                            <h2 class="text-2xl sm:text-3xl md:text-4xl font-bold tracking-tight text-slate-900 dark:text-white mt-3 sm:mt-4">
                                 {{ $cfg['principal']['vision_title'] ?? 'Teladan Nasional Berbudaya Lingkungan & Teknologi' }}
                             </h2>
                             <p class="text-xs sm:text-sm md:text-base text-slate-600 dark:text-slate-300 mt-3 leading-relaxed font-normal">
@@ -1540,18 +1521,18 @@
         </section>
 
         <!-- ── 8. "Community Voices" Testimonials ── -->
-        <section class="py-16 sm:py-24 bg-white dark:bg-[#071324]" id="suara-komunitas">
+        <section class="py-12 sm:py-20 lg:py-24 bg-white dark:bg-[#071324]" id="suara-komunitas">
             <div class="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
                 
-                <div class="text-center max-w-3xl mx-auto mb-12 sm:mb-14" data-animate>
+                <div class="text-center max-w-3xl mx-auto mb-10 sm:mb-14" data-animate>
                     <span class="google-tag">
                         <span class="w-1.5 h-1.5 rounded-full bg-blue-500"></span>
                         <span>Suara Komunitas &bull; Community Voices</span>
                     </span>
-                    <h2 class="text-3xl sm:text-4xl md:text-5xl font-bold tracking-tight text-slate-900 dark:text-white mt-4">
+                    <h2 class="text-2xl sm:text-4xl md:text-5xl font-bold tracking-tight text-slate-900 dark:text-white mt-3 sm:mt-4">
                         Apa Kata Mereka Tentang Wikrama?
                     </h2>
-                    <p class="mt-4 text-base sm:text-lg text-slate-600 dark:text-slate-300 leading-relaxed font-normal">
+                    <p class="mt-3 sm:mt-4 text-sm sm:text-lg text-slate-600 dark:text-slate-300 leading-relaxed font-normal">
                         Kisah nyata dan ulasan mendalam dari siswa, orang tua, pendidik, dan alumni mengenai pengalaman bertumbuh di kampus Wikrama.
                     </p>
                 </div>
@@ -1623,18 +1604,18 @@
         </section>
 
         <!-- ── 9. Interactive Campus Facilities & Labs Gallery ── -->
-        <section class="py-16 sm:py-24 bg-slate-50 dark:bg-[#060D1A]" id="fasilitas" x-data="{ facilityTab: 'all' }" data-mouse-glow>
+        <section class="py-12 sm:py-20 lg:py-24 bg-slate-50 dark:bg-[#060D1A]" id="fasilitas" x-data="{ facilityTab: 'all' }" data-mouse-glow>
             <div class="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
                 
-                <div class="text-center max-w-3xl mx-auto mb-12 sm:mb-14" data-animate>
+                <div class="text-center max-w-3xl mx-auto mb-10 sm:mb-14" data-animate>
                     <span class="google-tag">
                         <span class="w-1.5 h-1.5 rounded-full bg-blue-500"></span>
                         <span>Infrastruktur &amp; Sarana Industri</span>
                     </span>
-                    <h2 class="text-3xl sm:text-4xl md:text-5xl font-bold tracking-tight text-slate-900 dark:text-white mt-4">
+                    <h2 class="text-2xl sm:text-4xl md:text-5xl font-bold tracking-tight text-slate-900 dark:text-white mt-3 sm:mt-4">
                         Fasilitas &amp; Ekosistem Kampus Modern
                     </h2>
-                    <p class="mt-4 text-base sm:text-lg text-slate-600 dark:text-slate-300 leading-relaxed font-normal">
+                    <p class="mt-3 sm:mt-4 text-sm sm:text-lg text-slate-600 dark:text-slate-300 leading-relaxed font-normal">
                         Mendukung pembelajaran praktikum intensif dengan laboratorium mutakhir dan lingkungan Adiwiyata yang hijau asri.
                     </p>
 
@@ -1687,7 +1668,7 @@
                              class="google-card overflow-hidden flex flex-col justify-between h-full group"
                              data-animate data-animate-delay="{{ ($idx % 3) + 1 }}">
                             <div>
-                                <div class="relative aspect-[16/10] w-full google-card-inner bg-slate-950 cursor-pointer m-2 !w-[calc(100%-16px)]"
+                                <div class="relative aspect-[16/10] w-full overflow-hidden bg-slate-950 cursor-pointer"
                                      @click="openImageModal('{{ $f->imageUrl() }}', '{{ $f->title }}', '{{ $f->cat_label }}')">
                                     <img src="{{ $f->imageUrl() }}" alt="{{ $f->title }}" class="w-full h-full object-cover group-hover:scale-105 transition-transform duration-500" loading="lazy">
                                     @if($f->badge)
@@ -1701,7 +1682,7 @@
                                         </span>
                                     </div>
                                 </div>
-                                <div class="p-5 pt-3">
+                                <div class="p-5 pt-4">
                                     <h3 class="text-base font-bold text-slate-900 dark:text-white leading-snug group-hover:text-blue-600 transition-colors">
                                         {{ $f->title }}
                                     </h3>
@@ -1730,7 +1711,7 @@
                              class="google-card overflow-hidden flex flex-col justify-between h-full group"
                              data-animate data-animate-delay="{{ ($idx % 3) + 1 }}">
                             <div>
-                                <div class="relative aspect-[16/10] w-full google-card-inner bg-slate-950 cursor-pointer m-2 !w-[calc(100%-16px)]"
+                                <div class="relative aspect-[16/10] w-full overflow-hidden bg-slate-950 cursor-pointer"
                                      @click="openImageModal('{{ asset($f['image']) }}', '{{ $f['title'] }}', '{{ $f['cat_label'] }}')">
                                     <img src="{{ asset($f['image']) }}" alt="{{ $f['title'] }}" class="w-full h-full object-cover group-hover:scale-105 transition-transform duration-500" loading="lazy">
                                     <span class="absolute top-3 left-3 px-3 py-1 rounded-full text-[10px] font-mono-code font-bold bg-white/95 dark:bg-slate-900/95 text-blue-700 dark:text-blue-300 shadow-xs">
@@ -1742,7 +1723,7 @@
                                         </span>
                                     </div>
                                 </div>
-                                <div class="p-5 pt-3">
+                                <div class="p-5 pt-4">
                                     <h3 class="text-base font-bold text-slate-900 dark:text-white leading-snug group-hover:text-blue-600 transition-colors">
                                         {{ $f['title'] }}
                                     </h3>
@@ -1768,23 +1749,23 @@
         </section>
 
         <!-- ── 10. Latest News & Achievements ── -->
-        <section class="py-16 sm:py-24 bg-white dark:bg-[#071324]" id="berita">
+        <section class="py-12 sm:py-20 lg:py-24 bg-white dark:bg-[#071324]" id="berita">
             <div class="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
                 
-                <div class="flex flex-col md:flex-row md:items-end justify-between mb-12 sm:mb-14 gap-4" data-animate>
+                <div class="flex flex-col md:flex-row md:items-end justify-between mb-10 sm:mb-14 gap-4" data-animate>
                     <div>
                         <span class="google-tag">
                             <span class="w-1.5 h-1.5 rounded-full bg-blue-500"></span>
                             <span>Kabar &amp; Prestasi Terkini</span>
                         </span>
-                        <h2 class="text-3xl sm:text-4xl md:text-5xl font-bold tracking-tight text-slate-900 dark:text-white mt-4">
+                        <h2 class="text-2xl sm:text-4xl md:text-5xl font-bold tracking-tight text-slate-900 dark:text-white mt-3 sm:mt-4">
                             Berita Terbaru SMK Wikrama 1 Garut
                         </h2>
-                        <p class="mt-4 text-base sm:text-lg text-slate-600 dark:text-slate-300 max-w-2xl">
+                        <p class="mt-3 sm:mt-4 text-sm sm:text-lg text-slate-600 dark:text-slate-300 max-w-2xl">
                             Dokumentasi kegiatan, studi tiru nasional, capaian medali kompetisi, dan kiprah alumni di dunia industri.
                         </p>
                     </div>
-                    <a href="{{ route('web.berita.index') }}" class="btn-google-outline text-xs sm:text-sm !py-2.5 !px-5 shrink-0">
+                    <a href="{{ route('web.berita.index') }}" class="btn-google-outline text-xs sm:text-sm !py-2.5 !px-5 shrink-0 w-full sm:w-auto text-center justify-center">
                         <span>Seluruh Arsip Berita</span>
                         <span class="group-hover-arrow">&rarr;</span>
                     </a>
@@ -1801,13 +1782,13 @@
                         @foreach ($dbArticles as $idx => $art)
                         <article class="google-card overflow-hidden flex flex-col justify-between h-full group" data-animate data-animate-delay="{{ $idx + 1 }}">
                             <div>
-                                <div class="aspect-[16/10] w-full google-card-inner relative bg-slate-950 m-2 !w-[calc(100%-16px)]">
+                                <div class="aspect-[16/10] w-full relative overflow-hidden bg-slate-950">
                                     <img src="{{ $art->gambarSampulUrl() }}" alt="{{ $art->judul }}" class="w-full h-full object-cover group-hover:scale-105 transition-transform duration-500" loading="lazy">
                                     <span class="absolute top-3 left-3 px-3 py-1 rounded-full text-[10px] font-mono-code font-bold bg-white/95 dark:bg-slate-900/95 text-blue-700 dark:text-blue-300">
                                         {{ $art->category?->nama ?? 'Berita' }}
                                     </span>
                                 </div>
-                                <div class="p-5 pt-3">
+                                <div class="p-5 pt-4">
                                     <span class="text-[11px] font-mono-code text-slate-400 font-medium block mb-1">
                                         {{ $art->published_at ? $art->published_at->format('d M Y') : date('d M Y') }}
                                     </span>
@@ -1833,13 +1814,13 @@
                         @foreach($cfg['berita'] ?? [] as $idx => $br)
                         <article class="google-card overflow-hidden flex flex-col justify-between h-full group" data-animate data-animate-delay="{{ $idx + 1 }}">
                             <div>
-                                <div class="aspect-[16/10] w-full google-card-inner relative bg-slate-950 m-2 !w-[calc(100%-16px)]">
+                                <div class="aspect-[16/10] w-full relative overflow-hidden bg-slate-950">
                                     <img src="{{ asset($br['image']) }}" alt="{{ $br['title'] }}" class="w-full h-full object-cover group-hover:scale-105 transition-transform duration-500" loading="lazy">
                                     <span class="absolute top-3 left-3 px-3 py-1 rounded-full text-[10px] font-mono-code font-bold bg-white/95 dark:bg-slate-900/95 text-blue-700 dark:text-blue-300">
                                         {{ $br['badge'] }}
                                     </span>
                                 </div>
-                                <div class="p-5 pt-3">
+                                <div class="p-5 pt-4">
                                     <span class="text-[11px] font-mono-code text-slate-400 font-medium block mb-1">{{ $br['date'] }}</span>
                                     <h3 class="text-sm sm:text-base font-bold text-slate-900 dark:text-white leading-snug hover:text-blue-600 transition-colors">
                                         <a href="{{ $br['url'] }}" target="_blank" rel="noopener">
@@ -1865,28 +1846,28 @@
         </section>
 
         <!-- ── 10.B Kalender Pendidikan & Agenda Kegiatan Terdekat ── -->
-        <section class="py-16 sm:py-20 bg-slate-50 dark:bg-[#060D1A] border-t border-slate-200/80 dark:border-slate-800" id="agenda-sekolah">
+        <section class="py-12 sm:py-16 lg:py-20 bg-slate-50 dark:bg-[#060D1A] border-t border-slate-200/80 dark:border-slate-800" id="agenda-sekolah">
             <div class="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
-                <div class="flex flex-col md:flex-row md:items-end justify-between mb-10 gap-4" data-animate>
+                <div class="flex flex-col md:flex-row md:items-end justify-between mb-8 sm:mb-10 gap-4" data-animate>
                     <div>
                         <span class="google-tag">
                             <span class="w-1.5 h-1.5 rounded-full bg-emerald-500"></span>
                             <span>Agenda &amp; Kalender Pendidikan</span>
                         </span>
-                        <h2 class="text-3xl sm:text-4xl font-bold tracking-tight text-slate-900 dark:text-white mt-4">
+                        <h2 class="text-2xl sm:text-4xl font-bold tracking-tight text-slate-900 dark:text-white mt-3 sm:mt-4">
                             Kegiatan Sekolah Terdekat
                         </h2>
-                        <p class="mt-3 text-base text-slate-600 dark:text-slate-300 max-w-2xl">
+                        <p class="mt-2 sm:mt-3 text-sm sm:text-base text-slate-600 dark:text-slate-300 max-w-2xl">
                             Jadwal asesmen, kegiatan kurikulum, agenda kesiswaan, dan hari libur resmi yang telah disahkan.
                         </p>
                     </div>
                     @auth
-                    <a href="{{ route('kalender.index') }}" class="btn-google-outline text-xs sm:text-sm !py-2.5 !px-5 shrink-0">
+                    <a href="{{ route('kalender.index') }}" class="btn-google-outline text-xs sm:text-sm !py-2.5 !px-5 shrink-0 w-full sm:w-auto text-center justify-center">
                         <span>Buka Kalender Penuh</span>
                         <span class="group-hover-arrow">&rarr;</span>
                     </a>
                     @else
-                    <a href="{{ route('login') }}" class="btn-google-outline text-xs sm:text-sm !py-2.5 !px-5 shrink-0">
+                    <a href="{{ route('login') }}" class="btn-google-outline text-xs sm:text-sm !py-2.5 !px-5 shrink-0 w-full sm:w-auto text-center justify-center">
                         <span>Masuk ke SIRAGA</span>
                         <span class="group-hover-arrow">&rarr;</span>
                     </a>
@@ -1950,9 +1931,9 @@
         </section>
 
         <!-- ── 11. National Education Report Card (Rapor Mutu Kemendikdasmen RI) ── -->
-        <section class="py-16 sm:py-24 bg-slate-50 dark:bg-[#060D1A]" id="rapor-mutu">
+        <section class="py-12 sm:py-20 lg:py-24 bg-white dark:bg-[#071324] border-t border-slate-200/80 dark:border-slate-800" id="rapor-mutu">
             <div class="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
-                <div class="grid grid-cols-1 lg:grid-cols-12 gap-10 lg:gap-14 items-center">
+                <div class="grid grid-cols-1 lg:grid-cols-12 gap-8 lg:gap-14 items-center">
                     
                     <!-- Progress Bar Metrics -->
                     <div class="lg:col-span-6" data-animate>
@@ -1960,10 +1941,10 @@
                             <span class="w-1.5 h-1.5 rounded-full bg-blue-500"></span>
                             <span>{{ $cfg['rapor_mutu']['tag'] ?? 'Rapor Pendidikan Resmi Kemendikdasmen' }}</span>
                         </span>
-                        <h2 class="text-3xl sm:text-4xl md:text-5xl font-bold tracking-tight text-slate-900 dark:text-white mt-4">
+                        <h2 class="text-2xl sm:text-4xl md:text-5xl font-bold tracking-tight text-slate-900 dark:text-white mt-3 sm:mt-4">
                             {{ $cfg['rapor_mutu']['title'] ?? 'Peringkat 20% Teratas Nasional' }}
                         </h2>
-                        <p class="text-xs text-slate-500 font-medium font-mono-code mt-2 mb-8">
+                        <p class="text-xs text-slate-500 font-medium font-mono-code mt-2 mb-6 sm:mb-8">
                             *{{ $cfg['rapor_mutu']['source'] ?? 'Validasi Data Resmi: Kemendikdasmen RI (raportpendidikan.kemdikbud.go.id)' }}
                         </p>
 
@@ -2008,9 +1989,9 @@
         </section>
 
         <!-- ── 12. Filosofi Pilar 1: Tiada Pendidikan Bermutu, Tanpa Pendidikan Karakter ── -->
-        <section class="py-16 sm:py-24 bg-white dark:bg-[#071324] border-t border-slate-200/80 dark:border-slate-800" id="pilar-karakter">
-            <div class="w-full max-w-[1680px] mx-auto px-4 sm:px-6 lg:px-10 xl:px-16">
-                <div class="flex flex-col md:flex-row md:items-end md:justify-between gap-6 mb-12" data-animate>
+        <section class="py-12 sm:py-20 lg:py-24 bg-slate-50 dark:bg-[#060D1A] border-t border-slate-200/80 dark:border-slate-800" id="pilar-karakter">
+            <div class="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
+                <div class="flex flex-col md:flex-row md:items-end md:justify-between gap-6 mb-10 sm:mb-12" data-animate>
                     <div class="max-w-3xl">
                         <span class="google-tag">
                             <span class="w-1.5 h-1.5 rounded-full bg-blue-500"></span>
@@ -2069,8 +2050,8 @@
         </section>
 
         <!-- ── 13. Filosofi Pilar 2: Tiada Pendidikan Karakter, Tanpa Budaya Sekolah (Mitra Perguruan Tinggi) ── -->
-        <section class="py-16 sm:py-20 bg-slate-50 dark:bg-[#060D1A] overflow-hidden" id="pilar-budaya">
-            <div class="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 mb-8 text-center" data-animate>
+        <section class="py-12 sm:py-16 lg:py-20 bg-white dark:bg-[#071324] border-t border-slate-200/80 dark:border-slate-800 overflow-hidden" id="pilar-budaya">
+            <div class="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 mb-6 sm:mb-8 text-center" data-animate>
                 <span class="google-tag">
                     <span class="w-1.5 h-1.5 rounded-full bg-blue-500"></span>
                     <span>{{ $cfg['pilar_budaya']['tag'] ?? 'Jejaring Perguruan Tinggi' }}</span>
@@ -2108,9 +2089,9 @@
         </section>
 
         <!-- ── 14. Filosofi Pilar 3: Tiada Masyarakat Pembelajar Sekolah, Tanpa Pemimpin Perubahan Sekolah ── -->
-        <section class="py-16 sm:py-24 bg-white dark:bg-[#071324] border-t border-slate-200/80 dark:border-slate-800" id="pilar-pemimpin">
-            <div class="w-full max-w-[1680px] mx-auto px-4 sm:px-6 lg:px-10 xl:px-16">
-                <div class="text-center max-w-4xl mx-auto mb-12" data-animate>
+        <section class="py-12 sm:py-20 lg:py-24 bg-slate-50 dark:bg-[#060D1A] border-t border-slate-200/80 dark:border-slate-800" id="pilar-pemimpin">
+            <div class="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
+                <div class="text-center max-w-4xl mx-auto mb-10 sm:mb-12" data-animate>
                     <span class="google-tag">
                         <span class="w-1.5 h-1.5 rounded-full bg-blue-500"></span>
                         <span>{{ $cfg['pilar_pemimpin']['tag'] ?? 'SMK Wikrama 1 Garut' }}</span>
@@ -2159,9 +2140,9 @@
         </section>
 
         <!-- ── 15. Sekolah Teladan Nasional: Partner, Prestasi & Rekognisi Resmi ── -->
-        <section class="py-16 sm:py-24 bg-slate-50 dark:bg-[#060D1A] border-t border-slate-200/80 dark:border-slate-800" id="sekolah-teladan">
-            <div class="w-full max-w-[1680px] mx-auto px-4 sm:px-6 lg:px-10 xl:px-16">
-                <div class="text-center max-w-3xl mx-auto mb-12" data-animate>
+        <section class="py-12 sm:py-20 lg:py-24 bg-white dark:bg-[#071324] border-t border-slate-200/80 dark:border-slate-800" id="sekolah-teladan">
+            <div class="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
+                <div class="text-center max-w-3xl mx-auto mb-10 sm:mb-12" data-animate>
                     <span class="google-tag">
                         <span class="w-1.5 h-1.5 rounded-full bg-blue-500"></span>
                         <span>{{ $cfg['sekolah_teladan']['tag'] ?? 'Partner & Rekognisi Nasional' }}</span>
@@ -2200,7 +2181,7 @@
 
         <!-- ── Dynamic Module Landing Blocks (Database Module Registry) ── -->
         @if(!empty($landingBlocks) && count($landingBlocks) > 0)
-        <section class="py-12 bg-white dark:bg-[#071324]">
+        <section class="py-10 sm:py-12 bg-slate-50 dark:bg-[#060D1A] border-t border-slate-200/80 dark:border-slate-800">
             <div class="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
                 <div class="text-center mb-6">
                     <span class="google-tag">
@@ -2222,7 +2203,7 @@
         @endif
 
         <!-- ── 12. Grand Institutional CTA Banner ── -->
-        <section class="py-20 sm:py-28 bg-slate-950 text-white relative overflow-hidden">
+        <section class="py-14 sm:py-20 lg:py-28 bg-slate-950 text-white relative overflow-hidden">
             <!-- Background Student Activity Image with Dark Overlay (above image, below text) -->
             <div class="absolute inset-0 z-0 pointer-events-none">
                 <img src="{{ asset('images/web/activity-learning.jpg') }}" alt="Kegiatan Siswa Wikrama Garut" class="w-full h-full object-cover object-center filter brightness-[0.20] contrast-125">
@@ -2235,10 +2216,10 @@
                 <span class="inline-flex items-center gap-1.5 px-4 py-1.5 rounded-full text-xs font-bold font-mono-code bg-white/10 text-amber-300 border border-white/20 mb-5">
                     [ {{ $cfg['cta']['tag'] ?? 'MULAI PERJALANANMU' }} ]
                 </span>
-                <h2 class="text-3xl sm:text-4xl md:text-5xl font-bold tracking-[-0.025em] leading-tight">
+                <h2 class="text-2xl sm:text-4xl md:text-5xl font-bold tracking-[-0.025em] leading-tight">
                     {{ $cfg['cta']['title'] ?? 'Siap Menjadi Ahli Teknologi, Pebisnis Digital & Praktisi Hospitaliti?' }}
                 </h2>
-                <p class="mt-5 text-sm sm:text-base md:text-lg text-slate-300 max-w-2xl mx-auto leading-relaxed font-normal">
+                <p class="mt-4 sm:mt-5 text-sm sm:text-base md:text-lg text-slate-300 max-w-2xl mx-auto leading-relaxed font-normal">
                     {{ $cfg['cta']['desc'] ?? 'Daftarkan putra-putri Anda di SMK Wikrama 1 Garut. Pembinaan akhlak berkarakter, kurikulum industri 4.0 & 5.0, serta jaminan kompetensi kerja dan kuliah.' }}
                 </p>
                 <div class="mt-10 flex flex-col sm:flex-row flex-wrap justify-center gap-4">
@@ -2331,7 +2312,7 @@
 
     <!-- ── Prestige Slate & Navy Footer ── -->
     <footer class="bg-slate-950 text-slate-300 border-t border-white/10" id="kontak">
-        <div class="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-16 sm:py-20">
+        <div class="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-12 sm:py-16 lg:py-20">
             <div class="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-12 gap-10">
                 
                 <!-- School Info & Crest -->
