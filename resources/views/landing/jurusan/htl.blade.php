@@ -13,7 +13,7 @@
     @endphp
 
     <!-- ── 1. HERO SECTION: 5-STAR LUXURY HOSPITALITY & BARISTA LOUNGE ── -->
-    <header class="relative pt-8 pb-16 sm:pt-12 sm:pb-20 overflow-hidden bg-gradient-to-b from-[#2a0e18] via-[#1a0a12] to-[#0f050b] text-white">
+    <header class="relative pt-8 pb-16 sm:pt-12 sm:pb-20 overflow-hidden bg-gradient-to-b from-[#2a0e18] via-[#1a0a12] to-[#0f050b] text-white" style="background: linear-gradient(180deg, #2a0e18 0%, #1a0a12 50%, #0f050b 100%);">
         <!-- Rose Gold & Champagne Ambient Orbs & Motif -->
         <div class="absolute inset-0 pointer-events-none z-0">
             <div class="absolute -top-32 -right-32 w-96 h-96 rounded-full bg-[#FC3158]/20 blur-3xl"></div>
@@ -420,32 +420,32 @@
 
                 <!-- KELAS XII -->
                 <div class="bg-white rounded-3xl p-7 border-2 border-rose-200 shadow-sm relative hover:border-[#FC3158] transition-all">
-                    <div class="w-10 h-10 rounded-xl bg-amber-100 text-[#E2B714] font-bold flex items-center justify-center text-sm mb-4">
+                    <div class="w-10 h-10 rounded-xl bg-amber-100 text-amber-800 font-bold flex items-center justify-center text-sm mb-4">
                         XII
                     </div>
-                    <span class="text-xs font-bold uppercase text-[#E2B714] tracking-wider">Fase F &bull; Tahun Ketiga</span>
+                    <span class="text-xs font-bold uppercase text-amber-800 tracking-wider">Fase F &bull; Tahun Ketiga</span>
                     <h3 class="text-xl font-bold text-slate-900 mt-1 mb-4">Magang 6 Bulan, Table Manner &amp; BNSP</h3>
                     <p class="text-xs text-slate-600 mb-6">Penerjunan langsung di hotel berbintang 4 dan 5, sertifikasi uji kompetensi BNSP, dan penyaluran BMW.</p>
 
                     <ul class="space-y-3 text-xs text-slate-700">
                         <li class="flex items-start gap-2">
-                            <span class="text-[#E2B714] font-bold">&check;</span>
+                            <span class="text-amber-800 font-bold">&check;</span>
                             <span>PKL Industri 6 Bulan di Jaringan Hotel Bintang 4/5</span>
                         </li>
                         <li class="flex items-start gap-2">
-                            <span class="text-[#E2B714] font-bold">&check;</span>
+                            <span class="text-amber-800 font-bold">&check;</span>
                             <span>International Table Manner Experience di Hotel Bintang 5</span>
                         </li>
                         <li class="flex items-start gap-2">
-                            <span class="text-[#E2B714] font-bold">&check;</span>
+                            <span class="text-amber-800 font-bold">&check;</span>
                             <span>Uji Sertifikasi BNSP Front Office &amp; Housekeeping</span>
                         </li>
                         <li class="flex items-start gap-2">
-                            <span class="text-[#E2B714] font-bold">&check;</span>
+                            <span class="text-amber-800 font-bold">&check;</span>
                             <span>Penyusunan Portofolio &amp; Direct Career Recruitment</span>
                         </li>
                         <li class="flex items-start gap-2">
-                            <span class="text-[#E2B714] font-bold">&check;</span>
+                            <span class="text-amber-800 font-bold">&check;</span>
                             <span>Penyaluran BMW (Bekerja, Melanjutkan, Wirausaha)</span>
                         </li>
                     </ul>
@@ -558,7 +558,7 @@
     </section>
 
     <!-- ── 7. SERTIFIKASI KOMPETENSI RESMI (BNSP & TABLE MANNER) ── -->
-    <section class="py-20 bg-gradient-to-br from-[#1d0b14] via-[#2a0e1c] to-[#12050d] text-white">
+    <section class="py-20 bg-gradient-to-br from-[#1d0b14] via-[#2a0e1c] to-[#12050d] text-white" style="background: linear-gradient(135deg, #1d0b14 0%, #2a0e1c 50%, #12050d 100%);">
         <div class="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
             <div class="text-center max-w-3xl mx-auto mb-16">
                 <span class="inline-flex items-center gap-2 px-3 py-1 rounded-full text-xs font-bold text-[#FFA8B8] bg-rose-950/80 border border-rose-800">
@@ -659,7 +659,7 @@
     <!-- ── 9. TESTIMONI ALUMNI PERHOTELAN ── -->
     <section class="py-20 bg-white">
         <div class="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
-            <div class="max-w-4xl mx-auto bg-gradient-to-r from-[#200b14] to-[#3a1525] rounded-3xl p-8 sm:p-12 text-white border border-rose-500/30 shadow-xl relative overflow-hidden">
+            <div class="max-w-4xl mx-auto bg-gradient-to-r from-[#200b14] to-[#3a1525] rounded-3xl p-8 sm:p-12 text-white border border-rose-500/30 shadow-xl relative overflow-hidden" style="background: linear-gradient(90deg, #200b14 0%, #3a1525 100%);">
                 <div class="absolute -right-20 -bottom-20 w-64 h-64 bg-[#FC3158]/20 rounded-full blur-2xl pointer-events-none"></div>
 
                 <div class="flex flex-col sm:flex-row items-center gap-6 sm:gap-8 relative z-10">
@@ -726,7 +726,7 @@
     </section>
 
     <!-- ── 11. CTA DAFTAR PERHOTELAN ── -->
-    <section class="py-20 bg-gradient-to-r from-[#2a0e18] via-[#1a0a12] to-[#0f050b] text-white relative overflow-hidden">
+    <section class="py-20 bg-gradient-to-r from-[#2a0e18] via-[#1a0a12] to-[#0f050b] text-white relative overflow-hidden" style="background: linear-gradient(90deg, #2a0e18 0%, #1a0a12 50%, #0f050b 100%);">
         <div class="max-w-5xl mx-auto px-4 sm:px-6 lg:px-8 text-center relative z-10 space-y-6">
             <span class="inline-flex items-center gap-2 px-3.5 py-1.5 rounded-full text-xs font-bold uppercase tracking-wider bg-[#FC3158]/20 text-[#FFA8B8] border border-[#FC3158]/30">
                 Penerimaan Peserta Didik Baru (SPMB)

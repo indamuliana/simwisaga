@@ -13,7 +13,7 @@
     @endphp
 
     <!-- ── 1. HERO SECTION: PMN DIGITAL COMMERCE & CREATOR STUDIO ── -->
-    <header class="relative pt-8 pb-16 sm:pt-12 sm:pb-20 overflow-hidden bg-gradient-to-b from-[#3d1900] via-[#2d1200] to-[#1a0900] text-white">
+    <header class="relative pt-8 pb-16 sm:pt-12 sm:pb-20 overflow-hidden bg-gradient-to-b from-[#3d1900] via-[#2d1200] to-[#1a0900] text-white" style="background: linear-gradient(180deg, #3d1900 0%, #2d1200 50%, #1a0900 100%);">
         <!-- Sunset Amber Ambient Orbs & Mesh -->
         <div class="absolute inset-0 pointer-events-none z-0">
             <div class="absolute -top-32 -right-32 w-96 h-96 rounded-full bg-[#FD9426]/25 blur-3xl"></div>
@@ -120,19 +120,19 @@
         <div class="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
             <div class="grid grid-cols-2 md:grid-cols-4 gap-6 text-center">
                 <div class="p-5 rounded-2xl bg-white border border-amber-200 shadow-sm">
-                    <span class="block text-3xl font-extrabold text-[#FD9426]">100%</span>
+                    <span class="block text-3xl font-extrabold text-[#C2410C]">100%</span>
                     <span class="text-xs font-semibold text-slate-700 uppercase tracking-wider mt-1 block">Sertifikasi BNSP &amp; Google</span>
                 </div>
                 <div class="p-5 rounded-2xl bg-white border border-amber-200 shadow-sm">
-                    <span class="block text-3xl font-extrabold text-[#FD9426]">3 Studio</span>
+                    <span class="block text-3xl font-extrabold text-[#C2410C]">3 Studio</span>
                     <span class="text-xs font-semibold text-slate-700 uppercase tracking-wider mt-1 block">Live Stream, Ads Lab &amp; Retail</span>
                 </div>
                 <div class="p-5 rounded-2xl bg-white border border-amber-200 shadow-sm">
-                    <span class="block text-3xl font-extrabold text-[#FD9426]">2 Unit</span>
+                    <span class="block text-3xl font-extrabold text-[#C2410C]">2 Unit</span>
                     <span class="text-xs font-semibold text-slate-700 uppercase tracking-wider mt-1 block">TEFA Digital Mart &amp; Agency</span>
                 </div>
                 <div class="p-5 rounded-2xl bg-white border border-amber-200 shadow-sm">
-                    <span class="block text-3xl font-extrabold text-[#FD9426]">99%</span>
+                    <span class="block text-3xl font-extrabold text-[#C2410C]">99%</span>
                     <span class="text-xs font-semibold text-slate-700 uppercase tracking-wider mt-1 block">Keterserapan BMW</span>
                 </div>
             </div>
@@ -149,7 +149,7 @@
                     </div>
                     <h2 class="text-2xl sm:text-4xl font-extrabold text-slate-900 tracking-tight leading-tight">
                         Mengapa Memilih Jurusan <br>
-                        <span class="text-[#FD9426]">Pemasaran Wikrama Garut?</span>
+                        <span class="text-[#C2410C]">Pemasaran Wikrama Garut?</span>
                     </h2>
                     <p class="text-slate-600 leading-relaxed text-sm sm:text-base">
                         Jurusan Pemasaran (Bisnis Digital) di {{ $schoolName }} mendobrak paradigma lama ilmu dagang konvensional. Siswa diajarkan menjadi <strong>digital growth marketer, live shopping creator, dan technopreneur</strong> yang mampu mendulang omzet sejak bangku sekolah.
@@ -332,7 +332,7 @@
                     <span>Roadmap Pembelajaran</span>
                 </span>
                 <h2 class="text-2xl sm:text-4xl font-extrabold text-slate-900 mt-3">
-                    Kurikulum 3 Tahun Berstandar <span class="text-[#FD9426]">Industri Digital Marketing</span>
+                    Kurikulum 3 Tahun Berstandar <span class="text-[#C2410C]">Industri Digital Marketing</span>
                 </h2>
                 <p class="text-slate-600 text-sm sm:text-base mt-3">
                     Disusun bersama agensi digital marketing nasional dan marketplace terkemuka untuk melatih kecakapan bisnis nyata.
@@ -342,32 +342,32 @@
             <div class="grid grid-cols-1 md:grid-cols-3 gap-8">
                 <!-- KELAS X -->
                 <div class="bg-white rounded-3xl p-7 border-2 border-amber-200 shadow-sm relative hover:border-[#FD9426] transition-all">
-                    <div class="w-10 h-10 rounded-xl bg-amber-100 text-[#FD9426] font-bold flex items-center justify-center text-sm mb-4">
+                    <div class="w-10 h-10 rounded-xl bg-orange-100 text-orange-800 font-bold flex items-center justify-center text-sm mb-4">
                         X
                     </div>
-                    <span class="text-xs font-bold uppercase text-[#FD9426] tracking-wider">Fase E &bull; Tahun Pertama</span>
+                    <span class="text-xs font-bold uppercase text-orange-800 tracking-wider">Fase E &bull; Tahun Pertama</span>
                     <h3 class="text-xl font-bold text-slate-900 mt-1 mb-4">Dasar Bisnis &amp; Personal Selling</h3>
                     <p class="text-xs text-slate-600 mb-6">Membangun karakter sales profesional, riset perilaku konsumen, dan komunikasi persuasif.</p>
 
                     <ul class="space-y-3 text-xs text-slate-700">
                         <li class="flex items-start gap-2">
-                            <span class="text-[#FD9426] font-bold">&check;</span>
+                            <span class="text-orange-800 font-bold">&check;</span>
                             <span>Prinsip Dasar Ekonomi Bisnis &amp; Administrasi Transaksi</span>
                         </li>
                         <li class="flex items-start gap-2">
-                            <span class="text-[#FD9426] font-bold">&check;</span>
+                            <span class="text-orange-800 font-bold">&check;</span>
                             <span>Teknik Negosiasi &amp; Komunikasi Bisnis Efektif</span>
                         </li>
                         <li class="flex items-start gap-2">
-                            <span class="text-[#FD9426] font-bold">&check;</span>
+                            <span class="text-orange-800 font-bold">&check;</span>
                             <span>Desain Grafis Promosi Produk (Canva &amp; Photoshop)</span>
                         </li>
                         <li class="flex items-start gap-2">
-                            <span class="text-[#FD9426] font-bold">&check;</span>
+                            <span class="text-orange-800 font-bold">&check;</span>
                             <span>Psikologi Konsumen &amp; Copywriting Dasar</span>
                         </li>
                         <li class="flex items-start gap-2">
-                            <span class="text-[#FD9426] font-bold">&check;</span>
+                            <span class="text-orange-800 font-bold">&check;</span>
                             <span>Praktek Kasir &amp; Pengelolaan Ritel Modern</span>
                         </li>
                     </ul>
@@ -375,35 +375,35 @@
 
                 <!-- KELAS XI -->
                 <div class="bg-white rounded-3xl p-7 border-2 border-[#FD9426] shadow-lg relative ring-2 ring-[#FD9426]/20">
-                    <div class="absolute -top-3.5 right-6 px-3 py-1 rounded-full text-[11px] font-extrabold bg-[#FD9426] text-white uppercase tracking-wider shadow">
+                    <div class="absolute -top-3.5 right-6 px-3 py-1 rounded-full text-[11px] font-extrabold bg-[#C2410C] text-white uppercase tracking-wider shadow">
                         Spesialisasi Commerce
                     </div>
                     <div class="w-10 h-10 rounded-xl bg-gradient-to-r from-[#FD9426] to-amber-600 text-white font-bold flex items-center justify-center text-sm mb-4">
                         XI
                     </div>
-                    <span class="text-xs font-bold uppercase text-[#FD9426] tracking-wider">Fase F &bull; Tahun Kedua</span>
+                    <span class="text-xs font-bold uppercase text-orange-800 tracking-wider">Fase F &bull; Tahun Kedua</span>
                     <h3 class="text-xl font-bold text-slate-900 mt-1 mb-4">E-Commerce, Ads &amp; Live Stream</h3>
                     <p class="text-xs text-slate-600 mb-6">Penerapan strategi penjualan digital, iklan berbayar media sosial, dan penyiaran live commerce.</p>
 
                     <ul class="space-y-3 text-xs text-slate-700">
                         <li class="flex items-start gap-2">
-                            <span class="text-[#FD9426] font-bold">&check;</span>
+                            <span class="text-orange-800 font-bold">&check;</span>
                             <span>Operasional Marketplace (Shopee, Tokopedia, TikTok Shop)</span>
                         </li>
                         <li class="flex items-start gap-2">
-                            <span class="text-[#FD9426] font-bold">&check;</span>
+                            <span class="text-orange-800 font-bold">&check;</span>
                             <span>Teknik Live Streaming Host &amp; Penataan Studio Visual</span>
                         </li>
                         <li class="flex items-start gap-2">
-                            <span class="text-[#FD9426] font-bold">&check;</span>
+                            <span class="text-orange-800 font-bold">&check;</span>
                             <span>Iklan Berbayar Meta Ads &amp; TikTok Ads Manager</span>
                         </li>
                         <li class="flex items-start gap-2">
-                            <span class="text-[#FD9426] font-bold">&check;</span>
+                            <span class="text-orange-800 font-bold">&check;</span>
                             <span>Optimasi Search Engine Optimization (SEO) Google</span>
                         </li>
                         <li class="flex items-start gap-2">
-                            <span class="text-[#FD9426] font-bold">&check;</span>
+                            <span class="text-orange-800 font-bold">&check;</span>
                             <span>Operasional TEFA: Wikrama Digital Commerce</span>
                         </li>
                     </ul>
@@ -453,7 +453,7 @@
                     <span>Fasilitas Standar Creator Agency</span>
                 </span>
                 <h2 class="text-2xl sm:text-4xl font-extrabold text-slate-900 mt-3">
-                    Kolase Studio &amp; <span class="text-[#FD9426]">Ruang Praktik Bisnis Nyata</span>
+                    Kolase Studio &amp; <span class="text-[#C2410C]">Ruang Praktik Bisnis Nyata</span>
                 </h2>
                 <p class="text-slate-600 text-sm sm:text-base mt-3">
                     Seluruh ruang praktik dirancang untuk mensimulasikan operasional agensi periklanan, live shopping hub, dan toko retail sesungguhnya.
@@ -549,7 +549,7 @@
     </section>
 
     <!-- ── 7. SERTIFIKASI KOMPETENSI RESMI (BNSP & GOOGLE) ── -->
-    <section class="py-20 bg-gradient-to-br from-[#3d1900] via-[#2d1200] to-[#1a0900] text-white">
+    <section class="py-20 bg-gradient-to-br from-[#3d1900] via-[#2d1200] to-[#1a0900] text-white" style="background: linear-gradient(135deg, #3d1900 0%, #2d1200 50%, #1a0900 100%);">
         <div class="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
             <div class="text-center max-w-3xl mx-auto mb-16">
                 <span class="inline-flex items-center gap-2 px-3 py-1 rounded-full text-xs font-bold text-amber-300 bg-amber-950/80 border border-amber-800">
@@ -613,7 +613,7 @@
     <section class="py-16 bg-slate-50 border-t border-slate-200">
         <div class="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
             <div class="text-center max-w-2xl mx-auto mb-10">
-                <span class="text-xs font-bold text-[#FD9426] uppercase tracking-wider block">Jaringan Industri E-Commerce &amp; Ritel</span>
+                <span class="text-xs font-bold text-orange-800 uppercase tracking-wider block">Jaringan Industri E-Commerce &amp; Ritel</span>
                 <h3 class="text-xl sm:text-2xl font-bold text-slate-900 mt-1">Mitra PKL &amp; Rekrutmen Lulusan</h3>
                 <p class="text-xs text-slate-600 mt-2">Siswa menjalani magang nyata selama 6 bulan di marketplace, agensi periklanan, dan jaringan retail modern nasional.</p>
             </div>
@@ -650,7 +650,7 @@
     <!-- ── 9. TESTIMONI ALUMNI PEMASARAN ── -->
     <section class="py-20 bg-white">
         <div class="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
-            <div class="max-w-4xl mx-auto bg-gradient-to-r from-[#3d1900] to-[#1a0900] rounded-3xl p-8 sm:p-12 text-white border border-amber-500/30 shadow-xl relative overflow-hidden">
+            <div class="max-w-4xl mx-auto bg-gradient-to-r from-[#3d1900] to-[#1a0900] rounded-3xl p-8 sm:p-12 text-white border border-amber-500/30 shadow-xl relative overflow-hidden" style="background: linear-gradient(90deg, #3d1900 0%, #1a0900 100%);">
                 <div class="absolute -right-20 -bottom-20 w-64 h-64 bg-[#FD9426]/20 rounded-full blur-2xl pointer-events-none"></div>
 
                 <div class="flex flex-col sm:flex-row items-center gap-6 sm:gap-8 relative z-10">
@@ -680,7 +680,7 @@
     <section class="py-20 bg-amber-50/50" id="faq">
         <div class="max-w-4xl mx-auto px-4 sm:px-6 lg:px-8">
             <div class="text-center mb-12">
-                <span class="text-xs font-bold text-[#FD9426] uppercase tracking-wider block">Pertanyaan Umum</span>
+                <span class="text-xs font-bold text-orange-800 uppercase tracking-wider block">Pertanyaan Umum</span>
                 <h2 class="text-2xl sm:text-3xl font-extrabold text-slate-900 mt-2">FAQ Jurusan Pemasaran</h2>
             </div>
 
@@ -717,7 +717,7 @@
     </section>
 
     <!-- ── 11. CTA DAFTAR PEMASARAN ── -->
-    <section class="py-20 bg-gradient-to-r from-[#3d1900] via-[#5c2400] to-[#FD9426] text-white relative overflow-hidden">
+    <section class="py-20 bg-gradient-to-r from-[#3d1900] via-[#5c2400] to-[#FD9426] text-white relative overflow-hidden" style="background: linear-gradient(90deg, #3d1900 0%, #5c2400 50%, #FD9426 100%);">
         <div class="max-w-5xl mx-auto px-4 sm:px-6 lg:px-8 text-center relative z-10 space-y-6">
             <span class="inline-flex items-center gap-2 px-3.5 py-1.5 rounded-full text-xs font-bold uppercase tracking-wider bg-white/20 text-[#FFB07C] border border-white/30">
                 Penerimaan Peserta Didik Baru (SPMB)

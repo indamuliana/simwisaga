@@ -13,8 +13,9 @@
     @endphp
 
     <!-- ── 1. HERO SECTION: TJKT CYBER INFRASTRUCTURE & NETWORK OPERATIONS ── -->
-    <header class="relative pt-8 pb-16 sm:pt-12 sm:pb-20 overflow-hidden bg-gradient-to-b from-[#022c22] via-[#064e3b] to-[#041f1a] text-white">
-        <!-- Cyber Matrix Grid & Emerald Ambient Orbs -->
+    <header class="relative pt-8 pb-16 sm:pt-12 sm:pb-20 overflow-hidden bg-gradient-to-b from-[#022c22] via-[#064e3b] to-[#041f1a] text-white" style="background: linear-gradient(180deg, #022c22 0%, #064e3b 50%, #041f1a 100%);">
+        <!-- Interactive Constellation Network Canvas & Cyber Matrix Glow -->
+        <canvas id="tjkt-network-canvas" class="absolute inset-0 w-full h-full pointer-events-auto z-0 opacity-70"></canvas>
         <div class="absolute inset-0 pointer-events-none z-0">
             <div class="absolute -top-32 -right-32 w-96 h-96 rounded-full bg-[#10b981]/25 blur-3xl"></div>
             <div class="absolute -bottom-32 -left-32 w-96 h-96 rounded-full bg-emerald-500/15 blur-3xl"></div>
@@ -71,27 +72,54 @@
                     </div>
                 </div>
 
-                <!-- Network NOC Topology Status Mockup -->
+                <!-- ── Live Simulated Linux & MikroTik RouterOS Interactive Terminal ── -->
                 <div class="lg:col-span-5">
-                    <div class="rounded-2xl bg-slate-950 border border-emerald-900/60 shadow-2xl overflow-hidden font-mono-code text-xs">
-                        <div class="px-4 py-3 bg-[#032219] border-b border-emerald-900/60 flex items-center justify-between">
+                    <div class="rounded-3xl bg-slate-950/95 border border-emerald-500/35 shadow-2xl overflow-hidden text-white backdrop-blur-xl flex flex-col relative" style="height: 440px; min-height: 440px; max-height: 440px;">
+                        <!-- Subtle terminal scanline overlay -->
+                        <div class="absolute inset-0 bg-[linear-gradient(rgba(16,185,129,0.02)_1px,transparent_1px)] [background-size:100%_3px] pointer-events-none z-10"></div>
+
+                        <!-- Terminal Window Titlebar -->
+                        <div class="px-4 py-3 bg-[#021814] border-b border-emerald-900/60 flex items-center justify-between flex-shrink-0 z-20">
                             <div class="flex items-center gap-2">
-                                <span class="w-3 h-3 rounded-full bg-emerald-500 animate-ping"></span>
-                                <span class="text-[11px] text-emerald-300 font-bold">NOC Wikrama Backbone Router</span>
+                                <span class="w-3 h-3 rounded-full bg-red-500/80 inline-block"></span>
+                                <span class="w-3 h-3 rounded-full bg-yellow-500/80 inline-block"></span>
+                                <span class="w-3 h-3 rounded-full bg-emerald-500/80 inline-block"></span>
+                                <span class="text-[11px] font-mono text-emerald-300 font-semibold pl-2">admin@wikrama-noc:~#</span>
                             </div>
-                            <span class="text-[10px] text-emerald-400 bg-emerald-950 px-2 py-0.5 rounded border border-emerald-800">RouterOS v7.14</span>
+                            <div class="flex items-center gap-2">
+                                <span id="tjkt-term-badge" class="px-2 py-0.5 rounded text-[10px] font-mono font-bold bg-emerald-950 text-[#53D769] border border-emerald-800">
+                                    RouterOS v7.14
+                                </span>
+                                <span class="flex items-center gap-1.5 text-[10px] font-mono text-emerald-400">
+                                    <span class="w-2 h-2 rounded-full bg-[#53D769] animate-ping"></span>
+                                    <span>LIVE CLI</span>
+                                </span>
+                            </div>
                         </div>
-                        <div class="p-5 space-y-2 text-slate-300 leading-relaxed overflow-x-auto">
-                            <p class="text-slate-500">// Status Antarmuka Jaringan Fiber Optic</p>
-                            <p class="text-emerald-400">[admin@NOC-Wikrama] &gt; /interface print</p>
-                            <p><span class="text-cyan-400">0 R sfp-sfpplus1</span> &bull; 10G Fiber Uplink &bull; <span class="text-emerald-400">STATUS: RUNNING</span></p>
-                            <p><span class="text-cyan-400">1 R ether1-gateway</span> &bull; Telkom Metro-E &bull; <span class="text-emerald-400">1 Gbps DEDICATED</span></p>
-                            <p><span class="text-cyan-400">2 R vlan-siswa</span> &bull; IP: 10.10.0.1/16 &bull; <span class="text-cyan-300">DHCP ACTIVE (1.200 Leases)</span></p>
-                            <p class="text-emerald-400">[admin@NOC-Wikrama] &gt; /ip firewall filter print count-only</p>
-                            <p><span class="text-yellow-300">Rules Loaded:</span> 48 security rules &bull; <span class="text-emerald-400">DDoS Protection Active</span></p>
-                            <div class="pt-2 border-t border-emerald-900/60 text-[11px] text-emerald-300/80">
-                                <span class="text-emerald-400">&#10003; Network Health:</span> 99.98% Uptime &bull; MikroTik Academy Center
+
+                        <!-- Terminal Screen Output Area (Fixed Height, Hidden Scrollbar, Auto-Scroll Only) -->
+                        <div id="tjkt-terminal-screen" class="flex-1 p-4 sm:p-5 font-mono text-[11px] leading-relaxed overflow-y-auto space-y-2 select-text relative z-20 [scrollbar-width:none] [-ms-overflow-style:none] [&::-webkit-scrollbar]:hidden" style="scrollbar-width: none; -ms-overflow-style: none;">
+                            <style>
+                                #tjkt-terminal-screen::-webkit-scrollbar { display: none !important; width: 0 !important; height: 0 !important; }
+                            </style>
+                            <!-- Injected terminal history logs go here -->
+                            <div id="tjkt-terminal-logs" class="space-y-1.5"></div>
+
+                            <!-- Currently typing command line -->
+                            <div id="tjkt-terminal-input-row" class="flex items-center flex-wrap font-bold pt-1">
+                                <span id="tjkt-terminal-prompt" class="text-cyan-400 mr-1.5">[admin@Wikrama-Core] &gt; </span>
+                                <span id="tjkt-terminal-cmd" class="text-white"></span>
+                                <span class="w-2 h-3.5 bg-[#53D769] inline-block animate-pulse ml-0.5"></span>
                             </div>
+                        </div>
+
+                        <!-- Terminal Footer Telemetry -->
+                        <div class="px-4 py-2 bg-[#021814]/90 border-t border-emerald-900/60 flex items-center justify-between text-[10px] font-mono text-slate-400 flex-shrink-0 z-20">
+                            <div class="flex items-center gap-3">
+                                <span>Session: <strong class="text-emerald-300">SSH-256</strong></span>
+                                <span>Encoding: <strong class="text-slate-300">UTF-8</strong></span>
+                            </div>
+                            <span class="text-emerald-400 font-semibold">&#10003; 99.98% NOC Uptime</span>
                         </div>
                     </div>
                 </div>
@@ -104,97 +132,114 @@
         <div class="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
             <div class="grid grid-cols-2 md:grid-cols-4 gap-6 text-center">
                 <div class="p-5 rounded-2xl bg-white border border-emerald-200 shadow-sm">
-                    <span class="block text-3xl font-extrabold text-[#059669]">100%</span>
+                    <span class="block text-3xl font-extrabold text-emerald-800">100%</span>
                     <span class="text-xs font-semibold text-slate-700 uppercase tracking-wider mt-1 block">Sertifikasi MikroTik &amp; BNSP</span>
                 </div>
                 <div class="p-5 rounded-2xl bg-white border border-emerald-200 shadow-sm">
-                    <span class="block text-3xl font-extrabold text-[#059669]">4 Lab</span>
+                    <span class="block text-3xl font-extrabold text-emerald-800">4 Lab</span>
                     <span class="text-xs font-semibold text-slate-700 uppercase tracking-wider mt-1 block">NOC, Server, Fiber &amp; Cyber</span>
                 </div>
                 <div class="p-5 rounded-2xl bg-white border border-emerald-200 shadow-sm">
-                    <span class="block text-3xl font-extrabold text-[#059669]">2 Unit</span>
+                    <span class="block text-3xl font-extrabold text-emerald-800">2 Unit</span>
                     <span class="text-xs font-semibold text-slate-700 uppercase tracking-wider mt-1 block">TEFA ISP &amp; RT/RW Net Hub</span>
                 </div>
                 <div class="p-5 rounded-2xl bg-white border border-emerald-200 shadow-sm">
-                    <span class="block text-3xl font-extrabold text-[#059669]">99%</span>
+                    <span class="block text-3xl font-extrabold text-emerald-800">99%</span>
                     <span class="text-xs font-semibold text-slate-700 uppercase tracking-wider mt-1 block">Keterserapan BMW</span>
                 </div>
             </div>
         </div>
     </section>
 
-    <!-- ── 3. PENJELASAN & PROFIL JURUSAN ── -->
-    <section class="py-20 bg-white">
-        <div class="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
-            <div class="grid grid-cols-1 lg:grid-cols-12 gap-12 items-center">
-                <div class="lg:col-span-6 space-y-6">
-                    <div class="inline-flex items-center gap-2 px-3 py-1 rounded-full text-xs font-bold text-emerald-800 bg-emerald-100 border border-emerald-200">
+    <!-- ── 3. PENJELASAN & PROFIL JURUSAN (CYBER MATRIX BINARY BACKDROP) ── -->
+    <section class="py-24 bg-[#020e0b] text-white relative overflow-hidden" style="background-color: #020e0b;">
+        <!-- Uploaded Cyber Binary / Network Perspective Background Image -->
+        <div class="absolute inset-0 pointer-events-none select-none z-0 overflow-hidden">
+            <img src="{{ asset('images/landing/bg-tjkt-binary.jpg') }}" alt="Cyber Data Infrastructure" class="w-full h-full object-cover object-center filter brightness-50 contrast-125 scale-105">
+            <!-- Multi-layer Darkening Overlays for 100% Text Legibility -->
+            <div class="absolute inset-0 bg-[#020e0b]/75"></div>
+            <div class="absolute inset-0 bg-gradient-to-r from-[#020e0b] via-[#020e0b]/90 to-[#020e0b]/50"></div>
+            <div class="absolute inset-0 bg-[radial-gradient(circle_at_center,transparent_20%,#020e0b_95%)]"></div>
+            <!-- Subtle CRT scanline effect for authentic tech vibe -->
+            <div class="absolute inset-0 bg-[linear-gradient(rgba(0,255,170,0.02)_1px,transparent_1px)] [background-size:100%_4px]"></div>
+        </div>
+
+        <div class="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 relative z-10">
+            <div class="grid grid-cols-1 lg:grid-cols-12 gap-8 lg:gap-12 items-center">
+                <!-- Left: Protected High-Contrast Glassmorphic Card -->
+                <div class="lg:col-span-6 p-6 sm:p-8 rounded-3xl bg-slate-950/80 backdrop-blur-xl border border-emerald-500/25 shadow-2xl space-y-6">
+                    <div class="inline-flex items-center gap-2 px-3.5 py-1.5 rounded-full text-xs font-bold text-[#A2E8B9] bg-emerald-950/90 border border-emerald-700/60 shadow-sm">
+                        <span class="w-2 h-2 rounded-full bg-[#53D769] animate-pulse"></span>
                         <span>Tentang Kompetensi Keahlian</span>
                     </div>
-                    <h2 class="text-2xl sm:text-4xl font-extrabold text-slate-900 tracking-tight leading-tight">
+
+                    <h2 class="text-2xl sm:text-4xl font-extrabold text-white tracking-tight leading-tight">
                         Mengapa Memilih Jurusan <br>
-                        <span class="text-[#059669]">TJKT Wikrama Garut?</span>
+                        <span class="bg-gradient-to-r from-[#53D769] via-emerald-300 to-[#A2E8B9] bg-clip-text text-transparent">TJKT Wikrama Garut?</span>
                     </h2>
-                    <p class="text-slate-600 leading-relaxed text-sm sm:text-base">
-                        Program keahlian Teknik Jaringan Komputer dan Telekomunikasi (TJKT) di {{ $schoolName }} dirancang untuk menghasilkan <strong>arsitek infrastruktur jaringan dan pertahanan siber</strong> yang tangguh, adaptif, serta berintegritas tinggi.
-                    </p>
-                    <p class="text-slate-600 leading-relaxed text-sm sm:text-base">
-                        Siswa tidak hanya belajar merakit komputer atau crimping kabel UTP biasa, melainkan mengoperasikan langsung <em>perangkat routing enterprise MikroTik, switch serat optik, mesin fusion splicer fiber optic, server virtualization Proxmox</em>, dan konfigurasi firewall filtering.
-                    </p>
+
+                    <div class="space-y-3 text-slate-200">
+                        <p class="text-emerald-100/95 leading-relaxed text-sm sm:text-base">
+                            Program keahlian Teknik Jaringan Komputer dan Telekomunikasi (TJKT) di {{ $schoolName }} dirancang untuk menghasilkan <strong class="text-white font-bold">arsitek infrastruktur jaringan dan pertahanan siber</strong> yang tangguh, adaptif, serta berintegritas tinggi.
+                        </p>
+                        <p class="text-emerald-100/85 leading-relaxed text-sm sm:text-base">
+                            Siswa tidak hanya belajar merakit komputer atau crimping kabel UTP biasa, melainkan mengoperasikan langsung <em class="text-[#53D769] font-medium not-italic">perangkat routing enterprise MikroTik, switch serat optik, mesin fusion splicer fiber optic, server virtualization Proxmox</em>, dan konfigurasi firewall filtering.
+                        </p>
+                    </div>
 
                     <div class="space-y-3 pt-2">
-                        <div class="flex items-start gap-3 p-3.5 rounded-xl bg-emerald-50/70 border border-emerald-100">
-                            <span class="p-2 rounded-lg bg-[#059669] text-white">
-                                <svg class="w-4 h-4" fill="none" stroke="currentColor" stroke-width="2" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" d="M5 13l4 4L19 7"/></svg>
+                        <div class="flex items-start gap-3.5 p-4 rounded-2xl bg-emerald-950/40 border border-emerald-800/60 hover:border-emerald-500/50 transition-colors">
+                            <span class="p-2 rounded-xl bg-emerald-500/20 text-[#53D769] border border-emerald-500/30 flex-shrink-0">
+                                <svg class="w-4 h-4" fill="none" stroke="currentColor" stroke-width="2.5" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" d="M5 13l4 4L19 7"/></svg>
                             </span>
                             <div>
-                                <h4 class="text-sm font-bold text-slate-900">MikroTik Academy &amp; Huawei ICT Official Center</h4>
-                                <p class="text-xs text-slate-600">Siswa diajar langsung oleh instruktur bersertifikasi internasional dan berhak mengikuti ujian sertifikasi MTCNA resmi di sekolah.</p>
+                                <h4 class="text-sm font-bold text-white">MikroTik Academy &amp; Huawei ICT Official Center</h4>
+                                <p class="text-xs text-emerald-200/80 leading-relaxed mt-0.5">Siswa diajar langsung oleh instruktur bersertifikasi internasional dan berhak mengikuti ujian sertifikasi MTCNA resmi di sekolah.</p>
                             </div>
                         </div>
 
-                        <div class="flex items-start gap-3 p-3.5 rounded-xl bg-emerald-50/70 border border-emerald-100">
-                            <span class="p-2 rounded-lg bg-[#059669] text-white">
-                                <svg class="w-4 h-4" fill="none" stroke="currentColor" stroke-width="2" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" d="M5 13l4 4L19 7"/></svg>
+                        <div class="flex items-start gap-3.5 p-4 rounded-2xl bg-emerald-950/40 border border-emerald-800/60 hover:border-emerald-500/50 transition-colors">
+                            <span class="p-2 rounded-xl bg-emerald-500/20 text-[#53D769] border border-emerald-500/30 flex-shrink-0">
+                                <svg class="w-4 h-4" fill="none" stroke="currentColor" stroke-width="2.5" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" d="M5 13l4 4L19 7"/></svg>
                             </span>
                             <div>
-                                <h4 class="text-sm font-bold text-slate-900">Praktik Fiber Optic Fusion Splicing Nyata</h4>
-                                <p class="text-xs text-slate-600">Menguasai pemotongan fiber, penyambungan dengan splicer presisi, pengukuran redaman OTDR, dan penarikan kabel udara.</p>
+                                <h4 class="text-sm font-bold text-white">Praktik Fiber Optic Fusion Splicing Nyata</h4>
+                                <p class="text-xs text-emerald-200/80 leading-relaxed mt-0.5">Menguasai pemotongan fiber, penyambungan dengan splicer presisi, pengukuran redaman OTDR, dan penarikan kabel udara.</p>
                             </div>
                         </div>
 
-                        <div class="flex items-start gap-3 p-3.5 rounded-xl bg-emerald-50/70 border border-emerald-100">
-                            <span class="p-2 rounded-lg bg-[#059669] text-white">
-                                <svg class="w-4 h-4" fill="none" stroke="currentColor" stroke-width="2" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" d="M5 13l4 4L19 7"/></svg>
+                        <div class="flex items-start gap-3.5 p-4 rounded-2xl bg-emerald-950/40 border border-emerald-800/60 hover:border-emerald-500/50 transition-colors">
+                            <span class="p-2 rounded-xl bg-emerald-500/20 text-[#53D769] border border-emerald-500/30 flex-shrink-0">
+                                <svg class="w-4 h-4" fill="none" stroke="currentColor" stroke-width="2.5" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" d="M5 13l4 4L19 7"/></svg>
                             </span>
                             <div>
-                                <h4 class="text-sm font-bold text-slate-900">Unit TEFA Pengelola ISP &amp; RT/RW Net</h4>
-                                <p class="text-xs text-slate-600">Terlibat langsung dalam pemeliharaan backbone internet sekolah dan layanan jaringan fiber untuk klien sekitar.</p>
+                                <h4 class="text-sm font-bold text-white">Unit TEFA Pengelola ISP &amp; RT/RW Net</h4>
+                                <p class="text-xs text-emerald-200/80 leading-relaxed mt-0.5">Terlibat langsung dalam pemeliharaan backbone internet sekolah dan layanan jaringan fiber untuk klien sekitar.</p>
                             </div>
                         </div>
                     </div>
                 </div>
 
-                <!-- Visual Collage Showcase -->
+                <!-- Right: Visual Collage Showcase -->
                 <div class="lg:col-span-6 grid grid-cols-2 gap-4">
                     <div class="space-y-4">
-                        <div class="rounded-2xl overflow-hidden shadow-md border border-slate-200">
+                        <div class="rounded-2xl overflow-hidden shadow-xl border border-emerald-500/30 bg-slate-900/60">
                             <img src="{{ asset('images/landing/lab-tjkt.jpeg') }}" alt="Lab Jaringan TJKT Wikrama" class="w-full h-48 sm:h-56 object-cover hover:scale-105 transition-all duration-300">
                         </div>
-                        <div class="p-5 rounded-2xl bg-gradient-to-br from-[#022c22] to-[#041f1a] text-white space-y-2">
+                        <div class="p-5 rounded-2xl bg-slate-950/90 backdrop-blur-md border border-emerald-500/30 text-white space-y-2 shadow-lg">
                             <span class="text-[#A2E8B9] text-xs font-bold uppercase tracking-wider">Unit Produksi TEFA</span>
                             <h4 class="text-base font-extrabold">Wikrama Network Center</h4>
                             <p class="text-xs text-emerald-200/90 leading-relaxed">Unit operasional yang memelihara jaringan hotspot, server data, dan CCTV di seluruh kampus.</p>
                         </div>
                     </div>
                     <div class="space-y-4 pt-6">
-                        <div class="p-5 rounded-2xl bg-[#059669] text-white space-y-2 shadow-lg shadow-emerald-500/20">
-                            <span class="text-emerald-100 text-xs font-bold uppercase tracking-wider">Spesialisasi Unggulan</span>
+                        <div class="p-5 rounded-2xl bg-emerald-950/90 backdrop-blur-md border border-[#53D769]/40 text-white space-y-2 shadow-xl shadow-emerald-950/40">
+                            <span class="text-[#53D769] text-xs font-bold uppercase tracking-wider">Spesialisasi Unggulan</span>
                             <h4 class="text-base font-extrabold">Fiber Optic &amp; Server Lab</h4>
-                            <p class="text-xs text-emerald-100 leading-relaxed">Fasilitas splicing mandiri dan konfigurasi cloud server berkecepatan tinggi 10 Gbps.</p>
+                            <p class="text-xs text-emerald-100/90 leading-relaxed">Fasilitas splicing mandiri dan konfigurasi cloud server berkecepatan tinggi 10 Gbps.</p>
                         </div>
-                        <div class="rounded-2xl overflow-hidden shadow-md border border-slate-200">
-                            <img src="{{ asset('images/web/facility-lab.jpg') }}" alt="Suasana Praktik Server Siswa TJKT" class="w-full h-48 sm:h-56 object-cover hover:scale-105 transition-all duration-300">
+                        <div class="rounded-2xl overflow-hidden shadow-xl border border-emerald-500/30 bg-slate-900/60">
+                            <img src="{{ asset('images/web/hero-tjkt.jpg') }}" alt="Suasana Praktik Server Siswa TJKT" class="w-full h-48 sm:h-56 object-cover hover:scale-105 transition-all duration-300">
                         </div>
                     </div>
                 </div>
@@ -209,10 +254,12 @@
 
         <div class="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 relative z-10">
             <div class="text-center max-w-3xl mx-auto mb-16">
-                <span class="inline-flex items-center gap-2 px-3 py-1 rounded-full text-xs font-bold text-emerald-300 bg-emerald-950/80 border border-emerald-800">
-                    <span>Peluang Karir Global</span>
-                </span>
-                <h2 class="text-2xl sm:text-4xl font-extrabold text-white mt-3">
+                <!-- Cyber Telemetry Status Bar -->
+                <div class="mb-4 inline-flex items-center gap-2 px-3.5 py-1.5 rounded-full bg-slate-950/90 border border-emerald-500/30 text-xs font-mono text-emerald-300 shadow-inner">
+                    <span class="w-2 h-2 rounded-full bg-emerald-400 animate-pulse"></span>
+                    <span>[NOC-TELEMETRY] Scanning industry demand... <span class="text-white font-bold">100% Match with Telecom &amp; ISP</span></span>
+                </div>
+                <h2 class="text-2xl sm:text-4xl font-extrabold text-white mt-1">
                     Prospek Karir Lulusan <span class="bg-gradient-to-r from-[#53D769] to-emerald-400 bg-clip-text text-transparent">TJKT</span>
                 </h2>
                 <p class="text-slate-300 text-sm sm:text-base mt-3">
@@ -533,7 +580,7 @@
     </section>
 
     <!-- ── 7. SERTIFIKASI KOMPETENSI RESMI (BNSP & MIKROTIK) ── -->
-    <section class="py-20 bg-gradient-to-br from-[#022c22] via-[#064e3b] to-[#041f1a] text-white">
+    <section class="py-20 bg-gradient-to-br from-[#022c22] via-[#064e3b] to-[#041f1a] text-white" style="background: linear-gradient(135deg, #022c22 0%, #064e3b 50%, #041f1a 100%);">
         <div class="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
             <div class="text-center max-w-3xl mx-auto mb-16">
                 <span class="inline-flex items-center gap-2 px-3 py-1 rounded-full text-xs font-bold text-emerald-300 bg-emerald-950/80 border border-emerald-800">
@@ -634,7 +681,7 @@
     <!-- ── 9. TESTIMONI ALUMNI TJKT ── -->
     <section class="py-20 bg-white">
         <div class="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
-            <div class="max-w-4xl mx-auto bg-gradient-to-r from-[#022c22] to-[#041f1a] rounded-3xl p-8 sm:p-12 text-white border border-emerald-500/30 shadow-xl relative overflow-hidden">
+            <div class="max-w-4xl mx-auto bg-gradient-to-r from-[#022c22] to-[#041f1a] rounded-3xl p-8 sm:p-12 text-white border border-emerald-500/30 shadow-xl relative overflow-hidden" style="background: linear-gradient(90deg, #022c22 0%, #041f1a 100%);">
                 <div class="absolute -right-20 -bottom-20 w-64 h-64 bg-[#10b981]/20 rounded-full blur-2xl pointer-events-none"></div>
 
                 <div class="flex flex-col sm:flex-row items-center gap-6 sm:gap-8 relative z-10">
@@ -701,7 +748,7 @@
     </section>
 
     <!-- ── 11. CTA DAFTAR TJKT ── -->
-    <section class="py-20 bg-gradient-to-r from-[#022c22] via-[#064e3b] to-[#10b981] text-white relative overflow-hidden">
+    <section class="py-20 bg-gradient-to-r from-[#022c22] via-[#064e3b] to-[#10b981] text-white relative overflow-hidden" style="background: linear-gradient(90deg, #022c22 0%, #064e3b 50%, #10b981 100%);">
         <div class="max-w-5xl mx-auto px-4 sm:px-6 lg:px-8 text-center relative z-10 space-y-6">
             <span class="inline-flex items-center gap-2 px-3.5 py-1.5 rounded-full text-xs font-bold uppercase tracking-wider bg-white/20 text-[#A2E8B9] border border-white/30">
                 Penerimaan Peserta Didik Baru (SPMB)
@@ -723,4 +770,335 @@
             </div>
         </div>
     </section>
+
+    <!-- ── 12. CLIENT-SIDE TJKT INTERACTIVE SCRIPTS ── -->
+    <script>
+        document.addEventListener('DOMContentLoaded', () => {
+            // --- A. Interactive Network Topology & Data Packets Canvas ---
+            const canvas = document.getElementById('tjkt-network-canvas');
+            if (canvas) {
+                const ctx = canvas.getContext('2d');
+                let width = 0;
+                let height = 0;
+                let particles = [];
+                let packets = [];
+                let mouse = { x: null, y: null, radius: 140 };
+
+                const resizeCanvas = () => {
+                    const rect = canvas.parentElement.getBoundingClientRect();
+                    width = canvas.width = rect.width;
+                    height = canvas.height = rect.height;
+                    initNetwork();
+                };
+
+                const initNetwork = () => {
+                    particles = [];
+                    packets = [];
+                    const particleCount = Math.min(Math.max(Math.floor(width / 26), 25), 65);
+                    for (let i = 0; i < particleCount; i++) {
+                        particles.push({
+                            x: Math.random() * width,
+                            y: Math.random() * height,
+                            vx: (Math.random() - 0.5) * 0.7,
+                            vy: (Math.random() - 0.5) * 0.7,
+                            radius: Math.random() * 1.8 + 1.2,
+                            alpha: Math.random() * 0.5 + 0.4
+                        });
+                    }
+
+                    // Pre-generate data packets
+                    for (let k = 0; k < 18; k++) {
+                        packets.push({
+                            p1: Math.floor(Math.random() * particleCount),
+                            p2: Math.floor(Math.random() * particleCount),
+                            t: Math.random(),
+                            speed: 0.006 + Math.random() * 0.012
+                        });
+                    }
+                };
+
+                // Track mouse on header
+                const header = canvas.parentElement;
+                if (header) {
+                    header.addEventListener('mousemove', (e) => {
+                        const rect = canvas.getBoundingClientRect();
+                        mouse.x = e.clientX - rect.left;
+                        mouse.y = e.clientY - rect.top;
+                    });
+                    header.addEventListener('mouseleave', () => {
+                        mouse.x = null;
+                        mouse.y = null;
+                    });
+                }
+
+                window.addEventListener('resize', resizeCanvas);
+                resizeCanvas();
+
+                const maxDist = 120;
+                const maxDistSq = maxDist * maxDist;
+
+                const animate = () => {
+                    ctx.clearRect(0, 0, width, height);
+
+                    // 1. Move & draw nodes
+                    for (let i = 0; i < particles.length; i++) {
+                        const p = particles[i];
+                        p.x += p.vx;
+                        p.y += p.vy;
+
+                        if (p.x < 0 || p.x > width) p.vx *= -1;
+                        if (p.y < 0 || p.y > height) p.vy *= -1;
+
+                        ctx.beginPath();
+                        ctx.arc(p.x, p.y, p.radius, 0, Math.PI * 2);
+                        ctx.fillStyle = `rgba(162, 232, 185, ${p.alpha})`;
+                        ctx.fill();
+                    }
+
+                    // 2. Draw lines between close nodes
+                    const activePairs = [];
+                    for (let i = 0; i < particles.length; i++) {
+                        for (let j = i + 1; j < particles.length; j++) {
+                            const dx = particles[i].x - particles[j].x;
+                            const dy = particles[i].y - particles[j].y;
+                            const distSq = dx * dx + dy * dy;
+
+                            if (distSq < maxDistSq) {
+                                const dist = Math.sqrt(distSq);
+                                const alpha = (1 - dist / maxDist) * 0.32;
+                                ctx.strokeStyle = `rgba(162, 232, 185, ${alpha})`;
+                                ctx.lineWidth = 0.7;
+                                ctx.beginPath();
+                                ctx.moveTo(particles[i].x, particles[i].y);
+                                ctx.lineTo(particles[j].x, particles[j].y);
+                                ctx.stroke();
+                                activePairs.push([i, j]);
+                            }
+                        }
+
+                        // Connect with mouse cursor
+                        if (mouse.x !== null && mouse.y !== null) {
+                            const mdx = particles[i].x - mouse.x;
+                            const mdy = particles[i].y - mouse.y;
+                            const mdist = Math.sqrt(mdx * mdx + mdy * mdy);
+                            if (mdist < mouse.radius) {
+                                const mAlpha = (1 - mdist / mouse.radius) * 0.6;
+                                ctx.strokeStyle = `rgba(83, 215, 105, ${mAlpha})`;
+                                ctx.lineWidth = 1.2;
+                                ctx.beginPath();
+                                ctx.moveTo(particles[i].x, particles[i].y);
+                                ctx.lineTo(mouse.x, mouse.y);
+                                ctx.stroke();
+                            }
+                        }
+                    }
+
+                    // 3. Move & draw traveling data packets
+                    if (activePairs.length > 0) {
+                        for (let k = 0; k < packets.length; k++) {
+                            const pkt = packets[k];
+                            pkt.t += pkt.speed;
+
+                            const p1 = particles[pkt.p1];
+                            const p2 = particles[pkt.p2];
+
+                            // Check if current pair is still in range
+                            let valid = false;
+                            if (p1 && p2) {
+                                const d2 = (p1.x - p2.x)**2 + (p1.y - p2.y)**2;
+                                if (d2 < maxDistSq) valid = true;
+                            }
+
+                            if (!valid || pkt.t >= 1) {
+                                pkt.t = 0;
+                                const randPair = activePairs[Math.floor(Math.random() * activePairs.length)];
+                                if (randPair) {
+                                    pkt.p1 = randPair[0];
+                                    pkt.p2 = randPair[1];
+                                }
+                            }
+
+                            if (particles[pkt.p1] && particles[pkt.p2]) {
+                                const n1 = particles[pkt.p1];
+                                const n2 = particles[pkt.p2];
+                                const px = n1.x + (n2.x - n1.x) * pkt.t;
+                                const py = n1.y + (n2.y - n1.y) * pkt.t;
+
+                                ctx.save();
+                                ctx.shadowBlur = 8;
+                                ctx.shadowColor = '#53D769';
+                                ctx.beginPath();
+                                ctx.arc(px, py, 2.2, 0, Math.PI * 2);
+                                ctx.fillStyle = '#ffffff';
+                                ctx.fill();
+                                ctx.restore();
+                            }
+                        }
+                    }
+
+                    requestAnimationFrame(animate);
+                };
+
+                requestAnimationFrame(animate);
+            }
+
+            // --- B. Live Simulated MikroTik & Linux Terminal Typing Engine ---
+            const termLogs = document.getElementById('tjkt-terminal-logs');
+            const termPrompt = document.getElementById('tjkt-terminal-prompt');
+            const termCmd = document.getElementById('tjkt-terminal-cmd');
+            const termScreen = document.getElementById('tjkt-terminal-screen');
+            const termBadge = document.getElementById('tjkt-term-badge');
+
+            if (termLogs && termPrompt && termCmd && termScreen) {
+                const terminalSequence = [
+                    {
+                        badge: 'RouterOS v7.14',
+                        prompt: '[admin@Wikrama-Core] > ',
+                        cmd: '/interface print brief',
+                        outputs: [
+                            '<span class="text-slate-500">Flags: D - DYNAMIC; R - RUNNING; S - SLAVE</span>',
+                            '<span class="text-slate-400">#   NAME               TYPE    ACTUAL-MTU  MAC-ADDRESS</span>',
+                            '<span class="text-emerald-400 font-bold">0 R sfp-sfpplus1 (10G) ether         1500  DC:2C:6E:11:A4:01</span>',
+                            '<span class="text-emerald-400 font-bold">1 R ether1-gateway     ether         1500  DC:2C:6E:11:A4:02</span>',
+                            '<span class="text-cyan-300">2 R vlan10-siswa       vlan          1500  DC:2C:6E:11:A4:01</span>',
+                            '<span class="text-cyan-300">3 R vlan20-guru        vlan          1500  DC:2C:6E:11:A4:01</span>',
+                            '<span class="text-cyan-300">4 R vlan30-tefa-isp    vlan          1500  DC:2C:6E:11:A4:01</span>',
+                            '<span class="text-slate-400 font-semibold">[Fiber Uplink: 10 Gbps SFP+ Active • Telkom Metro-E Garut]</span>'
+                        ]
+                    },
+                    {
+                        badge: 'RouterOS v7.14',
+                        prompt: '[admin@Wikrama-Core] > ',
+                        cmd: '/ip address print',
+                        outputs: [
+                            '<span class="text-slate-400">#   ADDRESS            NETWORK         INTERFACE</span>',
+                            '<span class="text-slate-300">0   10.10.0.1/16       10.10.0.0       vlan10-siswa</span>',
+                            '<span class="text-slate-300">1   10.20.0.1/24       10.20.0.0       vlan20-guru</span>',
+                            '<span class="text-slate-300">2   192.168.100.1/24   192.168.100.0   vlan30-tefa-isp</span>',
+                            '<span class="text-yellow-300 font-bold">3   180.252.14.82/29   180.252.14.80   ether1-gateway</span>'
+                        ]
+                    },
+                    {
+                        badge: 'RouterOS v7.14',
+                        prompt: '[admin@Wikrama-Core] > ',
+                        cmd: '/ip firewall filter add chain=forward action=drop connection-state=invalid comment="Drop Invalid Packets"',
+                        outputs: [
+                            '<span class="text-[#53D769] font-bold">&#10003; [OK] Rule #14 successfully applied to Mangle &amp; Filter table.</span>',
+                            '<span class="text-slate-400">Anti-DDoS SYN flood &amp; DNS amplification filter: ACTIVE</span>'
+                        ]
+                    },
+                    {
+                        badge: 'RouterOS v7.14',
+                        prompt: '[admin@Wikrama-Core] > ',
+                        cmd: '/ip dhcp-server lease print count-only',
+                        outputs: [
+                            '<span class="text-cyan-300 font-bold">1,248</span> <span class="text-slate-400">active DHCP leases assigned across campus subnets.</span>'
+                        ]
+                    },
+                    {
+                        badge: 'Linux Ubuntu 24.04',
+                        prompt: '[admin@Wikrama-Core] > ',
+                        cmd: 'ssh -i ~/.ssh/id_ed25519 admin@datacenter.wikrama.sch.id',
+                        outputs: [
+                            '<span class="text-yellow-300 font-semibold">Connecting to datacenter.wikrama.sch.id (10.10.0.250:22)...</span>',
+                            '<span class="text-emerald-400 font-bold">Linux wikrama-datacenter 6.8.0-45-generic #45-Ubuntu SMP</span>',
+                            '<span class="text-slate-400">Welcome to Wikrama Cloud Enterprise Server • Proxmox VE 8.2</span>'
+                        ]
+                    },
+                    {
+                        badge: 'Linux Ubuntu 24.04',
+                        prompt: 'admin@datacenter:~$ ',
+                        cmd: 'sudo systemctl status wireguard-mesh@wg0',
+                        outputs: [
+                            '<span class="text-emerald-400">● wg0.service - WireGuard Encrypted Site-to-Site Tunnel</span>',
+                            '<span class="text-slate-300">     Loaded: loaded (/etc/systemd/system/wg0.service; enabled)</span>',
+                            '<span class="text-emerald-300 font-bold">     Active: active (running)</span>',
+                            '<span class="text-cyan-300">     Peers: 14 active nodes (Branch, Lab Cloud, RT/RW Net Hub)</span>'
+                        ]
+                    },
+                    {
+                        badge: 'Linux Ubuntu 24.04',
+                        prompt: 'admin@datacenter:~$ ',
+                        cmd: 'curl -I https://spmb.smkwikrama1garut.sch.id',
+                        outputs: [
+                            '<span class="text-emerald-400 font-bold">HTTP/2 200 OK</span>',
+                            '<span class="text-slate-400">server: nginx/1.24.0 (Ubuntu) • TLSv1.3 AES_256</span>',
+                            '<span class="text-emerald-300 font-semibold">&#10003; Latency: 1.84ms • Response: 28ms • All Nodes Healthy</span>'
+                        ]
+                    }
+                ];
+
+                let currentStep = 0;
+                let charIndex = 0;
+
+                const runTerminal = () => {
+                    if (currentStep >= terminalSequence.length) {
+                        const completeDiv = document.createElement('div');
+                        completeDiv.className = 'text-[#53D769] font-bold py-1 border-t border-emerald-900/60 mt-2 text-[11px]';
+                        completeDiv.innerHTML = '&#10003; [SIMULATION COMPLETE] All 7 Enterprise Network Configurations Active.';
+                        termLogs.appendChild(completeDiv);
+
+                        const restartNotice = document.createElement('div');
+                        restartNotice.className = 'text-slate-500 text-[10px] pb-1';
+                        restartNotice.innerText = 'Restarting live CLI cycle in 4 seconds...';
+                        termLogs.appendChild(restartNotice);
+
+                        termScreen.scrollTop = termScreen.scrollHeight;
+
+                        setTimeout(() => {
+                            termLogs.innerHTML = '';
+                            currentStep = 0;
+                            charIndex = 0;
+                            termCmd.innerText = '';
+                            runTerminal();
+                        }, 4000);
+                        return;
+                    }
+
+                    const step = terminalSequence[currentStep];
+                    if (termBadge) termBadge.innerText = step.badge;
+                    termPrompt.innerText = step.prompt;
+
+                    // Type command character by character (~15ms per character)
+                    if (charIndex < step.cmd.length) {
+                        termCmd.innerText += step.cmd.charAt(charIndex);
+                        charIndex++;
+                        termScreen.scrollTop = termScreen.scrollHeight;
+                        setTimeout(runTerminal, 15);
+                    } else {
+                        // Finished typing command: commit to log
+                        const cmdRow = document.createElement('div');
+                        cmdRow.className = 'flex items-baseline flex-wrap pt-1 font-bold';
+                        cmdRow.innerHTML = `<span class="text-cyan-400 mr-1.5">${step.prompt}</span><span class="text-white">${step.cmd}</span>`;
+                        termLogs.appendChild(cmdRow);
+
+                        // Reset active input line
+                        termCmd.innerText = '';
+                        charIndex = 0;
+
+                        // Fast stream outputs (45ms per line)
+                        let outIdx = 0;
+                        const streamOutputs = () => {
+                            if (outIdx < step.outputs.length) {
+                                const outDiv = document.createElement('div');
+                                outDiv.className = 'text-[11px] leading-relaxed pl-2';
+                                outDiv.innerHTML = step.outputs[outIdx];
+                                termLogs.appendChild(outDiv);
+                                termScreen.scrollTop = termScreen.scrollHeight;
+                                outIdx++;
+                                setTimeout(streamOutputs, 45);
+                            } else {
+                                currentStep++;
+                                setTimeout(runTerminal, 600);
+                            }
+                        };
+                        setTimeout(streamOutputs, 100);
+                    }
+                };
+
+                // Launch terminal typing loop
+                setTimeout(runTerminal, 600);
+            }
+        });
+    </script>
 </x-layouts.blank>

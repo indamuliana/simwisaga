@@ -13,7 +13,7 @@
     @endphp
 
     <!-- ── 1. HERO SECTION: PPLG CYBER TECH & CODE STUDIO ── -->
-    <header class="relative pt-8 pb-16 sm:pt-12 sm:pb-20 overflow-hidden bg-gradient-to-b from-[#001D3D] via-[#001428] to-[#0A192F] text-white">
+    <header class="relative pt-8 pb-16 sm:pt-12 sm:pb-20 overflow-hidden bg-gradient-to-b from-[#001D3D] via-[#001428] to-[#0A192F] text-white" style="background: linear-gradient(180deg, #001D3D 0%, #001428 50%, #0A192F 100%);">
         <!-- Ambient Glowing Dots & Circuit Lines -->
         <div class="absolute inset-0 pointer-events-none z-0">
             <div class="absolute -top-32 -right-32 w-96 h-96 rounded-full bg-[#147EFB]/25 blur-3xl"></div>
@@ -109,19 +109,19 @@
         <div class="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
             <div class="grid grid-cols-2 md:grid-cols-4 gap-6 text-center">
                 <div class="p-5 rounded-2xl bg-white border border-blue-200 shadow-sm">
-                    <span class="block text-3xl font-extrabold text-[#147EFB]">100%</span>
+                    <span class="block text-3xl font-extrabold text-[#00519E]">100%</span>
                     <span class="text-xs font-semibold text-slate-700 uppercase tracking-wider mt-1 block">Sertifikasi BNSP &amp; Dicoding</span>
                 </div>
                 <div class="p-5 rounded-2xl bg-white border border-blue-200 shadow-sm">
-                    <span class="block text-3xl font-extrabold text-[#147EFB]">3 Lab</span>
+                    <span class="block text-3xl font-extrabold text-[#00519E]">3 Lab</span>
                     <span class="text-xs font-semibold text-slate-700 uppercase tracking-wider mt-1 block">Studio Software &amp; Game AI</span>
                 </div>
                 <div class="p-5 rounded-2xl bg-white border border-blue-200 shadow-sm">
-                    <span class="block text-3xl font-extrabold text-[#147EFB]">2 Unit</span>
+                    <span class="block text-3xl font-extrabold text-[#00519E]">2 Unit</span>
                     <span class="text-xs font-semibold text-slate-700 uppercase tracking-wider mt-1 block">TEFA Software Agency</span>
                 </div>
                 <div class="p-5 rounded-2xl bg-white border border-blue-200 shadow-sm">
-                    <span class="block text-3xl font-extrabold text-[#147EFB]">99%</span>
+                    <span class="block text-3xl font-extrabold text-[#00519E]">99%</span>
                     <span class="text-xs font-semibold text-slate-700 uppercase tracking-wider mt-1 block">Keterserapan BMW</span>
                 </div>
             </div>
@@ -538,7 +538,7 @@
     </section>
 
     <!-- ── 7. SERTIFIKASI KOMPETENSI RESMI (BNSP & GLOBAL) ── -->
-    <section class="py-20 bg-gradient-to-br from-[#001D3D] via-[#002B5B] to-[#0A192F] text-white">
+    <section class="py-20 bg-gradient-to-br from-[#001D3D] via-[#002B5B] to-[#0A192F] text-white" style="background: linear-gradient(135deg, #001D3D 0%, #002B5B 50%, #0A192F 100%);">
         <div class="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
             <div class="text-center max-w-3xl mx-auto mb-16">
                 <span class="inline-flex items-center gap-2 px-3 py-1 rounded-full text-xs font-bold text-cyan-300 bg-blue-950/80 border border-blue-800">
@@ -639,7 +639,7 @@
     <!-- ── 9. TESTIMONI ALUMNI PPLG ── -->
     <section class="py-20 bg-white">
         <div class="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
-            <div class="max-w-4xl mx-auto bg-gradient-to-r from-[#001D3D] to-[#0A192F] rounded-3xl p-8 sm:p-12 text-white border border-blue-500/30 shadow-xl relative overflow-hidden">
+            <div class="max-w-4xl mx-auto bg-gradient-to-r from-[#001D3D] to-[#0A192F] rounded-3xl p-8 sm:p-12 text-white border border-blue-500/30 shadow-xl relative overflow-hidden" style="background: linear-gradient(90deg, #001D3D 0%, #0A192F 100%);">
                 <div class="absolute -right-20 -bottom-20 w-64 h-64 bg-[#147EFB]/20 rounded-full blur-2xl pointer-events-none"></div>
 
                 <div class="flex flex-col sm:flex-row items-center gap-6 sm:gap-8 relative z-10">
@@ -706,7 +706,7 @@
     </section>
 
     <!-- ── 11. CTA DAFTAR PPLG ── -->
-    <section class="py-20 bg-gradient-to-r from-[#001D3D] via-[#002B5B] to-[#147EFB] text-white relative overflow-hidden">
+    <section class="py-20 bg-gradient-to-r from-[#001D3D] via-[#002B5B] to-[#147EFB] text-white relative overflow-hidden" style="background: linear-gradient(90deg, #001D3D 0%, #002B5B 50%, #147EFB 100%);">
         <div class="max-w-5xl mx-auto px-4 sm:px-6 lg:px-8 text-center relative z-10 space-y-6">
             <span class="inline-flex items-center gap-2 px-3.5 py-1.5 rounded-full text-xs font-bold uppercase tracking-wider bg-white/20 text-[#5FC9F8] border border-white/30">
                 Penerimaan Peserta Didik Baru (SPMB)

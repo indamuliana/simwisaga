@@ -16,7 +16,7 @@
                         <span>Program Keahlian Vokasi Terakreditasi</span>
                     </span>
                     <h2 class="text-2xl sm:text-4xl md:text-5xl font-extrabold tracking-tight mt-3 sm:mt-4" style="color: #00305F;">
-                        3 Pilar Kompetensi Masa Depan
+                        4 Pilar Kompetensi Masa Depan
                     </h2>
                     <p class="mt-3 sm:mt-4 text-sm sm:text-lg leading-relaxed font-normal" style="color: #8E8E93;">
                         Kurikulum link-and-match dengan industri terkemuka dalam bidang <strong style="color: #147EFB;">Teknologi Informasi &amp; AI</strong>, <strong style="color: #FD9426;">Bisnis Digital</strong>, dan <strong style="color: #FC3158;">Pariwisata &amp; Hospitaliti</strong>.

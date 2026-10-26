@@ -12,7 +12,7 @@
     @endphp
 
     <!-- ── Hero Banner Header Jurusan ── -->
-    <header class="relative pt-8 pb-16 sm:pt-12 sm:pb-20 overflow-hidden bg-gradient-to-b from-[#002244] via-[#001833] to-[#00305F] text-white">
+    <header class="relative pt-8 pb-16 sm:pt-12 sm:pb-20 overflow-hidden bg-gradient-to-b from-[#002244] via-[#001833] to-[#00305F] text-white" style="background: linear-gradient(180deg, #002244 0%, #001833 50%, #00305F 100%);">
         <!-- Ambient Glow & Pattern Grid -->
         <div class="absolute inset-0 pointer-events-none z-0">
             <div class="absolute -top-32 -right-32 w-[32rem] h-[32rem] rounded-full bg-blue-500/15 blur-3xl"></div>
@@ -442,7 +442,7 @@
             </div>
 
             <!-- Konsultasi & Direct SPMB Banner -->
-            <div class="mt-14 p-8 sm:p-12 rounded-3xl bg-gradient-to-r from-[#00305F] via-[#002244] to-[#001833] text-white flex flex-col md:flex-row items-center justify-between gap-6 shadow-xl">
+            <div class="mt-14 p-8 sm:p-12 rounded-3xl bg-gradient-to-r from-[#00305F] via-[#002244] to-[#001833] text-white flex flex-col md:flex-row items-center justify-between gap-6 shadow-xl" style="background: linear-gradient(90deg, #00305F 0%, #002244 50%, #001833 100%);">
                 <div>
                     <span class="text-xs font-mono-code font-bold uppercase tracking-wider text-[#F5D84A] block mb-1">BIMBINGAN MINAT &amp; BAKAT</span>
                     <h3 class="text-xl sm:text-2xl font-extrabold text-white">Masih Ragu Menentukan Jurusan?</h3>
