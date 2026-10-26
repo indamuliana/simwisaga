@@ -16,7 +16,8 @@
     @stack('styles')
     @livewireStyles
     <script>
-        if (localStorage.getItem('theme') === 'dark') {
+        const adminTheme = localStorage.getItem('siraga_admin_theme') || localStorage.getItem('theme');
+        if (adminTheme === 'dark') {
             document.documentElement.classList.add('dark');
         } else {
             document.documentElement.classList.remove('dark');
@@ -27,10 +28,11 @@
       x-data="{ 
           mobileOpen: false, 
           pinned: localStorage.getItem('sidebar_pinned') !== 'false',
-          darkMode: localStorage.getItem('theme') === 'dark',
+          darkMode: (localStorage.getItem('siraga_admin_theme') || localStorage.getItem('theme')) === 'dark',
           toggleTheme() {
               this.darkMode = !this.darkMode;
-              localStorage.setItem('theme', this.darkMode ? 'dark' : 'light');
+              localStorage.setItem('siraga_admin_theme', this.darkMode ? 'dark' : 'light');
+              localStorage.removeItem('theme');
               if (this.darkMode) {
                   document.documentElement.classList.add('dark');
               } else {

@@ -533,15 +533,6 @@
             stroke-dashoffset: 1200;
             transition: stroke-dashoffset 0.1s linear;
         }
-        .dark .btn-google-outline {
-            color: #E2E8F0;
-            border-color: #334155;
-        }
-        .dark .btn-google-outline:hover {
-            border-color: #2DD4BF;
-            color: #2DD4BF;
-            background: rgba(45, 212, 191, 0.1);
-        }
 
         /* ── Sticky Quick-Action Dock (Only on Extra Wide 2xl+ Displays) ── */
         .hp-sticky-dock {
@@ -588,11 +579,6 @@
         .hp-sticky-btn.highlight:hover {
             background: linear-gradient(90deg, #C59B27 0%, #D97706 100%);
             color: #000000;
-        }
-        .dark .hp-sticky-btn {
-            background: #0B192C;
-            border: 1px solid rgba(255, 255, 255, 0.12);
-            border-right: none;
         }
 
         /* ── Subtle Geometric Grid Background ── */
@@ -751,11 +737,6 @@
             background-color: #FFFFFF !important;
             border-color: #1A73E8 !important;
             box-shadow: 0 16px 36px -6px rgba(26, 115, 232, 0.25), 0 0 0 2px rgba(26, 115, 232, 0.35) !important;
-        }
-        .dark .partner-card:hover {
-            background-color: #0F1F38 !important;
-            border-color: #60A5FA !important;
-            box-shadow: 0 16px 36px -6px rgba(0, 0, 0, 0.7), 0 0 0 2px rgba(96, 165, 250, 0.45) !important;
         }
 
         /* ── Differentiated Card Styling System (Bright & Warm Education) ── */
@@ -1026,10 +1007,6 @@
         }
     </style>
     @livewireStyles
-    <script>
-        // Landing page selalu tampil dalam mode standar (tanpa mode gelap)
-        document.documentElement.classList.remove('dark');
-    </script>
 </head>
 <body class="min-h-screen text-slate-800 antialiased flex flex-col justify-between relative bg-[#FFFFFF]"
       x-data="{ 

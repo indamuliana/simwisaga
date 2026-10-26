@@ -25,6 +25,36 @@ Route::get('/berita', \App\Modules\AdministrasiWeb\Livewire\PublicArticleList::c
 Route::get('/berita/{slug}', \App\Modules\AdministrasiWeb\Livewire\PublicArticleDetail::class)->name('web.berita.detail');
 Route::get('/halaman/{slug}', \App\Modules\AdministrasiWeb\Livewire\PublicPageDetail::class)->name('web.page.detail');
 
+// Halaman Publik: Jurusan & Program Keahlian
+Route::prefix('jurusan')->name('web.jurusan.')->group(function () {
+    Route::get('/', function () {
+        $sekolah = \App\Modules\Sistem\Models\School::current();
+        return view('landing.jurusan.index', compact('sekolah'));
+    })->name('index');
+
+    Route::get('/pplg', function () {
+        $sekolah = \App\Modules\Sistem\Models\School::current();
+        return view('landing.jurusan.pplg', compact('sekolah'));
+    })->name('pplg');
+
+    Route::get('/tjkt', function () {
+        $sekolah = \App\Modules\Sistem\Models\School::current();
+        return view('landing.jurusan.tjkt', compact('sekolah'));
+    })->name('tjkt');
+
+    Route::get('/pmn', function () {
+        $sekolah = \App\Modules\Sistem\Models\School::current();
+        return view('landing.jurusan.pmn', compact('sekolah'));
+    })->name('pmn');
+    Route::redirect('/pemasaran', '/jurusan/pmn');
+
+    Route::get('/htl', function () {
+        $sekolah = \App\Modules\Sistem\Models\School::current();
+        return view('landing.jurusan.htl', compact('sekolah'));
+    })->name('htl');
+    Route::redirect('/perhotelan', '/jurusan/htl');
+});
+
 Route::middleware('guest')->group(function () {
     Route::get('/login', Login::class)->name('login');
 });

@@ -137,12 +137,29 @@
                             </div>
                         </div>
 
-                        <!-- Footer Career Pathways -->
-                        <div class="px-5 py-3.5 border-t border-slate-100" style="background-color: #F8F9FA;">
-                            <span class="text-[10px] font-bold uppercase tracking-wider block mb-0.5" style="color: #8E8E93;">Karier Lulusan:</span>
-                            <p class="text-[11px] font-semibold leading-tight" style="color: #1E293B;">
-                                {{ $jur['careers'] }}
-                            </p>
+                        <!-- Footer Career Pathways & Link to Detail -->
+                        <div class="px-5 py-3.5 border-t border-slate-100 flex flex-col justify-between gap-2.5" style="background-color: #F8F9FA;">
+                            <div>
+                                <span class="text-[10px] font-bold uppercase tracking-wider block mb-0.5" style="color: #8E8E93;">Karier Lulusan:</span>
+                                <p class="text-[11px] font-semibold leading-tight line-clamp-2" style="color: #1E293B;">
+                                    {{ $jur['careers'] }}
+                                </p>
+                            </div>
+                            @php
+                                $detailSlug = match(strtolower($jur['code'])) {
+                                    'pplg' => 'pplg',
+                                    'tjkt' => 'tjkt',
+                                    'pmn' => 'pmn',
+                                    'htl' => 'htl',
+                                    default => strtolower($jur['code']),
+                                };
+                            @endphp
+                            <a href="{{ url('/jurusan/' . $detailSlug) }}" 
+                               class="inline-flex items-center justify-between text-xs font-bold pt-2 border-t border-slate-200/80 transition-colors group-hover:underline"
+                               style="color: {{ $jc['color'] }};">
+                                <span>Kurikulum, Lab &amp; Sertifikasi</span>
+                                <span>&rarr;</span>
+                            </a>
                         </div>
                     </div>
                     @endforeach

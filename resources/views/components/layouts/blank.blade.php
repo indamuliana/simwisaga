@@ -123,9 +123,6 @@
             transform: translateY(-2px);
         }
     </style>
-    <script>
-        document.documentElement.classList.remove('dark');
-    </script>
 </head>
 <body class="min-h-screen text-slate-800 antialiased flex flex-col justify-between relative bg-[#FFFFFF]"
       x-data="{ 
