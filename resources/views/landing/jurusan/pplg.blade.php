@@ -153,35 +153,40 @@
     <!-- ── 3. PENJELASAN & PROFIL JURUSAN (NEURAL NETWORK MESH BACKDROP) ── -->
     <section class="py-24 bg-[#020b18] text-white relative overflow-hidden" style="background-color: #020b18;">
         <!-- Glowing Deep Learning Synaptic Mesh Canvas (Vibrant & High-Visibility) -->
-        <canvas id="pplg-neural-canvas" class="absolute inset-0 w-full h-full pointer-events-auto z-0 opacity-90 sm:opacity-95"></canvas>
+        <canvas id="pplg-neural-canvas" class="absolute inset-0 w-full h-full pointer-events-auto z-0 opacity-80 sm:opacity-90"></canvas>
 
-        <!-- Subtle Vignette Frame -->
-        <div class="absolute inset-0 bg-[radial-gradient(ellipse_at_center,transparent_55%,rgba(2,11,24,0.65)_100%)] pointer-events-none z-1"></div>
+        <!-- Multi-layer Darkening Overlays for Optimal Text Legibility & Depth -->
+        <div class="absolute inset-0 pointer-events-none z-1" style="background-color: rgba(2, 11, 24, 0.45);"></div>
+        <div class="absolute inset-0 pointer-events-none z-1" style="background: linear-gradient(to right, rgba(2, 11, 24, 0.88) 0%, rgba(2, 11, 24, 0.70) 45%, rgba(2, 11, 24, 0.25) 100%);"></div>
+        <div class="absolute inset-0 pointer-events-none z-1" style="background: radial-gradient(ellipse at center, transparent 35%, rgba(2, 11, 24, 0.85) 100%);"></div>
 
         <div class="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 relative z-10">
             <div class="grid grid-cols-1 lg:grid-cols-12 gap-8 lg:gap-12 items-center">
-                <!-- Left: Transparent Text Column allowing Neural Network to Shine Through -->
+                <!-- Left: Modular Glassmorphic Column -->
                 <div class="lg:col-span-6 space-y-6">
-                    <div class="inline-flex items-center gap-2 px-3.5 py-1.5 rounded-full text-xs font-bold text-cyan-300 bg-blue-950/80 border border-blue-700/60 shadow-sm backdrop-blur-sm">
-                        <span class="w-2 h-2 rounded-full bg-cyan-400 animate-pulse"></span>
-                        <span>Tentang Kompetensi Keahlian</span>
+                    <!-- Text Card with identical styling as feature cards -->
+                    <div class="p-6 sm:p-8 rounded-2xl bg-blue-950/40 backdrop-blur-sm border border-blue-800/50 hover:border-blue-500/50 transition-colors space-y-5">
+                        <div class="inline-flex items-center gap-2 px-3.5 py-1.5 rounded-full text-xs font-bold text-cyan-300 bg-blue-950/80 border border-blue-700/60 shadow-sm backdrop-blur-sm">
+                            <span class="w-2 h-2 rounded-full bg-cyan-400 animate-pulse"></span>
+                            <span>Tentang Kompetensi Keahlian</span>
+                        </div>
+
+                        <h2 class="text-2xl sm:text-4xl font-extrabold text-white tracking-tight leading-tight" style="text-shadow: 0 2px 14px rgba(0, 0, 0, 0.95), 0 0 20px rgba(0, 0, 0, 0.9);">
+                            Mengapa Memilih Jurusan <br>
+                            <span class="text-[#00F0FF] font-extrabold inline-block" style="color: #00F0FF; text-shadow: 0 0 22px rgba(0, 240, 255, 0.7), 0 2px 6px rgba(0, 0, 0, 0.9);">PPLG Wikrama Garut?</span>
+                        </h2>
+
+                        <div class="space-y-3.5" style="text-shadow: 0 2px 8px rgba(0, 0, 0, 0.95), 0 0 3px rgba(0, 0, 0, 0.9);">
+                            <p class="text-white/95 leading-relaxed text-sm sm:text-base">
+                                Program keahlian Pengembangan Perangkat Lunak dan Gim (PPLG) di {{ $schoolName }} dirancang khusus untuk mencetak <strong class="text-white font-bold">software engineer berdaya saing global yang berakhlak mulia</strong>. Kurikulum diselaraskan langsung dengan standar software house dan tech unicorn terkemuka.
+                            </p>
+                            <p class="text-slate-100/90 leading-relaxed text-sm sm:text-base">
+                                Siswa tidak hanya diajarkan menulis sintaks kode, tetapi dibiasakan dengan <em class="text-cyan-300 font-medium not-italic">clean architecture, microservices, containerization Docker, version control Git</em>, serta kolaborasi tim berbasis Scrum Agile.
+                            </p>
+                        </div>
                     </div>
 
-                    <h2 class="text-2xl sm:text-4xl font-extrabold text-white tracking-tight leading-tight" style="text-shadow: 0 2px 12px rgba(2, 11, 24, 0.9);">
-                        Mengapa Memilih Jurusan <br>
-                        <span class="text-[#00F0FF] font-extrabold inline-block" style="color: #00F0FF; text-shadow: 0 0 20px rgba(0, 240, 255, 0.6), 0 2px 6px rgba(2, 11, 24, 0.9);">PPLG Wikrama Garut?</span>
-                    </h2>
-
-                    <div class="space-y-3 text-slate-100" style="text-shadow: 0 1px 4px rgba(2, 11, 24, 0.95);">
-                        <p class="text-blue-50/95 leading-relaxed text-sm sm:text-base">
-                            Program keahlian Pengembangan Perangkat Lunak dan Gim (PPLG) di {{ $schoolName }} dirancang khusus untuk mencetak <strong class="text-white font-bold">software engineer berdaya saing global yang berakhlak mulia</strong>. Kurikulum diselaraskan langsung dengan standar software house dan tech unicorn terkemuka.
-                        </p>
-                        <p class="text-blue-100/90 leading-relaxed text-sm sm:text-base">
-                            Siswa tidak hanya diajarkan menulis sintaks kode, tetapi dibiasakan dengan <em class="text-cyan-300 font-medium not-italic">clean architecture, microservices, containerization Docker, version control Git</em>, serta kolaborasi tim berbasis Scrum Agile.
-                        </p>
-                    </div>
-
-                    <div class="space-y-3 pt-2">
+                    <div class="space-y-3">
                         <div class="flex items-start gap-3.5 p-4 rounded-2xl bg-blue-950/40 backdrop-blur-sm border border-blue-800/50 hover:border-blue-500/60 hover:bg-blue-900/40 transition-colors">
                             <span class="p-2 rounded-xl bg-blue-500/20 text-[#5FC9F8] border border-blue-500/30 flex-shrink-0">
                                 <svg class="w-4 h-4" fill="none" stroke="currentColor" stroke-width="2.5" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" d="M5 13l4 4L19 7"/></svg>
