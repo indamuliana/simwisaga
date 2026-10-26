@@ -172,7 +172,7 @@
 
                     <h2 class="text-2xl sm:text-4xl font-extrabold text-white tracking-tight leading-tight">
                         Mengapa Memilih Jurusan <br>
-                        <span class="bg-gradient-to-r from-[#5FC9F8] via-blue-300 to-cyan-200 bg-clip-text text-transparent">PPLG Wikrama Garut?</span>
+                        <span class="text-[#00F0FF] font-extrabold inline-block" style="color: #00F0FF; text-shadow: 0 0 18px rgba(0, 240, 255, 0.45);">PPLG Wikrama Garut?</span>
                     </h2>
 
                     <div class="space-y-3 text-slate-200">
