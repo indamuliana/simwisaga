@@ -54,6 +54,6 @@ class School extends Model implements Auditable
 
     private function urlFor(?string $path): ?string
     {
-        return $path && Storage::disk('public')->exists($path) ? Storage::disk('public')->url($path) : null;
+        return $path && Storage::disk('public')->exists($path) ? asset('storage/' . ltrim($path, '/')) : null;
     }
 }

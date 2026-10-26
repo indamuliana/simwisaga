@@ -56,6 +56,11 @@
                 class="py-2.5 px-4 text-xs sm:text-sm font-bold rounded-t-xl transition-all border-b-2 {{ $activeTab === 'student_moments' ? 'border-primary text-primary bg-surface' : 'border-transparent text-text-secondary hover:text-text-main' }}">
             🎓 Dinamika Siswa
         </button>
+        <button type="button" 
+                wire:click="$set('activeTab', 'mitra')" 
+                class="py-2.5 px-4 text-xs sm:text-sm font-bold rounded-t-xl transition-all border-b-2 {{ $activeTab === 'mitra' ? 'border-primary text-primary bg-surface' : 'border-transparent text-text-secondary hover:text-text-main' }}">
+            🤝 Mitra Link &amp; Match (BMW)
+        </button>
     </div>
 
     <form wire:submit="save" class="space-y-6">
@@ -559,6 +564,133 @@
         </div>
         @endif
 
+        {{-- ── TAB 5: MITRA LINK & MATCH (BMW) ── --}}
+        @if ($activeTab === 'mitra')
+        <div class="space-y-6">
+            <!-- Header Section Settings -->
+            <div class="card space-y-4">
+                <div class="border-b border-border pb-3">
+                    <h2 class="text-base font-bold text-text-main">Pengaturan Judul Section Link &amp; Match BMW</h2>
+                    <p class="text-xs text-text-secondary">
+                        Section logo kemitraan industri &amp; perguruan tinggi (Bekerja, Melanjutkan, Wirausaha).
+                    </p>
+                </div>
+                <div>
+                    <label class="label">Badge Tag / Judul Section</label>
+                    <input type="text" wire:model="mitra.tag" class="input" placeholder="Link &amp; Match Industri &bull; BMW (Bekerja, Melanjutkan, Wirausaha)">
+                </div>
+            </div>
+
+            <!-- Mitra List & Management -->
+            <div class="card space-y-4">
+                <div class="flex flex-col sm:flex-row sm:items-center sm:justify-between gap-3 border-b border-border pb-3">
+                    <div>
+                        <h2 class="text-base font-bold text-text-main">Daftar Mitra &amp; Logo Industri (Running Marquee)</h2>
+                        <p class="text-xs text-text-secondary">
+                            Logo dan teks pendamping di sebelah kiri (dapat dibuat 2 baris) yang berjalan otomatis pada halaman depan.
+                        </p>
+                    </div>
+                    <button type="button" 
+                            wire:click="openCreateMitraModal" 
+                            class="btn btn-sm btn-primary inline-flex items-center gap-1.5 self-start sm:self-auto cursor-pointer">
+                        <svg class="w-4 h-4" fill="none" viewBox="0 0 24 24" stroke="currentColor"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 4v16m8-8H4"/></svg>
+                        <span>+ Tambah Mitra Baru</span>
+                    </button>
+                </div>
+
+                @if (empty($mitra['items']))
+                <div class="text-center py-8 text-text-muted">
+                    <p class="text-sm">Belum ada data mitra. Klik tombol di atas untuk menambahkan mitra pertama.</p>
+                </div>
+                @else
+                <div class="space-y-3">
+                    @foreach ($mitra['items'] as $mIdx => $item)
+                    <div class="p-3.5 sm:p-4 rounded-2xl border border-border bg-surface hover:border-primary/40 transition-all flex flex-col md:flex-row md:items-center justify-between gap-4 shadow-2xs {{ !($item['is_active'] ?? true) ? 'opacity-60 bg-surface-raised/40' : '' }}">
+                        <div class="flex items-center gap-3.5 min-w-0">
+                            <!-- Order Buttons -->
+                            <div class="flex flex-col items-center gap-1 shrink-0">
+                                <button type="button" 
+                                        wire:click="moveMitraUp({{ $mIdx }})" 
+                                        @if($mIdx === 0) disabled @endif
+                                        class="p-1 rounded hover:bg-surface-raised text-text-muted hover:text-text-main disabled:opacity-30 disabled:cursor-not-allowed"
+                                        title="Pindah ke Atas">
+                                    <svg class="w-3.5 h-3.5" fill="none" viewBox="0 0 24 24" stroke="currentColor"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M5 15l7-7 7 7"/></svg>
+                                </button>
+                                <span class="font-mono-code text-[11px] font-bold text-text-muted bg-surface-raised px-1.5 py-0.5 rounded">
+                                    #{{ $mIdx + 1 }}
+                                </span>
+                                <button type="button" 
+                                        wire:click="moveMitraDown({{ $mIdx }})" 
+                                        @if($mIdx === count($mitra['items']) - 1) disabled @endif
+                                        class="p-1 rounded hover:bg-surface-raised text-text-muted hover:text-text-main disabled:opacity-30 disabled:cursor-not-allowed"
+                                        title="Pindah ke Bawah">
+                                    <svg class="w-3.5 h-3.5" fill="none" viewBox="0 0 24 24" stroke="currentColor"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M19 9l-7 7-7-7"/></svg>
+                                </button>
+                            </div>
+
+                            <!-- Live Visual Preview of [Logo] [Text] -->
+                            <div class="flex items-center gap-3 p-2.5 rounded-xl border border-slate-200 bg-white shadow-xs shrink-0 max-w-xs sm:max-w-sm">
+                                <div class="w-20 h-10 flex items-center justify-center p-1 bg-slate-50 rounded-lg border border-slate-100 shrink-0">
+                                    <img src="{{ \App\Modules\AdministrasiWeb\Models\WebSetting::resolveImageUrl($item['image'] ?? null, 'images/landing/mitra-huawei.png') }}" 
+                                         alt="{{ $item['name'] ?? 'Logo' }}" 
+                                         class="max-h-8 max-w-full object-contain">
+                                </div>
+                                <div class="text-left text-xs font-semibold text-slate-800 leading-tight whitespace-pre-line truncate max-w-[140px]">
+                                    {{ !empty($item['text']) ? $item['text'] : ($item['name'] ?: 'Tanpa Teks') }}
+                                </div>
+                            </div>
+
+                            <!-- Text Details -->
+                            <div class="min-w-0">
+                                <div class="flex items-center gap-2 flex-wrap">
+                                    <h3 class="text-sm font-bold text-text-main truncate">
+                                        {{ $item['name'] ?: ($item['text'] ?? 'Mitra Tanpa Nama') }}
+                                    </h3>
+                                    @if(!($item['is_active'] ?? true))
+                                    <span class="badge badge-neutral text-[10px]">Nonaktif</span>
+                                    @else
+                                    <span class="badge badge-success text-[10px]">Aktif</span>
+                                    @endif
+                                </div>
+                                @if(!empty($item['url']))
+                                <p class="text-xs font-mono-code text-primary truncate mt-1">
+                                    🔗 {{ $item['url'] }}
+                                </p>
+                                @endif
+                            </div>
+                        </div>
+
+                        <!-- Action Buttons -->
+                        <div class="flex items-center gap-2 shrink-0 self-end md:self-center">
+                            <button type="button" 
+                                    wire:click="toggleMitraActive({{ $mIdx }})" 
+                                    class="btn btn-xs {{ !($item['is_active'] ?? true) ? 'btn-success' : 'btn-outline' }}">
+                                {{ !($item['is_active'] ?? true) ? 'Aktifkan' : 'Nonaktifkan' }}
+                            </button>
+                            <button type="button" 
+                                    wire:click="openEditMitraModal({{ $mIdx }})" 
+                                    class="btn btn-xs btn-outline inline-flex items-center gap-1"
+                                    title="Edit Mitra">
+                                <svg class="w-3.5 h-3.5" fill="none" viewBox="0 0 24 24" stroke="currentColor"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M11 5H6a2 2 0 00-2 2v11a2 2 0 002 2h11a2 2 0 002-2v-5m-1.414-9.414a2 2 0 112.828 2.828L11.828 15H9v-2.828l8.586-8.586z"/></svg>
+                                <span>Edit</span>
+                            </button>
+                            <button type="button" 
+                                    wire:click="deleteMitra({{ $mIdx }})" 
+                                    wire:confirm="Yakin ingin menghapus mitra ini?" 
+                                    class="btn btn-xs btn-danger inline-flex items-center gap-1"
+                                    title="Hapus Mitra">
+                                <svg class="w-3.5 h-3.5" fill="none" viewBox="0 0 24 24" stroke="currentColor"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M19 7l-.867 12.142A2 2 0 0116.138 21H7.862a2 2 0 01-1.995-1.858L5 7m5 4v6m4-6v6m1-10V4a1 1 0 00-1-1h-4a1 1 0 00-1 1v3M4 7h16"/></svg>
+                                <span>Hapus</span>
+                            </button>
+                        </div>
+                    </div>
+                    @endforeach
+                </div>
+                @endif
+            </div>
+        </div>
+        @endif
+
         <!-- Floating/Sticky Save Button Bar -->
         <div class="sticky bottom-4 z-20 flex items-center justify-between p-4 rounded-2xl bg-surface/90 backdrop-blur-md border border-border shadow-xl">
             <span class="text-xs text-text-secondary hidden sm:inline">
@@ -665,6 +797,102 @@
                 </button>
                 <button type="button" wire:click="saveCard" class="btn btn-primary text-xs px-5 cursor-pointer">
                     Simpan Card
+                </button>
+            </div>
+        </div>
+    </div>
+    @endif
+
+    {{-- ── MODAL FORM TAMBAH / EDIT MITRA LINK & MATCH (BMW) ── --}}
+    @if ($showMitraModal)
+    <div class="fixed inset-0 z-50 flex items-center justify-center p-4 bg-black/60 backdrop-blur-xs overflow-y-auto">
+        <div class="bg-surface border border-border rounded-3xl p-6 sm:p-8 max-w-xl w-full shadow-2xl space-y-5 my-8">
+            <div class="flex items-center justify-between border-b border-border pb-3">
+                <div>
+                    <h3 class="text-lg font-bold text-text-main">
+                        {{ $mitraIndexEditing !== null ? 'Edit Mitra Link & Match' : 'Tambah Mitra Baru' }}
+                    </h3>
+                    <p class="text-xs text-text-secondary">Atur teks pendamping (2 baris rata kiri) dan upload logo mitra.</p>
+                </div>
+                <button type="button" wire:click="closeMitraModal" class="p-1 rounded-lg text-text-muted hover:text-text-main hover:bg-surface-raised cursor-pointer">
+                    <svg class="w-5 h-5" fill="none" viewBox="0 0 24 24" stroke="currentColor"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M6 18L18 6M6 6l12 12"/></svg>
+                </button>
+            </div>
+
+            <div class="space-y-4">
+                <!-- Teks Samping Kanan Logo (Bisa 2 Baris) -->
+                <div>
+                    <div class="flex items-center justify-between">
+                        <label class="label">Teks Samping Kanan Logo</label>
+                        <span class="text-[11px] text-text-muted font-normal">Tekan Enter untuk baris ke-2</span>
+                    </div>
+                    <textarea wire:model="mitraForm.text" rows="2" class="input text-xs" placeholder="Contoh:&#10;Mitra Industri&#10;PT Telkom Indonesia"></textarea>
+                    <p class="text-[11px] text-text-muted mt-1">
+                        Teks ini akan ditampilkan di sebelah kanan logo dengan format rata kiri. Bisa 1 atau 2 baris.
+                    </p>
+                    @error('mitraForm.text') <span class="error">{{ $message }}</span> @enderror
+                </div>
+
+                <!-- Logo Mitra Upload & Preview -->
+                <div>
+                    <label class="label">Upload Logo Mitra</label>
+                    <div class="flex items-center gap-4">
+                        <div class="w-28 h-16 rounded-xl overflow-hidden bg-slate-50 border border-border shrink-0 flex items-center justify-center p-2 shadow-inner">
+                            <img src="{{ $this->mitraImagePreview }}" alt="Preview" class="max-h-12 max-w-full object-contain">
+                        </div>
+                        <div class="flex-1 space-y-1.5">
+                            <input type="file" wire:model="mitraImageFile" accept="image/*" class="input text-xs py-1.5">
+                            <p class="text-[11px] text-text-muted">
+                                Format PNG transparan, SVG, atau WebP disarankan. Maksimal 5MB.
+                            </p>
+                            @error('mitraImageFile') <span class="error">{{ $message }}</span> @enderror
+                        </div>
+                    </div>
+                </div>
+
+                <!-- Live Preview of Result -->
+                <div class="p-3.5 rounded-2xl bg-slate-50 border border-slate-200 space-y-1.5">
+                    <span class="text-[10px] font-bold uppercase tracking-wider text-slate-500 block">Pratinjau Tampilan di Halaman Depan:</span>
+                    <div class="inline-flex items-center gap-3 p-2 px-3 rounded-xl bg-white border border-slate-200 shadow-2xs">
+                        <div class="w-20 h-10 flex items-center justify-center p-1 bg-slate-50 rounded-lg border border-slate-100 shrink-0">
+                            <img src="{{ $this->mitraImagePreview }}" alt="Preview" class="max-h-8 max-w-full object-contain">
+                        </div>
+                        <div class="text-left text-xs font-semibold text-slate-800 leading-tight whitespace-pre-line max-w-[150px]">
+                            {{ !empty($mitraForm['text']) ? $mitraForm['text'] : ($mitraForm['name'] ?: 'Teks Kemitraan (Baris 1&#10;Baris 2)') }}
+                        </div>
+                    </div>
+                </div>
+
+                <!-- Nama Instansi / Perusahaan & URL -->
+                <div class="grid gap-3 sm:grid-cols-2">
+                    <div>
+                        <label class="label">Nama Instansi / Mitra (Alt/Title)</label>
+                        <input type="text" wire:model="mitraForm.name" class="input text-xs" placeholder="Contoh: Huawei ICT Academy">
+                        @error('mitraForm.name') <span class="error">{{ $message }}</span> @enderror
+                    </div>
+                    <div>
+                        <label class="label">URL Website Mitra (Opsional)</label>
+                        <input type="text" wire:model="mitraForm.url" class="input text-xs" placeholder="https://...">
+                        @error('mitraForm.url') <span class="error">{{ $message }}</span> @enderror
+                    </div>
+                </div>
+
+                <!-- Checkbox Aktif -->
+                <div class="flex items-center gap-2 pt-2">
+                    <input type="checkbox" id="mitra_is_active" wire:model="mitraForm.is_active" class="rounded border-border text-primary focus:ring-primary w-4 h-4">
+                    <label for="mitra_is_active" class="text-sm font-semibold text-text-main cursor-pointer">
+                        Aktifkan &amp; tampilkan logo mitra ini pada marquee landing page
+                    </label>
+                </div>
+            </div>
+
+            <!-- Modal Action Buttons -->
+            <div class="flex items-center justify-end gap-3 pt-4 border-t border-border">
+                <button type="button" wire:click="closeMitraModal" class="btn btn-outline text-xs cursor-pointer">
+                    Batal
+                </button>
+                <button type="button" wire:click="saveMitra" class="btn btn-primary text-xs px-5 cursor-pointer">
+                    Simpan Mitra
                 </button>
             </div>
         </div>

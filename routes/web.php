@@ -7,11 +7,18 @@ use Illuminate\Support\Facades\Auth;
 use Illuminate\Support\Facades\Route;
 
 Route::get('/', function () {
+    // Dukungan rollback instan / preview versi landing page
+    if (request()->has('landing_version')) {
+        session(['landing_version' => request('landing_version')]);
+    }
+    $version = session('landing_version') ?? (request('version') ?: (request('v') === '1' ? 'classic' : 'new'));
+    $view = in_array($version, ['classic', 'v1', 'previous']) ? 'welcome_v1_backup' : 'welcome';
+
     $sekolah = \App\Modules\Sistem\Models\School::current();
     $jurusans = rescue(fn () => \App\Modules\Akademik\Models\Jurusan::where('is_active', true)->get(), collect());
     $landingBlocks = rescue(fn () => app(\App\Core\Modules\ModuleRegistry::class)->landingBlocks(), []);
 
-    return view('welcome', compact('sekolah', 'jurusans', 'landingBlocks'));
+    return view($view, compact('sekolah', 'jurusans', 'landingBlocks'));
 })->name('home');
 
 Route::get('/berita', \App\Modules\AdministrasiWeb\Livewire\PublicArticleList::class)->name('web.berita.index');

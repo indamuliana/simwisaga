@@ -26,31 +26,57 @@
     <link rel="icon" href="{{ $faviconUrl }}">
     <link rel="shortcut icon" href="{{ $faviconUrl }}">
 
-    <!-- Google Fonts: Plus Jakarta Sans (Google Sans proportions), Roboto Mono (Technical Badges & Accents), & Playfair Display (Heritage Editorial) -->
+    <!-- Google Fonts: Plus Jakarta Sans (Unified Modern Geometry) & Roboto Mono (Technical Accents) -->
     <link rel="preconnect" href="https://fonts.googleapis.com">
     <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
-    <link href="https://fonts.googleapis.com/css2?family=Playfair+Display:ital,wght@0,600;0,700;1,400;1,600;1,700&family=Plus+Jakarta+Sans:wght@300;400;500;600;700;800&family=Roboto+Mono:wght@400;500;600;700&display=swap" rel="stylesheet">
+    <link href="https://fonts.googleapis.com/css2?family=Plus+Jakarta+Sans:wght@300;400;500;600;700;800&family=Roboto+Mono:wght@400;500;600;700&display=swap" rel="stylesheet">
 
     @vite(['resources/css/app.css', 'resources/js/app.js'])
 
-    <!-- Unified High-Contrast Institutional Design System -->
+    <!-- Unified High-Contrast Institutional Design System: Bright & Warm Education -->
     <style>
         [x-cloak] { display: none !important; }
 
         :root {
-            --jis-navy: #014694;
-            --jis-navy-dark: #07234B;
-            --jis-midnight: #0B192C;
-            --jis-gold: #D4AF37;
-            --jis-gold-hover: #C59B27;
+            /* ── JIS Luminous Institutional Design Tokens (jisedu.or.id) ── */
+            --jis-navy: #00519E;              /* JIS Primary Endeavour Blue */
+            --jis-navy-dark: #00305F;         /* Deep Midnight Navy for Utility, Impact & Footer */
+            --jis-navy-light: #EBF4FC;        /* Soft Ice Blue Background Tint */
+            --jis-navy-hover: #003D7A;        /* Deeper Navy on hover */
+
+            /* Secondary / Accent Colors */
+            --jis-gold: #F5D84A;              /* JIS Signature Luminous Sun Gold */
+            --jis-gold-hover: #E2B714;         /* Rich Amber Gold */
+            --jis-forest: #1F513F;            /* Indonesian Tropical Forest Green */
+            --jis-forest-light: #E8F3EE;      /* Soft Botanical Green Tint */
+
+            /* Neutral Surface & Background Colors */
+            --brand-canvas: #FFFFFF;          /* Pure White Core Canvas */
+            --brand-surface: #FFFFFF;         /* Clean Card Surface */
+            --brand-surface-subtle: #F8F9FA;  /* Off-White Section Contrast */
+            --brand-surface-warm: #FAF8F5;    /* Warm Linen Texture */
+
+            /* Legacy / Compatibility Fallbacks */
+            --brand-coral: #00519E;           /* Remapped to JIS Navy */
+            --brand-coral-hover: #00305F;     /* Remapped to Midnight Navy */
+            --brand-coral-subtle: #EBF4FC;    /* Remapped to Ice Blue */
+            --brand-blue: #00519E;            /* JIS Endeavour Blue */
+            --brand-blue-hover: #00305F;      /* Midnight Deep */
+            --brand-blue-subtle: #EBF4FC;     /* Ice Blue */
+            --brand-green: #1F513F;           /* Tropical Forest Green */
+            --brand-green-subtle: #E8F3EE;    /* Botanical Mist */
+            --brand-amber: #F5D84A;           /* JIS Sun Gold */
+            --brand-amber-subtle: #FEF9E7;    /* Soft Gold Mist */
+
+            /* Typography Hierarchy */
+            --brand-heading: #00305F;         /* Midnight Deep Navy */
+            --brand-body: #232327;            /* Shark Dark Charcoal for High Readability */
+            --brand-muted: #5F6368;           /* Subdued Slate for Descriptions */
+            --brand-border: #E8EAED;          /* Soft Card & Divider Border */
             
-            /* Google AI Tokens */
+            /* Motion Timing Tokens */
             --gemini-ease-out-quart: cubic-bezier(0.165, 0.84, 0.44, 1);
             --gemini-ease-out-quad: cubic-bezier(0.25, 0.46, 0.45, 0.94);
-            --gemini-blue: #1A73E8;
-            --gemini-cyan: #40A2FF;
-            --gemini-purple: #8B5CF6;
-            --gemini-pink: #EC4899;
         }
 
         html, body {
@@ -62,8 +88,18 @@
 
         body {
             font-family: 'Plus Jakarta Sans', system-ui, -apple-system, sans-serif;
-            background-color: #FAFAFC;
-            color: #1F2937;
+            background-color: var(--brand-canvas);
+            color: #1E293B;
+        }
+
+        /* ── High-Contrast Global Text Selection (Seleksi / Blok Teks Bebas Masalah Putih) ── */
+        ::selection, *::selection {
+            background-color: #00519E !important;
+            color: #FFFFFF !important;
+        }
+        ::-moz-selection, *::-moz-selection {
+            background-color: #00519E !important;
+            color: #FFFFFF !important;
         }
 
         .no-scrollbar::-webkit-scrollbar {
@@ -74,13 +110,9 @@
             scrollbar-width: none;
         }
 
-        .dark body {
-            background-color: #060D1A;
-            color: #F3F4F6;
-        }
-
         .font-editorial {
-            font-family: 'Playfair Display', Georgia, serif;
+            font-family: 'Plus Jakarta Sans', system-ui, sans-serif;
+            font-style: italic;
         }
 
         .font-mono-code {
@@ -96,54 +128,94 @@
             will-change: filter;
         }
 
-        /* ── Multi-Stop Gradient Text ── */
+        /* ── Multi-Stop Gradient Text (Coral Orange to Royal Blue) ── */
         .gemini-gradient-text {
-            background: linear-gradient(90deg, #38BDF8 0%, #60A5FA 30%, #A78BFA 70%, #F472B6 100%);
+            background: linear-gradient(135deg, #FF6B4A 0%, #EA580C 45%, #2563EB 100%);
             -webkit-background-clip: text;
             -webkit-text-fill-color: transparent;
         }
 
         .gemini-gold-gradient {
-            background: linear-gradient(90deg, #FDE68A 0%, #F59E0B 50%, #F97316 100%);
+            background: linear-gradient(90deg, #F59E0B 0%, #FF6B4A 100%);
             -webkit-background-clip: text;
             -webkit-text-fill-color: transparent;
         }
 
-        /* ── Concentric Card System ── */
+        .gemini-blue-gradient {
+            background: linear-gradient(135deg, #2563EB 0%, #1D4ED8 100%);
+            -webkit-background-clip: text;
+            -webkit-text-fill-color: transparent;
+        }
+
+        .gemini-coral-gradient {
+            background: linear-gradient(135deg, #FF6B4A 0%, #FF5722 100%);
+            -webkit-background-clip: text;
+            -webkit-text-fill-color: transparent;
+        }
+
+        /* ── Concentric Floating Card System (Pure White + Soft Warm Diffusion Shadow) ── */
         .google-card {
             background: #FFFFFF;
-            border: 1px solid #E5E7EB;
+            border: 1px solid rgba(226, 232, 240, 0.85);
             border-radius: 24px;
-            box-shadow: 0 4px 20px -2px rgba(1, 70, 148, 0.04);
+            box-shadow: 0 10px 30px -5px rgba(0, 0, 0, 0.05), 0 0 0 1px rgba(0, 0, 0, 0.02);
             transition: transform 0.35s var(--gemini-ease-out-quart), 
                         box-shadow 0.35s var(--gemini-ease-out-quart), 
                         border-color 0.35s var(--gemini-ease-out-quart);
             will-change: transform, box-shadow;
         }
         .google-card:hover {
-            transform: translateY(-4px) scale(1.006);
-            box-shadow: 0 16px 36px -6px rgba(1, 70, 148, 0.12);
-            border-color: rgba(26, 115, 232, 0.35);
-        }
-        .dark .google-card {
-            background: #0B192C;
-            border-color: rgba(255, 255, 255, 0.08);
-            box-shadow: 0 4px 20px -2px rgba(0, 0, 0, 0.4);
-        }
-        .dark .google-card:hover {
-            box-shadow: 0 16px 36px -6px rgba(26, 115, 232, 0.25);
-            border-color: rgba(59, 130, 246, 0.4);
+            transform: translateY(-5px);
+            box-shadow: 0 20px 40px -8px rgba(255, 107, 74, 0.12), 0 0 0 1px rgba(255, 107, 74, 0.25);
+            border-color: rgba(255, 107, 74, 0.4);
         }
 
-        /* ── Dinamika Siswa JIS Card System (Ukuran Presisi Identik 3 Pilar) ── */
+        /* ── Atmospheric Ambient Mesh Glow (Warm Peach & Soft Sky Blue) ── */
+        .hero-mesh-bg {
+            background: radial-gradient(circle at 50% 0%, rgba(255, 107, 74, 0.08) 0%, transparent 60%),
+                        radial-gradient(circle at 100% 50%, rgba(37, 99, 235, 0.06) 0%, transparent 50%),
+                        radial-gradient(circle at 0% 80%, rgba(16, 185, 129, 0.06) 0%, transparent 50%);
+        }
+
+        /* ── Tab Pill Navigation (Mengenal Wikrama & Jurusan) ── */
+        .tab-pill-active {
+            background-color: #FF6B4A !important;
+            background-image: linear-gradient(135deg, #FF6B4A 0%, #FF5722 100%) !important;
+            color: #FFFFFF !important;
+            box-shadow: 0 4px 14px -2px rgba(255, 107, 74, 0.45) !important;
+        }
+        .tab-pill-blue-active {
+            background-color: #2563EB !important;
+            background-image: linear-gradient(135deg, #2563EB 0%, #1D4ED8 100%) !important;
+            color: #FFFFFF !important;
+            box-shadow: 0 4px 14px -2px rgba(37, 99, 235, 0.45) !important;
+        }
+        .tab-pill-inactive {
+            color: #334155 !important;
+            background-color: transparent !important;
+        }
+        .tab-pill-inactive:hover {
+            color: #FF6B4A !important;
+            background-color: #FFF1EE !important;
+        }
+
+        /* ── Dynamic Hero Media Ken Burns Zoom & Grow ── */
+        .hero-media-scale {
+            transition: transform 8000ms cubic-bezier(0.25, 1, 0.5, 1), filter 1000ms ease-out;
+            will-change: transform;
+            transform-origin: center center;
+        }
+
+        /* ── Dinamika Siswa JIS Seamless Ribbon (No-Gap Flush Cards) ── */
         .student-moment-card {
-            width: 286px !important;
-            min-width: 286px !important;
-            max-width: 286px !important;
+            width: 290px !important;
+            min-width: 290px !important;
+            max-width: 290px !important;
             height: 480px !important;
             min-height: 480px !important;
             max-height: 480px !important;
             flex-shrink: 0 !important;
+            border-radius: 0 !important;
         }
 
         @media (max-width: 640px) {
@@ -203,80 +275,115 @@
             overflow: hidden;
         }
 
-        /* ── Google Chip & Tag Badges ── */
+        /* ── Google Chip & Tag Badges (Pastel Friendly Pills - Bright & Warm) ── */
         .google-tag {
-            font-family: 'Roboto Mono', monospace;
-            font-size: 0.6875rem;
-            font-weight: 600;
-            letter-spacing: 0.06em;
+            font-family: 'Plus Jakarta Sans', system-ui, sans-serif;
+            font-size: 0.725rem;
+            font-weight: 700;
+            letter-spacing: 0.04em;
             text-transform: uppercase;
-            padding: 0.35rem 0.9rem;
+            padding: 0.35rem 1rem;
             border-radius: 9999px;
-            background: #EFF6FF;
-            color: #1A73E8;
-            border: 1px solid rgba(26, 115, 232, 0.2);
+            background: #FFF1EE;
+            color: #EA580C;
+            border: 1px solid rgba(255, 107, 74, 0.3);
             display: inline-flex;
             align-items: center;
-            gap: 0.4rem;
+            gap: 0.45rem;
+            box-shadow: 0 1px 3px rgba(255, 107, 74, 0.08);
         }
-        .dark .google-tag {
-            background: rgba(26, 115, 232, 0.15);
-            color: #93C5FD;
-            border-color: rgba(26, 115, 232, 0.35);
+        .google-tag-blue {
+            background: #EFF6FF !important;
+            color: #2563EB !important;
+            border-color: rgba(37, 99, 235, 0.25) !important;
+        }
+        .google-tag-green {
+            background: #ECFDF5 !important;
+            color: #059669 !important;
+            border-color: rgba(16, 185, 129, 0.25) !important;
+        }
+        .google-tag-amber {
+            background: #FEF3C7 !important;
+            color: #D97706 !important;
+            border-color: rgba(245, 158, 11, 0.25) !important;
         }
 
-        /* ── Action Buttons ── */
+        /* ── Action Buttons (Coral Orange & Royal Blue) ── */
         .btn-google-primary {
-            background: linear-gradient(90deg, #014694 0%, #1A73E8 100%);
+            background: linear-gradient(135deg, #FF6B4A 0%, #FF5722 100%);
             color: #FFFFFF;
             font-weight: 700;
             font-size: 0.875rem;
             border-radius: 9999px;
             padding: 0.8rem 1.85rem;
             transition: all 0.3s var(--gemini-ease-out-quart);
-            box-shadow: 0 4px 14px rgba(26, 115, 232, 0.25);
+            box-shadow: 0 6px 18px rgba(255, 107, 74, 0.35);
             display: inline-flex;
             align-items: center;
             justify-content: center;
             gap: 0.5rem;
         }
         .btn-google-primary:hover {
-            background: linear-gradient(90deg, #07234B 0%, #1557B0 100%);
-            box-shadow: 0 8px 24px rgba(26, 115, 232, 0.4);
+            background: linear-gradient(135deg, #FF7B5C 0%, #E85535 100%);
+            box-shadow: 0 10px 26px rgba(255, 107, 74, 0.48);
             transform: translateY(-2px);
+            color: #FFFFFF;
         }
         .btn-google-primary:active {
             transform: scale(0.98);
         }
 
-        .btn-google-gold {
-            background: linear-gradient(90deg, #D4AF37 0%, #F59E0B 100%);
-            color: #07234B;
-            font-weight: 800;
+        .btn-google-blue {
+            background: linear-gradient(135deg, #2563EB 0%, #1D4ED8 100%);
+            color: #FFFFFF;
+            font-weight: 700;
             font-size: 0.875rem;
             border-radius: 9999px;
             padding: 0.8rem 1.85rem;
             transition: all 0.3s var(--gemini-ease-out-quart);
-            box-shadow: 0 4px 14px rgba(212, 175, 55, 0.3);
+            box-shadow: 0 6px 18px rgba(37, 99, 235, 0.35);
+            display: inline-flex;
+            align-items: center;
+            justify-content: center;
+            gap: 0.5rem;
+        }
+        .btn-google-blue:hover {
+            background: linear-gradient(135deg, #3B82F6 0%, #1E40AF 100%);
+            box-shadow: 0 10px 26px rgba(37, 99, 235, 0.48);
+            transform: translateY(-2px);
+            color: #FFFFFF;
+        }
+
+        .btn-google-gold {
+            background: linear-gradient(135deg, #FBBF24 0%, #F59E0B 50%, #D97706 100%);
+            color: #FFFFFF;
+            font-weight: 800;
+            font-size: 0.875rem;
+            border-radius: 9999px;
+            border: 1px solid rgba(254, 240, 138, 0.6);
+            padding: 0.8rem 1.85rem;
+            transition: all 0.3s var(--gemini-ease-out-quart);
+            box-shadow: 0 6px 18px rgba(245, 158, 11, 0.4);
             display: inline-flex;
             align-items: center;
             justify-content: center;
             gap: 0.5rem;
         }
         .btn-google-gold:hover {
-            background: linear-gradient(90deg, #C59B27 0%, #D97706 100%);
-            box-shadow: 0 8px 24px rgba(212, 175, 55, 0.45);
+            background: linear-gradient(135deg, #FDE68A 0%, #FBBF24 50%, #F59E0B 100%);
+            box-shadow: 0 10px 28px rgba(245, 158, 11, 0.55);
             transform: translateY(-2px);
+            color: #FFFFFF;
         }
         .btn-google-gold:active {
             transform: scale(0.98);
         }
 
         .btn-google-outline {
-            background: transparent;
-            color: #1F2937;
-            border: 1.5px solid #D1D5DB;
-            font-weight: 600;
+            background: #FFFFFF;
+            color: #1E293B;
+            border: 1.5px solid #E2E8F0;
+            font-weight: 700;
             font-size: 0.875rem;
             border-radius: 9999px;
             padding: 0.8rem 1.75rem;
@@ -285,33 +392,172 @@
             align-items: center;
             justify-content: center;
             gap: 0.5rem;
+            box-shadow: 0 2px 6px rgba(0, 0, 0, 0.03);
         }
         .btn-google-outline:hover {
-            border-color: #1A73E8;
-            color: #1A73E8;
-            background: rgba(26, 115, 232, 0.04);
+            border-color: #00519E;
+            color: #00519E;
+            background: #EBF4FC;
             transform: translateY(-2px);
-        }
-        .dark .btn-google-outline {
-            color: #E5E7EB;
-            border-color: #374151;
-        }
-        .dark .btn-google-outline:hover {
-            border-color: #60A5FA;
-            color: #60A5FA;
-            background: rgba(96, 165, 250, 0.08);
+            box-shadow: 0 6px 16px rgba(0, 81, 158, 0.15);
         }
 
-        /* ── Sticky Quick-Action Dock ── */
+        /* ── JIS Signature Pill Buttons (Rounded-Full) ── */
+        .btn-jis-pill-gold {
+            background-color: #F5D84A;
+            color: #232327 !important;
+            border: 1.5px solid #E2B714;
+            font-weight: 800;
+            font-size: 0.875rem;
+            border-radius: 9999px;
+            padding: 0.8rem 1.85rem;
+            transition: all 0.3s cubic-bezier(0.16, 1, 0.3, 1);
+            display: inline-flex;
+            align-items: center;
+            justify-content: center;
+            gap: 0.5rem;
+            box-shadow: 0 4px 18px rgba(245, 216, 74, 0.45);
+            text-decoration: none;
+            cursor: pointer;
+        }
+        .btn-jis-pill-gold:hover {
+            background-color: #E2B714;
+            box-shadow: 0 8px 24px rgba(226, 183, 20, 0.55);
+            transform: translateY(-2px);
+            color: #111827 !important;
+        }
+        .btn-jis-pill-gold:active {
+            transform: scale(0.98);
+        }
+
+        .btn-jis-pill-navy {
+            background-color: #00519E;
+            color: #FFFFFF !important;
+            border: 1.5px solid #00305F;
+            font-weight: 700;
+            font-size: 0.875rem;
+            border-radius: 9999px;
+            padding: 0.8rem 1.85rem;
+            transition: all 0.3s cubic-bezier(0.16, 1, 0.3, 1);
+            display: inline-flex;
+            align-items: center;
+            justify-content: center;
+            gap: 0.5rem;
+            box-shadow: 0 4px 18px rgba(0, 81, 158, 0.35);
+            text-decoration: none;
+            cursor: pointer;
+        }
+        .btn-jis-pill-navy:hover {
+            background-color: #00305F;
+            box-shadow: 0 8px 24px rgba(0, 48, 95, 0.45);
+            transform: translateY(-2px);
+            color: #FFFFFF !important;
+        }
+
+        .btn-jis-pill-outline {
+            background: #FFFFFF;
+            color: #232327 !important;
+            border: 1.5px solid #CBD5E1;
+            font-weight: 700;
+            font-size: 0.875rem;
+            border-radius: 9999px;
+            padding: 0.8rem 1.85rem;
+            transition: all 0.3s cubic-bezier(0.16, 1, 0.3, 1);
+            display: inline-flex;
+            align-items: center;
+            justify-content: center;
+            gap: 0.5rem;
+            box-shadow: 0 2px 8px rgba(0, 0, 0, 0.04);
+            text-decoration: none;
+            cursor: pointer;
+        }
+        .btn-jis-pill-outline:hover {
+            border-color: #00519E;
+            color: #00519E !important;
+            background: #EBF4FC;
+            transform: translateY(-2px);
+            box-shadow: 0 6px 18px rgba(0, 81, 158, 0.15);
+        }
+
+        /* ── JIS Interactive Follower Cursor (Desktop Only) ── */
+        @media (min-width: 1024px) {
+            .jis-cursor-dot {
+                position: fixed;
+                top: 0;
+                left: 0;
+                width: 8px;
+                height: 8px;
+                background-color: #00519E;
+                border-radius: 50%;
+                pointer-events: none;
+                z-index: 99999;
+                transform: translate(-50%, -50%);
+                transition: opacity 0.2s;
+            }
+            .jis-cursor-follower {
+                position: fixed;
+                top: 0;
+                left: 0;
+                width: 36px;
+                height: 36px;
+                border: 1.5px solid rgba(0, 81, 158, 0.55);
+                border-radius: 50%;
+                pointer-events: none;
+                z-index: 99998;
+                transform: translate(-50%, -50%);
+                transition: width 0.25s ease-out, height 0.25s ease-out, background-color 0.25s, border-color 0.25s;
+                display: flex;
+                align-items: center;
+                justify-content: center;
+                font-size: 9px;
+                font-weight: 800;
+                color: transparent;
+                letter-spacing: 0.1em;
+            }
+            body.jis-cursor-hover .jis-cursor-follower {
+                width: 68px;
+                height: 68px;
+                background-color: rgba(0, 48, 95, 0.92);
+                border-color: #F5D84A;
+                color: #FFFFFF;
+                box-shadow: 0 10px 25px rgba(0, 48, 95, 0.35);
+            }
+            body.jis-cursor-hover .jis-cursor-dot {
+                opacity: 0;
+            }
+        }
+
+        /* ── SVG Botanical Vine Line Drawing ── */
+        .jis-vine-path {
+            stroke-dasharray: 1200;
+            stroke-dashoffset: 1200;
+            transition: stroke-dashoffset 0.1s linear;
+        }
+        .dark .btn-google-outline {
+            color: #E2E8F0;
+            border-color: #334155;
+        }
+        .dark .btn-google-outline:hover {
+            border-color: #2DD4BF;
+            color: #2DD4BF;
+            background: rgba(45, 212, 191, 0.1);
+        }
+
+        /* ── Sticky Quick-Action Dock (Only on Extra Wide 2xl+ Displays) ── */
         .hp-sticky-dock {
-            position: fixed;
-            right: 0;
-            top: 50%;
-            transform: translateY(-50%);
-            z-index: 45;
-            display: flex;
-            flex-direction: column;
-            gap: 6px;
+            display: none !important;
+        }
+        @media (min-width: 1536px) {
+            .hp-sticky-dock {
+                position: fixed;
+                right: 0;
+                top: 50%;
+                transform: translateY(-50%);
+                z-index: 45;
+                display: flex !important;
+                flex-direction: column;
+                gap: 6px;
+            }
         }
 
         .hp-sticky-btn {
@@ -410,6 +656,73 @@
             animation-play-state: paused !important;
         }
 
+        /* ── BMW Partner Logo Uniform Slot Track (Jarak Presisi & Konsisten) ── */
+        .partner-logo-slot {
+            width: auto;
+            max-width: 120px;
+            height: 48px;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            flex-shrink: 0;
+            padding: 0 4px;
+            position: relative;
+            cursor: pointer;
+        }
+        @media (min-width: 640px) {
+            .partner-logo-slot {
+                max-width: 135px;
+                height: 52px;
+                padding: 0 6px;
+            }
+        }
+        @media (min-width: 1024px) {
+            .partner-logo-slot {
+                max-width: 150px;
+                height: 56px;
+                padding: 0 8px;
+            }
+        }
+
+        .partner-logo-img {
+            max-height: 36px;
+            max-width: 100%;
+            width: auto;
+            height: auto;
+            object-fit: contain;
+            transition: transform 0.3s cubic-bezier(0.16, 1, 0.3, 1), filter 0.3s ease;
+            filter: drop-shadow(0 1px 2px rgba(0, 0, 0, 0.05));
+        }
+        @media (min-width: 640px) {
+            .partner-logo-img {
+                max-height: 40px;
+            }
+        }
+        @media (min-width: 1024px) {
+            .partner-logo-img {
+                max-height: 44px;
+            }
+        }
+        .partner-logo-slot:hover .partner-logo-img {
+            transform: scale(1.12);
+        }
+
+        .partner-logo-item {
+            display: inline-flex !important;
+            align-items: center !important;
+            vertical-align: middle !important;
+        }
+
+        .partner-logo-item .partner-logo-text {
+            display: inline-flex !important;
+            flex-direction: column !important;
+            justify-content: center !important;
+            align-self: center !important;
+            margin-top: auto !important;
+            margin-bottom: auto !important;
+            line-height: 1.25 !important;
+        }
+
         /* ── Reaksi Interaktif Barisan Logo saat di-Hover ── */
         .partner-card {
             transition: transform 0.35s cubic-bezier(0.165, 0.84, 0.44, 1), 
@@ -445,23 +758,221 @@
             box-shadow: 0 16px 36px -6px rgba(0, 0, 0, 0.7), 0 0 0 2px rgba(96, 165, 250, 0.45) !important;
         }
 
-        /* ── Google AI Scroll Reveal System ── */
+        /* ── Differentiated Card Styling System (Bright & Warm Education) ── */
+        
+        /* 1. Bento Card Style (#mengenal) */
+        .card-bento {
+            background: #FFFFFF;
+            border: 1px solid rgba(226, 232, 240, 0.85);
+            border-radius: 24px;
+            box-shadow: 0 10px 30px -5px rgba(0, 0, 0, 0.05);
+            transition: all 0.35s var(--gemini-ease-out-quart);
+            position: relative;
+        }
+        .card-bento:hover {
+            transform: translateY(-6px);
+            border-color: rgba(255, 107, 74, 0.4);
+            box-shadow: 0 20px 40px -8px rgba(255, 107, 74, 0.12), 0 0 0 1px rgba(255, 107, 74, 0.2);
+        }
+
+        /* 2. Stat Metric Glowing Pillar Card (#fakta) */
+        .card-metric {
+            background: #FFFFFF;
+            border: 1px solid rgba(226, 232, 240, 0.85);
+            border-radius: 22px;
+            box-shadow: 0 10px 30px -5px rgba(0, 0, 0, 0.05);
+            position: relative;
+            overflow: hidden;
+            transition: all 0.35s var(--gemini-ease-out-quart);
+        }
+        .card-metric::before {
+            content: '';
+            position: absolute;
+            top: 0;
+            left: 0;
+            right: 0;
+            height: 4px;
+            background: linear-gradient(90deg, #FF6B4A 0%, #F59E0B 50%, #2563EB 100%);
+            opacity: 0.9;
+            transition: height 0.3s ease;
+        }
+        .card-metric:hover {
+            transform: translateY(-6px);
+            box-shadow: 0 20px 40px -8px rgba(37, 99, 235, 0.12);
+            border-color: rgba(37, 99, 235, 0.35);
+        }
+        .card-metric:hover::before {
+            height: 5px;
+        }
+
+        /* 3. Blueprint Spec Card (#jurusan) */
+        .card-blueprint {
+            background: #FFFFFF;
+            border: 1px solid rgba(226, 232, 240, 0.85);
+            border-radius: 20px;
+            box-shadow: 0 10px 30px -5px rgba(0, 0, 0, 0.05);
+            transition: all 0.35s var(--gemini-ease-out-quart);
+            position: relative;
+        }
+        .card-blueprint:hover {
+            transform: translateY(-7px);
+            border-color: #2563EB;
+            box-shadow: 0 20px 40px -6px rgba(37, 99, 235, 0.15), 0 0 0 1px #2563EB;
+        }
+
+        /* 4. Architectural Pillar Brick Card (#profil) */
+        .card-pillar-brick {
+            background: #FFFFFF;
+            border: 1px solid rgba(226, 232, 240, 0.85);
+            border-left: 4px solid #FF6B4A;
+            border-radius: 16px;
+            padding: 1rem 1.25rem;
+            transition: all 0.3s var(--gemini-ease-out-quart);
+            box-shadow: 0 4px 16px rgba(0, 0, 0, 0.04);
+        }
+        .card-pillar-brick:hover {
+            border-left-color: #2563EB;
+            transform: translateX(4px);
+            box-shadow: 0 10px 28px rgba(37, 99, 235, 0.12);
+        }
+
+        /* 5. Quote Bubble Card (#suara-komunitas) */
+        .card-quote-bubble {
+            background: #FFFFFF;
+            border: 1px solid rgba(226, 232, 240, 0.85);
+            border-bottom: 3px solid #2563EB;
+            border-radius: 24px;
+            padding: 1.5rem;
+            box-shadow: 0 10px 30px -5px rgba(0, 0, 0, 0.05);
+            transition: all 0.35s var(--gemini-ease-out-quart);
+            position: relative;
+        }
+        .card-quote-bubble:hover {
+            transform: translateY(-5px);
+            border-bottom-color: #FF6B4A;
+            border-color: rgba(255, 107, 74, 0.35);
+            box-shadow: 0 20px 40px -6px rgba(255, 107, 74, 0.12);
+        }
+
+        /* 6. Gallery Tile Card (#fasilitas) */
+        .card-gallery-tile {
+            background: #FFFFFF;
+            border: 1px solid rgba(226, 232, 240, 0.85);
+            border-radius: 20px;
+            overflow: hidden;
+            box-shadow: 0 10px 30px -5px rgba(0, 0, 0, 0.05);
+            transition: all 0.35s var(--gemini-ease-out-quart);
+        }
+        .card-gallery-tile:hover {
+            transform: translateY(-6px);
+            border-color: rgba(255, 107, 74, 0.4);
+            box-shadow: 0 20px 40px -8px rgba(255, 107, 74, 0.15);
+        }
+
+        /* 7. Editorial News Card (#berita) */
+        .card-editorial {
+            background: #FFFFFF;
+            border: 1px solid rgba(226, 232, 240, 0.85);
+            border-radius: 22px;
+            overflow: hidden;
+            box-shadow: 0 10px 30px -5px rgba(0, 0, 0, 0.05);
+            transition: all 0.35s var(--gemini-ease-out-quart);
+        }
+        .card-editorial:hover {
+            transform: translateY(-5px);
+            border-color: rgba(37, 99, 235, 0.35);
+            box-shadow: 0 20px 40px -6px rgba(37, 99, 235, 0.12);
+        }
+
+        /* 8. Calendar Slate Card (#agenda) */
+        .card-calendar-slate {
+            background: #FFFFFF;
+            border: 1px solid rgba(226, 232, 240, 0.85);
+            border-radius: 24px;
+            padding: 1.5rem;
+            box-shadow: 0 10px 30px -5px rgba(0, 0, 0, 0.05);
+            transition: all 0.35s var(--gemini-ease-out-quart);
+            position: relative;
+        }
+        .card-calendar-slate:hover {
+            transform: translateY(-6px);
+            border-color: rgba(255, 107, 74, 0.4);
+            box-shadow: 0 20px 40px -6px rgba(255, 107, 74, 0.12);
+        }
+
+        /* 9. Ministry Seal Crest Card (#sekolah-teladan) */
+        .card-seal-crest {
+            background: #FFFFFF;
+            border: 1px solid rgba(226, 232, 240, 0.85);
+            border-radius: 20px;
+            padding: 1.25rem 1.5rem;
+            box-shadow: 0 10px 30px -5px rgba(0, 0, 0, 0.05);
+            transition: all 0.3s var(--gemini-ease-out-quart);
+        }
+        .card-seal-crest:hover {
+            transform: translateY(-4px);
+            border-color: rgba(37, 99, 235, 0.4);
+            box-shadow: 0 16px 36px -4px rgba(37, 99, 235, 0.12);
+        }
+
+        /* ── Multi-Flavor Smooth Scroll Reveal System ── */
         [data-animate] {
             opacity: 0;
-            transform: translateY(30px) scale(0.98);
-            transition: transform 1.0s var(--gemini-ease-out-quart), 
-                        opacity 0.85s var(--gemini-ease-out-quart);
+            transition: transform 0.8s var(--gemini-ease-out-quart), 
+                        opacity 0.75s var(--gemini-ease-out-quart);
             will-change: transform, opacity;
         }
-        [data-animate].is-visible {
-            opacity: 1;
-            transform: translateY(0) scale(1);
+
+        /* Default / fade-up */
+        [data-animate]:not([data-animate="scale"]):not([data-animate="slide-right"]):not([data-animate="slide-left"]):not([data-animate="tilt"]) {
+            transform: translateY(28px);
         }
-        [data-animate-delay="1"] { transition-delay: 0.1s !important; }
-        [data-animate-delay="2"] { transition-delay: 0.2s !important; }
-        [data-animate-delay="3"] { transition-delay: 0.3s !important; }
-        [data-animate-delay="4"] { transition-delay: 0.4s !important; }
-        [data-animate-delay="5"] { transition-delay: 0.5s !important; }
+        [data-animate]:not([data-animate="scale"]):not([data-animate="slide-right"]):not([data-animate="slide-left"]):not([data-animate="tilt"]).is-visible {
+            opacity: 1;
+            transform: translateY(0);
+        }
+
+        /* Flavor 2: Scale Pop */
+        [data-animate="scale"] {
+            transform: scale(0.92);
+        }
+        [data-animate="scale"].is-visible {
+            opacity: 1;
+            transform: scale(1);
+        }
+
+        /* Flavor 3: Slide from Right */
+        [data-animate="slide-right"] {
+            transform: translateX(36px);
+        }
+        [data-animate="slide-right"].is-visible {
+            opacity: 1;
+            transform: translateX(0);
+        }
+
+        /* Flavor 4: Slide from Left */
+        [data-animate="slide-left"] {
+            transform: translateX(-36px);
+        }
+        [data-animate="slide-left"].is-visible {
+            opacity: 1;
+            transform: translateX(0);
+        }
+
+        /* Flavor 5: Perspective 3D Tilt */
+        [data-animate="tilt"] {
+            transform: perspective(900px) rotateX(10deg) translateY(20px);
+        }
+        [data-animate="tilt"].is-visible {
+            opacity: 1;
+            transform: perspective(900px) rotateX(0deg) translateY(0);
+        }
+
+        [data-animate-delay="1"] { transition-delay: 0.08s !important; }
+        [data-animate-delay="2"] { transition-delay: 0.16s !important; }
+        [data-animate-delay="3"] { transition-delay: 0.24s !important; }
+        [data-animate-delay="4"] { transition-delay: 0.32s !important; }
+        [data-animate-delay="5"] { transition-delay: 0.40s !important; }
 
         /* ── Interactive Link Arrow Hover Slide ── */
         .group-hover-arrow {
@@ -471,13 +982,13 @@
             transform: translateX(5px);
         }
 
-        /* ── Soft Gaussian Atmospheric Spotlight Glow ── */
+        /* ── Soft Atmospheric Spotlight Glow (Warm Coral & Sky Blue) ── */
         .mouse-glow {
             position: fixed;
             width: 380px;
             height: 380px;
             border-radius: 50%;
-            background: radial-gradient(circle, rgba(26, 115, 232, 0.12) 0%, rgba(139, 92, 246, 0.06) 40%, transparent 70%);
+            background: radial-gradient(circle, rgba(255, 107, 74, 0.12) 0%, rgba(37, 99, 235, 0.08) 40%, transparent 70%);
             pointer-events: none;
             z-index: 10;
             transform: translate(-50%, -50%);
@@ -486,2278 +997,111 @@
             filter: blur(50px);
         }
         .mouse-glow.active { opacity: 1; }
-        .dark .mouse-glow {
-            background: radial-gradient(circle, rgba(59, 130, 246, 0.16) 0%, rgba(236, 72, 153, 0.08) 45%, transparent 70%);
-        }
 
         @media (prefers-reduced-motion: reduce) {
             [data-animate] { opacity: 1 !important; transform: none !important; transition: none !important; }
             .gemini-ring-small, .gemini-ring-large { animation: none !important; }
             .mouse-glow { display: none !important; }
         }
+    
+        /* ── Instant Vanilla Scroll Fallback for Solid Header Contrast (Crisp White Floating Nav) ── */
+        #main-nav-container.is-scrolled {
+            background-color: rgba(255, 255, 255, 0.96) !important;
+            backdrop-filter: blur(14px) !important;
+            -webkit-backdrop-filter: blur(14px) !important;
+            border-bottom: 1px solid rgba(226, 232, 240, 0.85) !important;
+            box-shadow: 0 10px 30px -5px rgba(0, 0, 0, 0.07) !important;
+        }
+        #main-nav-container.is-scrolled a.nav-link {
+            color: #1E293B !important;
+        }
+        #main-nav-container.is-scrolled a.nav-link:hover {
+            color: #00519E !important;
+        }
+        #main-nav-container.is-scrolled .nav-brand-title {
+            color: #0F172A !important;
+        }
+        #main-nav-container.is-scrolled .nav-brand-sub {
+            color: #64748B !important;
+        }
     </style>
     @livewireStyles
     <script>
-        if (localStorage.getItem('theme') === 'dark') {
-            document.documentElement.classList.add('dark');
-        } else {
-            document.documentElement.classList.remove('dark');
-        }
+        // Landing page selalu tampil dalam mode standar (tanpa mode gelap)
+        document.documentElement.classList.remove('dark');
     </script>
 </head>
-<body class="min-h-screen text-slate-800 dark:text-slate-100 antialiased selection:bg-blue-600 selection:text-white flex flex-col justify-between relative"
+<body class="min-h-screen text-slate-800 antialiased flex flex-col justify-between relative bg-[#FFFFFF]"
       x-data="{ 
-          darkMode: localStorage.getItem('theme') === 'dark',
+          scrolled: false,
           mobileMenu: false,
           flyerModal: false,
           imageModal: false,
           modalImageSrc: '',
           modalImageTitle: '',
           modalImageCategory: '',
-          activeHeroTab: 'spmb',
-          heroAutoPlay: true,
-          heroTabs: ['spmb', 'tech', 'tjkt', 'bisnis', 'hotel'],
-          heroTimer: null,
           activeKnowTab: 'admissions',
-          nextHeroTab() {
-              const idx = this.heroTabs.indexOf(this.activeHeroTab);
-              this.activeHeroTab = this.heroTabs[(idx + 1) % this.heroTabs.length];
-          },
-          prevHeroTab() {
-              const idx = this.heroTabs.indexOf(this.activeHeroTab);
-              this.activeHeroTab = this.heroTabs[(idx - 1 + this.heroTabs.length) % this.heroTabs.length];
-          },
-          startHeroAutoplay() {
-              if (this.heroTimer) clearInterval(this.heroTimer);
-              this.heroTimer = setInterval(() => {
-                  if (this.heroAutoPlay && !this.flyerModal && !this.imageModal) {
-                      this.nextHeroTab();
-                  }
-              }, 6000);
-          },
           openImageModal(src, title, cat) {
               this.modalImageSrc = src;
               this.modalImageTitle = title;
               this.modalImageCategory = cat;
               this.imageModal = true;
-          },
-          toggleTheme() {
-              this.darkMode = !this.darkMode;
-              localStorage.setItem('theme', this.darkMode ? 'dark' : 'light');
-              if (this.darkMode) {
-                  document.documentElement.classList.add('dark');
-              } else {
-                  document.documentElement.classList.remove('dark');
-              }
-          },
-          words: {{ json_encode($cfg['hero']['typewriter_words'] ?? ['Teknologi & AI', 'Bisnis Digital', 'Hospitaliti Bintang 5', 'Karakter Qur\'ani', 'Kepemimpinan Global']) }},
-          typewriterText: 'Teknologi & AI',
-          wordIndex: 0,
-          charIndex: 0,
-          isDeleting: false,
-          initTypewriter() {
-              const currentWord = this.words[this.wordIndex] || 'Teknologi & AI';
-              let delay = 90;
-
-              if (this.isDeleting) {
-                  this.typewriterText = currentWord.substring(0, this.charIndex - 1);
-                  this.charIndex--;
-                  delay = 45;
-              } else {
-                  this.typewriterText = currentWord.substring(0, this.charIndex + 1);
-                  this.charIndex++;
-                  delay = 85;
-              }
-
-              if (!this.isDeleting && this.charIndex === currentWord.length) {
-                  delay = 2400;
-                  this.isDeleting = true;
-              } else if (this.isDeleting && this.charIndex === 0) {
-                  this.isDeleting = false;
-                  this.wordIndex = (this.wordIndex + 1) % this.words.length;
-                  delay = 350;
-              }
-
-              setTimeout(() => this.initTypewriter(), delay);
           }
       }"
-      x-init="initTypewriter(); startHeroAutoplay()">
+      @scroll.window="scrolled = (window.pageYOffset > 30)">
 
-    <!-- ── Floating Sticky Quick-Action Dock (Only on Extra Wide 2xl+ Displays to prevent layout overlap) ── -->
-    <aside class="hidden 2xl:flex hp-sticky-dock" aria-label="Aksi Cepat Sekolah">
-        @foreach($cfg['sticky_actions'] ?? [] as $st)
-        <a href="{{ $st['url'] }}" 
-           target="{{ $st['target'] }}" 
-           rel="{{ $st['target'] === '_blank' ? 'noopener noreferrer' : '' }}"
-           class="hp-sticky-btn {{ ($st['highlight'] ?? false) ? 'highlight' : '' }}"
-           title="{{ $st['label'] }} - {{ $st['sub'] }}">
-            <span class="w-5 h-5 flex items-center justify-center shrink-0">
-                @if(($st['icon'] ?? '') === 'pencil')
-                    <svg class="w-4 h-4" fill="none" viewBox="0 0 24 24" stroke="currentColor"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2.2" d="M11 5H6a2 2 0 00-2 2v11a2 2 0 002 2h11a2 2 0 002-2v-5m-1.414-9.414a2 2 0 112.828 2.828L11.828 15H9v-2.828l8.586-8.586z"/></svg>
-                @elseif(($st['icon'] ?? '') === 'map-pin')
-                    <svg class="w-4 h-4" fill="none" viewBox="0 0 24 24" stroke="currentColor"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2.2" d="M17.657 16.657L13.414 20.9a1.998 1.998 0 01-2.827 0l-4.244-4.243a8 8 0 1111.314 0z"/><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2.2" d="M15 11a3 3 0 11-6 0 3 3 0 016 0z"/></svg>
-                @elseif(($st['icon'] ?? '') === 'download')
-                    <svg class="w-4 h-4" fill="none" viewBox="0 0 24 24" stroke="currentColor"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2.2" d="M4 16v1a3 3 0 003 3h10a3 3 0 003-3v-1m-4-4l-4 4m0 0l-4-4m4 4V4"/></svg>
-                @elseif(($st['icon'] ?? '') === 'chat')
-                    <svg class="w-4 h-4" fill="none" viewBox="0 0 24 24" stroke="currentColor"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2.2" d="M8 12h.01M12 12h.01M16 12h.01M21 12c0 4.418-4.03 8-9 8a9.863 9.863 0 01-4.255-.949L3 20l1.395-3.72C3.512 15.042 3 13.574 3 12c0-4.418 4.03-8 9-8s9 3.582 9 8z"/></svg>
-                @else
-                    <svg class="w-4 h-4" fill="none" viewBox="0 0 24 24" stroke="currentColor"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2.2" d="M13 7l5 5m0 0l-5 5m5-5H6"/></svg>
-                @endif
-            </span>
-            <div class="whitespace-nowrap pr-2">
-                <span class="block leading-none">{{ $st['label'] }}</span>
-                <span class="block text-[9px] opacity-80 font-normal mt-0.5">{{ $st['sub'] }}</span>
-            </div>
-        </a>
-        @endforeach
-    </aside>
+    <!-- ── JIS Custom Interactive Cursor (Desktop Only) ── -->
+    <div class="jis-cursor-dot hidden lg:block"></div>
+    <div class="jis-cursor-follower hidden lg:block"></div>
 
-    <!-- ── Compact Quick Action FAB for Standard Laptops & Mobile (< 2xl) ── -->
-    <div class="2xl:hidden fixed bottom-5 right-4 sm:bottom-6 sm:right-6 z-40" x-data="{ fabOpen: false }" @click.outside="fabOpen = false">
-        <div x-show="fabOpen" x-cloak
-             x-transition:enter="transition ease-out duration-200"
-             x-transition:enter-start="opacity-0 translate-y-3 scale-95"
-             x-transition:enter-end="opacity-100 translate-y-0 scale-100"
-             x-transition:leave="transition ease-in duration-150"
-             x-transition:leave-start="opacity-100 translate-y-0 scale-100"
-             x-transition:leave-end="opacity-0 translate-y-3 scale-95"
-             class="mb-3 flex flex-col items-end gap-2.5">
-            <a href="{{ $cfg['branding']['spmb_url'] ?? 'https://spmb.smkwikrama1garut.sch.id/' }}" target="_blank" rel="noopener" 
-               class="px-4 py-2 rounded-full bg-amber-500 text-slate-950 text-xs font-bold shadow-xl flex items-center gap-2 hover:bg-amber-400 transition-all border border-amber-300">
-                <span>Daftar SPMB Online</span>
-                <span>&rarr;</span>
-            </a>
-            <a href="https://wa.me/6281323314430?text=Halo%20Admin%20SMK%20Wikrama%201%20Garut,%20saya%20ingin%20berkonsultasi%20tentang%20penerimaan%20siswa%20baru" target="_blank" rel="noopener" 
-               class="px-4 py-2 rounded-full bg-emerald-600 text-white text-xs font-bold shadow-xl flex items-center gap-2 hover:bg-emerald-500 transition-all border border-emerald-400">
-                <span>Chat Admin WhatsApp</span>
-                <span class="w-2 h-2 rounded-full bg-emerald-300 animate-pulse"></span>
-            </a>
-            <a href="{{ $cfg['branding']['brochure_url'] ?? 'http://brosur.smkwikrama1garut.sch.id/' }}" target="_blank" rel="noopener" 
-               class="px-4 py-2 rounded-full bg-slate-900 text-white text-xs font-semibold shadow-xl flex items-center gap-2 hover:bg-slate-800 transition-all border border-white/20">
-                <span>Unduh Brosur Resmi</span>
-                <span>&darr;</span>
-            </a>
-        </div>
-        <button type="button" 
-                @click="fabOpen = !fabOpen" 
-                class="w-12 h-12 rounded-full bg-blue-600 hover:bg-blue-700 text-white shadow-xl flex items-center justify-center transition-all hover:scale-105 active:scale-95 cursor-pointer border-2 border-white/20"
-                aria-label="Aksi Cepat Sekolah">
-            <svg x-show="!fabOpen" class="w-6 h-6" fill="none" viewBox="0 0 24 24" stroke="currentColor"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 6v6m0 0v6m0-6h6m-6 0H6"/></svg>
-            <svg x-show="fabOpen" class="w-6 h-6" fill="none" viewBox="0 0 24 24" stroke="currentColor"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M6 18L18 6M6 6l12 12"/></svg>
-        </button>
-    </div>
 
-    <!-- ── Tier 1: Institutional Announcement Bar ── -->
-    @if($cfg['announcement']['enabled'] ?? true)
-    <div class="bg-slate-900 text-white text-xs py-2 px-4 border-b border-white/10 relative z-50">
-        <div class="max-w-7xl mx-auto flex flex-col sm:flex-row items-center justify-between gap-2">
-            <div class="flex items-center gap-2.5 text-center sm:text-left">
-                <span class="font-mono-code bg-gradient-to-r from-blue-600 via-indigo-500 to-pink-500 text-white px-2.5 py-0.5 rounded-full text-[10px] font-bold tracking-wider shrink-0">
-                    {{ $cfg['announcement']['badge'] ?? 'SPMB 2026/2027' }}
-                </span>
-                <span class="text-slate-300 font-medium text-[11px] sm:text-xs">
-                    {{ $cfg['announcement']['text'] ?? 'Penerimaan Peserta Didik Baru Resmi Dibuka!' }}
-                </span>
-            </div>
 
-            <div class="flex items-center gap-4 text-[11px] font-semibold text-slate-300">
-                <a href="{{ $cfg['announcement']['phone_url'] ?? 'tel:081323314430' }}" class="hidden md:flex items-center gap-1.5 hover:text-white transition-colors">
-                    <svg class="w-3.5 h-3.5 text-blue-400" fill="none" viewBox="0 0 24 24" stroke="currentColor"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2.2" d="M3 5a2 2 0 012-2h3.28a1 1 0 01.948.684l1.498 4.493a1 1 0 01-.502 1.21l-2.257 1.13a11.042 11.042 0 005.516 5.516l1.13-2.257a1 1 0 011.21-.502l4.493 1.498a1 1 0 01.684.949V19a2 2 0 01-2 2h-1C9.716 21 3 14.284 3 6V5z"/></svg>
-                    <span>{{ $cfg['announcement']['phone_display'] ?? '0813-2331-4430' }}</span>
-                </a>
-                <span class="hidden md:inline text-white/20">|</span>
-                <a href="{{ $cfg['announcement']['cta_url'] ?? 'https://spmb.smkwikrama1garut.sch.id/' }}" target="_blank" rel="noopener" class="text-blue-400 hover:text-blue-300 font-bold inline-flex items-center gap-1">
-                    <span>{{ $cfg['announcement']['cta_text'] ?? 'Daftar SPMB Online' }}</span> &rarr;
-                </a>
-                <span class="text-white/20">|</span>
-                <button type="button" 
-                        @click="toggleTheme()" 
-                        class="p-1 rounded text-slate-300 hover:text-white transition-colors cursor-pointer"
-                        :title="darkMode ? 'Beralih ke Mode Terang' : 'Beralih ke Mode Gelap'">
-                    <span x-show="darkMode" x-cloak>
-                        <svg class="w-3.5 h-3.5 text-amber-400" fill="none" viewBox="0 0 24 24" stroke="currentColor">
-                            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 3v1m0 16v1m9-9h-1M4 12H3m15.364 6.364l-.707-.707M6.343 6.343l-.707-.707m12.728 0l-.707.707M6.343 17.657l-.707.707M16 12a4 4 0 11-8 0 4 4 0 018 0z" />
-                        </svg>
-                    </span>
-                    <span x-show="!darkMode">
-                        <svg class="w-3.5 h-3.5 text-slate-300" fill="none" viewBox="0 0 24 24" stroke="currentColor">
-                            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M20.354 15.354A9 9 0 018.646 3.646 9.003 9.003 0 0012 21a9.003 9.003 0 008.354-5.646z" />
-                        </svg>
-                    </span>
-                </button>
-            </div>
-        </div>
-    </div>
-    @endif
+    {{-- ── Navigation & Sticky Quick Actions ── --}}
+    @include('landing.sections.navigation')
 
-    <!-- ── Tier 2: Main Header Navigation ── -->
-    <header class="sticky top-0 z-40 bg-white/95 dark:bg-[#071324]/95 backdrop-blur-md border-b border-slate-200/80 dark:border-slate-800 transition-all duration-300">
-        <div class="w-full max-w-[1680px] mx-auto px-4 sm:px-6 lg:px-10 xl:px-16 h-16 sm:h-20 flex items-center justify-between gap-2.5 sm:gap-4">
-            
-            <!-- School Brand Crest -->
-            <a href="#beranda" class="flex items-center space-x-2 sm:space-x-3.5 group shrink-0 min-w-0">
-                <div class="p-1 rounded-xl bg-slate-50 dark:bg-slate-800 border border-slate-200 dark:border-slate-700 shadow-xs group-hover:scale-105 transition-transform shrink-0">
-                    <img src="{{ $logoUrl }}" alt="Logo {{ $schoolName }}" class="h-8 sm:h-11 w-auto object-contain">
-                </div>
-                <div class="min-w-0 max-w-[160px] sm:max-w-none">
-                    <span class="text-xs sm:text-lg font-bold text-slate-900 dark:text-white tracking-tight block leading-tight group-hover:text-blue-600 transition-colors truncate">
-                        {{ $schoolName }}
-                    </span>
-                    <span class="text-[9px] sm:text-xs font-semibold text-slate-500 dark:text-slate-400 flex items-center gap-1 sm:gap-1.5 truncate">
-                        <span class="w-1.5 h-1.5 sm:w-2 sm:h-2 rounded-full bg-emerald-500 shrink-0"></span>
-                        <span class="truncate">{{ $cfg['branding']['school_type'] ?? 'Islamic Boarding School' }}</span>
-                    </span>
-                </div>
-            </a>
-
-            <!-- Desktop Navigation Menu (Dynamic Database Menus & Alpine.js Dropdowns) -->
-            <nav class="hidden lg:flex items-center space-x-1 xl:space-x-2 text-xs xl:text-sm font-semibold text-slate-700 dark:text-slate-200"
-                 x-data="{ activeDropdown: null }"
-                 @click.outside="activeDropdown = null">
-                @if($headerMenus->isNotEmpty())
-                    @foreach($headerMenus as $m)
-                        @if($m->children->isNotEmpty())
-                            <!-- Dropdown Menu: {{ $m->label }} -->
-                            <div class="relative" @mouseenter="activeDropdown = 'menu-{{ $m->id }}'" @mouseleave="activeDropdown = null">
-                                <button type="button" 
-                                        @click="activeDropdown = (activeDropdown === 'menu-{{ $m->id }}' ? null : 'menu-{{ $m->id }}')"
-                                        class="px-2.5 py-1.5 rounded-lg hover:text-blue-600 hover:bg-slate-100/60 dark:hover:bg-slate-800/60 transition-colors inline-flex items-center gap-1 cursor-pointer"
-                                        :class="activeDropdown === 'menu-{{ $m->id }}' ? 'text-blue-600 bg-slate-100/80 dark:bg-slate-800/80' : ''">
-                                    <span>{{ $m->label }}</span>
-                                    <svg class="w-3.5 h-3.5 transition-transform duration-200" :class="activeDropdown === 'menu-{{ $m->id }}' ? 'rotate-180 text-blue-600' : 'text-slate-400'" fill="none" viewBox="0 0 24 24" stroke="currentColor">
-                                        <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M19 9l-7 7-7-7" />
-                                    </svg>
-                                </button>
-                                <div x-show="activeDropdown === 'menu-{{ $m->id }}'" 
-                                     x-cloak
-                                     x-transition:enter="transition ease-out duration-150"
-                                     x-transition:enter-start="opacity-0 translate-y-1 scale-95"
-                                     x-transition:enter-end="opacity-100 translate-y-0 scale-100"
-                                     x-transition:leave="transition ease-in duration-100"
-                                     x-transition:leave-start="opacity-100 translate-y-0 scale-100"
-                                     x-transition:leave-end="opacity-0 translate-y-1 scale-95"
-                                     class="absolute left-0 mt-1 min-w-[200px] w-auto max-w-xs rounded-2xl bg-white dark:bg-slate-900 shadow-xl border border-slate-200/80 dark:border-slate-800 p-2 z-50">
-                                    @foreach($m->children as $child)
-                                        <a href="{{ $child->url }}" 
-                                           target="{{ $child->target }}" 
-                                           @click="activeDropdown = null" 
-                                           class="block px-3 py-2 rounded-xl text-xs font-semibold text-slate-800 dark:text-slate-100 hover:bg-slate-100 dark:hover:bg-slate-800 hover:text-blue-600 dark:hover:text-blue-400 transition-colors">
-                                            {{ $child->label }}
-                                        </a>
-                                    @endforeach
-                                </div>
-                            </div>
-                        @else
-                            <a href="{{ $m->url }}" target="{{ $m->target }}" class="px-2.5 py-1.5 rounded-lg hover:text-blue-600 hover:bg-slate-100/60 dark:hover:bg-slate-800/60 transition-colors">
-                                {{ $m->label }}
-                            </a>
-                        @endif
-                    @endforeach
-                @else
-                    <a href="#beranda" class="px-2.5 py-1.5 rounded-lg hover:text-blue-600 hover:bg-slate-100/60 dark:hover:bg-slate-800/60 transition-colors">Beranda</a>
-                    <a href="#filosofi" class="px-2.5 py-1.5 rounded-lg hover:text-blue-600 hover:bg-slate-100/60 dark:hover:bg-slate-800/60 transition-colors">Profil</a>
-                    <a href="#jurusan" class="px-2.5 py-1.5 rounded-lg hover:text-blue-600 hover:bg-slate-100/60 dark:hover:bg-slate-800/60 transition-colors">Jurusan</a>
-                    <a href="#dinamika-siswa" class="px-2.5 py-1.5 rounded-lg hover:text-blue-600 hover:bg-slate-100/60 dark:hover:bg-slate-800/60 transition-colors">Kesiswaan</a>
-                    <a href="#agenda" class="px-2.5 py-1.5 rounded-lg hover:text-blue-600 hover:bg-slate-100/60 dark:hover:bg-slate-800/60 transition-colors">Informasi</a>
-                    <a href="#kontak" class="px-2.5 py-1.5 rounded-lg hover:text-blue-600 hover:bg-slate-100/60 dark:hover:bg-slate-800/60 transition-colors">Kontak</a>
-                @endif
-            </nav>
-
-            <!-- Actions: Auth Button, SPMB & Mobile Menu Toggle -->
-            <div class="flex items-center space-x-2 sm:space-x-3 shrink-0">
-                @auth
-                    <a href="{{ route('dashboard') }}" 
-                       class="btn-google-primary text-xs sm:text-sm !py-1.5 !px-3 sm:!py-2.5 sm:!px-4 inline-flex items-center gap-1.5 shadow-xs group"
-                       title="Akses Sistem Informasi SIRAGA">
-                        <svg class="w-4 h-4 text-white shrink-0" fill="none" viewBox="0 0 24 24" stroke="currentColor">
-                            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M4 5a1 1 0 011-1h14a1 1 0 011 1v2a1 1 0 01-1 1H5a1 1 0 01-1-1V5zM4 13a1 1 0 011-1h6a1 1 0 011 1v6a1 1 0 01-1 1H5a1 1 0 01-1-1v-6zM16 13a1 1 0 011-1h4a1 1 0 011 1v6a1 1 0 01-1 1h-4a1 1 0 01-1-1v-6z" />
-                        </svg>
-                        <span class="font-bold">Dashboard</span>
-                    </a>
-                @else
-                    <a href="{{ route('login') }}" 
-                       class="btn-google-outline text-xs sm:text-sm !py-1.5 !px-3 sm:!py-2.5 sm:!px-4 inline-flex items-center gap-1.5 shadow-xs">
-                        <svg class="w-3.5 h-3.5 text-slate-500 dark:text-slate-400 shrink-0" fill="none" viewBox="0 0 24 24" stroke="currentColor">
-                            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M11 16l-4-4m0 0l4-4m-4 4h14m-5 4v1a3 3 0 01-3 3H6a3 3 0 01-3-3V7a3 3 0 013-3h7a3 3 0 013 3v1" />
-                        </svg>
-                        <span>Masuk</span>
-                    </a>
-                @endauth
-
-                <a href="{{ $cfg['branding']['spmb_url'] ?? 'https://spmb.smkwikrama1garut.sch.id/' }}" 
-                   target="_blank" 
-                   rel="noopener" 
-                   class="btn-google-gold text-xs sm:text-sm !py-1.5 !px-3 sm:!py-2.5 sm:!px-5 inline-flex items-center gap-1 sm:gap-1.5 shadow-xs">
-                    <span>Daftar SPMB</span>
-                    <span class="text-xs">&rarr;</span>
-                </a>
-
-                <!-- Mobile Menu Hamburger Button -->
-                <button type="button" 
-                        @click="mobileMenu = !mobileMenu"
-                        class="lg:hidden p-1.5 sm:p-2 rounded-xl text-slate-700 dark:text-slate-200 hover:bg-slate-100 dark:hover:bg-slate-800 cursor-pointer"
-                        aria-label="Buka Menu Navigasi">
-                    <svg class="w-6 h-6" fill="none" viewBox="0 0 24 24" stroke="currentColor">
-                        <path x-show="!mobileMenu" stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M4 6h16M4 12h16M4 18h16" />
-                        <path x-show="mobileMenu" x-cloak stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M6 18L18 6M6 6l12 12" />
-                    </svg>
-                </button>
-            </div>
-        </div>
-
-        <!-- Mobile Drawer Navigation -->
-        <div x-show="mobileMenu" x-cloak 
-             @click="mobileMenu = false"
-             x-transition:enter="transition-opacity ease-out duration-200"
-             x-transition:enter-start="opacity-0"
-             x-transition:enter-end="opacity-100"
-             x-transition:leave="transition-opacity ease-in duration-150"
-             x-transition:leave-start="opacity-100"
-             x-transition:leave-end="opacity-0"
-             class="fixed inset-0 bg-slate-950/60 backdrop-blur-xs z-30 lg:hidden"></div>
-
-        <div x-show="mobileMenu" x-cloak 
-             x-transition:enter="transition ease-out duration-200"
-             x-transition:enter-start="opacity-0 -translate-y-4"
-             x-transition:enter-end="opacity-100 translate-y-0"
-             x-transition:leave="transition ease-in duration-150"
-             x-transition:leave-start="opacity-100 translate-y-0"
-             x-transition:leave-end="opacity-0 -translate-y-4"
-             class="lg:hidden absolute top-full inset-x-0 bg-white dark:bg-slate-900 border-b border-slate-200 dark:border-slate-800 z-40 p-5 shadow-2xl max-h-[calc(100vh-5rem)] overflow-y-auto">
-            <div class="flex flex-col space-y-3 text-sm font-semibold text-slate-800 dark:text-slate-100">
-                @auth
-                    <div class="p-3 rounded-xl bg-blue-50/80 dark:bg-blue-950/40 border border-blue-200/80 dark:border-blue-900/60 flex items-center justify-between">
-                        <div class="min-w-0 pr-2">
-                            <span class="text-[10px] font-mono-code font-bold uppercase tracking-wider text-blue-600 dark:text-blue-400 block">Sesi Login Aktif</span>
-                            <span class="text-xs font-bold text-slate-900 dark:text-white truncate block">{{ auth()->user()->name }}</span>
-                            <span class="text-[10px] text-slate-500 dark:text-slate-400 capitalize block">{{ auth()->user()->role ?? 'Pengguna' }}</span>
-                        </div>
-                        <a href="{{ route('dashboard') }}" class="btn-google-primary text-xs !py-1.5 !px-3 shrink-0 inline-flex items-center gap-1">
-                            <span>Dashboard</span>
-                            <span>&rarr;</span>
-                        </a>
-                    </div>
-                @else
-                    <div class="pb-1">
-                        <a href="{{ route('login') }}" class="btn-google-outline w-full text-center text-xs py-2.5 flex items-center justify-center gap-1.5">
-                            <svg class="w-4 h-4 text-slate-500" fill="none" viewBox="0 0 24 24" stroke="currentColor"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M11 16l-4-4m0 0l4-4m-4 4h14m-5 4v1a3 3 0 01-3 3H6a3 3 0 01-3-3V7a3 3 0 013-3h7a3 3 0 013 3v1" /></svg>
-                            <span>Masuk ke Portal SIRAGA</span>
-                        </a>
-                    </div>
-                @endauth
-
-                @if($headerMenus->isNotEmpty())
-                    <div class="space-y-3">
-                        @foreach($headerMenus as $m)
-                            @if($m->children->isNotEmpty())
-                                <div>
-                                    <span class="text-[10px] font-mono-code font-bold uppercase tracking-wider text-slate-400 dark:text-slate-500 block px-2 pb-1">
-                                        {{ $m->label }}
-                                    </span>
-                                    <div class="grid grid-cols-2 gap-1.5">
-                                        @foreach($m->children as $child)
-                                            <a href="{{ $child->url }}" 
-                                               target="{{ $child->target }}" 
-                                               @click="mobileMenu = false" 
-                                               class="p-2 rounded-lg hover:bg-slate-50 dark:hover:bg-slate-800 text-xs font-semibold text-slate-800 dark:text-slate-200">
-                                                {{ $child->label }}
-                                            </a>
-                                        @endforeach
-                                    </div>
-                                </div>
-                            @else
-                                <a href="{{ $m->url }}" 
-                                   target="{{ $m->target }}" 
-                                   @click="mobileMenu = false" 
-                                   class="p-2 rounded-lg hover:bg-slate-50 dark:hover:bg-slate-800 text-xs font-bold text-slate-800 dark:text-slate-100 block">
-                                    {{ $m->label }}
-                                </a>
-                            @endif
-                        @endforeach
-                    </div>
-                @else
-                    <div class="space-y-3">
-                        <div>
-                            <span class="text-[10px] font-mono-code font-bold uppercase tracking-wider text-slate-400 dark:text-slate-500 block px-2 pb-1">Profil &amp; Keunggulan</span>
-                            <div class="grid grid-cols-2 gap-1.5">
-                                <a href="#beranda" @click="mobileMenu = false" class="p-2 rounded-lg hover:bg-slate-50 dark:hover:bg-slate-800 text-xs">Beranda</a>
-                                <a href="#filosofi" @click="mobileMenu = false" class="p-2 rounded-lg hover:bg-slate-50 dark:hover:bg-slate-800 text-xs">Filosofi &amp; Karakter</a>
-                                <a href="#mengenal" @click="mobileMenu = false" class="p-2 rounded-lg hover:bg-slate-50 dark:hover:bg-slate-800 text-xs">Mengenal Wikrama</a>
-                                <a href="#rapor-mutu" @click="mobileMenu = false" class="p-2 rounded-lg hover:bg-slate-50 dark:hover:bg-slate-800 text-xs">Rapor Mutu Kemdikbud</a>
-                                <a href="#sekolah-teladan" @click="mobileMenu = false" class="p-2 rounded-lg hover:bg-slate-50 dark:hover:bg-slate-800 text-xs">Sekolah Teladan</a>
-                            </div>
-                        </div>
-
-                        <div>
-                            <span class="text-[10px] font-mono-code font-bold uppercase tracking-wider text-slate-400 dark:text-slate-500 block px-2 pb-1">Akademik &amp; Kesiswaan</span>
-                            <div class="grid grid-cols-2 gap-1.5">
-                                <a href="#jurusan" @click="mobileMenu = false" class="p-2 rounded-lg hover:bg-slate-50 dark:hover:bg-slate-800 text-xs">4 Jurusan Kejuruan</a>
-                                <a href="#agenda" @click="mobileMenu = false" class="p-2 rounded-lg hover:bg-slate-50 dark:hover:bg-slate-800 text-xs text-blue-600 dark:text-blue-400 font-bold">Agenda Kegiatan</a>
-                                <a href="#dinamika-siswa" @click="mobileMenu = false" class="p-2 rounded-lg hover:bg-slate-50 dark:hover:bg-slate-800 text-xs">Dinamika Siswa</a>
-                                <a href="#fasilitas" @click="mobileMenu = false" class="p-2 rounded-lg hover:bg-slate-50 dark:hover:bg-slate-800 text-xs">Fasilitas Lab</a>
-                                <a href="#berita" @click="mobileMenu = false" class="p-2 rounded-lg hover:bg-slate-50 dark:hover:bg-slate-800 text-xs">Berita &amp; Prestasi</a>
-                                <a href="#suara-komunitas" @click="mobileMenu = false" class="p-2 rounded-lg hover:bg-slate-50 dark:hover:bg-slate-800 text-xs">Testimoni Komunitas</a>
-                                <a href="#kontak" @click="mobileMenu = false" class="p-2 rounded-lg hover:bg-slate-50 dark:hover:bg-slate-800 text-xs">Kontak &amp; Lokasi</a>
-                            </div>
-                        </div>
-                    </div>
-                @endif
-                <div class="pt-3 mt-2 border-t border-slate-200 dark:border-slate-800 flex flex-col gap-2">
-                    <a href="{{ $cfg['branding']['spmb_url'] ?? 'https://spmb.smkwikrama1garut.sch.id/' }}" target="_blank" rel="noopener" class="btn-google-gold text-center text-xs py-3 shadow-sm">
-                        Daftar SPMB Online Sekarang &rarr;
-                    </a>
-                </div>
-            </div>
-        </div>
-    </header>
-
-    <!-- ── Main Content Landmark ── -->
+    {{-- ── Main Content Landmark ── --}}
     <main class="flex-grow">
-
-        @php
-            $heroBgSetting = $cfg['hero']['background_image'] ?? 'images/web/campus-environment.jpg';
-            $heroBgUrl = class_exists(\App\Modules\AdministrasiWeb\Models\WebSetting::class)
-                ? \App\Modules\AdministrasiWeb\Models\WebSetting::resolveImageUrl($heroBgSetting, 'images/web/campus-environment.jpg')
-                : asset('images/web/campus-environment.jpg');
-            $overlayOpacity = isset($cfg['hero']['overlay_opacity']) ? max(0, min(100, (int)$cfg['hero']['overlay_opacity'])) : 70;
-            $overlayAlpha = number_format($overlayOpacity / 100, 2, '.', '');
-            $imageBrightness = isset($cfg['hero']['image_brightness']) ? max(0, min(100, (int)$cfg['hero']['image_brightness'])) : 40;
-            $brightnessFactor = number_format($imageBrightness / 100, 2, '.', '');
-        @endphp
-
-        <!-- ── 1. Hero Section: Modern Split-Showcase (High-Contrast Dark Theme) ── -->
-        <section class="relative overflow-hidden pt-8 pb-12 sm:pt-16 sm:pb-24 bg-slate-950 text-white" id="beranda" data-mouse-glow style="background-color: #020617;">
-            
-            <!-- Background Image with Dynamic Dark Overlay & Dimming (strictly positioned above image and below text) -->
-            <div class="absolute inset-0 z-0 pointer-events-none overflow-hidden" style="background-color: #020617;">
-                <img src="{{ $heroBgUrl }}" 
-                     alt="Latar Belakang Kampus SMK Wikrama 1 Garut" 
-                     class="w-full h-full object-cover object-center hero-bg-img"
-                     style="filter: brightness({{ $brightnessFactor }}) contrast(1.15);">
-                <!-- Dynamic Dark Overlay (strictly positioned above image and below text) -->
-                <div class="absolute inset-0 hero-bg-overlay"
-                     style="background-color: rgba(2, 6, 23, {{ $overlayAlpha }}); backdrop-filter: blur(1px); -webkit-backdrop-filter: blur(1px);"></div>
-                <!-- Ambient subtle atmospheric glow -->
-                <div class="absolute -top-32 -right-20 w-[550px] h-[550px] bg-gradient-to-br from-blue-600/20 via-indigo-600/15 to-transparent rounded-full blur-3xl pointer-events-none"></div>
-                <div class="absolute top-1/2 -left-28 w-[450px] h-[450px] bg-gradient-to-tr from-amber-500/15 via-blue-500/10 to-transparent rounded-full blur-3xl pointer-events-none"></div>
-                <div class="absolute inset-0 google-grid-pattern opacity-15 pointer-events-none"></div>
-            </div>
-
-            <div class="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 relative z-10 w-full">
-                <div class="grid grid-cols-1 lg:grid-cols-12 gap-8 lg:gap-8 items-center">
-                    
-                    <!-- ── Left Column: Hero Narrative, SPMB CTA & Trust Proof ── -->
-                    <div class="lg:col-span-7 text-center lg:text-left">
-                        
-                        <!-- Eyebrow Pill Tag with Monospace Code Accent -->
-                        <div class="inline-flex items-center gap-1.5 sm:gap-2 px-3 py-1 sm:px-3.5 sm:py-1.5 rounded-full text-[11px] sm:text-xs font-semibold bg-blue-950/80 text-blue-300 border border-blue-700/60 mb-5 sm:mb-6 shadow-lg max-w-full" data-animate>
-                            <span class="w-2 h-2 rounded-full bg-blue-400 animate-ping shrink-0"></span>
-                            <span class="font-mono-code font-bold text-amber-400 shrink-0">[ SPMB 2026/2027 ]</span>
-                            <span class="truncate">{{ $cfg['hero']['tag'] ?? 'SMK Pusat Keunggulan • ISLAMIC BOARDING SCHOOL' }}</span>
-                        </div>
-
-                        <!-- Main Title with Clean Hierarchy & Google AI Typography -->
-                        <h1 class="text-3xl sm:text-5xl md:text-6xl font-extrabold text-white tracking-tight leading-[1.14]" data-animate data-animate-delay="1">
-                            {{ $cfg['hero']['title_line1'] ?? 'Solusi Pendidikan Akhlak Berkualitas' }} <br>
-                            <span class="bg-gradient-to-r from-blue-400 via-indigo-300 to-pink-400 bg-clip-text text-transparent">
-                                {{ $cfg['hero']['title_highlight'] ?? 'Terbaik bagi Masa Depan' }}
-                            </span>
-                            <span class="block mt-2 text-xl sm:text-3xl md:text-4xl font-bold text-slate-100">
-                                <span class="bg-gradient-to-r from-amber-400 to-orange-400 bg-clip-text text-transparent" x-text="typewriterText">Teknologi &amp; AI</span>
-                                <span class="inline-block w-1 h-5 sm:h-8 bg-blue-400 align-middle ml-1 animate-pulse"></span>
-                            </span>
-                        </h1>
-
-                        <!-- Lead Paragraph: Crisp, Readable White/Slate Text -->
-                        <p class="mt-4 sm:mt-6 text-sm sm:text-lg text-slate-300 leading-relaxed max-w-2xl mx-auto lg:mx-0 font-normal" data-animate data-animate-delay="2">
-                            {{ $cfg['hero']['description'] ?? 'Keahlian teknologi, ketangkasan bisnis digital, dan standar pelayanan prima hospitaliti dipadukan harmonis dengan keteguhan adab dan integritas spiritual Al-Qur\'an.' }}
-                        </p>
-
-                        <!-- Action Buttons Group (Clean 2-Action Hierarchy + Tertiary Link) -->
-                        <div class="mt-6 sm:mt-8 flex flex-col sm:flex-row flex-wrap items-center justify-center lg:justify-start gap-3 sm:gap-4" data-animate data-animate-delay="3">
-                            <a href="{{ $cfg['branding']['spmb_url'] ?? 'https://spmb.smkwikrama1garut.sch.id/' }}" 
-                               target="_blank" 
-                               rel="noopener" 
-                               class="btn-google-gold shadow-lg shadow-amber-500/20 w-full sm:w-auto">
-                                <span>Daftar SPMB 2026/2027</span>
-                                <span class="group-hover-arrow">&rarr;</span>
-                            </a>
-                            <a href="#mengenal" class="btn-google-outline !text-white !border-white/30 hover:!border-white hover:!bg-white/10 w-full sm:w-auto">
-                                <span>Mengenal Wikrama</span>
-                                <span class="group-hover-arrow">&rarr;</span>
-                            </a>
-                            <a href="{{ $cfg['branding']['brochure_url'] ?? 'http://brosur.smkwikrama1garut.sch.id/' }}" 
-                               target="_blank" 
-                               rel="noopener" 
-                               class="inline-flex items-center gap-1.5 text-xs sm:text-sm font-semibold text-slate-300 hover:text-white px-3.5 py-2 rounded-full hover:bg-white/10 transition-colors w-full sm:w-auto justify-center">
-                                <svg class="w-4 h-4 text-blue-400" fill="none" viewBox="0 0 24 24" stroke="currentColor">
-                                    <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M4 16v1a3 3 0 003 3h10a3 3 0 003-3v-1m-4-4l-4 4m0 0l-4-4m4 4V4"/>
-                                </svg>
-                                <span>Unduh Brosur (PDF)</span>
-                            </a>
-                        </div>
-
-                        <!-- Technical Monospace Metrics Strip -->
-                        <div class="mt-8 sm:mt-12 pt-6 sm:pt-8 border-t border-white/10 grid grid-cols-2 sm:grid-cols-4 gap-4 sm:gap-6 text-center sm:text-left" data-animate data-animate-delay="4">
-                            @foreach($cfg['hero']['stats'] ?? [] as $st)
-                            <div class="pr-2">
-                                <div class="text-xl sm:text-3xl font-extrabold font-mono-code text-blue-400">
-                                    {{ $st['number'] }}
-                                </div>
-                                <div class="text-xs font-bold text-white mt-1 leading-snug">
-                                    {{ $st['label'] }}
-                                </div>
-                                <div class="text-[10px] sm:text-[11px] text-slate-400 mt-0.5 font-medium">
-                                    {{ $st['sub'] }}
-                                </div>
-                            </div>
-                            @endforeach
-                        </div>
-                    </div>
-
-                    <!-- ── Right Column: Interactive 3-Pillar Experience Studio Showcase ── -->
-                    <div class="lg:col-span-5 w-full max-w-lg mx-auto lg:mx-0" data-animate>
-                        <div class="p-3 sm:p-4 rounded-3xl bg-slate-900/90 border border-white/15 shadow-2xl backdrop-blur-md transition-all duration-300">
-                            
-                            <!-- Interactive Tab Switcher (Horizontal Swipe on Mobile, Even Distribution on Tablet/Desktop) -->
-                            <div class="flex overflow-x-auto no-scrollbar gap-1 p-1 bg-slate-950/80 border border-white/10 rounded-2xl mb-3">
-                                @foreach($cfg['hero']['slides'] ?? [] as $sl)
-                                <button type="button" 
-                                        @click="activeHeroTab = '{{ $sl['id'] }}'; heroAutoPlay = false" 
-                                        :class="activeHeroTab === '{{ $sl['id'] }}' 
-                                            ? 'bg-blue-600 text-white font-bold shadow-xs' 
-                                            : 'text-slate-300 font-medium hover:text-white'" 
-                                        class="shrink-0 flex-1 py-1.5 sm:py-2 px-2.5 sm:px-2 rounded-xl text-[11px] font-semibold transition-all text-center whitespace-nowrap cursor-pointer">
-                                    {{ $sl['tab_name'] }}
-                                </button>
-                                @endforeach
-                            </div>
-
-                            <!-- Showcase Display Canvas following Concentric Radius -->
-                            <div class="relative rounded-2xl overflow-hidden aspect-[4/3] bg-slate-950 group">
-                                @foreach($cfg['hero']['slides'] ?? [] as $sl)
-                                <div x-show="activeHeroTab === '{{ $sl['id'] }}'"
-                                     x-transition:enter="transition-opacity duration-500 ease-out"
-                                     x-transition:enter-start="opacity-0 scale-98"
-                                     x-transition:enter-end="opacity-100 scale-100"
-                                     x-transition:leave="transition-opacity duration-300 ease-in"
-                                     x-transition:leave-start="opacity-100"
-                                     x-transition:leave-end="opacity-0"
-                                     class="absolute inset-0">
-                                    <img src="{{ asset($sl['image']) }}" 
-                                         alt="{{ $sl['title'] }}" 
-                                         class="w-full h-full object-cover object-center group-hover:scale-105 transition-transform duration-700 ease-out">
-                                    
-                                    <!-- Subtle Gradient Scrim on Image to protect tags -->
-                                    <div class="absolute inset-0 bg-gradient-to-t from-slate-950/90 via-transparent to-slate-950/40"></div>
-
-                                    <!-- Top Floating Badge -->
-                                    <div class="absolute top-3 left-3 right-3 flex items-center justify-between">
-                                        <span class="px-2.5 py-1 rounded-full text-[10px] font-bold bg-slate-900/90 text-blue-300 border border-white/10 backdrop-blur-md shadow-xs">
-                                            {{ $sl['badge'] }}
-                                        </span>
-                                        <button type="button" 
-                                                @click="{{ $sl['id'] === 'spmb' ? 'flyerModal = true' : 'openImageModal(\'' . asset($sl['image']) . '\', \'' . $sl['title'] . '\', \'' . $sl['badge'] . '\')' }}"
-                                                class="px-2.5 py-1 rounded-full text-[10px] font-semibold bg-slate-950/70 hover:bg-slate-950/90 text-white backdrop-blur-md transition-colors cursor-pointer inline-flex items-center gap-1 border border-white/10"
-                                                title="Lihat Gambar Penuh">
-                                            <svg class="w-3 h-3 text-amber-300" fill="none" viewBox="0 0 24 24" stroke="currentColor"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M21 21l-6-6m2-5a7 7 0 11-14 0 7 7 0 0114 0zM10 7v6m3-3H7"/></svg>
-                                            <span>Perbesar</span>
-                                        </button>
-                                    </div>
-
-                                    <!-- Bottom Caption Over Image -->
-                                    <div class="absolute bottom-3 left-3 right-3 p-3 rounded-xl bg-slate-950/85 backdrop-blur-md border border-white/10 text-white">
-                                        <h4 class="text-xs sm:text-sm font-bold leading-snug line-clamp-1">{{ $sl['title'] }}</h4>
-                                        <p class="text-[11px] text-slate-300 mt-1 line-clamp-2 leading-relaxed">{{ $sl['desc'] }}</p>
-                                    </div>
-                                </div>
-                                @endforeach
-                            </div>
-
-                            <!-- Showcase Bottom Trust Bar & Slide Indicator -->
-                            <div class="mt-3.5 pt-3 border-t border-white/10 flex items-center justify-between px-1">
-                                <div class="flex items-center gap-3 text-xs font-semibold text-slate-300">
-                                    <span class="flex items-center gap-1.5 text-emerald-400">
-                                        <span class="w-2 h-2 rounded-full bg-emerald-400"></span>
-                                        Akreditasi A Unggul
-                                    </span>
-                                    <span class="text-slate-600">&bull;</span>
-                                    <span class="flex items-center gap-1.5 text-amber-400">
-                                        <img src="{{ asset('images/landing/logo-smk-pk-resmi.png') }}" alt="Logo SMK PK" class="h-3.5 w-auto object-contain">
-                                        SMK PK
-                                    </span>
-                                </div>
-
-                                <!-- Slide Autoplay Dots Indicator -->
-                                <div class="flex items-center gap-1.5">
-                                    @foreach($cfg['hero']['slides'] ?? [] as $sl)
-                                    <button type="button" 
-                                            @click="activeHeroTab = '{{ $sl['id'] }}'; heroAutoPlay = false" 
-                                            :class="activeHeroTab === '{{ $sl['id'] }}' ? 'w-5 bg-blue-400' : 'w-1.5 bg-slate-700'"
-                                            class="h-1.5 rounded-full transition-all duration-300 cursor-pointer"
-                                            :aria-label="'Pilih slide ' + '{{ $sl['tab_name'] }}'"></button>
-                                    @endforeach
-                                </div>
-                            </div>
-                        </div>
-                    </div>
-
-                </div>
-            </div>
-        </section>
-
-        <!-- ── 2. "Welcome to Wikrama" Signature Manifesto Section ── -->
-        <section class="py-12 sm:py-20 lg:py-28 relative overflow-hidden bg-slate-950 text-white" id="filosofi">
-            <!-- Background Student Activity Image with Dark Elegant Overlay (above image, below text) -->
-            <div class="absolute inset-0 z-0 pointer-events-none">
-                <img src="{{ asset('images/web/activity-spiritual.jpg') }}" alt="Kegiatan Ibadah & Karakter Siswa Wikrama" class="w-full h-full object-cover object-center opacity-25 filter blur-[2px] brightness-[0.20] contrast-125">
-                <div class="absolute inset-0 bg-slate-950/92 dark:bg-slate-950/96 backdrop-blur-[1px]"></div>
-            </div>
-
-            <div class="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 text-center relative z-10" data-animate>
-                <span class="google-tag bg-blue-950/80 text-blue-300 border-blue-700/60 shadow-lg">
-                    <span class="w-1.5 h-1.5 rounded-full bg-blue-400"></span>
-                    <span>{{ $cfg['welcome']['tag'] ?? 'Filosofi Pendidikan Wikrama' }}</span>
-                </span>
-                
-                <!-- Modern Sans & Monospace Combined Manifesto Quote -->
-                <div class="mt-6 sm:mt-8 p-5 sm:p-10 rounded-3xl bg-slate-900/95 border border-white/15 text-left sm:text-center w-full max-w-5xl mx-auto shadow-2xl backdrop-blur-md">
-                    <span class="font-mono-code text-xs font-bold uppercase tracking-wider text-blue-400 block mb-3">
-                        [ MANIFESTO PENDIDIKAN WIKRAMA ]
-                    </span>
-                    <blockquote class="font-sans text-lg sm:text-2xl md:text-3xl text-white leading-relaxed font-medium tracking-tight">
-                        &ldquo;{{ $cfg['welcome']['quote'] ?? 'Di SMK Wikrama 1 Garut, kami mempersiapkan anak bangsa dari berbagai daerah untuk menjadi yang terbaik dalam keahlian yang mereka tekuni, sekaligus menjadi pribadi yang membawa kemaslahatan terbaik bagi keluarga, masyarakat, dan masa depan peradaban.' }}&rdquo;
-                    </blockquote>
-                    <div class="mt-6 pt-4 border-t border-white/10 flex flex-col sm:flex-row items-start sm:items-center justify-between gap-2 text-xs">
-                        <span class="text-amber-300 font-semibold tracking-wide">
-                            &mdash; {{ $cfg['welcome']['author'] ?? 'Kunedi, S.Si. — Kepala SMK Wikrama 1 Garut' }}
-                        </span>
-                        <span class="font-mono-code text-[11px] text-slate-400 uppercase tracking-widest">[ MANIFESTO INSTITUSI ]</span>
-                    </div>
-                </div>
-
-                <!-- 4 Core Educational Pillars -->
-                <div class="mt-10 sm:mt-14 grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-4 sm:gap-6 text-left w-full">
-                    @foreach($cfg['welcome']['pillars'] ?? [] as $idx => $pil)
-                    <div class="p-6 rounded-3xl bg-slate-900/80 border border-white/10 hover:border-blue-500/50 transition-all duration-300 backdrop-blur-sm flex flex-col justify-between h-full group" data-animate data-animate-delay="{{ $idx + 1 }}">
-                        <div>
-                            <div class="w-12 h-12 rounded-2xl bg-white/10 flex items-center justify-center text-2xl mb-4 group-hover:scale-110 transition-transform">
-                                {{ $pil['icon'] }}
-                            </div>
-                            <h4 class="text-base font-bold text-white mb-2 group-hover:text-blue-400 transition-colors">
-                                {{ $pil['name'] }}
-                            </h4>
-                            <p class="text-xs sm:text-sm text-slate-300 leading-relaxed font-normal">
-                                {{ $pil['desc'] }}
-                            </p>
-                        </div>
-                    </div>
-                    @endforeach
-                </div>
-            </div>
-        </section>
-
-        <!-- ── 3. "Get to Know Wikrama" Editorial Tabbed Showcase ── -->
-        <section class="py-12 sm:py-20 lg:py-24 bg-slate-50 dark:bg-[#060D1A]" id="mengenal">
-            <div class="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
-                
-                <!-- Section Header -->
-                <div class="text-center max-w-3xl mx-auto mb-10 sm:mb-14" data-animate>
-                    <span class="google-tag">
-                        <span class="w-1.5 h-1.5 rounded-full bg-blue-500"></span>
-                        <span>{{ $cfg['get_to_know']['tag'] ?? 'Mengenal Lebih Dekat' }}</span>
-                    </span>
-                    <h2 class="text-2xl sm:text-4xl md:text-5xl font-bold tracking-tight text-slate-900 dark:text-white mt-3 sm:mt-4">
-                        {{ $cfg['get_to_know']['title'] ?? 'Menemukan Potensi Sejati di Wikrama' }}
-                    </h2>
-                    <p class="mt-3 sm:mt-4 text-sm sm:text-lg text-slate-600 dark:text-slate-300 leading-relaxed font-normal">
-                        {{ $cfg['get_to_know']['subtitle'] ?? 'Jelajahi ekosistem pembelajaran holistik yang menggabungkan keunggulan akademik, riset teknologi industri, dan pembinaan kepemimpinan islami.' }}
-                    </p>
-
-                    <!-- Editorial Tab Navigation -->
-                    <div class="mt-8 flex flex-wrap justify-center sm:inline-flex p-1 sm:p-1.5 rounded-2xl sm:rounded-full bg-white dark:bg-slate-800 border border-slate-200 dark:border-slate-700 shadow-xs gap-1 sm:gap-0 max-w-full">
-                        <button type="button" 
-                                @click="activeKnowTab = 'admissions'"
-                                :class="activeKnowTab === 'admissions' ? 'bg-blue-600 text-white font-bold shadow-xs' : 'text-slate-600 dark:text-slate-300 font-semibold hover:text-slate-900'"
-                                class="px-3.5 sm:px-5 py-1.5 sm:py-2 rounded-xl sm:rounded-full text-xs sm:text-sm transition-all cursor-pointer">
-                            {{ $cfg['get_to_know']['tabs']['admissions']['name'] ?? 'Penerimaan Siswa' }}
-                        </button>
-                        <button type="button" 
-                                @click="activeKnowTab = 'academics'"
-                                :class="activeKnowTab === 'academics' ? 'bg-blue-600 text-white font-bold shadow-xs' : 'text-slate-600 dark:text-slate-300 font-semibold hover:text-slate-900'"
-                                class="px-3.5 sm:px-5 py-1.5 sm:py-2 rounded-xl sm:rounded-full text-xs sm:text-sm transition-all cursor-pointer">
-                            {{ $cfg['get_to_know']['tabs']['academics']['name'] ?? 'Kompetensi Keahlian' }}
-                        </button>
-                        <button type="button" 
-                                @click="activeKnowTab = 'boarding'"
-                                :class="activeKnowTab === 'boarding' ? 'bg-blue-600 text-white font-bold shadow-xs' : 'text-slate-600 dark:text-slate-300 font-semibold hover:text-slate-900'"
-                                class="px-3.5 sm:px-5 py-1.5 sm:py-2 rounded-xl sm:rounded-full text-xs sm:text-sm transition-all cursor-pointer">
-                            {{ $cfg['get_to_know']['tabs']['boarding']['name'] ?? 'Boarding & Karakter' }}
-                        </button>
-                    </div>
-                </div>
-
-                <!-- Tab Panel 1: Admissions -->
-                <div x-show="activeKnowTab === 'admissions'"
-                     x-transition:enter="transition ease-out duration-300"
-                     x-transition:enter-start="opacity-0 translate-y-3"
-                     x-transition:enter-end="opacity-100 translate-y-0"
-                     class="grid grid-cols-1 md:grid-cols-3 gap-6 sm:gap-8">
-                    @foreach($cfg['get_to_know']['tabs']['admissions']['cards'] ?? [] as $idx => $c)
-                    <div class="google-card overflow-hidden flex flex-col justify-between h-full group">
-                        <div>
-                            <div class="aspect-[16/10] w-full relative overflow-hidden bg-slate-950">
-                                <img src="{{ asset($c['image']) }}" alt="{{ $c['title'] }}" class="w-full h-full object-cover group-hover:scale-105 transition-transform duration-500" loading="lazy">
-                                <span class="absolute top-3 left-3 bg-white/95 dark:bg-slate-900/95 text-blue-700 dark:text-blue-300 font-mono-code text-[10px] font-bold px-3 py-1 rounded-full shadow-xs">
-                                    {{ $c['badge'] }}
-                                </span>
-                            </div>
-                            <div class="p-6 pt-4">
-                                <h3 class="text-lg font-bold text-slate-900 dark:text-white mb-2 leading-snug group-hover:text-blue-600 transition-colors">
-                                    {{ $c['title'] }}
-                                </h3>
-                                <p class="text-xs sm:text-sm text-slate-600 dark:text-slate-300 leading-relaxed font-normal">
-                                    {{ $c['desc'] }}
-                                </p>
-                            </div>
-                        </div>
-                        <div class="px-6 pb-6">
-                            <a href="{{ $c['url'] }}" class="text-xs font-bold text-blue-600 dark:text-blue-400 inline-flex items-center gap-1.5">
-                                <span>{{ $c['cta'] }}</span>
-                                <span class="group-hover-arrow">&rarr;</span>
-                            </a>
-                        </div>
-                    </div>
-                    @endforeach
-                </div>
-
-                <!-- Tab Panel 2: Academics -->
-                <div x-show="activeKnowTab === 'academics'"
-                     x-transition:enter="transition ease-out duration-300"
-                     x-transition:enter-start="opacity-0 translate-y-3"
-                     x-transition:enter-end="opacity-100 translate-y-0"
-                     class="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-6">
-                    @foreach($cfg['get_to_know']['tabs']['academics']['cards'] ?? [] as $idx => $c)
-                    <div class="google-card overflow-hidden flex flex-col justify-between h-full group">
-                        <div>
-                            <div class="aspect-[16/10] w-full relative overflow-hidden bg-slate-950">
-                                <img src="{{ asset($c['image']) }}" alt="{{ $c['title'] }}" class="w-full h-full object-cover group-hover:scale-105 transition-transform duration-500" loading="lazy">
-                                <span class="absolute top-3 left-3 bg-white/95 dark:bg-slate-900/95 text-blue-700 dark:text-blue-300 font-mono-code text-[10px] font-bold px-3 py-1 rounded-full shadow-xs">
-                                    {{ $c['badge'] }}
-                                </span>
-                            </div>
-                            <div class="p-5 pt-4">
-                                <h3 class="text-base font-bold text-slate-900 dark:text-white mb-2 leading-snug group-hover:text-blue-600 transition-colors">
-                                    {{ $c['title'] }}
-                                </h3>
-                                <p class="text-xs text-slate-600 dark:text-slate-300 leading-relaxed font-normal">
-                                    {{ $c['desc'] }}
-                                </p>
-                            </div>
-                        </div>
-                        <div class="px-5 pb-5">
-                            <a href="{{ $c['url'] }}" class="text-xs font-bold text-blue-600 dark:text-blue-400 inline-flex items-center gap-1.5">
-                                <span>{{ $c['cta'] }}</span>
-                                <span class="group-hover-arrow">&rarr;</span>
-                            </a>
-                        </div>
-                    </div>
-                    @endforeach
-                </div>
-
-                <!-- Tab Panel 3: Boarding & Character -->
-                <div x-show="activeKnowTab === 'boarding'"
-                     x-transition:enter="transition ease-out duration-300"
-                     x-transition:enter-start="opacity-0 translate-y-3"
-                     x-transition:enter-end="opacity-100 translate-y-0"
-                     class="grid grid-cols-1 md:grid-cols-3 gap-6 sm:gap-8">
-                    @foreach($cfg['get_to_know']['tabs']['boarding']['cards'] ?? [] as $idx => $c)
-                    <div class="google-card overflow-hidden flex flex-col justify-between h-full group">
-                        <div>
-                            <div class="aspect-[16/10] w-full relative overflow-hidden bg-slate-950">
-                                <img src="{{ asset($c['image']) }}" alt="{{ $c['title'] }}" class="w-full h-full object-cover group-hover:scale-105 transition-transform duration-500" loading="lazy">
-                                <span class="absolute top-3 left-3 bg-white/95 dark:bg-slate-900/95 text-blue-700 dark:text-blue-300 font-mono-code text-[10px] font-bold px-3 py-1 rounded-full shadow-xs">
-                                    {{ $c['badge'] }}
-                                </span>
-                            </div>
-                            <div class="p-6 pt-4">
-                                <h3 class="text-lg font-bold text-slate-900 dark:text-white mb-2 leading-snug group-hover:text-blue-600 transition-colors">
-                                    {{ $c['title'] }}
-                                </h3>
-                                <p class="text-xs sm:text-sm text-slate-600 dark:text-slate-300 leading-relaxed font-normal">
-                                    {{ $c['desc'] }}
-                                </p>
-                            </div>
-                        </div>
-                        <div class="px-6 pb-6">
-                            <a href="{{ $c['url'] }}" class="text-xs font-bold text-blue-600 dark:text-blue-400 inline-flex items-center gap-1.5">
-                                <span>{{ $c['cta'] }}</span>
-                                <span class="group-hover-arrow">&rarr;</span>
-                            </a>
-                        </div>
-                    </div>
-                    @endforeach
-                </div>
-            </div>
-        </section>
-
-        <!-- ── 4. "Where Graduates Succeed" Partner Marquee Ribbon ── -->
-        <section class="py-10 sm:py-16 bg-white dark:bg-[#071324] overflow-hidden transition-colors duration-300" id="mitra" data-mouse-glow>
-            <div class="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 text-center mb-6 sm:mb-8" data-animate>
-                <span class="google-tag mb-3">
-                    <span class="w-1.5 h-1.5 rounded-full bg-blue-500"></span>
-                    <span>Link &amp; Match Industri &bull; BMW (Bekerja, Melanjutkan, Wirausaha)</span>
-                </span>
-                <p class="text-xs sm:text-sm font-bold font-mono-code uppercase tracking-widest text-slate-500 dark:text-slate-400">
-                    Jejaring Kemitraan Kampus Perguruan Tinggi &amp; Korporasi Teknologi Global
-                </p>
-            </div>
-            <div class="partner-marquee-container relative w-full overflow-hidden py-6 sm:py-8">
-                <div class="partner-marquee-track flex items-center">
-                    <!-- First Set -->
-                    <div class="flex items-center gap-6 sm:gap-8 shrink-0 pr-6 sm:pr-8">
-                        @foreach($cfg['mitra'] ?? [] as $m)
-                        <div class="partner-card group/item p-3.5 sm:p-4 bg-slate-50 dark:bg-slate-800/60 border border-slate-200 dark:border-slate-700/80 rounded-2xl h-16 sm:h-20 w-36 sm:w-44 flex items-center justify-center shrink-0">
-                            <img src="{{ asset($m['image']) }}" alt="{{ $m['name'] }}" title="{{ $m['name'] }}" class="max-h-8 sm:max-h-10 max-w-full object-contain grayscale group-hover/item:grayscale-0 transition-all duration-300 opacity-75 group-hover/item:opacity-100 group-hover/item:scale-105">
-                            
-                            <!-- Floating Partner Tooltip Badge -->
-                            <div class="absolute -top-7 left-1/2 -translate-x-1/2 pointer-events-none opacity-0 group-hover/item:opacity-100 transition-all duration-200 translate-y-1 group-hover/item:translate-y-0 z-40 whitespace-nowrap">
-                                <span class="text-[10px] font-mono-code font-bold py-1 px-2.5 rounded-md bg-slate-900 dark:bg-white text-white dark:text-slate-900 shadow-md">
-                                    {{ $m['name'] }}
-                                </span>
-                            </div>
-                        </div>
-                        @endforeach
-                    </div>
-                    <!-- Duplicate Set for Seamless 100% Loop -->
-                    <div class="flex items-center gap-6 sm:gap-8 shrink-0 pr-6 sm:pr-8" aria-hidden="true">
-                        @foreach($cfg['mitra'] ?? [] as $m)
-                        <div class="partner-card group/item p-3.5 sm:p-4 bg-slate-50 dark:bg-slate-800/60 border border-slate-200 dark:border-slate-700/80 rounded-2xl h-16 sm:h-20 w-36 sm:w-44 flex items-center justify-center shrink-0">
-                            <img src="{{ asset($m['image']) }}" alt="{{ $m['name'] }}" title="{{ $m['name'] }}" class="max-h-8 sm:max-h-10 max-w-full object-contain grayscale group-hover/item:grayscale-0 transition-all duration-300 opacity-75 group-hover/item:opacity-100 group-hover/item:scale-105">
-                            
-                            <!-- Floating Partner Tooltip Badge -->
-                            <div class="absolute -top-7 left-1/2 -translate-x-1/2 pointer-events-none opacity-0 group-hover/item:opacity-100 transition-all duration-200 translate-y-1 group-hover/item:translate-y-0 z-40 whitespace-nowrap">
-                                <span class="text-[10px] font-mono-code font-bold py-1 px-2.5 rounded-md bg-slate-900 dark:bg-white text-white dark:text-slate-900 shadow-md">
-                                    {{ $m['name'] }}
-                                </span>
-                            </div>
-                        </div>
-                        @endforeach
-                    </div>
-                </div>
-            </div>
-        </section>
-
-        <!-- ── 5. "Life at Wikrama" Fast Facts ── -->
-        <section class="py-12 sm:py-20 lg:py-24 bg-slate-50 dark:bg-[#060D1A]" id="fakta">
-            <div class="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
-                
-                <div class="text-center max-w-3xl mx-auto mb-10 sm:mb-14" data-animate>
-                    <span class="google-tag">
-                        <span class="w-1.5 h-1.5 rounded-full bg-blue-500"></span>
-                        <span>Life at Wikrama &bull; Data &amp; Fakta</span>
-                    </span>
-                    <h2 class="text-2xl sm:text-4xl md:text-5xl font-bold tracking-tight text-slate-900 dark:text-white mt-3 sm:mt-4">
-                        Capaian Nyata yang Membanggakan
-                    </h2>
-                    <p class="mt-3 sm:mt-4 text-sm sm:text-lg text-slate-600 dark:text-slate-300 leading-relaxed font-normal">
-                        Standar mutu dan konsistensi pendidikan vokasi yang diakui secara resmi di tingkat nasional dan internasional.
-                    </p>
-                </div>
-
-                <!-- 4 Columns Metric Cards -->
-                <div class="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-6">
-                    @foreach($cfg['fast_facts'] ?? [] as $idx => $f)
-                    <div class="google-card overflow-hidden flex flex-col justify-between h-full group" data-animate data-animate-delay="{{ $idx + 1 }}">
-                        <div>
-                            <!-- Photo Header -->
-                            <div class="aspect-[16/10] w-full relative overflow-hidden bg-slate-950">
-                                <img src="{{ asset($f['image']) }}" alt="{{ $f['label'] }}" class="w-full h-full object-cover group-hover:scale-105 transition-transform duration-500" loading="lazy">
-                                <span class="absolute top-3 left-3 bg-white/95 dark:bg-slate-900/95 text-blue-700 dark:text-blue-300 font-mono-code text-[10px] font-bold px-2.5 py-0.5 rounded-full shadow-xs">
-                                    {{ $f['tag'] }}
-                                </span>
-                            </div>
-
-                            <!-- Big Bold Hero Number & Content -->
-                            <div class="p-6 pt-4">
-                                <div class="text-3xl sm:text-4xl font-bold font-mono-code text-blue-600 dark:text-blue-400 mb-2">
-                                    {{ $f['number'] }}
-                                </div>
-                                <h3 class="text-base font-bold text-slate-900 dark:text-white mb-2 leading-snug">
-                                    {{ $f['label'] }}
-                                </h3>
-                                <p class="text-xs sm:text-sm text-slate-600 dark:text-slate-400 leading-relaxed font-normal">
-                                    {{ $f['desc'] }}
-                                </p>
-                            </div>
-                        </div>
-                    </div>
-                    @endforeach
-                </div>
-            </div>
-        </section>
-
-        <!-- ── 6. 3 Pilar Kejuruan / 4 Jurusan Unggulan ── -->
-        <section class="py-12 sm:py-20 lg:py-24 bg-white dark:bg-[#071324]" id="jurusan" x-data="{ activePillar: 'all' }" data-mouse-glow>
-            <div class="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 relative z-10">
-                
-                <div class="text-center max-w-3xl mx-auto mb-10 sm:mb-14" data-animate>
-                    <span class="google-tag">
-                        <span class="w-1.5 h-1.5 rounded-full bg-blue-500"></span>
-                        <span>Program Keahlian Vokasi Terakreditasi</span>
-                    </span>
-                    <h2 class="text-2xl sm:text-4xl md:text-5xl font-bold tracking-tight text-slate-900 dark:text-white mt-3 sm:mt-4">
-                        3 Pilar Kompetensi Masa Depan
-                    </h2>
-                    <p class="mt-3 sm:mt-4 text-sm sm:text-lg text-slate-600 dark:text-slate-300 leading-relaxed font-normal">
-                        Kurikulum link-and-match dengan industri terkemuka dalam bidang <strong class="text-blue-600 dark:text-blue-400">Teknologi Informasi &amp; AI</strong>, <strong class="text-emerald-700 dark:text-emerald-400">Bisnis Digital</strong>, dan <strong class="text-amber-700 dark:text-amber-400">Pariwisata &amp; Hospitaliti</strong>.
-                    </p>
-
-                    <!-- Filter Buttons -->
-                    <div class="mt-8 flex flex-wrap items-center justify-center gap-1.5 sm:gap-2">
-                        <button type="button" 
-                                @click="activePillar = 'all'" 
-                                :class="activePillar === 'all' ? 'bg-blue-600 text-white font-bold' : 'bg-slate-100 dark:bg-slate-800 text-slate-700 dark:text-slate-300 font-semibold'"
-                                class="px-3.5 sm:px-5 py-1.5 sm:py-2 rounded-full text-xs sm:text-sm transition-all cursor-pointer">
-                            Semua Program Keahlian (4)
-                        </button>
-                        <button type="button" 
-                                @click="activePillar = 'tech'" 
-                                :class="activePillar === 'tech' ? 'bg-blue-600 text-white font-bold' : 'bg-slate-100 dark:bg-slate-800 text-slate-700 dark:text-slate-300 font-semibold'"
-                                class="px-3.5 sm:px-5 py-1.5 sm:py-2 rounded-full text-xs sm:text-sm transition-all cursor-pointer flex items-center gap-1.5">
-                            <span>💻</span>
-                            <span>Teknologi (PPLG &bull; TJKT)</span>
-                        </button>
-                        <button type="button" 
-                                @click="activePillar = 'biz'" 
-                                :class="activePillar === 'biz' ? 'bg-blue-600 text-white font-bold' : 'bg-slate-100 dark:bg-slate-800 text-slate-700 dark:text-slate-300 font-semibold'"
-                                class="px-3.5 sm:px-5 py-1.5 sm:py-2 rounded-full text-xs sm:text-sm transition-all cursor-pointer flex items-center gap-1.5">
-                            <span>📈</span>
-                            <span>Bisnis Digital (PMN)</span>
-                        </button>
-                        <button type="button" 
-                                @click="activePillar = 'tour'" 
-                                :class="activePillar === 'tour' ? 'bg-blue-600 text-white font-bold' : 'bg-slate-100 dark:bg-slate-800 text-slate-700 dark:text-slate-300 font-semibold'"
-                                class="px-3.5 sm:px-5 py-1.5 sm:py-2 rounded-full text-xs sm:text-sm transition-all cursor-pointer flex items-center gap-1.5">
-                            <span>🛎️</span>
-                            <span>Perhotelan (HTL)</span>
-                        </button>
-                    </div>
-                </div>
-
-                <!-- 4 Jurusan Cards -->
-                <div class="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-6">
-                    @foreach($cfg['jurusans'] ?? [] as $idx => $jur)
-                    <div x-show="activePillar === 'all' || activePillar === '{{ $jur['pillar'] }}'"
-                         x-transition:enter="transition ease-out duration-300"
-                         x-transition:enter-start="opacity-0 scale-95"
-                         x-transition:enter-end="opacity-100 scale-100"
-                         class="google-card overflow-hidden flex flex-col justify-between h-full group"
-                         data-animate data-animate-delay="{{ $idx + 1 }}">
-                        <div>
-                            <!-- Photo Header -->
-                            <div class="aspect-[16/10] w-full relative overflow-hidden bg-slate-950">
-                                <img src="{{ asset($jur['image']) }}" alt="{{ $jur['name'] }}" class="w-full h-full object-cover group-hover:scale-105 transition-transform duration-500" loading="lazy">
-                                <div class="absolute inset-0 bg-gradient-to-t from-slate-950/70 via-transparent to-transparent"></div>
-                                <span class="absolute top-3 left-3 px-3 py-1 rounded-full text-[10px] font-bold shadow-xs {{ $jur['badge_bg'] }}">
-                                    {{ $jur['badge'] }}
-                                </span>
-                                <span class="absolute bottom-3 left-3 px-2.5 py-0.5 rounded-full font-mono-code text-xs font-bold bg-black/70 text-white">
-                                    {{ $jur['code'] }}
-                                </span>
-                            </div>
-
-                            <!-- Body Info -->
-                            <div class="p-5 pt-4">
-                                <h3 class="text-base sm:text-lg font-bold text-slate-900 dark:text-white mb-2 leading-snug group-hover:text-blue-600 transition-colors">
-                                    {{ $jur['name'] }}
-                                </h3>
-                                <p class="text-xs text-slate-600 dark:text-slate-300 leading-relaxed mb-4">
-                                    {{ $jur['desc'] }}
-                                </p>
-                                
-                                <!-- Competency Chips -->
-                                <div class="flex flex-wrap gap-1.5">
-                                    @foreach($jur['chips'] ?? [] as $chip)
-                                    <span class="px-2 py-0.5 rounded-md text-[10px] font-semibold bg-slate-100 dark:bg-slate-800 text-slate-700 dark:text-slate-300">
-                                        {{ $chip }}
-                                    </span>
-                                    @endforeach
-                                </div>
-                            </div>
-                        </div>
-
-                        <!-- Footer Career Pathways -->
-                        <div class="px-5 py-3.5 border-t border-slate-100 dark:border-slate-800 bg-slate-50 dark:bg-slate-800/40">
-                            <span class="text-[10px] font-bold font-mono-code uppercase tracking-wider text-blue-600 dark:text-blue-400 block mb-0.5">Karier Lulusan:</span>
-                            <p class="text-[11px] text-slate-700 dark:text-slate-300 font-medium leading-tight">
-                                {{ $jur['careers'] }}
-                            </p>
-                        </div>
-                    </div>
-                    @endforeach
-                </div>
-            </div>
-        </section>
-
-        <!-- ── 6.5. "Dinamika Kehidupan & Prestasi Siswa" (Student Life & Moments - JIS Single-Row Carousel) ── -->
-        @php
-            $studentMomentsData = $cfg['student_moments'] ?? [];
-            $rawItems = $studentMomentsData['items'] ?? [];
-            $activeCards = array_values(array_filter($rawItems, fn($it) => ($it['is_active'] ?? true) === true));
-        @endphp
-        <section class="py-12 sm:py-20 lg:py-24 bg-slate-950 text-white relative overflow-hidden" 
-                 id="dinamika-siswa" 
-                 x-data="{
-                     scrollAnimId: null,
-                     getStep() {
-                         const track = this.$refs.cardTrack;
-                         if (!track || !track.firstElementChild) return 310;
-                         return track.firstElementChild.offsetWidth + 24;
-                     },
-                     smoothScroll(delta) {
-                         const track = this.$refs.cardTrack;
-                         if (!track) return;
-                         
-                         if (this.scrollAnimId) {
-                             cancelAnimationFrame(this.scrollAnimId);
-                         }
-                         
-                         const start = track.scrollLeft;
-                         const maxScroll = track.scrollWidth - track.clientWidth;
-                         const target = Math.max(0, Math.min(start + delta, maxScroll));
-                         const distance = target - start;
-                         
-                         if (Math.abs(distance) < 2) return;
-                         
-                         const duration = 500;
-                         const startTime = performance.now();
-                         track.style.scrollSnapType = 'none';
-                         track.style.scrollBehavior = 'auto';
-                         
-                         // Smooth decelerating cubic curve
-                         const easeOutCubic = (t) => (--t) * t * t + 1;
-                         
-                         const step = (currentTime) => {
-                             const elapsed = currentTime - startTime;
-                             const progress = Math.min(elapsed / duration, 1);
-                             const ease = easeOutCubic(progress);
-                             
-                             track.scrollLeft = start + (distance * ease);
-                             
-                             if (progress < 1) {
-                                 this.scrollAnimId = requestAnimationFrame(step);
-                             } else {
-                                 track.scrollLeft = target;
-                                 track.style.scrollSnapType = 'x proximity';
-                                 this.scrollAnimId = null;
-                             }
-                         };
-                         
-                         this.scrollAnimId = requestAnimationFrame(step);
-                     },
-                     scrollPrev() {
-                         this.smoothScroll(-this.getStep());
-                     },
-                     scrollNext() {
-                         this.smoothScroll(this.getStep());
-                     }
-                 }">
-            <!-- Subtle Atmospheric Background Texture -->
-            <div class="absolute inset-0 z-0 opacity-15 pointer-events-none">
-                <img src="{{ asset('images/web/activity-outdoor.jpg') }}" alt="Student Life Backdrop" class="w-full h-full object-cover">
-                <div class="absolute inset-0 bg-slate-950/95"></div>
-            </div>
-
-            <div class="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 relative z-10">
-                <!-- Section Header -->
-                <div class="text-center max-w-3xl mx-auto mb-10 sm:mb-14" data-animate>
-                    <span class="inline-flex items-center gap-2 px-3.5 py-1.5 rounded-full text-xs font-semibold bg-blue-900/60 text-blue-300 border border-blue-700/60 shadow-xs mb-3">
-                        <span class="w-2 h-2 rounded-full bg-blue-400 animate-pulse"></span>
-                        <span class="font-mono-code font-bold uppercase tracking-wider">{{ $studentMomentsData['tag'] ?? 'Dinamika Kehidupan Siswa' }}</span>
-                    </span>
-                    <h2 class="text-2xl sm:text-4xl md:text-5xl font-bold tracking-tight text-white mt-2">
-                        {{ $studentMomentsData['title'] ?? 'Tumbuh, Berkarya, & Berprestasi Bersama Wikrama' }}
-                    </h2>
-                    <p class="mt-3 sm:mt-4 text-sm sm:text-lg text-slate-300 leading-relaxed font-normal">
-                        {{ $studentMomentsData['subtitle'] ?? 'Setiap hari di SMK Wikrama 1 Garut diisi dengan antusiasme belajar nyata, pembiasaan karakter luhur, dan torehan prestasi nasional.' }}
-                    </p>
-                </div>
-            </div>
-
-            <!-- Full-Width Carousel Area (Edge-to-Edge Single-Row Track) -->
-            <div class="dinamika-fullwidth-wrapper">
-                <div class="flex flex-col lg:flex-row items-stretch gap-6 sm:gap-8">
-                    <!-- Left Navigation: JIS-style Diamond Arrow Buttons -->
-                    <div class="flex lg:flex-col items-center justify-center gap-4 sm:gap-5 shrink-0 py-2 lg:py-0 self-center">
-                        <!-- Diamond Prev Button -->
-                        <button type="button" 
-                                @click="scrollPrev()" 
-                                class="w-10 h-10 sm:w-11 sm:h-11 border border-white/30 hover:border-blue-400 hover:bg-blue-600/20 rotate-45 flex items-center justify-center transition-all duration-300 cursor-pointer shadow-xl active:scale-95 group lg:-translate-x-2"
-                                title="Geser ke Kiri (Sebelumnya)">
-                            <svg class="w-4 h-4 -rotate-45 text-slate-300 group-hover:text-blue-300 group-hover:-translate-x-0.5 transition-all" fill="none" viewBox="0 0 24 24" stroke="currentColor">
-                                <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M15 19l-7-7 7-7" />
-                            </svg>
-                        </button>
-
-                        <!-- Diamond Next Button -->
-                        <button type="button" 
-                                @click="scrollNext()" 
-                                class="w-10 h-10 sm:w-11 sm:h-11 border border-white/30 hover:border-blue-400 hover:bg-blue-600/20 rotate-45 flex items-center justify-center transition-all duration-300 cursor-pointer shadow-xl active:scale-95 group lg:translate-x-2"
-                                title="Geser ke Kanan (Berikutnya)">
-                            <svg class="w-4 h-4 -rotate-45 text-slate-300 group-hover:text-blue-300 group-hover:translate-x-0.5 transition-all" fill="none" viewBox="0 0 24 24" stroke="currentColor">
-                                <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9 5l7 7-7 7" />
-                            </svg>
-                        </button>
-                    </div>
-
-                    <!-- Single-Row Cards Track (Horizontal Smooth Scroll) -->
-                    <div class="min-w-0 flex-1 relative">
-                        <div x-ref="cardTrack" 
-                             class="dinamika-cards-track flex items-stretch gap-6 overflow-x-auto no-scrollbar pb-6 pt-2 snap-x snap-proximity focus:outline-hidden"
-                             style="scrollbar-width: none; -ms-overflow-style: none; -webkit-overflow-scrolling: touch;">
-                            @forelse($activeCards as $cIdx => $card)
-                            <div class="student-moment-card group relative shrink-0 rounded-3xl overflow-hidden bg-slate-900 shadow-xl snap-start cursor-pointer border border-white/10 hover:border-blue-400/60 transition-all duration-500"
-                                 style="width: 286px; min-width: 286px; max-width: 286px; height: 480px; min-height: 480px; max-height: 480px;"
-                                 data-animate data-animate-delay="{{ ($cIdx % 4) + 1 }}">
-                                
-                                <!-- Background Full-Bleed Image -->
-                                <img src="{{ \App\Modules\AdministrasiWeb\Models\WebSetting::resolveImageUrl($card['image'] ?? null, 'images/web/campus-environment.jpg') }}" 
-                                     alt="{{ $card['title'] ?? 'Dinamika Siswa' }}" 
-                                     class="w-full h-full object-cover group-hover:scale-105 transition-transform duration-700 ease-out" 
-                                     style="width: 100%; height: 100%; object-fit: cover;"
-                                     loading="lazy">
-
-                                <!-- Normal (Idle) State: Bottom Dark Gradient & Title -->
-                                <div class="absolute inset-0 bg-gradient-to-t from-slate-950 via-slate-950/40 to-transparent pointer-events-none transition-opacity duration-300 group-hover:opacity-0"></div>
-                                <div class="absolute bottom-6 left-6 right-6 z-10 transition-all duration-300 group-hover:opacity-0 group-hover:translate-y-2 pointer-events-none">
-                                    @if(!empty($card['badge']))
-                                    <span class="inline-block text-[10px] font-mono-code font-bold uppercase tracking-wider text-blue-300 bg-blue-950/70 border border-blue-700/50 px-2.5 py-0.5 rounded-full mb-2 backdrop-blur-xs">
-                                        {{ $card['badge'] }}
-                                    </span>
-                                    @endif
-                                    <h3 class="text-base sm:text-lg font-bold text-white leading-snug">
-                                        {{ $card['title'] ?? '' }}
-                                    </h3>
-                                    <p class="text-xs text-slate-300 mt-1.5 line-clamp-1 opacity-80">
-                                        {{ $card['cta_text'] ?? 'Lebih Lanjut' }} &rarr;
-                                    </p>
-                                </div>
-
-                                <!-- Hover State: Dark Full Overlay, Title, Line Divider, Description, & CTA Button -->
-                                <div class="absolute inset-0 z-20 p-6 flex flex-col justify-end bg-slate-950/88 backdrop-blur-xs opacity-0 group-hover:opacity-100 transition-all duration-300 transform translate-y-1 group-hover:translate-y-0">
-                                    @if(!empty($card['badge']))
-                                    <span class="inline-block text-[10px] font-mono-code font-bold uppercase tracking-wider text-blue-300 mb-1">
-                                        {{ $card['badge'] }}
-                                    </span>
-                                    @endif
-                                    <h3 class="text-base sm:text-lg font-bold text-white leading-snug">
-                                        {{ $card['title'] ?? '' }}
-                                    </h3>
-                                    <div class="w-10 h-0.5 bg-blue-500 my-3 rounded-full"></div>
-                                    <p class="text-xs sm:text-sm text-slate-200 leading-relaxed font-normal mb-5 line-clamp-5">
-                                        {{ $card['desc'] ?? '' }}
-                                    </p>
-                                    <div>
-                                        <a href="{{ $card['url'] ?? '#' }}" 
-                                           target="{{ $card['target'] ?? '_self' }}"
-                                           class="inline-flex items-center gap-1.5 text-xs sm:text-sm font-bold text-white hover:text-blue-300 transition-colors group/btn">
-                                            <span class="border-b border-white/50 group-hover/btn:border-blue-300 pb-0.5">{{ $card['cta_text'] ?? 'Lebih Lanjut' }}</span>
-                                            <span class="transition-transform group-hover/btn:translate-x-1">&rarr;</span>
-                                        </a>
-                                    </div>
-                                </div>
-                            </div>
-                            @empty
-                            <div class="py-12 text-center text-slate-400 w-full">
-                                <p>Belum ada card momen siswa yang aktif.</p>
-                            </div>
-                            @endforelse
-                        </div>
-                    </div>
-                </div>
-            </div>
-        </section>
-
-        <!-- ── 7. Leadership & Institutional Vision ── -->
-        <section class="py-12 sm:py-20 lg:py-24 bg-slate-50 dark:bg-[#060D1A]" id="profil">
-            <div class="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
-                <div class="grid grid-cols-1 lg:grid-cols-12 gap-8 lg:gap-14 items-center">
-                    
-                    <!-- Principal Card -->
-                    <div class="lg:col-span-5" data-animate>
-                        <div class="google-card p-5 sm:p-8">
-                            <div class="flex flex-col sm:flex-row items-center sm:items-start text-center sm:text-left gap-5">
-                                <div class="shrink-0 relative">
-                                    <div class="w-28 sm:w-32 h-36 sm:h-40 rounded-2xl overflow-hidden border border-slate-200 dark:border-slate-700 shadow-md bg-white mx-auto">
-                                        <img src="{{ asset($cfg['principal']['image'] ?? 'images/web/principal-kunedi.jpg') }}" 
-                                             alt="{{ $cfg['principal']['name'] ?? 'Kepala Sekolah' }}" 
-                                             class="w-full h-full object-cover object-top"
-                                             loading="lazy">
-                                    </div>
-                                    <span class="absolute -bottom-2 -right-2 bg-blue-600 text-white text-[10px] font-bold px-2.5 py-0.5 rounded-full shadow-xs">
-                                        Kepala Sekolah
-                                    </span>
-                                </div>
-                                <div class="min-w-0">
-                                    <span class="text-xs font-bold font-mono-code text-blue-600 dark:text-blue-400 uppercase tracking-wider block">Pimpinan Lembaga</span>
-                                    <h3 class="text-lg sm:text-xl font-bold text-slate-900 dark:text-white mt-0.5">
-                                        {{ $sekolah->kepala_sekolah_nama ?? ($cfg['principal']['name'] ?? 'Kunedi, S.Si.') }}
-                                    </h3>
-                                    <span class="text-xs text-slate-500 font-medium block mt-0.5">{{ $schoolName }}</span>
-                                    <p class="text-xs sm:text-sm text-slate-600 dark:text-slate-300 mt-3 font-editorial italic leading-relaxed">
-                                        &ldquo;{{ $cfg['principal']['quote'] ?? 'Sekolah kejuruan teladan nasional yang berbudaya lingkungan, berkarakter sesuai profil pelajar Pancasila, berbasis teknologi informasi.' }}&rdquo;
-                                    </p>
-                                </div>
-                            </div>
-                        </div>
-                    </div>
-
-                    <!-- Vision & 4 Pillars -->
-                    <div class="lg:col-span-7" data-animate data-animate-delay="1">
-                        <div>
-                            <span class="google-tag">
-                                <span class="w-1.5 h-1.5 rounded-full bg-blue-500"></span>
-                                <span>Visi &amp; Komitmen Kelembagaan</span>
-                            </span>
-                            <h2 class="text-2xl sm:text-3xl md:text-4xl font-bold tracking-tight text-slate-900 dark:text-white mt-3 sm:mt-4">
-                                {{ $cfg['principal']['vision_title'] ?? 'Teladan Nasional Berbudaya Lingkungan & Teknologi' }}
-                            </h2>
-                            <p class="text-xs sm:text-sm md:text-base text-slate-600 dark:text-slate-300 mt-3 leading-relaxed font-normal">
-                                {{ $cfg['principal']['vision_desc'] ?? 'Menjadi sekolah kejuruan teladan nasional yang berbudaya lingkungan berkelanjutan, berbasis teknologi informasi, berkomitmen mencetak lulusan berkarakter mulia.' }}
-                            </p>
-                        </div>
-
-                        <div class="mt-8">
-                            <span class="text-xs font-bold font-mono-code uppercase tracking-wider text-slate-500 dark:text-slate-400 block mb-3">
-                                [ 4 PILAR MISI WIKRAMA ]
-                            </span>
-                            <div class="grid grid-cols-1 sm:grid-cols-2 gap-4">
-                                @foreach($cfg['principal']['pillars'] ?? [] as $pil)
-                                <div class="p-4 rounded-2xl bg-white dark:bg-slate-800 border border-slate-200 dark:border-slate-700 shadow-xs">
-                                    <div class="flex items-center gap-2 mb-1">
-                                        <span class="w-6 h-6 rounded-full bg-blue-100 dark:bg-blue-900/60 text-blue-600 dark:text-blue-300 text-xs font-bold font-mono-code flex items-center justify-center shrink-0">
-                                            {{ $pil['num'] }}
-                                        </span>
-                                        <h4 class="font-bold text-slate-900 dark:text-white text-xs sm:text-sm">{{ $pil['title'] }}</h4>
-                                    </div>
-                                    <p class="text-[11px] sm:text-xs text-slate-600 dark:text-slate-400 leading-normal pl-8">{{ $pil['desc'] }}</p>
-                                </div>
-                                @endforeach
-                            </div>
-                        </div>
-                    </div>
-                </div>
-            </div>
-        </section>
-
-        <!-- ── 8. "Community Voices" Testimonials ── -->
-        <section class="py-12 sm:py-20 lg:py-24 bg-white dark:bg-[#071324]" id="suara-komunitas">
-            <div class="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
-                
-                <div class="text-center max-w-3xl mx-auto mb-10 sm:mb-14" data-animate>
-                    <span class="google-tag">
-                        <span class="w-1.5 h-1.5 rounded-full bg-blue-500"></span>
-                        <span>Suara Komunitas &bull; Community Voices</span>
-                    </span>
-                    <h2 class="text-2xl sm:text-4xl md:text-5xl font-bold tracking-tight text-slate-900 dark:text-white mt-3 sm:mt-4">
-                        Apa Kata Mereka Tentang Wikrama?
-                    </h2>
-                    <p class="mt-3 sm:mt-4 text-sm sm:text-lg text-slate-600 dark:text-slate-300 leading-relaxed font-normal">
-                        Kisah nyata dan ulasan mendalam dari siswa, orang tua, pendidik, dan alumni mengenai pengalaman bertumbuh di kampus Wikrama.
-                    </p>
-                </div>
-
-                <!-- 4 Community Perspectives Cards -->
-                @php
-                    $dbTestimonials = class_exists(\App\Modules\AdministrasiWeb\Models\WebTestimonial::class)
-                        ? \App\Modules\AdministrasiWeb\Models\WebTestimonial::getActiveTestimonials()
-                        : collect();
-                @endphp
-                <div class="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-6">
-                    @if($dbTestimonials->isNotEmpty())
-                        @foreach($dbTestimonials as $idx => $v)
-                        <div class="google-card p-6 flex flex-col justify-between h-full group" data-animate data-animate-delay="{{ ($idx % 4) + 1 }}">
-                            <div>
-                                <span class="inline-block px-3 py-1 rounded-full text-[10px] font-mono-code font-bold uppercase tracking-wider bg-blue-50 dark:bg-blue-950/60 text-blue-700 dark:text-blue-300 border border-blue-200 dark:border-blue-800 mb-3">
-                                    {{ $v->category }}
-                                </span>
-                                
-                                @if($v->question)
-                                <h4 class="font-bold text-sm text-slate-900 dark:text-white mb-3 leading-snug">
-                                    &ldquo;{{ $v->question }}&rdquo;
-                                </h4>
-                                @endif
-
-                                <blockquote class="text-xs sm:text-sm text-slate-600 dark:text-slate-300 leading-relaxed font-editorial italic">
-                                    &ldquo;{{ $v->quote }}&rdquo;
-                                </blockquote>
-                            </div>
-
-                            <div class="pt-6 mt-4 border-t border-slate-100 dark:border-slate-800 flex items-center gap-3">
-                                <img src="{{ $v->imageUrl() }}" alt="{{ $v->name }}" class="w-10 h-10 rounded-full object-cover shrink-0 border border-slate-200 dark:border-slate-700">
-                                <div class="min-w-0">
-                                    <span class="font-bold text-xs text-slate-900 dark:text-white block truncate">{{ $v->name }}</span>
-                                    <span class="text-[10px] text-slate-500 dark:text-slate-400 block truncate font-medium">{{ $v->role }}</span>
-                                </div>
-                            </div>
-                        </div>
-                        @endforeach
-                    @else
-                        @foreach($cfg['community_voices'] ?? [] as $idx => $v)
-                        <div class="google-card p-6 flex flex-col justify-between h-full group" data-animate data-animate-delay="{{ $idx + 1 }}">
-                            <div>
-                                <span class="inline-block px-3 py-1 rounded-full text-[10px] font-mono-code font-bold uppercase tracking-wider bg-blue-50 dark:bg-blue-950/60 text-blue-700 dark:text-blue-300 border border-blue-200 dark:border-blue-800 mb-3">
-                                    {{ $v['category'] }}
-                                </span>
-                                
-                                <h4 class="font-bold text-sm text-slate-900 dark:text-white mb-3 leading-snug">
-                                    &ldquo;{{ $v['question'] }}&rdquo;
-                                </h4>
-
-                                <blockquote class="text-xs sm:text-sm text-slate-600 dark:text-slate-300 leading-relaxed font-editorial italic">
-                                    &ldquo;{{ $v['quote'] }}&rdquo;
-                                </blockquote>
-                            </div>
-
-                            <div class="pt-6 mt-4 border-t border-slate-100 dark:border-slate-800 flex items-center gap-3">
-                                <img src="{{ asset($v['image']) }}" alt="{{ $v['name'] }}" class="w-10 h-10 rounded-full object-cover shrink-0 border border-slate-200 dark:border-slate-700">
-                                <div class="min-w-0">
-                                    <span class="font-bold text-xs text-slate-900 dark:text-white block truncate">{{ $v['name'] }}</span>
-                                    <span class="text-[10px] text-slate-500 dark:text-slate-400 block truncate font-medium">{{ $v['role'] }}</span>
-                                </div>
-                            </div>
-                        </div>
-                        @endforeach
-                    @endif
-                </div>
-            </div>
-        </section>
-
-        <!-- ── 9. Interactive Campus Facilities & Labs Gallery ── -->
-        <section class="py-12 sm:py-20 lg:py-24 bg-slate-50 dark:bg-[#060D1A]" id="fasilitas" x-data="{ facilityTab: 'all' }" data-mouse-glow>
-            <div class="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
-                
-                <div class="text-center max-w-3xl mx-auto mb-10 sm:mb-14" data-animate>
-                    <span class="google-tag">
-                        <span class="w-1.5 h-1.5 rounded-full bg-blue-500"></span>
-                        <span>Infrastruktur &amp; Sarana Industri</span>
-                    </span>
-                    <h2 class="text-2xl sm:text-4xl md:text-5xl font-bold tracking-tight text-slate-900 dark:text-white mt-3 sm:mt-4">
-                        Fasilitas &amp; Ekosistem Kampus Modern
-                    </h2>
-                    <p class="mt-3 sm:mt-4 text-sm sm:text-lg text-slate-600 dark:text-slate-300 leading-relaxed font-normal">
-                        Mendukung pembelajaran praktikum intensif dengan laboratorium mutakhir dan lingkungan Adiwiyata yang hijau asri.
-                    </p>
-
-                    <!-- Filter Categories -->
-                    @php
-                        $dbFacilities = class_exists(\App\Modules\AdministrasiWeb\Models\WebFacility::class)
-                            ? \App\Modules\AdministrasiWeb\Models\WebFacility::getActiveFacilities()
-                            : collect();
-                        $facilityCount = $dbFacilities->isNotEmpty() ? $dbFacilities->count() : count($cfg['fasilitas'] ?? []);
-                    @endphp
-                    <div class="mt-8 flex flex-wrap items-center justify-center gap-1.5 sm:gap-2">
-                        <button type="button" 
-                                @click="facilityTab = 'all'" 
-                                :class="facilityTab === 'all' ? 'bg-blue-600 text-white font-bold' : 'bg-white dark:bg-slate-800 text-slate-700 dark:text-slate-300 font-semibold'"
-                                class="px-3.5 sm:px-5 py-1.5 sm:py-2 rounded-full text-xs sm:text-sm transition-all cursor-pointer shadow-xs">
-                            Semua Fasilitas ({{ $facilityCount }})
-                        </button>
-                        <button type="button" 
-                                @click="facilityTab = 'lab'" 
-                                :class="facilityTab === 'lab' ? 'bg-blue-600 text-white font-bold' : 'bg-white dark:bg-slate-800 text-slate-700 dark:text-slate-300 font-semibold'"
-                                class="px-3.5 sm:px-5 py-1.5 sm:py-2 rounded-full text-xs sm:text-sm transition-all cursor-pointer shadow-xs flex items-center gap-1.5">
-                            <span>💻</span>
-                            <span>Lab Komputer &amp; Coding</span>
-                        </button>
-                        <button type="button" 
-                                @click="facilityTab = 'kelas'" 
-                                :class="facilityTab === 'kelas' ? 'bg-blue-600 text-white font-bold' : 'bg-white dark:bg-slate-800 text-slate-700 dark:text-slate-300 font-semibold'"
-                                class="px-3.5 sm:px-5 py-1.5 sm:py-2 rounded-full text-xs sm:text-sm transition-all cursor-pointer shadow-xs flex items-center gap-1.5">
-                            <span>📱</span>
-                            <span>Kelas Digital &amp; TeFa</span>
-                        </button>
-                        <button type="button" 
-                                @click="facilityTab = 'gedung'" 
-                                :class="facilityTab === 'gedung' ? 'bg-blue-600 text-white font-bold' : 'bg-white dark:bg-slate-800 text-slate-700 dark:text-slate-300 font-semibold'"
-                                class="px-3.5 sm:px-5 py-1.5 sm:py-2 rounded-full text-xs sm:text-sm transition-all cursor-pointer shadow-xs flex items-center gap-1.5">
-                            <span>🏫</span>
-                            <span>Gedung &amp; Adiwiyata</span>
-                        </button>
-                    </div>
-                </div>
-
-                <!-- Facilities Grid -->
-                <div class="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6 sm:gap-8">
-                    @if($dbFacilities->isNotEmpty())
-                        @foreach($dbFacilities as $idx => $f)
-                        <div x-show="facilityTab === 'all' || facilityTab === '{{ $f->category }}'"
-                             x-transition:enter="transition ease-out duration-300"
-                             x-transition:enter-start="opacity-0 scale-95"
-                             x-transition:enter-end="opacity-100 scale-100"
-                             class="google-card overflow-hidden flex flex-col justify-between h-full group"
-                             data-animate data-animate-delay="{{ ($idx % 3) + 1 }}">
-                            <div>
-                                <div class="relative aspect-[16/10] w-full overflow-hidden bg-slate-950 cursor-pointer"
-                                     @click="openImageModal('{{ $f->imageUrl() }}', '{{ $f->title }}', '{{ $f->cat_label }}')">
-                                    <img src="{{ $f->imageUrl() }}" alt="{{ $f->title }}" class="w-full h-full object-cover group-hover:scale-105 transition-transform duration-500" loading="lazy">
-                                    @if($f->badge)
-                                    <span class="absolute top-3 left-3 px-3 py-1 rounded-full text-[10px] font-mono-code font-bold bg-white/95 dark:bg-slate-900/95 text-blue-700 dark:text-blue-300 shadow-xs">
-                                        {{ $f->badge }}
-                                    </span>
-                                    @endif
-                                    <div class="absolute inset-0 bg-slate-950/40 opacity-0 group-hover:opacity-100 transition-opacity flex items-center justify-center text-white">
-                                        <span class="text-xs font-bold uppercase tracking-wider bg-black/60 px-3.5 py-1.5 rounded-full border border-white/30 flex items-center gap-1">
-                                            Perbesar Foto &rarr;
-                                        </span>
-                                    </div>
-                                </div>
-                                <div class="p-5 pt-4">
-                                    <h3 class="text-base font-bold text-slate-900 dark:text-white leading-snug group-hover:text-blue-600 transition-colors">
-                                        {{ $f->title }}
-                                    </h3>
-                                    <p class="text-xs text-slate-600 dark:text-slate-300 mt-2 leading-relaxed">
-                                        {{ $f->desc }}
-                                    </p>
-                                </div>
-                            </div>
-                            <div class="px-5 py-3.5 border-t border-slate-100 dark:border-slate-800 bg-slate-50 dark:bg-slate-800/40 flex items-center justify-between text-xs font-medium">
-                                <span class="text-slate-500 text-[11px] font-mono-code">{{ $f->highlight }}</span>
-                                <button type="button" 
-                                        @click="openImageModal('{{ $f->imageUrl() }}', '{{ $f->title }}', '{{ $f->cat_label }}')"
-                                        class="text-blue-600 dark:text-blue-400 hover:underline font-bold cursor-pointer inline-flex items-center gap-1">
-                                    <span>Lihat Pratinjau</span>
-                                    <span class="group-hover-arrow">&rarr;</span>
-                                </button>
-                            </div>
-                        </div>
-                        @endforeach
-                    @else
-                        @foreach($cfg['fasilitas'] ?? [] as $idx => $f)
-                        <div x-show="facilityTab === 'all' || facilityTab === '{{ $f['category'] }}'"
-                             x-transition:enter="transition ease-out duration-300"
-                             x-transition:enter-start="opacity-0 scale-95"
-                             x-transition:enter-end="opacity-100 scale-100"
-                             class="google-card overflow-hidden flex flex-col justify-between h-full group"
-                             data-animate data-animate-delay="{{ ($idx % 3) + 1 }}">
-                            <div>
-                                <div class="relative aspect-[16/10] w-full overflow-hidden bg-slate-950 cursor-pointer"
-                                     @click="openImageModal('{{ asset($f['image']) }}', '{{ $f['title'] }}', '{{ $f['cat_label'] }}')">
-                                    <img src="{{ asset($f['image']) }}" alt="{{ $f['title'] }}" class="w-full h-full object-cover group-hover:scale-105 transition-transform duration-500" loading="lazy">
-                                    <span class="absolute top-3 left-3 px-3 py-1 rounded-full text-[10px] font-mono-code font-bold bg-white/95 dark:bg-slate-900/95 text-blue-700 dark:text-blue-300 shadow-xs">
-                                        {{ $f['badge'] }}
-                                    </span>
-                                    <div class="absolute inset-0 bg-slate-950/40 opacity-0 group-hover:opacity-100 transition-opacity flex items-center justify-center text-white">
-                                        <span class="text-xs font-bold uppercase tracking-wider bg-black/60 px-3.5 py-1.5 rounded-full border border-white/30 flex items-center gap-1">
-                                            Perbesar Foto &rarr;
-                                        </span>
-                                    </div>
-                                </div>
-                                <div class="p-5 pt-4">
-                                    <h3 class="text-base font-bold text-slate-900 dark:text-white leading-snug group-hover:text-blue-600 transition-colors">
-                                        {{ $f['title'] }}
-                                    </h3>
-                                    <p class="text-xs text-slate-600 dark:text-slate-300 mt-2 leading-relaxed">
-                                        {{ $f['desc'] }}
-                                    </p>
-                                </div>
-                            </div>
-                            <div class="px-5 py-3.5 border-t border-slate-100 dark:border-slate-800 bg-slate-50 dark:bg-slate-800/40 flex items-center justify-between text-xs font-medium">
-                                <span class="text-slate-500 text-[11px] font-mono-code">{{ $f['highlight'] }}</span>
-                                <button type="button" 
-                                        @click="openImageModal('{{ asset($f['image']) }}', '{{ $f['title'] }}', '{{ $f['cat_label'] }}')"
-                                        class="text-blue-600 dark:text-blue-400 hover:underline font-bold cursor-pointer inline-flex items-center gap-1">
-                                    <span>Lihat Pratinjau</span>
-                                    <span class="group-hover-arrow">&rarr;</span>
-                                </button>
-                            </div>
-                        </div>
-                        @endforeach
-                    @endif
-                </div>
-            </div>
-        </section>
-
-        <!-- ── 10. Latest News & Achievements ── -->
-        <section class="py-12 sm:py-20 lg:py-24 bg-white dark:bg-[#071324]" id="berita">
-            <div class="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
-                
-                <div class="flex flex-col md:flex-row md:items-end justify-between mb-10 sm:mb-14 gap-4" data-animate>
-                    <div>
-                        <span class="google-tag">
-                            <span class="w-1.5 h-1.5 rounded-full bg-blue-500"></span>
-                            <span>Kabar &amp; Prestasi Terkini</span>
-                        </span>
-                        <h2 class="text-2xl sm:text-4xl md:text-5xl font-bold tracking-tight text-slate-900 dark:text-white mt-3 sm:mt-4">
-                            Berita Terbaru SMK Wikrama 1 Garut
-                        </h2>
-                        <p class="mt-3 sm:mt-4 text-sm sm:text-lg text-slate-600 dark:text-slate-300 max-w-2xl">
-                            Dokumentasi kegiatan, studi tiru nasional, capaian medali kompetisi, dan kiprah alumni di dunia industri.
-                        </p>
-                    </div>
-                    <a href="{{ route('web.berita.index') }}" class="btn-google-outline text-xs sm:text-sm !py-2.5 !px-5 shrink-0 w-full sm:w-auto text-center justify-center">
-                        <span>Seluruh Arsip Berita</span>
-                        <span class="group-hover-arrow">&rarr;</span>
-                    </a>
-                </div>
-
-                @php
-                    $dbArticles = class_exists(\App\Modules\AdministrasiWeb\Models\WebArticle::class)
-                        ? \App\Modules\AdministrasiWeb\Models\WebArticle::with('category')->published()->latest('published_at')->limit(4)->get()
-                        : collect();
-                @endphp
-
-                <div class="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-6">
-                    @if ($dbArticles->isNotEmpty())
-                        @foreach ($dbArticles as $idx => $art)
-                        <article class="google-card overflow-hidden flex flex-col justify-between h-full group" data-animate data-animate-delay="{{ $idx + 1 }}">
-                            <div>
-                                <div class="aspect-[16/10] w-full relative overflow-hidden bg-slate-950">
-                                    <img src="{{ $art->gambarSampulUrl() }}" alt="{{ $art->judul }}" class="w-full h-full object-cover group-hover:scale-105 transition-transform duration-500" loading="lazy">
-                                    <span class="absolute top-3 left-3 px-3 py-1 rounded-full text-[10px] font-mono-code font-bold bg-white/95 dark:bg-slate-900/95 text-blue-700 dark:text-blue-300">
-                                        {{ $art->category?->nama ?? 'Berita' }}
-                                    </span>
-                                </div>
-                                <div class="p-5 pt-4">
-                                    <span class="text-[11px] font-mono-code text-slate-400 font-medium block mb-1">
-                                        {{ $art->published_at ? $art->published_at->format('d M Y') : date('d M Y') }}
-                                    </span>
-                                    <h3 class="text-sm sm:text-base font-bold text-slate-900 dark:text-white leading-snug hover:text-blue-600 transition-colors line-clamp-2">
-                                        <a href="{{ url('/berita/' . $art->slug) }}">
-                                            {{ $art->judul }}
-                                        </a>
-                                    </h3>
-                                    <p class="text-xs text-slate-600 dark:text-slate-300 mt-2 leading-relaxed line-clamp-3">
-                                        {{ $art->ringkasan ?: Str::limit(strip_tags($art->konten), 130) }}
-                                    </p>
-                                </div>
-                            </div>
-                            <div class="px-5 py-3.5 border-t border-slate-100 dark:border-slate-800 bg-slate-50 dark:bg-slate-800/40">
-                                <a href="{{ url('/berita/' . $art->slug) }}" class="text-xs text-blue-600 dark:text-blue-400 font-bold hover:underline inline-flex items-center gap-1">
-                                    <span>Baca Artikel Lengkap</span>
-                                    <span class="group-hover-arrow">&rarr;</span>
-                                </a>
-                            </div>
-                        </article>
-                        @endforeach
-                    @else
-                        @foreach($cfg['berita'] ?? [] as $idx => $br)
-                        <article class="google-card overflow-hidden flex flex-col justify-between h-full group" data-animate data-animate-delay="{{ $idx + 1 }}">
-                            <div>
-                                <div class="aspect-[16/10] w-full relative overflow-hidden bg-slate-950">
-                                    <img src="{{ asset($br['image']) }}" alt="{{ $br['title'] }}" class="w-full h-full object-cover group-hover:scale-105 transition-transform duration-500" loading="lazy">
-                                    <span class="absolute top-3 left-3 px-3 py-1 rounded-full text-[10px] font-mono-code font-bold bg-white/95 dark:bg-slate-900/95 text-blue-700 dark:text-blue-300">
-                                        {{ $br['badge'] }}
-                                    </span>
-                                </div>
-                                <div class="p-5 pt-4">
-                                    <span class="text-[11px] font-mono-code text-slate-400 font-medium block mb-1">{{ $br['date'] }}</span>
-                                    <h3 class="text-sm sm:text-base font-bold text-slate-900 dark:text-white leading-snug hover:text-blue-600 transition-colors">
-                                        <a href="{{ $br['url'] }}" target="_blank" rel="noopener">
-                                            {{ $br['title'] }}
-                                        </a>
-                                    </h3>
-                                    <p class="text-xs text-slate-600 dark:text-slate-300 mt-2 leading-relaxed line-clamp-3">
-                                        {{ $br['desc'] }}
-                                    </p>
-                                </div>
-                            </div>
-                            <div class="px-5 py-3.5 border-t border-slate-100 dark:border-slate-800 bg-slate-50 dark:bg-slate-800/40">
-                                <a href="{{ $br['url'] }}" target="_blank" rel="noopener" class="text-xs text-blue-600 dark:text-blue-400 font-bold hover:underline inline-flex items-center gap-1">
-                                    <span>Baca Artikel Lengkap</span>
-                                    <span class="group-hover-arrow">&rarr;</span>
-                                </a>
-                            </div>
-                        </article>
-                        @endforeach
-                    @endif
-                </div>
-            </div>
-        </section>
-
-        <!-- ── 10.B Kalender Pendidikan & Agenda Kegiatan Terdekat ── -->
-        <section class="py-14 sm:py-20 lg:py-24 bg-slate-50 dark:bg-[#060D1A] border-t border-slate-200/80 dark:border-slate-800" id="agenda">
-            <div id="agenda-sekolah" class="scroll-mt-24"></div>
-            <div class="w-full max-w-[1680px] mx-auto px-4 sm:px-6 lg:px-10 xl:px-16">
-                <div class="flex flex-col md:flex-row md:items-end justify-between mb-10 sm:mb-12 gap-6" data-animate>
-                    <div class="max-w-3xl">
-                        <span class="google-tag">
-                            <span class="w-1.5 h-1.5 rounded-full bg-emerald-500"></span>
-                            <span>{{ $cfg['agenda']['tag'] ?? 'Agenda & Kalender Akademik' }}</span>
-                        </span>
-                        <h2 class="text-2xl sm:text-4xl md:text-5xl font-bold tracking-tight text-slate-900 dark:text-white mt-3 sm:mt-4">
-                            {{ $cfg['agenda']['title'] ?? 'Agenda Kegiatan Sekolah Terdekat' }}
-                        </h2>
-                        <p class="mt-3 text-sm sm:text-base text-slate-600 dark:text-slate-300 leading-relaxed">
-                            {{ $cfg['agenda']['subtitle'] ?? 'Jadwal sertifikasi kompetensi industri, pembinaan karakter santri, uji vokasi, dan agenda penting SMK Wikrama 1 Garut.' }}
-                        </p>
-                    </div>
-
-                    <div class="flex flex-wrap items-center gap-3 shrink-0">
-                        <a href="{{ $cfg['agenda']['calendar_pdf_url'] ?? 'https://smkwikrama1garut.sch.id/' }}" 
-                           target="_blank" 
-                           rel="noopener"
-                           class="btn-google-outline text-xs sm:text-sm !py-2.5 !px-5 inline-flex items-center justify-center gap-2 group w-full sm:w-auto">
-                            <svg class="w-4 h-4 text-red-500 shrink-0 group-hover:scale-110 transition-transform" fill="currentColor" viewBox="0 0 20 20">
-                                <path fill-rule="evenodd" d="M4 4a2 2 0 012-2h4.586A2 2 0 0112 2.586L15.414 6A2 2 0 0116 7.414V16a2 2 0 01-2 2H6a2 2 0 01-2-2V4zm2 6a1 1 0 011-1h6a1 1 0 110 2H7a1 1 0 01-1-1zm1 3a1 1 0 100 2h6a1 1 0 100-2H7z" clip-rule="evenodd" />
-                            </svg>
-                            <span>{{ $cfg['agenda']['btn_calendar_text'] ?? 'Unduh Kalender Akademik (PDF)' }}</span>
-                            <span class="text-xs">&darr;</span>
-                        </a>
-                        @auth
-                        <a href="{{ route('kalender.index') }}" class="btn-google-primary text-xs sm:text-sm !py-2.5 !px-5 inline-flex items-center justify-center gap-2 shrink-0 w-full sm:w-auto">
-                            <span>Buka Kalender SIRAGA</span>
-                            <span>&rarr;</span>
-                        </a>
-                        @endauth
-                    </div>
-                </div>
-
-                @php
-                    $dbAgendas = class_exists(\App\Modules\KalenderPendidikan\Models\KalenderAgenda::class)
-                        ? \App\Modules\KalenderPendidikan\Models\KalenderAgenda::with('kategori')
-                            ->where('status', 'publik')
-                            ->where('tgl_selesai', '>=', now()->toDateString())
-                            ->orderBy('tgl_mulai')
-                            ->limit(3)
-                            ->get()
-                        : collect();
-                    $agendaFallbackItems = $cfg['agenda']['items'] ?? [];
-                @endphp
-
-                <div class="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6 sm:gap-8">
-                    @if($dbAgendas->isNotEmpty())
-                        @foreach($dbAgendas as $idx => $agenda)
-                        <article class="google-card group relative p-6 sm:p-7 flex flex-col justify-between hover:shadow-xl hover:border-blue-400 dark:hover:border-blue-500 transition-all duration-300 rounded-3xl" data-animate data-animate-delay="{{ $idx + 1 }}">
-                            <div>
-                                <!-- Header Date & Badge -->
-                                <div class="flex items-start justify-between gap-3 mb-5">
-                                    <div class="flex flex-col items-center justify-center shrink-0 w-16 rounded-2xl overflow-hidden border border-slate-200/80 dark:border-slate-700/80 shadow-xs bg-slate-50 dark:bg-slate-800/80">
-                                        <span class="w-full text-center py-1 bg-gradient-to-r from-blue-600 to-indigo-600 text-white font-mono-code font-bold text-[10px] tracking-widest uppercase">
-                                            {{ strtoupper($agenda->tgl_mulai->translatedFormat('M')) }}
-                                        </span>
-                                        <div class="py-1.5 px-2 flex flex-col items-center">
-                                            <span class="text-2xl sm:text-3xl font-black text-slate-900 dark:text-white leading-none tracking-tight">
-                                                {{ $agenda->tgl_mulai->format('d') }}
-                                            </span>
-                                            <span class="text-[9px] font-mono-code font-bold text-slate-400 dark:text-slate-500 mt-0.5">
-                                                {{ $agenda->tgl_mulai->format('Y') }}
-                                            </span>
-                                        </div>
-                                    </div>
-
-                                    <div class="flex flex-col items-end gap-1.5 text-right">
-                                        <span class="px-3 py-1 rounded-full text-[11px] font-bold text-white shadow-xs" style="background-color: {{ $agenda->display_warna }}">
-                                            {{ $agenda->kategori?->nama ?? 'Kegiatan' }}
-                                        </span>
-                                        @if($agenda->is_final)
-                                        <span class="text-[10px] font-mono-code font-bold text-emerald-600 dark:text-emerald-400 bg-emerald-50 dark:bg-emerald-950/60 px-2 py-0.5 rounded border border-emerald-300 dark:border-emerald-800">
-                                            ✓ FINAL
-                                        </span>
-                                        @endif
-                                    </div>
-                                </div>
-
-                                <h3 class="text-lg sm:text-xl font-bold text-slate-900 dark:text-white group-hover:text-blue-600 dark:group-hover:text-blue-400 transition-colors leading-snug line-clamp-2">
-                                    {{ $agenda->judul }}
-                                </h3>
-
-                                <p class="mt-2.5 text-xs sm:text-sm text-slate-600 dark:text-slate-300 leading-relaxed line-clamp-3">
-                                    {{ $agenda->deskripsi ?: 'Agenda kurikulum dan kegiatan resmi SMK Wikrama 1 Garut yang telah disahkan.' }}
-                                </p>
-                            </div>
-
-                            <div class="pt-4 mt-6 border-t border-slate-100 dark:border-slate-800 flex flex-col sm:flex-row sm:items-center justify-between gap-2 text-xs text-slate-500 dark:text-slate-400">
-                                <div class="flex items-center gap-1.5 shrink-0">
-                                    <svg class="w-4 h-4 text-blue-500 shrink-0" fill="none" viewBox="0 0 24 24" stroke="currentColor">
-                                        <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 8v4l3 3m6-3a9 9 0 11-18 0 9 9 0 0118 0z" />
-                                    </svg>
-                                    <span class="font-medium">{{ $agenda->is_all_day ? 'Sepanjang Hari' : substr($agenda->jam_mulai,0,5).' WIB' }}</span>
-                                </div>
-                                <div class="flex items-center gap-1.5 min-w-0">
-                                    <svg class="w-4 h-4 text-amber-500 shrink-0" fill="none" viewBox="0 0 24 24" stroke="currentColor">
-                                        <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M17.657 16.657L13.414 20.9a1.998 1.998 0 01-2.827 0l-4.244-4.243a8 8 0 1111.314 0z" />
-                                        <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M15 11a3 3 0 11-6 0 3 3 0 016 0z" />
-                                    </svg>
-                                    <span class="font-medium truncate" title="{{ $agenda->lokasi ?: 'Sekolah' }}">{{ $agenda->lokasi ?: 'Sekolah' }}</span>
-                                </div>
-                            </div>
-                        </article>
-                        @endforeach
-                    @else
-                        @foreach($agendaFallbackItems as $idx => $item)
-                        <article class="google-card group relative p-6 sm:p-7 flex flex-col justify-between hover:shadow-xl hover:border-blue-400 dark:hover:border-blue-500 transition-all duration-300 rounded-3xl" data-animate data-animate-delay="{{ $idx + 1 }}">
-                            <div>
-                                <!-- Header Date & Badge -->
-                                <div class="flex items-start justify-between gap-3 mb-5">
-                                    <div class="flex flex-col items-center justify-center shrink-0 w-16 rounded-2xl overflow-hidden border border-slate-200/80 dark:border-slate-700/80 shadow-xs bg-slate-50 dark:bg-slate-800/80">
-                                        <span class="w-full text-center py-1 bg-gradient-to-r from-blue-600 to-indigo-600 text-white font-mono-code font-bold text-[10px] tracking-widest uppercase">
-                                            {{ $item['month'] }}
-                                        </span>
-                                        <div class="py-1.5 px-2 flex flex-col items-center">
-                                            <span class="text-2xl sm:text-3xl font-black text-slate-900 dark:text-white leading-none tracking-tight">
-                                                {{ $item['day'] }}
-                                            </span>
-                                            <span class="text-[9px] font-mono-code font-bold text-slate-400 dark:text-slate-500 mt-0.5">
-                                                {{ $item['year'] }}
-                                            </span>
-                                        </div>
-                                    </div>
-
-                                    <div class="flex flex-col items-end gap-1.5 text-right">
-                                        <span class="px-3 py-1 rounded-full text-[11px] font-bold {{ $item['category_badge'] ?? 'bg-blue-100 text-blue-700 dark:bg-blue-900/60 dark:text-blue-300' }}">
-                                            {{ $item['category'] }}
-                                        </span>
-                                        @if(!empty($item['badge']))
-                                        <span class="text-[10px] font-mono-code font-semibold px-2 py-0.5 rounded-md bg-slate-100 dark:bg-slate-800 text-slate-600 dark:text-slate-300 border border-slate-200/60 dark:border-slate-700/60">
-                                            {{ $item['badge'] }}
-                                        </span>
-                                        @endif
-                                    </div>
-                                </div>
-
-                                <h3 class="text-lg sm:text-xl font-bold text-slate-900 dark:text-white group-hover:text-blue-600 dark:group-hover:text-blue-400 transition-colors leading-snug line-clamp-2">
-                                    {{ $item['title'] }}
-                                </h3>
-
-                                <p class="mt-2.5 text-xs sm:text-sm text-slate-600 dark:text-slate-300 leading-relaxed line-clamp-3">
-                                    {{ $item['desc'] }}
-                                </p>
-                            </div>
-
-                            <div class="pt-4 mt-6 border-t border-slate-100 dark:border-slate-800 flex flex-col sm:flex-row sm:items-center justify-between gap-2 text-xs text-slate-500 dark:text-slate-400">
-                                <div class="flex items-center gap-1.5 shrink-0">
-                                    <svg class="w-4 h-4 text-blue-500 shrink-0" fill="none" viewBox="0 0 24 24" stroke="currentColor">
-                                        <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 8v4l3 3m6-3a9 9 0 11-18 0 9 9 0 0118 0z" />
-                                    </svg>
-                                    <span class="font-medium">{{ $item['time'] }}</span>
-                                </div>
-                                <div class="flex items-center gap-1.5 min-w-0">
-                                    <svg class="w-4 h-4 text-amber-500 shrink-0" fill="none" viewBox="0 0 24 24" stroke="currentColor">
-                                        <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M17.657 16.657L13.414 20.9a1.998 1.998 0 01-2.827 0l-4.244-4.243a8 8 0 1111.314 0z" />
-                                        <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M15 11a3 3 0 11-6 0 3 3 0 016 0z" />
-                                    </svg>
-                                    <span class="font-medium truncate" title="{{ $item['location'] }}">{{ $item['location'] }}</span>
-                                </div>
-                            </div>
-                        </article>
-                        @endforeach
-                    @endif
-                </div>
-
-                <!-- Bottom Information Banner -->
-                <div class="mt-8 sm:mt-10 p-4 sm:p-5 rounded-2xl bg-white dark:bg-slate-900 border border-slate-200/80 dark:border-slate-800 flex flex-col sm:flex-row items-center justify-between gap-4 text-xs shadow-xs" data-animate>
-                    <div class="flex items-center gap-3 text-slate-600 dark:text-slate-300">
-                        <span class="w-8 h-8 rounded-xl bg-blue-50 dark:bg-blue-950/60 text-blue-600 dark:text-blue-400 flex items-center justify-center shrink-0 border border-blue-200 dark:border-blue-900">
-                            <svg class="w-4 h-4" fill="none" viewBox="0 0 24 24" stroke="currentColor"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M13 16h-1v-4h-1m1-4h.01M21 12a9 9 0 11-18 0 9 9 0 0118 0z"/></svg>
-                        </span>
-                        <span>Seluruh agenda kurikulum disesuaikan dengan kalender akademik resmi Dinas Pendidikan &amp; Dunia Industri mitra SMK Wikrama 1 Garut.</span>
-                    </div>
-                    @auth
-                    <a href="{{ route('kalender.index') }}" class="text-blue-600 dark:text-blue-400 font-bold hover:underline inline-flex items-center gap-1 shrink-0">
-                        <span>Kelola Kalender di SIRAGA</span>
-                        <span>&rarr;</span>
-                    </a>
-                    @endauth
-                </div>
-            </div>
-        </section>
-
-        <!-- ── 11. National Education Report Card (Rapor Mutu Kemendikdasmen RI) ── -->
-        <section class="py-12 sm:py-20 lg:py-24 bg-white dark:bg-[#071324] border-t border-slate-200/80 dark:border-slate-800" id="rapor-mutu">
-            <div class="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
-                <div class="grid grid-cols-1 lg:grid-cols-12 gap-8 lg:gap-14 items-center">
-                    
-                    <!-- Progress Bar Metrics -->
-                    <div class="lg:col-span-6" data-animate>
-                        <span class="google-tag">
-                            <span class="w-1.5 h-1.5 rounded-full bg-blue-500"></span>
-                            <span>{{ $cfg['rapor_mutu']['tag'] ?? 'Rapor Pendidikan Resmi Kemendikdasmen' }}</span>
-                        </span>
-                        <h2 class="text-2xl sm:text-4xl md:text-5xl font-bold tracking-tight text-slate-900 dark:text-white mt-3 sm:mt-4">
-                            {{ $cfg['rapor_mutu']['title'] ?? 'Peringkat 20% Teratas Nasional' }}
-                        </h2>
-                        <p class="text-xs text-slate-500 font-medium font-mono-code mt-2 mb-6 sm:mb-8">
-                            *{{ $cfg['rapor_mutu']['source'] ?? 'Validasi Data Resmi: Kemendikdasmen RI (raportpendidikan.kemdikbud.go.id)' }}
-                        </p>
-
-                        <!-- Bars with Smooth Gradients -->
-                        <div class="space-y-5 sm:space-y-6">
-                            @foreach($cfg['rapor_mutu']['metrics'] ?? [] as $m)
-                            <div>
-                                <div class="flex items-center justify-between gap-3 text-xs sm:text-sm font-bold text-slate-900 dark:text-white mb-2">
-                                    <span class="leading-tight">{{ $m['label'] }}</span>
-                                    <span class="text-blue-600 dark:text-blue-400 font-mono-code font-bold shrink-0 text-xs sm:text-sm">{{ $m['badge'] }}</span>
-                                </div>
-                                <div class="w-full bg-slate-200 dark:bg-slate-700/80 h-3.5 rounded-full overflow-hidden p-0.5">
-                                    <div class="bg-gradient-to-r from-blue-600 via-indigo-600 to-pink-500 h-full rounded-full transition-all duration-1000" style="width: {{ $m['value'] }}%"></div>
-                                </div>
-                            </div>
-                            @endforeach
-                        </div>
-                    </div>
-
-                    <!-- Awards & Accreditations -->
-                    <div class="lg:col-span-6" data-animate data-animate-delay="1">
-                        <div class="google-card p-6 sm:p-8">
-                            <h3 class="text-base sm:text-lg font-bold text-slate-900 dark:text-white mb-5 flex items-center gap-2">
-                                <span class="text-amber-500 font-black text-xl">★</span> 
-                                <span>Pengakuan Mutu &amp; Akreditasi Lembaga</span>
-                            </h3>
-                            <div class="grid grid-cols-1 sm:grid-cols-2 gap-4">
-                                @foreach($cfg['rapor_mutu']['awards'] ?? [] as $aw)
-                                <div class="p-4 rounded-2xl bg-slate-50 dark:bg-slate-800/60 border border-slate-200 dark:border-slate-700">
-                                    <span class="inline-block px-2.5 py-0.5 rounded-full text-[10px] font-mono-code font-bold bg-blue-100 dark:bg-blue-900/60 text-blue-700 dark:text-blue-300 mb-1.5">
-                                        {{ $aw['badge'] }}
-                                    </span>
-                                    <h4 class="text-sm font-bold text-slate-900 dark:text-white">{{ $aw['title'] }}</h4>
-                                    <p class="text-[11px] text-slate-600 dark:text-slate-400 font-normal mt-0.5">{{ $aw['desc'] }}</p>
-                                </div>
-                                @endforeach
-                            </div>
-                        </div>
-                    </div>
-                </div>
-            </div>
-        </section>
-
-        <!-- ── 12. Filosofi Pilar 1: Tiada Pendidikan Bermutu, Tanpa Pendidikan Karakter ── -->
-        <section class="py-12 sm:py-20 lg:py-24 bg-slate-50 dark:bg-[#060D1A] border-t border-slate-200/80 dark:border-slate-800" id="pilar-karakter">
-            <div class="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
-                <div class="flex flex-col md:flex-row md:items-end md:justify-between gap-6 mb-10 sm:mb-12" data-animate>
-                    <div class="max-w-3xl">
-                        <span class="google-tag">
-                            <span class="w-1.5 h-1.5 rounded-full bg-blue-500"></span>
-                            <span>{{ $cfg['pilar_karakter']['tag'] ?? 'Pilar Mutu & Karakter' }}</span>
-                        </span>
-                        <h2 class="text-2xl sm:text-4xl lg:text-5xl font-extrabold tracking-tight text-slate-900 dark:text-white mt-3">
-                            {{ $cfg['pilar_karakter']['title'] ?? 'Tiada pendidikan bermutu, tanpa pendidikan karakter' }}
-                        </h2>
-                        <p class="text-sm sm:text-base text-slate-600 dark:text-slate-300 mt-3">
-                            {{ $cfg['pilar_karakter']['desc'] ?? 'Delapan pondasi keunggulan terintegrasi yang membentuk ekosistem pendidikan vokasi berkualitas unggul di SMK Wikrama 1 Garut.' }}
-                        </p>
-                    </div>
-                    <div class="shrink-0">
-                        <a href="{{ $cfg['pilar_karakter']['btn_url'] ?? 'https://spmb.smkwikrama1garut.sch.id/' }}" 
-                           target="_blank" rel="noopener" 
-                           class="btn-google-primary text-xs sm:text-sm !py-2.5 sm:!py-3 !px-5 sm:!px-6 shadow-md hover:shadow-xl inline-flex items-center gap-2 w-full sm:w-auto justify-center">
-                            <span>{{ $cfg['pilar_karakter']['btn_text'] ?? 'Daftar Sekarang' }}</span>
-                            <span class="text-base">&rarr;</span>
-                        </a>
-                    </div>
-                </div>
-
-                <!-- 8 Cards Grid (4 columns desktop, 2 tablet, 1 mobile) -->
-                <div class="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-4 sm:gap-6">
-                    @foreach($cfg['pilar_karakter']['items'] ?? [] as $idx => $item)
-                    <div class="google-card overflow-hidden group flex flex-col justify-between" data-animate data-animate-delay="{{ ($idx % 4) + 1 }}">
-                        <div>
-                            <div class="aspect-[16/10] w-full overflow-hidden relative bg-slate-100 dark:bg-slate-900">
-                                <img src="{{ asset($item['image'] ?? 'images/web/campus-environment.jpg') }}" 
-                                     alt="{{ $item['title'] ?? 'Pilar Wikrama' }}" 
-                                     class="w-full h-full object-cover object-center group-hover:scale-105 transition-transform duration-500">
-                                <div class="absolute inset-0 bg-gradient-to-t from-slate-950/70 via-transparent to-transparent opacity-80 group-hover:opacity-60 transition-opacity"></div>
-                                <span class="absolute top-3 left-3 px-2.5 py-1 rounded-full text-[10px] font-mono-code font-bold bg-blue-950/80 text-blue-300 border border-blue-700/50 backdrop-blur-md">
-                                    {{ $item['badge'] ?? 'Keunggulan' }}
-                                </span>
-                                <h3 class="absolute bottom-3 left-3 right-3 text-base sm:text-lg font-bold text-white drop-shadow">
-                                    {{ $item['title'] }}
-                                </h3>
-                            </div>
-                            <div class="p-4 sm:p-5">
-                                <p class="text-xs sm:text-sm text-slate-600 dark:text-slate-300 leading-relaxed font-normal">
-                                    {{ $item['desc'] }}
-                                </p>
-                            </div>
-                        </div>
-                        <div class="px-4 pb-4 sm:px-5 sm:pb-5 pt-0">
-                            <span class="inline-flex items-center gap-1.5 text-[11px] font-bold text-blue-600 dark:text-blue-400 group-hover:translate-x-1 transition-transform">
-                                <span>Nilai Utama Wikrama</span>
-                                <span>&rarr;</span>
-                            </span>
-                        </div>
-                    </div>
-                    @endforeach
-                </div>
-            </div>
-        </section>
-
-        <!-- ── 13. Filosofi Pilar 2: Tiada Pendidikan Karakter, Tanpa Budaya Sekolah (Mitra Perguruan Tinggi) ── -->
-        <section class="py-12 sm:py-16 lg:py-20 bg-white dark:bg-[#071324] border-t border-slate-200/80 dark:border-slate-800 overflow-hidden" id="pilar-budaya">
-            <div class="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 mb-6 sm:mb-8 text-center" data-animate>
-                <span class="google-tag">
-                    <span class="w-1.5 h-1.5 rounded-full bg-blue-500"></span>
-                    <span>{{ $cfg['pilar_budaya']['tag'] ?? 'Jejaring Perguruan Tinggi' }}</span>
-                </span>
-                <h2 class="text-2xl sm:text-4xl font-extrabold tracking-tight text-slate-900 dark:text-white mt-3">
-                    {{ $cfg['pilar_budaya']['title'] ?? 'Tiada pendidikan karakter, tanpa budaya sekolah' }}
-                </h2>
-                <p class="max-w-2xl mx-auto text-xs sm:text-sm text-slate-600 dark:text-slate-300 mt-2">
-                    {{ $cfg['pilar_budaya']['desc'] ?? 'Budaya belajar unggul yang mengantarkan alumni menembus berbagai perguruan tinggi terbaik nasional dan internasional.' }}
-                </p>
-            </div>
-
-            <!-- Logo Marquee Perguruan Tinggi -->
-            <div class="partner-marquee-container relative w-full overflow-hidden py-4">
-                <div class="partner-marquee-track flex items-center gap-4 sm:gap-6">
-                    @for($pass = 0; $pass < 2; $pass++)
-                        @foreach($cfg['pilar_budaya']['universities'] ?? [] as $uni)
-                        <div class="partner-card flex items-center gap-2.5 sm:gap-3 py-2.5 sm:py-3 px-3.5 sm:px-5 rounded-2xl bg-white dark:bg-slate-900 border border-slate-200 dark:border-slate-800 shadow-sm shrink-0">
-                            <img src="{{ asset($uni['image']) }}" alt="{{ $uni['name'] }}" class="w-7 h-7 sm:w-8 sm:h-8 object-contain shrink-0">
-                            <div>
-                                <h4 class="text-xs font-bold text-slate-900 dark:text-white whitespace-nowrap">{{ $uni['name'] }}</h4>
-                                <span class="text-[10px] text-blue-600 dark:text-blue-400 font-medium block whitespace-nowrap">{{ $uni['status'] ?? 'Mitra Akademik' }}</span>
-                            </div>
-                        </div>
-                        @endforeach
-                    @endfor
-                </div>
-            </div>
-            
-            <div class="text-center mt-6" data-animate>
-                <a href="{{ $cfg['pilar_budaya']['btn_url'] ?? '#filosofi' }}" class="inline-flex items-center gap-1.5 text-xs font-bold text-blue-600 dark:text-blue-400 hover:underline">
-                    <span>{{ $cfg['pilar_budaya']['btn_text'] ?? 'Pelajari Budaya Sekolah Lebih Lanjut' }}</span>
-                </a>
-            </div>
-        </section>
-
-        <!-- ── 14. Filosofi Pilar 3: Tiada Masyarakat Pembelajar Sekolah, Tanpa Pemimpin Perubahan Sekolah ── -->
-        <section class="py-12 sm:py-20 lg:py-24 bg-slate-50 dark:bg-[#060D1A] border-t border-slate-200/80 dark:border-slate-800" id="pilar-pemimpin">
-            <div class="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
-                <div class="text-center max-w-4xl mx-auto mb-10 sm:mb-12" data-animate>
-                    <span class="google-tag">
-                        <span class="w-1.5 h-1.5 rounded-full bg-blue-500"></span>
-                        <span>{{ $cfg['pilar_pemimpin']['tag'] ?? 'SMK Wikrama 1 Garut' }}</span>
-                    </span>
-                    <h2 class="text-xl sm:text-3xl md:text-4xl font-extrabold tracking-tight text-slate-900 dark:text-white mt-3 leading-snug">
-                        {{ $cfg['pilar_pemimpin']['title'] ?? 'Tiada masyarakat pembelajar sekolah, tanpa pemimpin perubahan sekolah, dan tanpa kesungguhan warga sekolah' }}
-                    </h2>
-                    <p class="text-xs sm:text-sm text-slate-600 dark:text-slate-300 mt-3">
-                        {{ $cfg['pilar_pemimpin']['desc'] ?? 'Kepemimpinan visioner dan komitmen total seluruh pendidik, tenaga kependidikan, serta santri dalam mewujudkan sekolah unggul berdaya saing global.' }}
-                    </p>
-                </div>
-
-                <!-- 4 Feature Cards (Matrikulasi, Lulusan BMW, Moving Class, Belajar Bertiga) -->
-                <div class="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-4 sm:gap-6">
-                    @foreach($cfg['pilar_pemimpin']['items'] ?? [] as $idx => $item)
-                    <div class="google-card overflow-hidden group flex flex-col justify-between" data-animate data-animate-delay="{{ $idx + 1 }}">
-                        <div>
-                            <div class="aspect-[16/10] w-full overflow-hidden relative bg-slate-100 dark:bg-slate-900">
-                                <img src="{{ asset($item['image'] ?? 'images/web/campus-environment.jpg') }}" 
-                                     alt="{{ $item['title'] }}" 
-                                     class="w-full h-full object-cover object-center group-hover:scale-105 transition-transform duration-500">
-                                <div class="absolute inset-0 bg-gradient-to-t from-slate-950/70 via-transparent to-transparent opacity-80"></div>
-                                <span class="absolute top-3 left-3 px-2.5 py-1 rounded-full text-[10px] font-mono-code font-bold bg-blue-950/80 text-blue-300 border border-blue-700/50 backdrop-blur-md">
-                                    {{ $item['badge'] ?? 'Inovasi Belajar' }}
-                                </span>
-                            </div>
-                            <div class="p-4 sm:p-5">
-                                <h3 class="text-base font-bold text-slate-900 dark:text-white mb-1.5">
-                                    {{ $item['title'] }}
-                                </h3>
-                                <p class="text-xs text-slate-600 dark:text-slate-300 leading-relaxed font-normal">
-                                    {{ $item['desc'] }}
-                                </p>
-                            </div>
-                        </div>
-                        <div class="px-4 pb-4 sm:px-5 sm:pb-5 pt-0">
-                            <span class="inline-flex items-center gap-1 text-[11px] font-bold text-blue-600 dark:text-blue-400 group-hover:translate-x-1 transition-transform">
-                                <span>Budaya Unggulan</span>
-                                <span>&rarr;</span>
-                            </span>
-                        </div>
-                    </div>
-                    @endforeach
-                </div>
-            </div>
-        </section>
-
-        <!-- ── 15. Sekolah Teladan Nasional: Partner, Prestasi & Rekognisi Resmi ── -->
-        <section class="py-12 sm:py-20 lg:py-24 bg-white dark:bg-[#071324] border-t border-slate-200/80 dark:border-slate-800" id="sekolah-teladan">
-            <div class="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
-                <div class="text-center max-w-3xl mx-auto mb-10 sm:mb-12" data-animate>
-                    <span class="google-tag">
-                        <span class="w-1.5 h-1.5 rounded-full bg-blue-500"></span>
-                        <span>{{ $cfg['sekolah_teladan']['tag'] ?? 'Partner & Rekognisi Nasional' }}</span>
-                    </span>
-                    <h2 class="text-2xl sm:text-4xl font-extrabold tracking-tight text-slate-900 dark:text-white mt-3">
-                        {{ $cfg['sekolah_teladan']['title'] ?? 'Sekolah Teladan Nasional' }}
-                    </h2>
-                    <p class="text-xs sm:text-sm text-slate-600 dark:text-slate-300 mt-2">
-                        {{ $cfg['sekolah_teladan']['desc'] ?? 'Bukti nyata komitmen mutu, akreditasi paripurna BAN-PDM, dan rekognisi resmi dari kementerian serta lembaga internasional.' }}
-                    </p>
-                </div>
-
-                <!-- 9 Awards & Partnerships Grid (3x3 on desktop) -->
-                <div class="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-3.5 sm:gap-6">
-                    @foreach($cfg['sekolah_teladan']['awards'] ?? [] as $idx => $aw)
-                    <div class="google-card p-4 sm:p-6 flex items-start gap-3.5 sm:gap-4 hover:border-blue-500/40 transition-all group" data-animate data-animate-delay="{{ ($idx % 3) + 1 }}">
-                        <div class="w-12 h-12 sm:w-14 sm:h-14 rounded-2xl bg-white dark:bg-slate-800 border border-slate-200 dark:border-slate-700/80 flex items-center justify-center p-2 shrink-0 shadow-sm group-hover:scale-105 transition-transform">
-                            <img src="{{ asset($aw['image']) }}" alt="{{ $aw['title'] }}" class="max-w-full max-h-full object-contain">
-                        </div>
-                        <div class="min-w-0 flex-1">
-                            <span class="text-[10px] font-mono-code font-bold uppercase tracking-wider text-blue-600 dark:text-blue-400 block mb-1">
-                                {{ $aw['org'] ?? 'Kementerian & Mitra' }}
-                            </span>
-                            <h3 class="text-sm sm:text-base font-bold text-slate-900 dark:text-white leading-snug">
-                                {{ $aw['title'] }}
-                            </h3>
-                            <p class="text-xs text-slate-600 dark:text-slate-400 mt-1 leading-relaxed">
-                                {{ $aw['sub'] }}
-                            </p>
-                        </div>
-                    </div>
-                    @endforeach
-                </div>
-            </div>
-        </section>
-
-        <!-- ── Dynamic Module Landing Blocks (Database Module Registry) ── -->
-        @if(!empty($landingBlocks) && count($landingBlocks) > 0)
-        <section class="py-10 sm:py-12 bg-slate-50 dark:bg-[#060D1A] border-t border-slate-200/80 dark:border-slate-800">
-            <div class="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
-                <div class="text-center mb-6">
-                    <span class="google-tag">
-                        <span class="w-1.5 h-1.5 rounded-full bg-blue-500"></span>
-                        <span>Layanan Terintegrasi Realtime</span>
-                    </span>
-                    <h2 class="text-xl sm:text-2xl font-bold text-slate-900 dark:text-white mt-2">Transparansi Layanan Sistem {{ $appName }}</h2>
-                </div>
-                <div class="grid grid-cols-2 lg:grid-cols-4 gap-4">
-                    @foreach($landingBlocks as $block)
-                        <div class="google-card p-4 sm:p-5 text-center">
-                            <span class="text-xs font-semibold text-slate-500 dark:text-slate-400 uppercase tracking-wider block truncate">{{ $block['label'] ?? '' }}</span>
-                            <p class="text-2xl sm:text-3xl font-mono-code font-bold text-blue-600 dark:text-blue-400 mt-1">{{ $block['value'] ?? '-' }}</p>
-                        </div>
-                    @endforeach
-                </div>
-            </div>
-        </section>
-        @endif
-
-        <!-- ── 12. Grand Institutional CTA Banner ── -->
-        <section class="py-14 sm:py-20 lg:py-28 bg-slate-950 text-white relative overflow-hidden">
-            <!-- Background Student Activity Image with Dark Overlay (above image, below text) -->
-            <div class="absolute inset-0 z-0 pointer-events-none">
-                <img src="{{ asset('images/web/activity-learning.jpg') }}" alt="Kegiatan Siswa Wikrama Garut" class="w-full h-full object-cover object-center filter brightness-[0.20] contrast-125">
-                <div class="absolute inset-0 bg-slate-950/85 backdrop-blur-[1px]"></div>
-            </div>
-            <div class="absolute -top-32 -right-32 w-96 h-96 rounded-full bg-blue-600/20 blur-3xl pointer-events-none"></div>
-            <div class="absolute -bottom-32 -left-32 w-96 h-96 rounded-full bg-purple-600/15 blur-3xl pointer-events-none"></div>
-
-            <div class="max-w-5xl mx-auto px-4 sm:px-6 lg:px-8 text-center relative z-10" data-animate>
-                <span class="inline-flex items-center gap-1.5 px-4 py-1.5 rounded-full text-xs font-bold font-mono-code bg-white/10 text-amber-300 border border-white/20 mb-5">
-                    [ {{ $cfg['cta']['tag'] ?? 'MULAI PERJALANANMU' }} ]
-                </span>
-                <h2 class="text-2xl sm:text-4xl md:text-5xl font-bold tracking-[-0.025em] leading-tight">
-                    {{ $cfg['cta']['title'] ?? 'Siap Menjadi Ahli Teknologi, Pebisnis Digital & Praktisi Hospitaliti?' }}
-                </h2>
-                <p class="mt-4 sm:mt-5 text-sm sm:text-base md:text-lg text-slate-300 max-w-2xl mx-auto leading-relaxed font-normal">
-                    {{ $cfg['cta']['desc'] ?? 'Daftarkan putra-putri Anda di SMK Wikrama 1 Garut. Pembinaan akhlak berkarakter, kurikulum industri 4.0 & 5.0, serta jaminan kompetensi kerja dan kuliah.' }}
-                </p>
-                <div class="mt-10 flex flex-col sm:flex-row flex-wrap justify-center gap-4">
-                    <a href="{{ $cfg['cta']['btn_spmb_url'] ?? 'https://spmb.smkwikrama1garut.sch.id/' }}" target="_blank" rel="noopener" class="btn-google-gold text-sm sm:text-base shadow-xl w-full sm:w-auto">
-                        <span>{{ $cfg['cta']['btn_spmb'] ?? 'Daftar SPMB Online Sekarang' }}</span>
-                        <span>&rarr;</span>
-                    </a>
-                    @auth
-                        <a href="{{ route('dashboard') }}" class="btn-google-outline !text-white !border-white/30 hover:!border-white hover:!bg-white/10 text-sm sm:text-base w-full sm:w-auto">
-                            <span>Buka Dashboard {{ $appName }}</span>
-                            <span class="group-hover-arrow">&rarr;</span>
-                        </a>
-                    @else
-                        <a href="{{ route('login') }}" class="btn-google-outline !text-white !border-white/30 hover:!border-white hover:!bg-white/10 text-sm sm:text-base w-full sm:w-auto">
-                            <span>Masuk Portal {{ $appName }}</span>
-                            <span class="group-hover-arrow">&rarr;</span>
-                        </a>
-                    @endauth
-                </div>
-            </div>
-        </section>
+        @include('landing.sections.hero')
+        @include('landing.sections.filosofi')
+        @include('landing.sections.mengenal')
+        @include('landing.sections.fakta')
+        @include('landing.sections.jurusan')
+        @include('landing.sections.dinamika')
+        @include('landing.sections.profil')
+        @include('landing.sections.suara-komunitas')
+        @include('landing.sections.fasilitas')
+        @include('landing.sections.berita')
+        @include('landing.sections.agenda')
+        @include('landing.sections.rapor-mutu')
+        @include('landing.sections.pilar-karakter')
+        @include('landing.sections.pilar-budaya')
+        @include('landing.sections.pilar-pemimpin')
+        @include('landing.sections.sekolah-teladan')
+        @include('landing.sections.module-blocks')
+        @include('landing.sections.cta-banner')
     </main>
 
-    <!-- ── Lightbox Modals ── -->
-    <!-- Lightbox SPMB Flyer Modal -->
-    <div x-show="flyerModal" x-cloak
-         x-transition:enter="transition ease-out duration-200"
-         x-transition:enter-start="opacity-0"
-         x-transition:enter-end="opacity-100"
-         x-transition:leave="transition ease-in duration-150"
-         x-transition:leave-start="opacity-100"
-         x-transition:leave-end="opacity-0"
-         class="fixed inset-0 z-50 flex items-center justify-center bg-black/85 p-3 sm:p-4 backdrop-blur-sm"
-         @keydown.escape.window="flyerModal = false">
-        <div class="relative max-w-2xl w-full max-h-[95vh] flex flex-col items-center bg-slate-900/90 p-3 sm:p-4 rounded-3xl border border-white/20" @click.outside="flyerModal = false">
-            <div class="w-full flex items-center justify-between pb-2 mb-2 border-b border-white/10">
-                <span class="text-xs font-mono-code font-bold text-amber-400">Brosur &amp; Flyer SPMB</span>
-                <button type="button" 
-                        @click="flyerModal = false" 
-                        class="text-white hover:text-amber-400 text-sm font-bold flex items-center gap-1 cursor-pointer py-1 px-2.5 rounded-lg bg-white/10">
-                    <span>Tutup</span> &times;
-                </button>
-            </div>
-            <img src="{{ asset('images/landing/flyer-spmb-2027.jpg') }}" 
-                 alt="Flyer SPMB Full" 
-                 class="rounded-2xl max-h-[70vh] w-auto max-w-full object-contain shadow-2xl">
-            <div class="mt-3 flex w-full justify-center">
-                <a href="{{ $cfg['branding']['spmb_url'] ?? 'https://spmb.smkwikrama1garut.sch.id/' }}" target="_blank" rel="noopener" class="btn-google-gold text-xs sm:text-sm w-full sm:w-auto text-center">
-                    Buka Formulir Pendaftaran Online &rarr;
-                </a>
-            </div>
-        </div>
-    </div>
-
-    <!-- Universal Image Lightbox Modal -->
-    <div x-show="imageModal" x-cloak
-         x-transition:enter="transition ease-out duration-200"
-         x-transition:enter-start="opacity-0"
-         x-transition:enter-end="opacity-100"
-         x-transition:leave="transition ease-in duration-150"
-         x-transition:leave-start="opacity-100"
-         x-transition:leave-end="opacity-0"
-         class="fixed inset-0 z-50 flex items-center justify-center bg-black/85 p-4 backdrop-blur-md"
-         @keydown.escape.window="imageModal = false">
-        <div class="relative max-w-4xl w-full max-h-[95vh] flex flex-col items-center bg-white dark:bg-slate-900 rounded-3xl overflow-hidden shadow-2xl p-5" 
-             @click.outside="imageModal = false">
-            <div class="w-full flex items-center justify-between pb-3 border-b border-slate-200 dark:border-slate-800 mb-3">
-                <div class="min-w-0 pr-3">
-                    <span class="text-[10px] sm:text-xs font-bold font-mono-code uppercase tracking-wider text-blue-600 dark:text-blue-400 block" x-text="modalImageCategory"></span>
-                    <h4 class="text-sm sm:text-base font-bold text-slate-900 dark:text-white truncate" x-text="modalImageTitle"></h4>
-                </div>
-                <button type="button" 
-                        @click="imageModal = false" 
-                        class="p-1 rounded-full text-slate-500 hover:text-red-500 transition-colors shrink-0"
-                        aria-label="Tutup Pratinjau">
-                    <svg class="w-6 h-6" fill="none" viewBox="0 0 24 24" stroke="currentColor"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M6 18L18 6M6 6l12 12" /></svg>
-                </button>
-            </div>
-            <div class="relative max-h-[70vh] w-full flex items-center justify-center overflow-hidden rounded-2xl bg-slate-950">
-                <img :src="modalImageSrc" :alt="modalImageTitle" class="max-h-[66vh] w-auto max-w-full object-contain">
-            </div>
-            <div class="w-full pt-3 flex items-center justify-between text-xs font-semibold text-slate-500">
-                <span>Dokumentasi Resmi &bull; {{ $schoolName }}</span>
-                <a :href="modalImageSrc" target="_blank" rel="noopener" class="text-blue-600 dark:text-blue-400 hover:underline font-bold">
-                    Buka Ukuran Asli &rarr;
-                </a>
-            </div>
-        </div>
-    </div>
-
-    <!-- ── Prestige Slate & Navy Footer ── -->
-    <footer class="bg-slate-950 text-slate-300 border-t border-white/10" id="kontak">
-        <div class="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-12 sm:py-16 lg:py-20">
-            <div class="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-12 gap-10">
-                
-                <!-- School Info & Crest -->
-                <div class="sm:col-span-2 lg:col-span-5 space-y-4">
-                    <div class="flex items-center space-x-3.5">
-                        <div class="p-1.5 rounded-2xl bg-white/10 border border-white/15">
-                            <img src="{{ $logoUrl }}" alt="Logo {{ $schoolName }}" class="h-10 sm:h-12 w-auto object-contain">
-                        </div>
-                        <div>
-                            <span class="text-base sm:text-lg font-bold text-white block leading-tight">{{ $schoolName }}</span>
-                            <span class="text-xs text-amber-400 font-mono-code font-medium">{{ $cfg['branding']['badge'] ?? 'Islamic Boarding School • SMK Pusat Keunggulan' }}</span>
-                        </div>
-                    </div>
-                    <p class="text-xs sm:text-sm text-slate-300 leading-relaxed max-w-sm font-editorial italic">
-                        &ldquo;{{ $cfg['branding']['motto_primary'] ?? 'Ilmu yang Amaliah, Amal yang Ilmiah, Akhlakul Karimah' }}&rdquo;
-                    </p>
-                    <p class="text-xs text-slate-400 leading-relaxed max-w-sm">
-                        Sekolah Menengah Kejuruan Pusat Keunggulan terakreditasi A Unggul di Kabupaten Garut, berfokus pada teknologi mutakhir, bisnis digital, dan hospitaliti pariwisata berbudaya lingkungan.
-                    </p>
-                    <div class="text-xs text-slate-400">
-                        Sistem Informasi Sekolah Terpadu: <span class="font-bold text-white">{{ $appName }}</span> ({{ $sekolah->kepanjangan_aplikasi ?? 'Sistem Informasi Wikrama Garut' }})
-                    </div>
-                </div>
-
-                <!-- Navigation Links -->
-                <div class="lg:col-span-3 space-y-3">
-                    <h4 class="text-xs font-bold text-white uppercase tracking-wider font-mono-code text-amber-400">[ NAVIGASI UTAMA ]</h4>
-                    <ul class="space-y-2 text-xs font-medium">
-                        @if($footerMenus->isNotEmpty())
-                            @foreach($footerMenus as $fm)
-                                <li>
-                                    <a href="{{ $fm->url }}" target="{{ $fm->target }}" class="hover:text-white transition-colors">
-                                        {{ $fm->label }}
-                                    </a>
-                                </li>
-                            @endforeach
-                        @else
-                            <li><a href="#beranda" class="hover:text-white transition-colors">Beranda Utama</a></li>
-                            <li><a href="#filosofi" class="hover:text-white transition-colors">Filosofi &amp; Visi Misi</a></li>
-                            <li><a href="#mengenal" class="hover:text-white transition-colors">Mengenal Lebih Dekat</a></li>
-                            <li><a href="#jurusan" class="hover:text-white transition-colors">4 Jurusan Kejuruan Unggulan</a></li>
-                            <li><a href="#agenda" class="hover:text-white transition-colors">Agenda Kegiatan Terdekat</a></li>
-                            <li><a href="#dinamika-siswa" class="hover:text-white transition-colors">Dinamika Siswa &amp; Prestasi</a></li>
-                            <li><a href="#fakta" class="hover:text-white transition-colors">Kehidupan Siswa (Fast Facts)</a></li>
-                            <li><a href="#suara-komunitas" class="hover:text-white transition-colors">Suara Komunitas (Testimoni)</a></li>
-                            <li><a href="#fasilitas" class="hover:text-white transition-colors">Fasilitas &amp; Lab Praktik</a></li>
-                            <li><a href="#berita" class="hover:text-white transition-colors">Berita &amp; Prestasi</a></li>
-                            <li><a href="#rapor-mutu" class="hover:text-white transition-colors">Rapor Mutu Kemendikdasmen</a></li>
-                            <li><a href="#pilar-karakter" class="hover:text-white transition-colors">Pilar Karakter &amp; Mutu</a></li>
-                            <li><a href="#sekolah-teladan" class="hover:text-white transition-colors">Sekolah Teladan Nasional</a></li>
-                            <li><a href="{{ $cfg['branding']['brochure_url'] ?? 'http://brosur.smkwikrama1garut.sch.id/' }}" target="_blank" rel="noopener" class="text-amber-400 hover:underline">Unduh Brosur Resmi &rarr;</a></li>
-                        @endif
-                    </ul>
-                </div>
-
-                <!-- Contact & Social -->
-                <div class="sm:col-span-2 lg:col-span-4 space-y-3">
-                    <h4 class="text-xs font-bold text-white uppercase tracking-wider font-mono-code text-amber-400">[ KAMPUS &amp; KONTAK ]</h4>
-                    <div class="space-y-3 text-xs text-slate-300">
-                        <div class="flex items-start gap-2.5">
-                            <svg class="w-4 h-4 text-amber-400 shrink-0 mt-0.5" fill="none" viewBox="0 0 24 24" stroke="currentColor"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M17.657 16.657L13.414 20.9a1.998 1.998 0 01-2.827 0l-4.244-4.243a8 8 0 1111.314 0z"/><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M15 11a3 3 0 11-6 0 3 3 0 016 0z"/></svg>
-                            <a href="{{ $cfg['contact']['maps_url'] ?? 'https://maps.app.goo.gl/MXd5JUXK8SPAcAhn9' }}" target="_blank" rel="noopener" class="leading-relaxed hover:text-white transition-colors">
-                                {{ $cfg['contact']['address'] ?? 'Jl. Otto Iskandardinata Kp. Tanjung Ds. Pasawahan Kec. Tarogong Kaler, Kabupaten Garut, Jawa Barat 44151' }} <span class="text-amber-400 underline font-bold">(Lihat di Google Maps &rarr;)</span>
-                            </a>
-                        </div>
-                        <div class="flex items-center gap-2.5">
-                            <svg class="w-4 h-4 text-amber-400 shrink-0" fill="none" viewBox="0 0 24 24" stroke="currentColor"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M3 5a2 2 0 012-2h3.28a1 1 0 01.948.684l1.498 4.493a1 1 0 01-.502 1.21l-2.257 1.13a11.042 11.042 0 005.516 5.516l1.13-2.257a1 1 0 011.21-.502l4.493 1.498a1 1 0 01.684.949V19a2 2 0 01-2 2h-1C9.716 21 3 14.284 3 6V5z"/></svg>
-                            <a href="{{ $cfg['contact']['phone_url'] ?? 'tel:081323314430' }}" class="hover:text-white transition-colors">{{ $cfg['contact']['phone'] ?? '0813-2331-4430 / 0897-1064-617' }}</a>
-                        </div>
-                        <div class="flex items-center gap-2.5">
-                            <svg class="w-4 h-4 text-amber-400 shrink-0" fill="none" viewBox="0 0 24 24" stroke="currentColor"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M3 8l7.89 5.26a2 2 0 002.22 0L21 8M5 19h14a2 2 0 002-2V7a2 2 0 00-2-2H5a2 2 0 00-2 2v10a2 2 0 002 2z"/></svg>
-                            <a href="mailto:{{ $cfg['contact']['email'] ?? 'info@smkwikrama1garut.sch.id' }}" class="hover:text-white transition-colors truncate">{{ $cfg['contact']['email'] ?? 'info@smkwikrama1garut.sch.id' }}</a>
-                        </div>
-
-                        <!-- Social Media Channel Icons -->
-                        <div class="pt-3 flex items-center gap-2.5">
-                            @if(!empty($cfg['contact']['instagram']))
-                            <a href="{{ $cfg['contact']['instagram'] }}" target="_blank" rel="noopener" class="w-9 h-9 rounded-xl bg-white/10 hover:bg-white/20 flex items-center justify-center text-white hover:text-amber-400 transition-all" title="Instagram Resmi">
-                                <svg class="w-4 h-4" fill="currentColor" viewBox="0 0 24 24"><path d="M12 2.163c3.204 0 3.584.012 4.85.07 3.252.148 4.771 1.691 4.919 4.919.058 1.265.069 1.645.069 4.849 0 3.205-.012 3.584-.069 4.849-.149 3.225-1.664 4.771-4.919 4.919-1.266.058-1.644.07-4.85.07-3.204 0-3.584-.012-4.849-.07-3.26-.149-4.771-1.699-4.919-4.92-.058-1.265-.07-1.644-.07-4.849 0-3.204.013-3.583.07-4.849.149-3.227 1.664-4.771 4.919-4.919 1.266-.057 1.645-.069 4.849-.069zm0-2.163c-3.259 0-3.667.014-4.947.072-4.358.2-6.78 2.618-6.98 6.98-.059 1.281-.073 1.689-.073 4.948 0 3.259.014 3.668.072 4.948.2 4.358 2.618 6.78 6.98 6.98 1.281.058 1.689.072 4.948.072 3.259 0 3.668-.014 4.948-.072 4.354-.2 6.782-2.618 6.979-6.98.059-1.28.073-1.689.073-4.948 0-3.259-.014-3.667-.072-4.947-.196-4.354-2.617-6.78-6.979-6.98-1.281-.059-1.69-.073-4.949-.073zm0 5.838c-3.403 0-6.162 2.759-6.162 6.162s2.759 6.163 6.162 6.163 6.162-2.759 6.162-6.163c0-3.403-2.759-6.162-6.162-6.162zm0 10.162c-2.209 0-4-1.79-4-4 0-2.209 1.791-4 4-4s4 1.791 4 4c0 2.21-1.791 4-4 4zm6.406-11.845c-.796 0-1.441.645-1.441 1.44s.645 1.44 1.441 1.44c.795 0 1.439-.645 1.439-1.44s-.644-1.44-1.439-1.44z"/></svg>
-                            </a>
-                            @endif
-                            @if(!empty($cfg['contact']['facebook']))
-                            <a href="{{ $cfg['contact']['facebook'] }}" target="_blank" rel="noopener" class="w-9 h-9 rounded-xl bg-white/10 hover:bg-white/20 flex items-center justify-center text-white hover:text-blue-400 transition-all" title="Facebook Resmi">
-                                <svg class="w-4 h-4" fill="currentColor" viewBox="0 0 24 24"><path d="M24 12.073c0-6.627-5.373-12-12-12s-12 5.373-12 12c0 5.99 4.388 10.954 10.125 11.854v-8.385H7.078v-3.47h3.047V9.43c0-3.007 1.792-4.669 4.533-4.669 1.312 0 2.686.235 2.686.235v2.953H15.83c-1.491 0-1.956.925-1.956 1.874v2.25h3.328l-.532 3.47h-2.796v8.385C19.612 23.027 24 18.062 24 12.073z"/></svg>
-                            </a>
-                            @endif
-                            @if(!empty($cfg['contact']['youtube']))
-                            <a href="{{ $cfg['contact']['youtube'] }}" target="_blank" rel="noopener" class="w-9 h-9 rounded-xl bg-white/10 hover:bg-white/20 flex items-center justify-center text-white hover:text-red-500 transition-all" title="YouTube Channel Resmi">
-                                <svg class="w-4 h-4" fill="currentColor" viewBox="0 0 24 24"><path d="M23.498 6.186a3.016 3.016 0 0 0-2.122-2.136C19.505 3.545 12 3.545 12 3.545s-7.505 0-9.377.505A3.017 3.017 0 0 0 .502 6.186C0 8.07 0 12 0 12s0 3.93.502 5.814a3.016 3.016 0 0 0 2.122 2.136c1.871.505 9.376.505 9.376.505s7.505 0 9.377-.505a3.015 3.015 0 0 0 2.122-2.136C24 15.93 24 12 24 12s0-3.93-.502-5.814zM9.545 15.568V8.432L15.818 12l-6.273 3.568z"/></svg>
-                            </a>
-                            @endif
-                            @if(!empty($cfg['contact']['tiktok']))
-                            <a href="{{ $cfg['contact']['tiktok'] }}" target="_blank" rel="noopener" class="w-9 h-9 rounded-xl bg-white/10 hover:bg-white/20 flex items-center justify-center text-white hover:text-cyan-400 transition-all" title="TikTok Resmi">
-                                <svg class="w-4 h-4" fill="currentColor" viewBox="0 0 24 24"><path d="M12.525.02c1.31-.02 2.61-.01 3.91-.02.08 1.53.63 3.09 1.75 4.17 1.12 1.11 2.7 1.62 4.24 1.79v4.03c-1.44-.05-2.89-.35-4.2-.97-.57-.26-1.1-.59-1.62-.93-.01 2.92.01 5.84-.02 8.75-.08 1.4-.54 2.79-1.35 3.94-1.31 1.92-3.58 3.17-5.91 3.21-1.43.08-2.86-.31-4.08-1.03-2.02-1.19-3.44-3.37-3.65-5.71-.02-.5-.03-1-.01-1.49.18-1.9 1.12-3.72 2.58-4.96 1.66-1.44 3.98-2.13 6.15-1.72.02 1.48-.04 2.96-.04 4.44-.99-.32-2.15-.23-3.02.37-.63.41-1.11 1.04-1.36 1.75-.21.51-.24 1.07-.14 1.61.24 1.64 1.82 2.89 3.5 2.75 1.34-.03 2.56-.83 3.09-2.05.29-.62.4-1.31.39-2 .03-4.81.01-9.62.02-14.43z"/></svg>
-                            </a>
-                            @endif
-                        </div>
-                    </div>
-                </div>
-            </div>
-
-            <div class="mt-12 pt-8 border-t border-white/10 flex flex-col sm:flex-row items-center justify-between text-xs text-slate-400 gap-3 text-center sm:text-left">
-                <p>&copy; {{ date('Y') }} {{ $schoolName }}. Seluruh hak cipta dilindungi.</p>
-                <p>{{ $appName }} &bull; Sistem Informasi Terintegrasi SMK Wikrama 1 Garut</p>
-            </div>
-        </div>
-    </footer>
+    {{-- ── Modals & Footer ── --}}
+    @include('landing.sections.modals')
+    @include('landing.sections.footer')
 
     <!-- ── Interactive Google AI Style Animations Script ── -->
     <script>
     document.addEventListener('DOMContentLoaded', () => {
+
+        // ── Guaranteed Instant Vanilla Navbar Scroll Fallback ──
+        const mainNav = document.getElementById('main-nav-container');
+        function syncNavScroll() {
+            if (!mainNav) return;
+            if (window.pageYOffset > 30) {
+                mainNav.classList.add('is-scrolled');
+            } else {
+                mainNav.classList.remove('is-scrolled');
+            }
+        }
+        window.addEventListener('scroll', syncNavScroll, { passive: true });
+        syncNavScroll();
+
         // ── 1. Google AI Dev Scroll-Reveal with Easing Curve ──
         const animEls = document.querySelectorAll('[data-animate]');
         if (animEls.length && 'IntersectionObserver' in window) {
@@ -2768,8 +1112,13 @@
                         obs.unobserve(e.target);
                     }
                 });
-            }, { threshold: 0.08, rootMargin: '0px 0px -40px 0px' });
+            }, { threshold: 0.02, rootMargin: '0px 0px 60px 0px' });
             animEls.forEach(el => obs.observe(el));
+
+            // Jaminan keamanan: seluruh elemen dipastikan tampil setelah 1 detik
+            setTimeout(() => {
+                animEls.forEach(el => el.classList.add('is-visible'));
+            }, 1000);
         } else {
             animEls.forEach(el => el.classList.add('is-visible'));
         }
@@ -2812,8 +1161,113 @@
                 mouseGlow.classList.remove('active');
             });
         });
+        // ── 3. JIS Custom Cursor Engine (Desktop Only) ──
+        function initJISCursor() {
+            if (window.innerWidth < 1024) return;
+            const dot = document.querySelector('.jis-cursor-dot');
+            const follower = document.querySelector('.jis-cursor-follower');
+            if (!dot || !follower) return;
+
+            let mouseX = -100, mouseY = -100;
+            let followerX = -100, followerY = -100;
+            let isMoving = false;
+
+            window.addEventListener('mousemove', (e) => {
+                mouseX = e.clientX;
+                mouseY = e.clientY;
+                dot.style.transform = `translate(${mouseX}px, ${mouseY}px)`;
+                if (!isMoving) {
+                    isMoving = true;
+                    dot.style.opacity = '1';
+                    follower.style.opacity = '1';
+                }
+            }, { passive: true });
+
+            function renderFollower() {
+                followerX += (mouseX - followerX) * 0.18;
+                followerY += (mouseY - followerY) * 0.18;
+                follower.style.transform = `translate(${followerX}px, ${followerY}px)`;
+                requestAnimationFrame(renderFollower);
+            }
+            requestAnimationFrame(renderFollower);
+
+            const hoverTargets = document.querySelectorAll('a, button, [data-cursor], .interactive-card, [role="button"], input, select');
+            hoverTargets.forEach((target) => {
+                target.addEventListener('mouseenter', () => {
+                    document.body.classList.add('jis-cursor-hover');
+                    const label = target.getAttribute('data-cursor') || target.getAttribute('data-cursor-text') || 'EXPLORE';
+                    follower.textContent = label;
+                });
+                target.addEventListener('mouseleave', () => {
+                    document.body.classList.remove('jis-cursor-hover');
+                    follower.textContent = '';
+                });
+            });
+        }
+        initJISCursor();
+
+        // ── 4. JIS Botanical Vine SVG Scroll Animation ──
+        function initVineAnimation() {
+            const vinePaths = document.querySelectorAll('.jis-vine-path');
+            if (!vinePaths.length) return;
+
+            function onScrollVine() {
+                const windowHeight = window.innerHeight;
+                vinePaths.forEach(path => {
+                    const rect = path.getBoundingClientRect();
+                    if (rect.top < windowHeight && rect.bottom > 0) {
+                        const progress = Math.min(Math.max((windowHeight - rect.top) / (windowHeight + rect.height * 0.5), 0), 1);
+                        const offset = 1200 - (progress * 1200);
+                        path.style.strokeDashoffset = offset;
+                    }
+                });
+            }
+            window.addEventListener('scroll', onScrollVine, { passive: true });
+            onScrollVine();
+        }
+        initVineAnimation();
+
+        // ── 5. JIS Animated Stats Counter ──
+        function initStatsCounter() {
+            const statNumbers = document.querySelectorAll('.jis-counter-number');
+            if (!statNumbers.length || !('IntersectionObserver' in window)) return;
+
+            const observer = new IntersectionObserver((entries, obs) => {
+                entries.forEach(entry => {
+                    if (entry.isIntersecting) {
+                        const target = entry.target;
+                        const targetValue = parseInt(target.getAttribute('data-count'), 10) || 0;
+                        const prefix = target.getAttribute('data-prefix') || '';
+                        const suffix = target.getAttribute('data-suffix') || '';
+                        const duration = 1800;
+                        const stepTime = 25;
+                        const totalSteps = duration / stepTime;
+                        let currentStep = 0;
+
+                        const timer = setInterval(() => {
+                            currentStep++;
+                            const progress = currentStep / totalSteps;
+                            const easedProgress = 1 - Math.pow(1 - progress, 2);
+                            const currentVal = Math.round(easedProgress * targetValue);
+                            target.textContent = prefix + currentVal.toLocaleString('id-ID') + suffix;
+
+                            if (currentStep >= totalSteps) {
+                                target.textContent = prefix + targetValue.toLocaleString('id-ID') + suffix;
+                                clearInterval(timer);
+                            }
+                        }, stepTime);
+
+                        obs.unobserve(target);
+                    }
+                });
+            }, { threshold: 0.25 });
+
+            statNumbers.forEach(num => observer.observe(num));
+        }
+        initStatsCounter();
     });
     </script>
+
     @livewireScripts
 </body>
 </html>

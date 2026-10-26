@@ -1,27 +1,4 @@
 <div>
-    <!-- Navigation Header -->
-    <header class="sticky top-0 z-40 bg-white/95 dark:bg-[#071324]/95 backdrop-blur-md border-b border-slate-200/80 dark:border-slate-800">
-        <div class="max-w-5xl mx-auto px-4 sm:px-6 lg:px-8 h-18 flex items-center justify-between gap-4">
-            <a href="{{ url('/') }}" class="flex items-center gap-3 group">
-                <img src="{{ asset('images/landing/wikrama-logo.png') }}" alt="Logo" class="h-9 w-auto">
-                <div>
-                    <span class="text-sm sm:text-base font-bold text-slate-900 dark:text-white leading-none block">SMK Wikrama 1 Garut</span>
-                    <span class="text-[10px] text-slate-500 dark:text-slate-400 font-semibold">Portal Berita &amp; Prestasi Resmi</span>
-                </div>
-            </a>
-
-            <div class="flex items-center gap-3">
-                <a href="{{ url('/') }}" class="inline-flex items-center gap-1.5 text-xs font-bold text-blue-600 dark:text-blue-400 hover:underline">
-                    <span>&larr; Beranda Utama</span>
-                </a>
-                <button type="button" @click="toggleTheme()" class="p-1.5 rounded-lg border border-slate-200 dark:border-slate-700 text-slate-500 hover:text-slate-900 dark:hover:text-white">
-                    <span x-show="darkMode" x-cloak>☀️</span>
-                    <span x-show="!darkMode">🌙</span>
-                </button>
-            </div>
-        </div>
-    </header>
-
     <!-- Main Content Container -->
     <main class="max-w-4xl mx-auto px-4 sm:px-6 lg:px-8 py-10 sm:py-16">
         
@@ -122,9 +99,4 @@
         @endif
 
     </main>
-
-    <!-- Footer -->
-    <footer class="bg-slate-950 text-slate-400 text-xs py-8 border-t border-white/10 mt-16 text-center">
-        <p>&copy; {{ date('Y') }} SMK Wikrama 1 Garut &bull; Learning in Indonesia to be Best for the World.</p>
-    </footer>
 </div>

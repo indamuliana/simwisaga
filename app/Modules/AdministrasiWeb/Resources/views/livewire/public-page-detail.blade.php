@@ -1,27 +1,4 @@
 <div>
-    <!-- Navigation Header -->
-    <header class="sticky top-0 z-40 bg-white/95 dark:bg-[#071324]/95 backdrop-blur-md border-b border-slate-200/80 dark:border-slate-800">
-        <div class="max-w-5xl mx-auto px-4 sm:px-6 lg:px-8 h-18 flex items-center justify-between gap-4">
-            <a href="{{ url('/') }}" class="flex items-center gap-3 group">
-                <img src="{{ asset('images/landing/wikrama-logo.png') }}" alt="Logo" class="h-9 w-auto">
-                <div>
-                    <span class="text-sm sm:text-base font-bold text-slate-900 dark:text-white leading-none block">SMK Wikrama 1 Garut</span>
-                    <span class="text-[10px] text-slate-500 dark:text-slate-400 font-semibold">Profil &amp; Informasi Satuan Pendidikan</span>
-                </div>
-            </a>
-
-            <div class="flex items-center gap-3">
-                <a href="{{ url('/') }}" class="inline-flex items-center gap-1.5 text-xs font-bold text-blue-600 dark:text-blue-400 hover:underline">
-                    <span>&larr; Beranda Utama</span>
-                </a>
-                <button type="button" @click="toggleTheme()" class="p-1.5 rounded-lg border border-slate-200 dark:border-slate-700 text-slate-500 hover:text-slate-900 dark:hover:text-white" title="Ganti Tema">
-                    <span x-show="darkMode" x-cloak>☀️</span>
-                    <span x-show="!darkMode">🌙</span>
-                </button>
-            </div>
-        </div>
-    </header>
-
     @if ($page->gambar_banner)
     <div class="w-full max-h-80 overflow-hidden relative border-b border-slate-200 dark:border-slate-800">
         <img src="{{ $page->gambarBannerUrl() }}" alt="{{ $page->judul }}" class="w-full h-full object-cover">
@@ -75,12 +52,4 @@
             </div>
         </div>
     </main>
-
-    <!-- Footer Simple -->
-    <footer class="mt-20 border-t border-slate-200/80 dark:border-slate-800 py-8 bg-white dark:bg-[#071324] text-center text-xs text-slate-500 dark:text-slate-400">
-        <div class="max-w-5xl mx-auto px-4 flex flex-col sm:flex-row items-center justify-between gap-4">
-            <p>&copy; {{ date('Y') }} SMK Wikrama 1 Garut. Hak Cipta Dilindungi.</p>
-            <p>Terakreditasi "A" Unggul &bull; SMK Pusat Keunggulan</p>
-        </div>
-    </footer>
 </div>

@@ -498,16 +498,12 @@
     </style>
     @livewireStyles
     <script>
-        if (localStorage.getItem('theme') === 'dark') {
-            document.documentElement.classList.add('dark');
-        } else {
-            document.documentElement.classList.remove('dark');
-        }
+        // Landing page selalu dalam mode standar
+        document.documentElement.classList.remove('dark');
     </script>
 </head>
-<body class="min-h-screen text-slate-800 dark:text-slate-100 antialiased selection:bg-blue-600 selection:text-white flex flex-col justify-between relative"
+<body class="min-h-screen text-slate-800 antialiased selection:bg-blue-600 selection:text-white flex flex-col justify-between relative"
       x-data="{ 
-          darkMode: localStorage.getItem('theme') === 'dark',
           mobileMenu: false,
           flyerModal: false,
           imageModal: false,
@@ -540,15 +536,6 @@
               this.modalImageTitle = title;
               this.modalImageCategory = cat;
               this.imageModal = true;
-          },
-          toggleTheme() {
-              this.darkMode = !this.darkMode;
-              localStorage.setItem('theme', this.darkMode ? 'dark' : 'light');
-              if (this.darkMode) {
-                  document.documentElement.classList.add('dark');
-              } else {
-                  document.documentElement.classList.remove('dark');
-              }
           },
           words: {{ json_encode($cfg['hero']['typewriter_words'] ?? ['Teknologi & AI', 'Bisnis Digital', 'Hospitaliti Bintang 5', 'Karakter Qur\'ani', 'Kepemimpinan Global']) }},
           typewriterText: 'Teknologi & AI',
@@ -669,22 +656,6 @@
                 <a href="{{ $cfg['announcement']['cta_url'] ?? 'https://spmb.smkwikrama1garut.sch.id/' }}" target="_blank" rel="noopener" class="text-blue-400 hover:text-blue-300 font-bold inline-flex items-center gap-1">
                     <span>{{ $cfg['announcement']['cta_text'] ?? 'Daftar SPMB Online' }}</span> &rarr;
                 </a>
-                <span class="text-white/20">|</span>
-                <button type="button" 
-                        @click="toggleTheme()" 
-                        class="p-1 rounded text-slate-300 hover:text-white transition-colors cursor-pointer"
-                        :title="darkMode ? 'Beralih ke Mode Terang' : 'Beralih ke Mode Gelap'">
-                    <span x-show="darkMode" x-cloak>
-                        <svg class="w-3.5 h-3.5 text-amber-400" fill="none" viewBox="0 0 24 24" stroke="currentColor">
-                            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 3v1m0 16v1m9-9h-1M4 12H3m15.364 6.364l-.707-.707M6.343 6.343l-.707-.707m12.728 0l-.707.707M6.343 17.657l-.707.707M16 12a4 4 0 11-8 0 4 4 0 018 0z" />
-                        </svg>
-                    </span>
-                    <span x-show="!darkMode">
-                        <svg class="w-3.5 h-3.5 text-slate-300" fill="none" viewBox="0 0 24 24" stroke="currentColor">
-                            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M20.354 15.354A9 9 0 018.646 3.646 9.003 9.003 0 0012 21a9.003 9.003 0 008.354-5.646z" />
-                        </svg>
-                    </span>
-                </button>
             </div>
         </div>
     </div>
@@ -2814,6 +2785,21 @@
         });
     });
     </script>
+    <!-- ── Floating Version Switcher (Reversible Toggle) ── -->
+    <aside class="fixed bottom-5 left-4 sm:bottom-6 sm:left-6 z-50 pointer-events-auto" aria-label="Version Switcher">
+        <div class="bg-slate-900/95 dark:bg-slate-800/95 backdrop-blur-md text-white border border-amber-400/40 shadow-2xl rounded-full px-4 py-2 flex items-center gap-2.5 text-xs">
+            <span class="w-2 h-2 rounded-full bg-amber-400 animate-pulse"></span>
+            <span class="font-medium text-amber-200">Tampilan Sebelumnya (Aktif)</span>
+            <span class="text-white/30">|</span>
+            <a href="{{ request()->fullUrlWithQuery(['landing_version' => 'new']) }}" 
+               class="text-blue-300 hover:text-white font-bold underline underline-offset-2 flex items-center gap-1 transition-colors"
+               title="Beralih ke Tampilan Baru yang Disempurnakan">
+                <span>Gunakan Tampilan Baru</span>
+                <span>&rarr;</span>
+            </a>
+        </div>
+    </aside>
+
     @livewireScripts
 </body>
 </html>

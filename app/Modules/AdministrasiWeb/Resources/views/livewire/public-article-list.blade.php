@@ -1,27 +1,4 @@
 <div>
-    <!-- Navigation Header -->
-    <header class="sticky top-0 z-40 bg-white/95 dark:bg-[#071324]/95 backdrop-blur-md border-b border-slate-200/80 dark:border-slate-800">
-        <div class="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 h-18 flex items-center justify-between gap-4">
-            <a href="{{ url('/') }}" class="flex items-center gap-3 group">
-                <img src="{{ asset('images/landing/wikrama-logo.png') }}" alt="Logo" class="h-9 w-auto">
-                <div>
-                    <span class="text-sm sm:text-base font-bold text-slate-900 dark:text-white leading-none block">SMK Wikrama 1 Garut</span>
-                    <span class="text-[10px] text-slate-500 dark:text-slate-400 font-semibold">Portal Berita &amp; Prestasi Resmi</span>
-                </div>
-            </a>
-
-            <div class="flex items-center gap-3">
-                <a href="{{ url('/') }}" class="inline-flex items-center gap-1.5 text-xs font-bold text-blue-600 dark:text-blue-400 hover:underline">
-                    <span>&larr; Beranda Utama</span>
-                </a>
-                <button type="button" @click="toggleTheme()" class="p-1.5 rounded-lg border border-slate-200 dark:border-slate-700 text-slate-500 hover:text-slate-900 dark:hover:text-white" title="Ganti Tema">
-                    <span x-show="darkMode" x-cloak>☀️</span>
-                    <span x-show="!darkMode">🌙</span>
-                </button>
-            </div>
-        </div>
-    </header>
-
     <!-- Hero / Headline Area -->
     <section class="py-12 sm:py-16 bg-gradient-to-b from-blue-50/50 via-white to-transparent dark:from-slate-900/50 dark:via-[#060D1A] dark:to-transparent border-b border-slate-200/80 dark:border-slate-800/60">
         <div class="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 text-center">
@@ -130,12 +107,4 @@
         </div>
         @endif
     </main>
-
-    <!-- Footer Simple -->
-    <footer class="mt-20 border-t border-slate-200/80 dark:border-slate-800 py-8 bg-white dark:bg-[#071324] text-center text-xs text-slate-500 dark:text-slate-400">
-        <div class="max-w-7xl mx-auto px-4 flex flex-col sm:flex-row items-center justify-between gap-4">
-            <p>&copy; {{ date('Y') }} SMK Wikrama 1 Garut. Hak Cipta Dilindungi.</p>
-            <a href="{{ url('/') }}" class="text-blue-600 dark:text-blue-400 font-bold hover:underline">Kembali ke Beranda Utama &rarr;</a>
-        </div>
-    </footer>
 </div>

@@ -44,7 +44,7 @@ class WebArticle extends Model
         }
 
         if (Storage::disk('public')->exists($this->gambar_sampul)) {
-            return Storage::disk('public')->url($this->gambar_sampul);
+            return asset('storage/' . ltrim($this->gambar_sampul, '/'));
         }
 
         if (file_exists(public_path($this->gambar_sampul))) {
