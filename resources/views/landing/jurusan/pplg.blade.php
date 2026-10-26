@@ -152,40 +152,37 @@
 
     <!-- ── 3. PENJELASAN & PROFIL JURUSAN (NEURAL NETWORK MESH BACKDROP) ── -->
     <section class="py-24 bg-[#020b18] text-white relative overflow-hidden" style="background-color: #020b18;">
-        <!-- Interactive Deep Learning Synaptic Mesh Canvas -->
-        <canvas id="pplg-neural-canvas" class="absolute inset-0 w-full h-full pointer-events-auto z-0 opacity-40"></canvas>
+        <!-- Glowing Deep Learning Synaptic Mesh Canvas (Vibrant & High-Visibility) -->
+        <canvas id="pplg-neural-canvas" class="absolute inset-0 w-full h-full pointer-events-auto z-0 opacity-90 sm:opacity-95"></canvas>
 
-        <!-- Dark Overlays & Vignette for Crystal Clear Text Readability -->
-        <div class="absolute inset-0 bg-[#020b18]/70 pointer-events-none z-1"></div>
-        <div class="absolute inset-0 bg-gradient-to-r from-[#020b18] via-[#020b18]/85 to-[#020b18]/45 pointer-events-none z-1"></div>
-        <div class="absolute inset-0 bg-[radial-gradient(circle_at_center,transparent_20%,#020b18_95%)] pointer-events-none z-1"></div>
-        <div class="absolute inset-0 bg-[linear-gradient(rgba(0,180,255,0.02)_1px,transparent_1px)] [background-size:100%_4px] pointer-events-none z-1"></div>
+        <!-- Subtle Vignette Frame -->
+        <div class="absolute inset-0 bg-[radial-gradient(ellipse_at_center,transparent_55%,rgba(2,11,24,0.65)_100%)] pointer-events-none z-1"></div>
 
         <div class="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 relative z-10">
             <div class="grid grid-cols-1 lg:grid-cols-12 gap-8 lg:gap-12 items-center">
-                <!-- Left: Protected High-Contrast Glassmorphic Card -->
-                <div class="lg:col-span-6 p-6 sm:p-8 rounded-3xl bg-slate-950/80 backdrop-blur-xl border border-blue-500/25 shadow-2xl space-y-6">
-                    <div class="inline-flex items-center gap-2 px-3.5 py-1.5 rounded-full text-xs font-bold text-cyan-300 bg-blue-950/90 border border-blue-700/60 shadow-sm">
+                <!-- Left: Transparent Text Column allowing Neural Network to Shine Through -->
+                <div class="lg:col-span-6 space-y-6">
+                    <div class="inline-flex items-center gap-2 px-3.5 py-1.5 rounded-full text-xs font-bold text-cyan-300 bg-blue-950/80 border border-blue-700/60 shadow-sm backdrop-blur-sm">
                         <span class="w-2 h-2 rounded-full bg-cyan-400 animate-pulse"></span>
                         <span>Tentang Kompetensi Keahlian</span>
                     </div>
 
-                    <h2 class="text-2xl sm:text-4xl font-extrabold text-white tracking-tight leading-tight">
+                    <h2 class="text-2xl sm:text-4xl font-extrabold text-white tracking-tight leading-tight" style="text-shadow: 0 2px 12px rgba(2, 11, 24, 0.9);">
                         Mengapa Memilih Jurusan <br>
-                        <span class="text-[#00F0FF] font-extrabold inline-block" style="color: #00F0FF; text-shadow: 0 0 18px rgba(0, 240, 255, 0.45);">PPLG Wikrama Garut?</span>
+                        <span class="text-[#00F0FF] font-extrabold inline-block" style="color: #00F0FF; text-shadow: 0 0 20px rgba(0, 240, 255, 0.6), 0 2px 6px rgba(2, 11, 24, 0.9);">PPLG Wikrama Garut?</span>
                     </h2>
 
-                    <div class="space-y-3 text-slate-200">
-                        <p class="text-blue-100/95 leading-relaxed text-sm sm:text-base">
+                    <div class="space-y-3 text-slate-100" style="text-shadow: 0 1px 4px rgba(2, 11, 24, 0.95);">
+                        <p class="text-blue-50/95 leading-relaxed text-sm sm:text-base">
                             Program keahlian Pengembangan Perangkat Lunak dan Gim (PPLG) di {{ $schoolName }} dirancang khusus untuk mencetak <strong class="text-white font-bold">software engineer berdaya saing global yang berakhlak mulia</strong>. Kurikulum diselaraskan langsung dengan standar software house dan tech unicorn terkemuka.
                         </p>
-                        <p class="text-blue-100/85 leading-relaxed text-sm sm:text-base">
+                        <p class="text-blue-100/90 leading-relaxed text-sm sm:text-base">
                             Siswa tidak hanya diajarkan menulis sintaks kode, tetapi dibiasakan dengan <em class="text-cyan-300 font-medium not-italic">clean architecture, microservices, containerization Docker, version control Git</em>, serta kolaborasi tim berbasis Scrum Agile.
                         </p>
                     </div>
 
                     <div class="space-y-3 pt-2">
-                        <div class="flex items-start gap-3.5 p-4 rounded-2xl bg-blue-950/40 border border-blue-800/60 hover:border-blue-500/50 transition-colors">
+                        <div class="flex items-start gap-3.5 p-4 rounded-2xl bg-blue-950/40 backdrop-blur-sm border border-blue-800/50 hover:border-blue-500/60 hover:bg-blue-900/40 transition-colors">
                             <span class="p-2 rounded-xl bg-blue-500/20 text-[#5FC9F8] border border-blue-500/30 flex-shrink-0">
                                 <svg class="w-4 h-4" fill="none" stroke="currentColor" stroke-width="2.5" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" d="M5 13l4 4L19 7"/></svg>
                             </span>
@@ -195,7 +192,7 @@
                             </div>
                         </div>
 
-                        <div class="flex items-start gap-3.5 p-4 rounded-2xl bg-blue-950/40 border border-blue-800/60 hover:border-blue-500/50 transition-colors">
+                        <div class="flex items-start gap-3.5 p-4 rounded-2xl bg-blue-950/40 backdrop-blur-sm border border-blue-800/50 hover:border-blue-500/60 hover:bg-blue-900/40 transition-colors">
                             <span class="p-2 rounded-xl bg-blue-500/20 text-[#5FC9F8] border border-blue-500/30 flex-shrink-0">
                                 <svg class="w-4 h-4" fill="none" stroke="currentColor" stroke-width="2.5" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" d="M5 13l4 4L19 7"/></svg>
                             </span>
@@ -205,7 +202,7 @@
                             </div>
                         </div>
 
-                        <div class="flex items-start gap-3.5 p-4 rounded-2xl bg-blue-950/40 border border-blue-800/60 hover:border-blue-500/50 transition-colors">
+                        <div class="flex items-start gap-3.5 p-4 rounded-2xl bg-blue-950/40 backdrop-blur-sm border border-blue-800/50 hover:border-blue-500/60 hover:bg-blue-900/40 transition-colors">
                             <span class="p-2 rounded-xl bg-blue-500/20 text-[#5FC9F8] border border-blue-500/30 flex-shrink-0">
                                 <svg class="w-4 h-4" fill="none" stroke="currentColor" stroke-width="2.5" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" d="M5 13l4 4L19 7"/></svg>
                             </span>
@@ -894,7 +891,7 @@
                 let layers = [];
                 let synapses = [];
                 let pulses = [];
-                let mouse = { x: null, y: null, radius: 140 };
+                let mouse = { x: null, y: null, radius: 150 };
 
                 const resizeNeural = () => {
                     const rect = neuralCanvas.parentElement.getBoundingClientRect();
@@ -915,18 +912,18 @@
                     for (let l = 0; l < numLayers; l++) {
                         const count = layerCounts[l];
                         const layerNodes = [];
-                        const x = (width * 0.08) + l * (width * 0.84 / (numLayers - 1));
+                        const x = (width * 0.06) + l * (width * 0.88 / (numLayers - 1));
 
                         for (let n = 0; n < count; n++) {
-                            const y = (height * 0.12) + n * (height * 0.76 / Math.max(count - 1, 1));
+                            const y = (height * 0.10) + n * (height * 0.80 / Math.max(count - 1, 1));
                             layerNodes.push({
                                 x: x,
                                 y: y,
                                 baseY: y,
-                                radius: l === 0 || l === numLayers - 1 ? 4.5 : 3.8,
-                                activation: Math.random() * 0.4,
+                                radius: l === 0 || l === numLayers - 1 ? 7.0 : 5.8,
+                                activation: 0.4 + Math.random() * 0.4,
                                 phase: Math.random() * Math.PI * 2,
-                                color: l === 0 ? '#5FC9F8' : (l === numLayers - 1 ? '#10b981' : '#38bdf8')
+                                color: l === 0 ? '#00f0ff' : (l === numLayers - 1 ? '#10b981' : '#38bdf8')
                             });
                         }
                         layers.push(layerNodes);
@@ -944,28 +941,28 @@
                                     fromIdx: i,
                                     toLayer: l + 1,
                                     toIdx: j,
-                                    weight: 0.15 + Math.random() * 0.25
+                                    weight: 0.25 + Math.random() * 0.4
                                 });
                             }
                         }
                     }
 
-                    // Spawn initial electrical pulses
-                    for (let p = 0; p < 16; p++) {
+                    // Spawn initial intense burst of electrical pulses
+                    for (let p = 0; p < 36; p++) {
                         spawnPulse();
                     }
                 };
 
-                const spawnPulse = () => {
+                const spawnPulse = (specificSynapse = null) => {
                     if (layers.length < 2) return;
-                    const randomSynapse = synapses[Math.floor(Math.random() * synapses.length)];
-                    if (randomSynapse) {
+                    const syn = specificSynapse || synapses[Math.floor(Math.random() * synapses.length)];
+                    if (syn) {
                         pulses.push({
-                            synapse: randomSynapse,
-                            progress: Math.random(),
-                            speed: 0.012 + Math.random() * 0.02,
-                            size: 2.2 + Math.random() * 1.5,
-                            color: Math.random() > 0.3 ? '#00f0ff' : '#818cf8'
+                            synapse: syn,
+                            progress: specificSynapse ? 0 : Math.random(),
+                            speed: 0.016 + Math.random() * 0.022,
+                            size: 3.5 + Math.random() * 1.5,
+                            color: Math.random() > 0.25 ? '#00f0ff' : '#a855f7'
                         });
                     }
                 };
@@ -991,9 +988,14 @@
 
                 const animateNeural = () => {
                     ctx.clearRect(0, 0, width, height);
-                    time += 0.02;
+                    time += 0.025;
 
-                    // 1. Draw Synapses (Axon connections)
+                    // Constantly maintain active data pulses across layers
+                    if (pulses.length < 32 && Math.random() < 0.3) {
+                        spawnPulse();
+                    }
+
+                    // 1. Draw Synapses (Axon connections) with vibrant glowing stroke
                     for (let s = 0; s < synapses.length; s++) {
                         const syn = synapses[s];
                         const n1 = layers[syn.fromLayer][syn.fromIdx];
@@ -1003,14 +1005,14 @@
                             ctx.beginPath();
                             ctx.moveTo(n1.x, n1.y);
                             ctx.lineTo(n2.x, n2.y);
-                            const alpha = (syn.weight + (n1.activation + n2.activation) * 0.3) * 0.35;
-                            ctx.strokeStyle = `rgba(0, 190, 255, ${Math.min(alpha, 0.45)})`;
-                            ctx.lineWidth = 0.8;
+                            const alpha = Math.min(0.20 + syn.weight * 0.3 + (n1.activation + n2.activation) * 0.35, 0.75);
+                            ctx.strokeStyle = `rgba(0, 220, 255, ${alpha})`;
+                            ctx.lineWidth = 1.3;
                             ctx.stroke();
                         }
                     }
 
-                    // 2. Animate Action Potentials (Traveling Data Sparks)
+                    // 2. Animate Action Potentials (Traveling Data Sparks with Laser Trails)
                     for (let p = pulses.length - 1; p >= 0; p--) {
                         const pulse = pulses[p];
                         pulse.progress += pulse.speed;
@@ -1023,11 +1025,24 @@
                             const px = n1.x + (n2.x - n1.x) * pulse.progress;
                             const py = n1.y + (n2.y - n1.y) * pulse.progress;
 
+                            // Glowing Spark Tail
+                            const tailProgress = Math.max(0, pulse.progress - 0.08);
+                            const tx = n1.x + (n2.x - n1.x) * tailProgress;
+                            const ty = n1.y + (n2.y - n1.y) * tailProgress;
+
                             ctx.save();
-                            ctx.shadowBlur = 8;
-                            ctx.shadowColor = pulse.color;
                             ctx.beginPath();
-                            ctx.arc(px, py, pulse.size, 0, Math.PI * 2);
+                            ctx.moveTo(tx, ty);
+                            ctx.lineTo(px, py);
+                            ctx.strokeStyle = pulse.color;
+                            ctx.lineWidth = pulse.size;
+                            ctx.shadowBlur = 12;
+                            ctx.shadowColor = pulse.color;
+                            ctx.stroke();
+
+                            // Spark Head
+                            ctx.beginPath();
+                            ctx.arc(px, py, pulse.size * 0.9, 0, Math.PI * 2);
                             ctx.fillStyle = '#ffffff';
                             ctx.fill();
                             ctx.restore();
@@ -1035,13 +1050,22 @@
                             // Pulse reached destination neuron
                             if (pulse.progress >= 1) {
                                 n2.activation = 1.0; // Flash destination neuron
+
+                                // Chain pulse to next layer
+                                if (syn.toLayer < layers.length - 1) {
+                                    const nextSynapses = synapses.filter(s => s.fromLayer === syn.toLayer && s.fromIdx === syn.toIdx);
+                                    if (nextSynapses.length > 0) {
+                                        const nextSyn = nextSynapses[Math.floor(Math.random() * nextSynapses.length)];
+                                        spawnPulse(nextSyn);
+                                    }
+                                }
+
                                 pulses.splice(p, 1);
-                                spawnPulse(); // Continuous signal loop
                             }
                         }
                     }
 
-                    // 3. Draw Neurons
+                    // 3. Draw Neurons with Glowing Halos & Activation Ripples
                     for (let l = 0; l < layers.length; l++) {
                         const layer = layers[l];
                         for (let n = 0; n < layer.length; n++) {
@@ -1050,31 +1074,41 @@
                             // Subtle floating oscillation
                             node.y = node.baseY + Math.sin(time + node.phase) * 6;
 
-                            // Decay activation
-                            node.activation = Math.max(0.15, node.activation * 0.94);
+                            // Decay activation smoothly
+                            node.activation = Math.max(0.35, node.activation * 0.96);
 
-                            // Mouse proximity charge
+                            // Mouse proximity energetic charge
                             if (mouse.x !== null && mouse.y !== null) {
                                 const mdx = node.x - mouse.x;
                                 const mdy = node.y - mouse.y;
                                 const mdist = Math.sqrt(mdx * mdx + mdy * mdy);
                                 if (mdist < mouse.radius) {
-                                    node.activation = Math.min(1.0, node.activation + 0.15);
+                                    node.activation = Math.min(1.0, node.activation + 0.2);
                                 }
                             }
 
-                            // Outer neuron glow
                             ctx.save();
-                            ctx.shadowBlur = 10 * node.activation;
+
+                            // Expanding ripple ring on activation peak
+                            if (node.activation > 0.65) {
+                                ctx.beginPath();
+                                ctx.arc(node.x, node.y, node.radius + 7 * node.activation, 0, Math.PI * 2);
+                                ctx.strokeStyle = `rgba(0, 240, 255, ${(node.activation - 0.65) * 1.5})`;
+                                ctx.lineWidth = 1.5;
+                                ctx.stroke();
+                            }
+
+                            // Outer neuron glowing halo
+                            ctx.shadowBlur = 18 * node.activation;
                             ctx.shadowColor = node.color;
                             ctx.beginPath();
                             ctx.arc(node.x, node.y, node.radius + node.activation * 2.5, 0, Math.PI * 2);
                             ctx.fillStyle = node.color;
                             ctx.fill();
 
-                            // Inner core
+                            // Inner bright white nucleus
                             ctx.beginPath();
-                            ctx.arc(node.x, node.y, node.radius * 0.5, 0, Math.PI * 2);
+                            ctx.arc(node.x, node.y, node.radius * 0.55, 0, Math.PI * 2);
                             ctx.fillStyle = '#ffffff';
                             ctx.fill();
                             ctx.restore();
