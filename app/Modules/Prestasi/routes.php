@@ -8,7 +8,7 @@ use App\Modules\Prestasi\Livewire\PrestasiSiswaIndex;
 use App\Modules\Prestasi\Livewire\PrestasiVerifikasi;
 use Illuminate\Support\Facades\Route;
 
-Route::middleware(['web', 'auth'])->prefix('prestasi')->name('prestasi.')->group(function () {
+Route::middleware(['web', 'auth'])->prefix('admin/prestasi')->name('prestasi.')->group(function () {
     Route::get('/', PrestasiDashboard::class)->name('index')->middleware('can:prestasi.lihat');
     Route::get('/siswa', PrestasiSiswaIndex::class)->name('siswa')->middleware('can:prestasi.lihat');
     Route::get('/guru', PrestasiGuruIndex::class)->name('guru')->middleware('can:prestasi.guru.lihat');

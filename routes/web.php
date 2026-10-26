@@ -25,6 +25,14 @@ Route::get('/berita', \App\Modules\AdministrasiWeb\Livewire\PublicArticleList::c
 Route::get('/berita/{slug}', \App\Modules\AdministrasiWeb\Livewire\PublicArticleDetail::class)->name('web.berita.detail');
 Route::get('/halaman/{slug}', \App\Modules\AdministrasiWeb\Livewire\PublicPageDetail::class)->name('web.page.detail');
 
+// Halaman Publik: Prestasi & Capaian Unggulan
+Route::prefix('prestasi')->name('web.prestasi.')->group(function () {
+    Route::get('/', \App\Modules\Prestasi\Livewire\PublicPrestasiIndex::class)->name('index');
+    Route::get('/sekolah', \App\Modules\Prestasi\Livewire\PublicPrestasiIndex::class)->name('sekolah');
+    Route::get('/guru', \App\Modules\Prestasi\Livewire\PublicPrestasiIndex::class)->name('guru');
+    Route::get('/siswa', \App\Modules\Prestasi\Livewire\PublicPrestasiIndex::class)->name('siswa');
+});
+
 // Halaman Publik: Jurusan & Program Keahlian
 Route::prefix('jurusan')->name('web.jurusan.')->group(function () {
     Route::get('/', function () {

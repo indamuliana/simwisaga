@@ -71,52 +71,116 @@
                     </div>
                 </div>
 
-                <!-- 5-Star Suite & Concierge Showcase Card -->
+                <!-- 5-Star Suite & Concierge Simulator Card -->
                 <div class="lg:col-span-5">
-                    <div class="relative rounded-3xl overflow-hidden bg-gradient-to-b from-[#3a1525] to-[#200b14] border border-[#FC3158]/30 shadow-2xl p-6 sm:p-7">
-                        <!-- Top Bar Luxury Badge -->
-                        <div class="flex items-center justify-between pb-4 border-b border-rose-900/60 mb-5">
+                    <div class="rounded-2xl bg-slate-950 border border-rose-900/60 shadow-2xl overflow-hidden text-xs relative flex flex-col"
+                         style="height: 440px; min-height: 440px; max-height: 440px;">
+                        
+                        <!-- Top Bar: Hotel Brand & 5-Star Status -->
+                        <div class="px-4 py-2.5 bg-[#200812] border-b border-rose-900/60 flex items-center justify-between shrink-0">
                             <div class="flex items-center gap-2">
-                                <span class="w-3 h-3 rounded-full bg-[#FC3158]"></span>
-                                <span class="text-xs font-bold uppercase tracking-wider text-[#FFA8B8]">Wikrama Hospitality Suite</span>
+                                <span class="relative flex h-2.5 w-2.5">
+                                    <span class="animate-ping absolute inline-flex h-full w-full rounded-full bg-rose-400 opacity-75"></span>
+                                    <span class="relative inline-flex rounded-full h-2.5 w-2.5 bg-[#FC3158]"></span>
+                                </span>
+                                <span class="text-xs font-extrabold uppercase tracking-wider text-[#FFA8B8] truncate">Wikrama Grand Suite &bull; PMS</span>
                             </div>
                             <div class="flex items-center gap-1 text-[#E2B714]">
                                 @for($i = 0; $i < 5; $i++)
-                                    <svg class="w-4 h-4 fill-current" viewBox="0 0 20 20">
+                                    <svg class="w-3.5 h-3.5 fill-current" viewBox="0 0 20 20">
                                         <path d="M9.049 2.927c.3-.921 1.603-.921 1.902 0l1.07 3.292a1 1 0 00.95.69h3.462c.969 0 1.371 1.24.588 1.81l-2.8 2.034a1 1 0 00-.364 1.118l1.07 3.292c.3.921-.755 1.688-1.54 1.118l-2.8-2.034a1 1 0 00-1.175 0l-2.8 2.034c-.784.57-1.838-.197-1.539-1.118l1.07-3.292a1 1 0 00-.364-1.118L2.98 8.72c-.783-.57-.38-1.81.588-1.81h3.461a1 1 0 00.951-.69l1.07-3.292z"/>
                                     </svg>
                                 @endfor
                             </div>
                         </div>
 
-                        <!-- Hotel Hero Image -->
-                        <div class="relative rounded-2xl overflow-hidden mb-5 aspect-[16/10] border border-rose-800/40 group">
-                            <img src="{{ asset('images/landing/jurusan-hotel.png') }}" alt="Jurusan Perhotelan SMK Wikrama" class="w-full h-full object-cover group-hover:scale-105 transition-all duration-500">
-                            <div class="absolute inset-0 bg-gradient-to-t from-slate-950/80 via-transparent to-transparent"></div>
-                            <div class="absolute bottom-3 left-3 right-3 flex items-center justify-between text-white text-xs">
-                                <span class="bg-black/60 backdrop-blur-md px-3 py-1 rounded-full border border-rose-500/30">Mockup Room &amp; Cafe Barista</span>
-                                <span class="bg-[#FC3158] font-bold px-3 py-1 rounded-full shadow">Bintang 5 Standar</span>
+                        <!-- Main Studio Stage Area with Rose Gradient -->
+                        <div class="relative flex-1 bg-gradient-to-b from-[#1c0811] via-[#12050b] to-slate-950 p-4 flex flex-col justify-between overflow-hidden">
+                            <!-- Top: In-Stream Keycard Toast Alert -->
+                            <div class="z-20 h-6">
+                                <div id="htl-key-toast" class="transform transition-all duration-300 opacity-0 -translate-y-2">
+                                    <div class="inline-flex items-center gap-2 px-3 py-1 rounded-full bg-emerald-500/20 border border-emerald-500/40 backdrop-blur-md text-[10px] text-emerald-200 font-medium shadow-lg">
+                                        <span>✨</span>
+                                        <span id="htl-key-toast-text">RFID Verified: Welcome to Presidential Suite 501!</span>
+                                    </div>
+                                </div>
+                            </div>
+
+                            <!-- Middle: Suite Guest Reservation Showcase Card -->
+                            <div class="z-20 my-auto">
+                                <div class="p-3.5 rounded-xl bg-rose-950/70 border border-rose-600/40 backdrop-blur-md space-y-3 shadow-xl transition-all duration-300" id="htl-suite-card">
+                                    <div class="flex items-start justify-between gap-3">
+                                        <div class="flex items-center gap-2.5">
+                                            <div class="w-10 h-10 rounded-lg bg-gradient-to-br from-[#FC3158] to-pink-700 text-white font-bold flex items-center justify-center text-lg shrink-0 shadow-md">
+                                                🏨
+                                            </div>
+                                            <div>
+                                                <div class="flex items-center gap-1.5">
+                                                    <span class="px-1.5 py-0.2 rounded text-[9px] font-bold bg-[#E2B714] text-slate-950 uppercase">Room 501</span>
+                                                    <span class="text-[10px] text-rose-300 font-medium">Presidential Suite</span>
+                                                </div>
+                                                <h4 class="text-xs font-bold text-white mt-0.5" id="htl-guest-name">VVIP: Mr. David Miller (Geneva, CH)</h4>
+                                            </div>
+                                        </div>
+                                        <span class="px-2 py-0.5 rounded-full text-[9px] font-bold bg-emerald-950/80 text-emerald-400 border border-emerald-800/80 shrink-0">
+                                            ● OCCUPIED
+                                        </span>
+                                    </div>
+
+                                    <!-- Quick Specs -->
+                                    <div class="grid grid-cols-3 gap-2 text-[10px] pt-1 border-t border-rose-900/40 text-rose-200/90 font-mono">
+                                        <div class="p-1.5 rounded-lg bg-rose-900/30 text-center">
+                                            <span class="text-rose-400 block text-[9px]">Check-In</span>
+                                            <span class="font-bold text-white">26 Oct</span>
+                                        </div>
+                                        <div class="p-1.5 rounded-lg bg-rose-900/30 text-center">
+                                            <span class="text-rose-400 block text-[9px]">Lounge</span>
+                                            <span class="font-bold text-[#E2B714]">Executive</span>
+                                        </div>
+                                        <div class="p-1.5 rounded-lg bg-rose-900/30 text-center">
+                                            <span class="text-rose-400 block text-[9px]">Preference</span>
+                                            <span class="font-bold text-white">V60 Coffee</span>
+                                        </div>
+                                    </div>
+
+                                    <!-- Interactive Tap Keycard Action -->
+                                    <div class="pt-1 flex items-center justify-between">
+                                        <span class="text-[10px] text-rose-300/80">Digital Access: VHP &bull; Opera PMS</span>
+                                        <button id="htl-keycard-btn" type="button" class="px-3 py-1.5 rounded-lg bg-gradient-to-r from-[#FC3158] to-rose-600 hover:from-rose-500 hover:to-pink-600 text-white font-extrabold text-[10px] flex items-center gap-1.5 shadow-md hover:scale-105 active:scale-95 transition-all">
+                                            <span>🔑</span>
+                                            <span>Tap Keycard NFC</span>
+                                        </button>
+                                    </div>
+                                </div>
+                            </div>
+
+                            <!-- Bottom: Live Butler & Concierge Service Feed -->
+                            <div class="z-20 space-y-2 mt-auto">
+                                <div class="relative">
+                                    <div class="absolute -top-3 left-0 right-0 h-3 bg-gradient-to-b from-[#12050b] to-transparent pointer-events-none z-10"></div>
+                                    <div id="htl-service-stream" class="space-y-1.5 text-[11px] font-mono-code max-h-24 overflow-hidden flex flex-col justify-end">
+                                        <!-- Injected via JS -->
+                                    </div>
+                                </div>
+
+                                <!-- Barista Corner Status Pill -->
+                                <div class="pt-2 border-t border-rose-900/50 flex items-center justify-between text-[10px] text-rose-300">
+                                    <span class="flex items-center gap-1.5">
+                                        <span class="w-1.5 h-1.5 rounded-full bg-[#E2B714] animate-pulse"></span>
+                                        <span>Barista Station: 9 Bar Extraction Ready</span>
+                                    </span>
+                                    <span class="text-amber-300 font-bold font-mono">☕ 84 Cups Today</span>
+                                </div>
                             </div>
                         </div>
 
-                        <!-- Highlights Grid -->
-                        <div class="grid grid-cols-2 gap-3 text-xs">
-                            <div class="p-3 rounded-xl bg-rose-950/60 border border-rose-900/60">
-                                <span class="text-rose-300 font-medium block">Praktek Barista</span>
-                                <span class="text-white font-bold text-sm">Espresso &amp; Manual</span>
-                            </div>
-                            <div class="p-3 rounded-xl bg-rose-950/60 border border-rose-900/60">
-                                <span class="text-rose-300 font-medium block">Sistem PMS Hotel</span>
-                                <span class="text-white font-bold text-sm">VHP &amp; Opera Ready</span>
-                            </div>
-                            <div class="p-3 rounded-xl bg-rose-950/60 border border-rose-900/60">
-                                <span class="text-rose-300 font-medium block">Sertifikat Resmi</span>
-                                <span class="text-[#E2B714] font-bold text-sm">BNSP LSP P-1</span>
-                            </div>
-                            <div class="p-3 rounded-xl bg-rose-950/60 border border-rose-900/60">
-                                <span class="text-rose-300 font-medium block">Mitra Hotel</span>
-                                <span class="text-white font-bold text-sm">Aston &bull; Santika</span>
-                            </div>
+                        <!-- Footer: Industry Accreditation -->
+                        <div class="px-4 py-2 bg-[#1a060e] border-t border-rose-900/60 flex items-center justify-between text-[10px] text-rose-300 font-medium shrink-0">
+                            <span class="flex items-center gap-1.5">
+                                <span class="w-1.5 h-1.5 rounded-full bg-emerald-400"></span>
+                                Sertifikasi BNSP &bull; Table Manner 5-Star
+                            </span>
+                            <span class="text-[#E2B714] font-bold">Mitra: Aston &bull; Santika</span>
                         </div>
                     </div>
                 </div>
@@ -148,77 +212,95 @@
         </div>
     </section>
 
-    <!-- ── 3. PENJELASAN & PROFIL JURUSAN ── -->
-    <section class="py-20 bg-white">
-        <div class="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
-            <div class="grid grid-cols-1 lg:grid-cols-12 gap-12 items-center">
+    <!-- ── 3. PENJELASAN & PROFIL JURUSAN (DARK LUXURY HOSPITALITY & AMBIENT SPARKLES) ── -->
+    <section class="py-24 bg-[#14050d] text-white relative overflow-hidden" style="background-color: #14050d;">
+        <!-- Glowing Champagne Gold & Rose Hospitality Canvas -->
+        <canvas id="htl-luxury-canvas" class="absolute inset-0 w-full h-full pointer-events-auto z-0 opacity-80 sm:opacity-90"></canvas>
+
+        <!-- Multi-layer Darkening Overlays for Contrast & Text Readability -->
+        <div class="absolute inset-0 pointer-events-none z-1" style="background-color: rgba(20, 5, 13, 0.45);"></div>
+        <div class="absolute inset-0 pointer-events-none z-1" style="background: linear-gradient(to right, rgba(20, 5, 13, 0.90) 0%, rgba(20, 5, 13, 0.70) 45%, rgba(20, 5, 13, 0.25) 100%);"></div>
+        <div class="absolute inset-0 pointer-events-none z-1" style="background: radial-gradient(ellipse at center, transparent 35%, rgba(20, 5, 13, 0.85) 100%);"></div>
+
+        <div class="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 relative z-10">
+            <div class="grid grid-cols-1 lg:grid-cols-12 gap-8 lg:gap-12 items-center">
+                <!-- Left: Modular Glassmorphic Text Column -->
                 <div class="lg:col-span-6 space-y-6">
-                    <div class="inline-flex items-center gap-2 px-3 py-1 rounded-full text-xs font-bold text-[#FC3158] bg-rose-100 border border-rose-200">
-                        <span>Tentang Kompetensi Keahlian</span>
+                    <!-- Text Card with Velvet Rose Frosted Glass Style -->
+                    <div class="p-6 sm:p-8 rounded-2xl bg-rose-950/40 backdrop-blur-sm border border-rose-800/50 hover:border-rose-500/50 transition-colors space-y-5">
+                        <div class="inline-flex items-center gap-2 px-3.5 py-1.5 rounded-full text-xs font-bold text-[#FFA8B8] bg-rose-950/80 border border-rose-700/60 shadow-sm backdrop-blur-sm">
+                            <span class="w-2 h-2 rounded-full bg-[#FC3158] animate-pulse"></span>
+                            <span>Tentang Kompetensi Keahlian</span>
+                        </div>
+
+                        <h2 class="text-2xl sm:text-4xl font-extrabold text-white tracking-tight leading-tight" style="text-shadow: 0 2px 14px rgba(0, 0, 0, 0.95), 0 0 20px rgba(0, 0, 0, 0.9);">
+                            Mengapa Memilih Jurusan <br>
+                            <span class="text-[#FC3158] font-extrabold inline-block" style="color: #FC3158; text-shadow: 0 0 22px rgba(252, 49, 88, 0.65), 0 2px 6px rgba(0, 0, 0, 0.9);">Perhotelan Wikrama?</span>
+                        </h2>
+
+                        <div class="space-y-3.5" style="text-shadow: 0 2px 8px rgba(0, 0, 0, 0.95), 0 0 3px rgba(0, 0, 0, 0.9);">
+                            <p class="text-white/95 leading-relaxed text-sm sm:text-base">
+                                Program keahlian Perhotelan di {{ $schoolName }} dirancang khusus untuk menghasilkan tenaga profesional tingkat menengah yang memiliki <strong class="text-white font-bold">attitude prima, integritas islami, kemampuan multi-bahasa, serta kecakapan teknis hospitality berstandar bintang 5</strong>.
+                            </p>
+                            <p class="text-rose-100/90 leading-relaxed text-sm sm:text-base">
+                                Bukan hanya sekadar teori, santri diajarkan langsung mengoperasikan <em class="text-[#FFA8B8] font-medium not-italic">Property Management System (PMS)</em> berkelas industri, meracik kopi dengan mesin espresso profesional, table manner internasional, hingga manajemen pengelolaan kamar presidential suite.
+                            </p>
+                        </div>
                     </div>
-                    <h2 class="text-2xl sm:text-4xl font-extrabold text-slate-900 tracking-tight leading-tight">
-                        Mengapa Memilih Jurusan <br>
-                        <span class="text-[#FC3158]">Perhotelan Wikrama?</span>
-                    </h2>
-                    <p class="text-slate-600 leading-relaxed text-sm sm:text-base">
-                        Program keahlian Perhotelan di {{ $schoolName }} dirancang khusus untuk menghasilkan tenaga profesional tingkat menengah yang memiliki <strong>attitude prima, integritas islami, kemampuan multi-bahasa, serta kecakapan teknis hospitality berstandar bintang 5</strong>.
-                    </p>
-                    <p class="text-slate-600 leading-relaxed text-sm sm:text-base">
-                        Bukan hanya sekadar teori, santri diajarkan langsung mengoperasikan <em>Property Management System (PMS)</em> berkelas industri, meracik kopi dengan mesin espresso profesional, table manner internasional, hingga manajemen pengelolaan kamar presidential suite.
-                    </p>
 
-                    <div class="space-y-3 pt-2">
-                        <div class="flex items-start gap-3 p-3.5 rounded-xl bg-rose-50/70 border border-rose-100">
-                            <span class="p-2 rounded-lg bg-[#FC3158] text-white">
-                                <svg class="w-4 h-4" fill="none" stroke="currentColor" stroke-width="2" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" d="M5 13l4 4L19 7"/></svg>
+                    <!-- 3 Feature Boxes with matching dark glass -->
+                    <div class="space-y-3">
+                        <div class="flex items-start gap-3.5 p-4 rounded-2xl bg-rose-950/40 backdrop-blur-sm border border-rose-800/50 hover:border-rose-500/60 hover:bg-rose-900/40 transition-colors">
+                            <span class="p-2 rounded-xl bg-rose-500/20 text-[#FC3158] border border-rose-500/30 flex-shrink-0">
+                                <svg class="w-4 h-4" fill="none" stroke="currentColor" stroke-width="2.5" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" d="M5 13l4 4L19 7"/></svg>
                             </span>
                             <div>
-                                <h4 class="text-sm font-bold text-slate-900">Hospitality Mindset &amp; Grooming Standar Bintang 5</h4>
-                                <p class="text-xs text-slate-600">Pelatihan kedisiplinan berbusana rapi, postur tubuh elegan, komunikasi santun, dan senyum tulus pelayanan profesional.</p>
+                                <h4 class="text-sm font-bold text-white">Hospitality Mindset &amp; Grooming Standar Bintang 5</h4>
+                                <p class="text-xs text-rose-200/80 leading-relaxed mt-0.5">Pelatihan kedisiplinan berbusana rapi, postur tubuh elegan, komunikasi santun, dan senyum tulus pelayanan profesional.</p>
                             </div>
                         </div>
 
-                        <div class="flex items-start gap-3 p-3.5 rounded-xl bg-rose-50/70 border border-rose-100">
-                            <span class="p-2 rounded-lg bg-[#FC3158] text-white">
-                                <svg class="w-4 h-4" fill="none" stroke="currentColor" stroke-width="2" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" d="M5 13l4 4L19 7"/></svg>
+                        <div class="flex items-start gap-3.5 p-4 rounded-2xl bg-rose-950/40 backdrop-blur-sm border border-rose-800/50 hover:border-rose-500/60 hover:bg-rose-900/40 transition-colors">
+                            <span class="p-2 rounded-xl bg-rose-500/20 text-[#FC3158] border border-rose-500/30 flex-shrink-0">
+                                <svg class="w-4 h-4" fill="none" stroke="currentColor" stroke-width="2.5" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" d="M5 13l4 4L19 7"/></svg>
                             </span>
                             <div>
-                                <h4 class="text-sm font-bold text-slate-900">Kombinasi Hotelier &amp; Barista Modern</h4>
-                                <p class="text-xs text-slate-600">Keahlian ganda yang sangat dicari industri modern: menguasai tata graha hotel sekaligus mahir meracik kopi kekinian.</p>
+                                <h4 class="text-sm font-bold text-white">Kombinasi Hotelier &amp; Barista Modern</h4>
+                                <p class="text-xs text-rose-200/80 leading-relaxed mt-0.5">Keahlian ganda yang sangat dicari industri modern: menguasai tata graha hotel sekaligus mahir meracik kopi kekinian.</p>
                             </div>
                         </div>
 
-                        <div class="flex items-start gap-3 p-3.5 rounded-xl bg-rose-50/70 border border-rose-100">
-                            <span class="p-2 rounded-lg bg-[#FC3158] text-white">
-                                <svg class="w-4 h-4" fill="none" stroke="currentColor" stroke-width="2" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" d="M5 13l4 4L19 7"/></svg>
+                        <div class="flex items-start gap-3.5 p-4 rounded-2xl bg-rose-950/40 backdrop-blur-sm border border-rose-800/50 hover:border-rose-500/60 hover:bg-rose-900/40 transition-colors">
+                            <span class="p-2 rounded-xl bg-rose-500/20 text-[#FC3158] border border-rose-500/30 flex-shrink-0">
+                                <svg class="w-4 h-4" fill="none" stroke="currentColor" stroke-width="2.5" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" d="M5 13l4 4L19 7"/></svg>
                             </span>
                             <div>
-                                <h4 class="text-sm font-bold text-slate-900">Kerjasama Langsung DUDI Bintang 4 &amp; 5</h4>
-                                <p class="text-xs text-slate-600">Penempatan magang 6 bulan di Aston, Santika, Mercure, favehotel dengan sertifikat penilaian resmi industri.</p>
+                                <h4 class="text-sm font-bold text-white">Kerjasama Langsung DUDI Bintang 4 &amp; 5</h4>
+                                <p class="text-xs text-rose-200/80 leading-relaxed mt-0.5">Penempatan magang 6 bulan di Aston, Santika, Mercure, favehotel dengan sertifikat penilaian resmi industri.</p>
                             </div>
                         </div>
                     </div>
                 </div>
 
-                <!-- Visual Collage Showcase -->
+                <!-- Right: Visual Collage Showcase -->
                 <div class="lg:col-span-6 grid grid-cols-2 gap-4">
                     <div class="space-y-4">
-                        <div class="rounded-2xl overflow-hidden shadow-md border border-slate-200">
+                        <div class="rounded-2xl overflow-hidden shadow-xl border border-rose-500/30 bg-slate-900/60">
                             <img src="{{ asset('images/web/hero-htl.png') }}" alt="Praktik Perhotelan Wikrama" class="w-full h-48 sm:h-56 object-cover hover:scale-105 transition-all duration-300">
                         </div>
-                        <div class="p-5 rounded-2xl bg-gradient-to-br from-[#2a0e18] to-[#12050b] text-white space-y-2">
+                        <div class="p-5 rounded-2xl bg-slate-950/90 backdrop-blur-md border border-rose-500/30 text-white space-y-2 shadow-lg">
                             <span class="text-[#E2B714] text-xs font-bold uppercase tracking-wider">Unit Produksi TEFA</span>
-                            <h4 class="text-base font-extrabold">Wikrama Boutique Suite</h4>
-                            <p class="text-xs text-rose-200/90 leading-relaxed">Unit penginapan nyata berstandar kamar hotel bintang yang melayani tamu resmi, dinas, dan relasi sekolah.</p>
+                            <h4 class="text-base font-extrabold text-white">Wikrama Boutique Suite</h4>
+                            <p class="text-xs text-rose-200/80 leading-relaxed">Unit penginapan nyata berstandar kamar hotel bintang yang melayani tamu resmi, dinas, dan relasi sekolah.</p>
                         </div>
                     </div>
                     <div class="space-y-4 pt-6">
-                        <div class="p-5 rounded-2xl bg-[#FC3158] text-white space-y-2 shadow-lg shadow-rose-600/20">
+                        <div class="p-5 rounded-2xl bg-gradient-to-br from-[#FC3158] to-rose-800 text-white space-y-2 shadow-xl shadow-rose-600/20">
                             <span class="text-amber-200 text-xs font-bold uppercase tracking-wider">Keahlian Spesial</span>
-                            <h4 class="text-base font-extrabold">Wikrama Coffee Corner</h4>
+                            <h4 class="text-base font-extrabold text-white">Wikrama Coffee Corner</h4>
                             <p class="text-xs text-rose-100 leading-relaxed">Praktik barista langsung dengan pesanan nyata dari guru, tamu, dan santri setiap harinya.</p>
                         </div>
-                        <div class="rounded-2xl overflow-hidden shadow-md border border-slate-200">
+                        <div class="rounded-2xl overflow-hidden shadow-xl border border-rose-500/30 bg-slate-900/60">
                             <img src="{{ asset('images/web/activity-learning.jpg') }}" alt="Suasana Praktik Siswa Perhotelan" class="w-full h-48 sm:h-56 object-cover hover:scale-105 transition-all duration-300">
                         </div>
                     </div>
@@ -748,4 +830,169 @@
             </div>
         </div>
     </section>
+
+    <!-- ── 5-STAR HOSPITALITY & CONCIERGE INTERACTIVE SCRIPTS ── -->
+    <script>
+        document.addEventListener('DOMContentLoaded', () => {
+            // 1. Interactive Tap Keycard NFC Simulation
+            const keyBtn = document.getElementById('htl-keycard-btn');
+            const keyToast = document.getElementById('htl-key-toast');
+            const keyToastText = document.getElementById('htl-key-toast-text');
+
+            if (keyBtn && keyToast) {
+                keyBtn.addEventListener('click', () => {
+                    if (keyToastText) keyToastText.textContent = '✨ Keycard NFC Verified: Door Unlocked • Welcome to Suite 501!';
+                    keyToast.classList.remove('opacity-0', '-translate-y-2');
+                    setTimeout(() => {
+                        keyToast.classList.add('opacity-0', '-translate-y-2');
+                    }, 3000);
+                });
+            }
+
+            // 2. Realtime Butler & Concierge Service Feed
+            const serviceStream = document.getElementById('htl-service-stream');
+            const serviceTasks = [
+                { dept: '🛎️ Room Service', text: 'Flat White & Artisan Croissant diantar ke Kamar #402', color: 'text-amber-300' },
+                { dept: '✨ Housekeeping', text: 'Evening Turndown Service selesai untuk Presidential Suite 501', color: 'text-rose-300' },
+                { dept: '☕ Barista Lab', text: 'Single Origin Robusta Garut diekstraksi sempurna (9 Bar)', color: 'text-[#E2B714]' },
+                { dept: '🧳 Concierge', text: 'VIP Chauffeur penjemputan bandara standby di Grand Lobby', color: 'text-cyan-300' },
+                { dept: '🍽️ Table Manner', text: 'Table setup 12-course dinner diplomatik siap di Executive Room', color: 'text-emerald-300' },
+                { dept: '🍷 Mocktail Lab', text: 'Rose-Gold Signature Mocktail diracik untuk Welcome Drink', color: 'text-pink-300' },
+                { dept: '🏨 Front Office', text: 'Check-in pass & keycard NFC terbit via Opera PMS System', color: 'text-sky-300' }
+            ];
+
+            let serviceIdx = 0;
+            const appendServiceTask = () => {
+                if (!serviceStream) return;
+                const task = serviceTasks[serviceIdx % serviceTasks.length];
+                serviceIdx++;
+
+                const p = document.createElement('p');
+                p.className = 'leading-tight transform translate-y-1 opacity-0 transition-all duration-300';
+                p.innerHTML = `<span class="${task.color} font-bold">${task.dept}:</span> <span class="text-slate-300">${task.text}</span>`;
+                serviceStream.appendChild(p);
+
+                requestAnimationFrame(() => {
+                    p.classList.remove('translate-y-1', 'opacity-0');
+                });
+
+                if (serviceStream.children.length > 4) {
+                    serviceStream.removeChild(serviceStream.firstElementChild);
+                }
+            };
+
+            for (let i = 0; i < 3; i++) appendServiceTask();
+            setInterval(appendServiceTask, 2400);
+
+            // 3. Rotating Suite Guest Profiles (Every 8 seconds)
+            const suiteProfiles = [
+                { name: 'VVIP: Mr. David Miller (Geneva, CH)' },
+                { name: 'VIP: Mme. Sophie Laurent (Paris, FR)' },
+                { name: 'Corporate: Mr. Kenji Sato (Tokyo, JP)' }
+            ];
+            let profileIdx = 0;
+            const guestNameEl = document.getElementById('htl-guest-name');
+            setInterval(() => {
+                if (!guestNameEl) return;
+                profileIdx = (profileIdx + 1) % suiteProfiles.length;
+                guestNameEl.classList.add('opacity-40');
+                setTimeout(() => {
+                    guestNameEl.textContent = suiteProfiles[profileIdx].name;
+                    guestNameEl.classList.remove('opacity-40');
+                }, 200);
+            }, 8000);
+
+            // 4. Section 3: Luxury Champagne Gold & Rose Hospitality Canvas
+            const canvas = document.getElementById('htl-luxury-canvas');
+            if (canvas) {
+                const ctx = canvas.getContext('2d');
+                let width = canvas.width = canvas.offsetWidth;
+                let height = canvas.height = canvas.offsetHeight;
+
+                window.addEventListener('resize', () => {
+                    if (!canvas) return;
+                    width = canvas.width = canvas.offsetWidth;
+                    height = canvas.height = canvas.offsetHeight;
+                });
+
+                // Sparkle particles
+                const particles = [];
+                const colors = ['#E2B714', '#FC3158', '#FFA8B8', '#ffffff', '#fed7aa'];
+                for (let i = 0; i < 48; i++) {
+                    particles.push({
+                        x: Math.random() * width,
+                        y: Math.random() * height,
+                        radius: 1 + Math.random() * 2.5,
+                        color: colors[Math.floor(Math.random() * colors.length)],
+                        speedY: 0.3 + Math.random() * 0.7,
+                        speedX: (Math.random() - 0.5) * 0.4,
+                        phase: Math.random() * Math.PI * 2,
+                        twinkleSpeed: 0.03 + Math.random() * 0.03
+                    });
+                }
+
+                let time = 0;
+                const animateLuxury = () => {
+                    ctx.clearRect(0, 0, width, height);
+                    time += 0.02;
+
+                    // 1. Ambient Silky Aroma Wave in the background
+                    ctx.beginPath();
+                    ctx.moveTo(0, height * 0.6);
+                    for (let x = 0; x <= width; x += 30) {
+                        const y = height * 0.55 + Math.sin(time + x * 0.003) * 45 + Math.cos(time * 0.7 + x * 0.002) * 25;
+                        ctx.lineTo(x, y);
+                    }
+                    ctx.lineTo(width, height);
+                    ctx.lineTo(0, height);
+                    ctx.closePath();
+                    const waveGrad = ctx.createLinearGradient(0, height * 0.4, 0, height);
+                    waveGrad.addColorStop(0, 'rgba(252, 49, 88, 0.07)');
+                    waveGrad.addColorStop(0.5, 'rgba(226, 183, 20, 0.04)');
+                    waveGrad.addColorStop(1, 'rgba(20, 5, 13, 0)');
+                    ctx.fillStyle = waveGrad;
+                    ctx.fill();
+
+                    // 2. Twinkling Champagne Gold Sparkles
+                    for (let i = 0; i < particles.length; i++) {
+                        const p = particles[i];
+                        p.y -= p.speedY;
+                        p.x += p.speedX + Math.sin(time + p.phase) * 0.4;
+
+                        // Wrap edges
+                        if (p.y < -10) p.y = height + 10;
+                        if (p.x < -10) p.x = width + 10;
+                        if (p.x > width + 10) p.x = -10;
+
+                        const alpha = 0.3 + Math.sin(time * 3 * p.twinkleSpeed + p.phase) * 0.5;
+
+                        ctx.save();
+                        ctx.globalAlpha = Math.max(0.1, Math.min(1.0, alpha));
+                        ctx.shadowBlur = 8;
+                        ctx.shadowColor = p.color;
+                        ctx.beginPath();
+                        ctx.arc(p.x, p.y, p.radius, 0, Math.PI * 2);
+                        ctx.fillStyle = p.color;
+                        ctx.fill();
+
+                        // Cross-glint on larger particles
+                        if (p.radius > 2.2 && alpha > 0.6) {
+                            ctx.strokeStyle = p.color;
+                            ctx.lineWidth = 0.8;
+                            ctx.beginPath();
+                            ctx.moveTo(p.x - 5, p.y);
+                            ctx.lineTo(p.x + 5, p.y);
+                            ctx.moveTo(p.x, p.y - 5);
+                            ctx.lineTo(p.x, p.y + 5);
+                            ctx.stroke();
+                        }
+                        ctx.restore();
+                    }
+
+                    requestAnimationFrame(animateLuxury);
+                };
+                requestAnimationFrame(animateLuxury);
+            }
+        });
+    </script>
 </x-layouts.blank>

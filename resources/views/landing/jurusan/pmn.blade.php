@@ -71,43 +71,100 @@
                     </div>
                 </div>
 
-                <!-- Live Stream & E-Commerce Studio Mockup -->
+                <!-- Live Stream & E-Commerce Studio Interactive Simulator -->
                 <div class="lg:col-span-5">
-                    <div class="rounded-2xl bg-slate-950 border border-amber-900/60 shadow-2xl overflow-hidden text-xs">
-                        <!-- Live Bar -->
-                        <div class="px-4 py-3 bg-[#260e00] border-b border-amber-900/60 flex items-center justify-between">
+                    <div class="rounded-2xl bg-slate-950 border border-amber-900/60 shadow-2xl overflow-hidden text-xs relative flex flex-col"
+                         style="height: 440px; min-height: 440px; max-height: 440px;">
+                        
+                        <!-- Top Bar: Live Broadcast Badge & Realtime Metrics -->
+                        <div class="px-4 py-2.5 bg-[#260e00] border-b border-amber-900/60 flex items-center justify-between shrink-0">
                             <div class="flex items-center gap-2">
-                                <span class="w-3 h-3 rounded-full bg-red-500 animate-pulse"></span>
+                                <span class="relative flex h-2.5 w-2.5">
+                                    <span class="animate-ping absolute inline-flex h-full w-full rounded-full bg-red-400 opacity-75"></span>
+                                    <span class="relative inline-flex rounded-full h-2.5 w-2.5 bg-red-500"></span>
+                                </span>
                                 <span class="bg-red-600 text-white font-extrabold text-[10px] px-2 py-0.5 rounded uppercase tracking-wider">LIVE ON AIR</span>
-                                <span class="text-[11px] text-amber-200 font-bold">Wikrama Creator Studio</span>
+                                <span class="text-[11px] text-amber-200 font-bold truncate">Wikrama Creator Studio</span>
                             </div>
-                            <span class="text-amber-400 font-mono font-bold text-[11px]">👁️ 4.8K Viewers</span>
+                            <div class="flex items-center gap-3 text-[11px] font-mono">
+                                <span class="text-amber-400 font-bold flex items-center gap-1">
+                                    <span>👁️</span> <span id="pmn-live-viewers">4,820</span>
+                                </span>
+                                <span class="text-rose-400 font-bold flex items-center gap-1">
+                                    <span>❤️</span> <span id="pmn-live-likes">28.4K</span>
+                                </span>
+                            </div>
                         </div>
-                        <!-- Live Simulation Container -->
-                        <div class="p-5 space-y-3 bg-gradient-to-b from-[#1f0b00] to-slate-950">
-                            <!-- Product Pin Banner -->
-                            <div class="p-3 rounded-xl bg-amber-950/60 border border-amber-700/50 flex items-center gap-3">
-                                <div class="w-10 h-10 rounded-lg bg-orange-500 text-white font-bold flex items-center justify-center text-lg shrink-0">
-                                    🛍️
+
+                        <!-- Main Studio Stage Area with Canvas Overlay -->
+                        <div class="relative flex-1 bg-gradient-to-b from-[#1a0800] via-[#120500] to-slate-950 p-4 flex flex-col justify-between overflow-hidden">
+                            <!-- Floating Hearts Canvas -->
+                            <canvas id="pmn-hearts-canvas" class="absolute inset-0 pointer-events-none z-10 w-full h-full"></canvas>
+
+                            <!-- Top: In-Stream Toast (Order Alert / Promo) -->
+                            <div class="z-20 h-6">
+                                <div id="pmn-order-toast" class="transform transition-all duration-300 opacity-0 -translate-y-2">
+                                    <div class="inline-flex items-center gap-2 px-3 py-1 rounded-full bg-amber-500/20 border border-amber-500/40 backdrop-blur-md text-[10px] text-amber-200 font-medium shadow-lg">
+                                        <span class="text-emerald-400">⚡</span>
+                                        <span id="pmn-order-toast-text">@dina_99 baru saja checkout Keripik Tempe!</span>
+                                    </div>
                                 </div>
-                                <div class="min-w-0 flex-1">
-                                    <span class="text-[10px] text-amber-300 block font-semibold">Produk Unggulan TEFA Siswa</span>
-                                    <h4 class="text-xs font-bold text-white truncate">Keripik Tempe &amp; Kopi Robusta Garut</h4>
-                                    <span class="text-xs font-extrabold text-[#FD9426]">Rp 25.000 <span class="text-[10px] line-through text-slate-400">Rp 35.000</span></span>
+                            </div>
+
+                            <!-- Middle: Pinned Product Showcase Banner (Cycles Products) -->
+                            <div class="z-20 my-auto">
+                                <div class="p-3 rounded-xl bg-amber-950/70 border border-amber-600/40 backdrop-blur-md flex items-center gap-3 shadow-xl transition-all duration-300" id="pmn-pinned-card">
+                                    <div class="w-12 h-12 rounded-lg bg-gradient-to-br from-[#FD9426] to-amber-600 text-white font-bold flex items-center justify-center text-xl shrink-0 shadow-md" id="pmn-product-icon">
+                                        🛍️
+                                    </div>
+                                    <div class="min-w-0 flex-1">
+                                        <div class="flex items-center gap-1.5">
+                                            <span class="px-1.5 py-0.2 rounded text-[9px] font-bold bg-[#FD9426] text-slate-950 uppercase" id="pmn-product-pin-label">Pin #1</span>
+                                            <span class="text-[10px] text-amber-300 font-medium">TEFA Unggulan</span>
+                                        </div>
+                                        <h4 class="text-xs font-bold text-white truncate mt-0.5" id="pmn-product-title">Keripik Tempe Super Renyah Garut</h4>
+                                        <div class="flex items-center gap-2 mt-0.5">
+                                            <span class="text-xs font-extrabold text-[#FD9426]" id="pmn-product-price">Rp 25.000</span>
+                                            <span class="text-[10px] line-through text-slate-400" id="pmn-product-original">Rp 35.000</span>
+                                            <span class="text-[9px] text-emerald-400 font-bold bg-emerald-950/80 px-1 rounded" id="pmn-product-discount">-28%</span>
+                                        </div>
+                                    </div>
+                                    <button type="button" class="px-3 py-1.5 bg-gradient-to-r from-[#FD9426] to-amber-400 text-slate-950 font-extrabold text-[10px] rounded-lg shrink-0 hover:scale-105 active:scale-95 transition-transform shadow-md">
+                                        Beli Sekarang
+                                    </button>
                                 </div>
-                                <span class="px-2.5 py-1 bg-[#FD9426] text-slate-950 font-bold text-[10px] rounded-lg shrink-0">Beli</span>
                             </div>
-                            <!-- Live Chat Stream -->
-                            <div class="space-y-1.5 text-[11px] font-mono-code text-slate-300 max-h-32 overflow-hidden">
-                                <p><span class="text-amber-300 font-bold">@sarah_shop:</span> Kak, bahannya renyah dan halal MUI kan?</p>
-                                <p><span class="text-cyan-300 font-bold">@host_wikrama:</span> Halal 100% kak, sudah izin P-IRT dan BPOM ya!</p>
-                                <p><span class="text-emerald-300 font-bold">@budi_tech:</span> Langsung checkout 3 pack kak, mantap santri garut!</p>
-                                <p><span class="text-[#FD9426] font-bold">System:</span> Pesanan #WK-8902 baru saja dibayar via QRIS!</p>
+
+                            <!-- Bottom: Live Stream Chat Stream & Interaction Bar -->
+                            <div class="z-20 space-y-2 mt-auto">
+                                <!-- Chat Box with Top Fade Overlay -->
+                                <div class="relative">
+                                    <div class="absolute -top-3 left-0 right-0 h-3 bg-gradient-to-b from-[#120500] to-transparent pointer-events-none z-10"></div>
+                                    <div id="pmn-chat-stream" class="space-y-1.5 text-[11px] font-mono-code max-h-24 overflow-hidden flex flex-col justify-end">
+                                        <!-- Messages injected dynamically via JS -->
+                                    </div>
+                                </div>
+
+                                <!-- Action Simulation Bar -->
+                                <div class="pt-2 border-t border-amber-900/50 flex items-center justify-between gap-2">
+                                    <div class="flex-1 px-3 py-1.5 rounded-full bg-slate-900/80 border border-amber-900/60 text-slate-400 text-[10px] flex items-center justify-between">
+                                        <span>Ketik komentar penonton...</span>
+                                        <span class="text-amber-500">💬</span>
+                                    </div>
+                                    <button id="pmn-like-btn" type="button" title="Kirim Love (Tap untuk Like)" class="w-8 h-8 rounded-full bg-rose-600/30 border border-rose-500/50 flex items-center justify-center text-sm hover:scale-110 active:scale-90 transition-transform text-rose-400 hover:bg-rose-600 hover:text-white shrink-0">
+                                        ❤️
+                                    </button>
+                                </div>
                             </div>
-                            <div class="pt-2 border-t border-amber-950 text-[11px] text-amber-300 flex items-center justify-between">
-                                <span>&#10003; TikTok Shop &amp; Shopee Certified</span>
-                                <span class="text-emerald-400 font-bold">Omzet: Rp 12.8M+ / Bulan</span>
-                            </div>
+                        </div>
+
+                        <!-- Footer: Verification & Monthly Volume -->
+                        <div class="px-4 py-2 bg-[#200b00] border-t border-amber-900/60 flex items-center justify-between text-[10px] text-amber-300 font-medium shrink-0">
+                            <span class="flex items-center gap-1.5">
+                                <span class="w-1.5 h-1.5 rounded-full bg-emerald-400 animate-pulse"></span>
+                                TikTok Shop &amp; Shopee Certified
+                            </span>
+                            <span class="text-emerald-400 font-bold font-mono">Omzet TEFA: Rp 12.8M+</span>
                         </div>
                     </div>
                 </div>
@@ -139,77 +196,95 @@
         </div>
     </section>
 
-    <!-- ── 3. PENJELASAN & PROFIL JURUSAN ── -->
-    <section class="py-20 bg-white">
-        <div class="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
-            <div class="grid grid-cols-1 lg:grid-cols-12 gap-12 items-center">
+    <!-- ── 3. PENJELASAN & PROFIL JURUSAN (DARK COMMERCE & GROWTH FUNNEL BACKDROP) ── -->
+    <section class="py-24 bg-[#140600] text-white relative overflow-hidden" style="background-color: #140600;">
+        <!-- Glowing Financial Growth & Global Commerce Pulse Canvas -->
+        <canvas id="pmn-growth-canvas" class="absolute inset-0 w-full h-full pointer-events-auto z-0 opacity-80 sm:opacity-90"></canvas>
+
+        <!-- Multi-layer Darkening Overlays for Contrast & Text Readability -->
+        <div class="absolute inset-0 pointer-events-none z-1" style="background-color: rgba(20, 6, 0, 0.45);"></div>
+        <div class="absolute inset-0 pointer-events-none z-1" style="background: linear-gradient(to right, rgba(20, 6, 0, 0.90) 0%, rgba(20, 6, 0, 0.70) 45%, rgba(20, 6, 0, 0.25) 100%);"></div>
+        <div class="absolute inset-0 pointer-events-none z-1" style="background: radial-gradient(ellipse at center, transparent 35%, rgba(20, 6, 0, 0.85) 100%);"></div>
+
+        <div class="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 relative z-10">
+            <div class="grid grid-cols-1 lg:grid-cols-12 gap-8 lg:gap-12 items-center">
+                <!-- Left: Modular Glassmorphic Text Column -->
                 <div class="lg:col-span-6 space-y-6">
-                    <div class="inline-flex items-center gap-2 px-3 py-1 rounded-full text-xs font-bold text-amber-900 bg-amber-100 border border-amber-200">
-                        <span>Tentang Kompetensi Keahlian</span>
+                    <!-- Text Card with Warm Frosted Glass Style -->
+                    <div class="p-6 sm:p-8 rounded-2xl bg-amber-950/40 backdrop-blur-sm border border-amber-800/50 hover:border-amber-600/50 transition-colors space-y-5">
+                        <div class="inline-flex items-center gap-2 px-3.5 py-1.5 rounded-full text-xs font-bold text-amber-300 bg-amber-950/80 border border-amber-700/60 shadow-sm backdrop-blur-sm">
+                            <span class="w-2 h-2 rounded-full bg-amber-400 animate-pulse"></span>
+                            <span>Tentang Kompetensi Keahlian</span>
+                        </div>
+
+                        <h2 class="text-2xl sm:text-4xl font-extrabold text-white tracking-tight leading-tight" style="text-shadow: 0 2px 14px rgba(0, 0, 0, 0.95), 0 0 20px rgba(0, 0, 0, 0.9);">
+                            Mengapa Memilih Jurusan <br>
+                            <span class="text-[#FD9426] font-extrabold inline-block" style="color: #FD9426; text-shadow: 0 0 22px rgba(253, 148, 38, 0.65), 0 2px 6px rgba(0, 0, 0, 0.9);">Pemasaran Wikrama Garut?</span>
+                        </h2>
+
+                        <div class="space-y-3.5" style="text-shadow: 0 2px 8px rgba(0, 0, 0, 0.95), 0 0 3px rgba(0, 0, 0, 0.9);">
+                            <p class="text-white/95 leading-relaxed text-sm sm:text-base">
+                                Jurusan Pemasaran (Bisnis Digital) di {{ $schoolName }} mendobrak paradigma lama ilmu dagang konvensional. Siswa diajarkan menjadi <strong class="text-white font-bold">digital growth marketer, live shopping creator, dan technopreneur</strong> yang mampu mendulang omzet sejak bangku sekolah.
+                            </p>
+                            <p class="text-amber-100/90 leading-relaxed text-sm sm:text-base">
+                                Santri mempraktikkan langsung strategi <em class="text-amber-300 font-medium not-italic">social commerce, paid traffic (Meta Ads &amp; TikTok Ads), optimasi mesin pencari Google (SEO), product visual copywriting</em>, serta pengelolaan point-of-sale ritel minimarket modern.
+                            </p>
+                        </div>
                     </div>
-                    <h2 class="text-2xl sm:text-4xl font-extrabold text-slate-900 tracking-tight leading-tight">
-                        Mengapa Memilih Jurusan <br>
-                        <span class="text-[#C2410C]">Pemasaran Wikrama Garut?</span>
-                    </h2>
-                    <p class="text-slate-600 leading-relaxed text-sm sm:text-base">
-                        Jurusan Pemasaran (Bisnis Digital) di {{ $schoolName }} mendobrak paradigma lama ilmu dagang konvensional. Siswa diajarkan menjadi <strong>digital growth marketer, live shopping creator, dan technopreneur</strong> yang mampu mendulang omzet sejak bangku sekolah.
-                    </p>
-                    <p class="text-slate-600 leading-relaxed text-sm sm:text-base">
-                        Santri mempraktikkan langsung strategi <em>social commerce, paid traffic (Meta Ads &amp; TikTok Ads), optimasi mesin pencari Google (SEO), product visual copywriting</em>, serta pengelolaan point-of-sale ritel minimarket modern.
-                    </p>
 
-                    <div class="space-y-3 pt-2">
-                        <div class="flex items-start gap-3 p-3.5 rounded-xl bg-amber-50/70 border border-amber-100">
-                            <span class="p-2 rounded-lg bg-[#FD9426] text-white">
-                                <svg class="w-4 h-4" fill="none" stroke="currentColor" stroke-width="2" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" d="M5 13l4 4L19 7"/></svg>
+                    <!-- 3 Feature Boxes with matching dark glass -->
+                    <div class="space-y-3">
+                        <div class="flex items-start gap-3.5 p-4 rounded-2xl bg-amber-950/40 backdrop-blur-sm border border-amber-800/50 hover:border-amber-600/60 hover:bg-amber-900/40 transition-colors">
+                            <span class="p-2 rounded-xl bg-amber-500/20 text-[#FD9426] border border-amber-500/30 flex-shrink-0">
+                                <svg class="w-4 h-4" fill="none" stroke="currentColor" stroke-width="2.5" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" d="M5 13l4 4L19 7"/></svg>
                             </span>
                             <div>
-                                <h4 class="text-sm font-bold text-slate-900">Live Streaming Studio Berstandar Creator Agency</h4>
-                                <p class="text-xs text-slate-600">Dilengkapi lighting profesional, soundcard multi-mic, dan kamera streaming beresolusi tinggi untuk praktik siaran komersial nyata.</p>
+                                <h4 class="text-sm font-bold text-white">Live Streaming Studio Berstandar Creator Agency</h4>
+                                <p class="text-xs text-amber-200/80 leading-relaxed mt-0.5">Dilengkapi lighting profesional, soundcard multi-mic, dan kamera streaming beresolusi tinggi untuk praktik siaran komersial nyata.</p>
                             </div>
                         </div>
 
-                        <div class="flex items-start gap-3 p-3.5 rounded-xl bg-amber-50/70 border border-amber-100">
-                            <span class="p-2 rounded-lg bg-[#FD9426] text-white">
-                                <svg class="w-4 h-4" fill="none" stroke="currentColor" stroke-width="2" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" d="M5 13l4 4L19 7"/></svg>
+                        <div class="flex items-start gap-3.5 p-4 rounded-2xl bg-amber-950/40 backdrop-blur-sm border border-amber-800/50 hover:border-amber-600/60 hover:bg-amber-900/40 transition-colors">
+                            <span class="p-2 rounded-xl bg-amber-500/20 text-[#FD9426] border border-amber-500/30 flex-shrink-0">
+                                <svg class="w-4 h-4" fill="none" stroke="currentColor" stroke-width="2.5" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" d="M5 13l4 4L19 7"/></svg>
                             </span>
                             <div>
-                                <h4 class="text-sm font-bold text-slate-900">Praktik Beriklan Riil dengan Budget Nyata</h4>
-                                <p class="text-xs text-slate-600">Siswa belajar membaca dashboard analitik ROAS (Return on Ad Spend), targeting audiens pixel, dan A/B testing konten iklan.</p>
+                                <h4 class="text-sm font-bold text-white">Praktik Beriklan Riil dengan Budget Nyata</h4>
+                                <p class="text-xs text-amber-200/80 leading-relaxed mt-0.5">Siswa belajar membaca dashboard analitik ROAS (Return on Ad Spend), targeting audiens pixel, dan A/B testing konten iklan.</p>
                             </div>
                         </div>
 
-                        <div class="flex items-start gap-3 p-3.5 rounded-xl bg-amber-50/70 border border-amber-100">
-                            <span class="p-2 rounded-lg bg-[#FD9426] text-white">
-                                <svg class="w-4 h-4" fill="none" stroke="currentColor" stroke-width="2" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" d="M5 13l4 4L19 7"/></svg>
+                        <div class="flex items-start gap-3.5 p-4 rounded-2xl bg-amber-950/40 backdrop-blur-sm border border-amber-800/50 hover:border-amber-600/60 hover:bg-amber-900/40 transition-colors">
+                            <span class="p-2 rounded-xl bg-amber-500/20 text-[#FD9426] border border-amber-500/30 flex-shrink-0">
+                                <svg class="w-4 h-4" fill="none" stroke="currentColor" stroke-width="2.5" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" d="M5 13l4 4L19 7"/></svg>
                             </span>
                             <div>
-                                <h4 class="text-sm font-bold text-slate-900">Inkubasi Bisnis Mandiri Penghasil Omzet</h4>
-                                <p class="text-xs text-slate-600">Santri dibimbing merilis brand produk sendiri, mengurus izin usaha NIB, dan menjual produk ke ribuan pembeli online.</p>
+                                <h4 class="text-sm font-bold text-white">Inkubasi Bisnis Mandiri Penghasil Omzet</h4>
+                                <p class="text-xs text-amber-200/80 leading-relaxed mt-0.5">Santri dibimbing merilis brand produk sendiri, mengurus izin usaha NIB, dan menjual produk ke ribuan pembeli online.</p>
                             </div>
                         </div>
                     </div>
                 </div>
 
-                <!-- Visual Collage Showcase -->
+                <!-- Right: Visual Collage Showcase -->
                 <div class="lg:col-span-6 grid grid-cols-2 gap-4">
                     <div class="space-y-4">
-                        <div class="rounded-2xl overflow-hidden shadow-md border border-slate-200">
+                        <div class="rounded-2xl overflow-hidden shadow-xl border border-amber-500/30 bg-slate-900/60">
                             <img src="{{ asset('images/landing/jurusan-pmn.jpg') }}" alt="Studio Live Streaming PMN Wikrama" class="w-full h-48 sm:h-56 object-cover hover:scale-105 transition-all duration-300">
                         </div>
-                        <div class="p-5 rounded-2xl bg-gradient-to-br from-[#3d1900] to-[#1a0900] text-white space-y-2">
-                            <span class="text-[#FFB07C] text-xs font-bold uppercase tracking-wider">Unit Produksi TEFA</span>
-                            <h4 class="text-base font-extrabold">Wikrama Digital Commerce</h4>
-                            <p class="text-xs text-amber-200/90 leading-relaxed">Agensi live commerce yang mengelola etalase produk UMKM lokal Garut dan produk kreasi santri.</p>
+                        <div class="p-5 rounded-2xl bg-slate-950/90 backdrop-blur-md border border-amber-500/30 text-white space-y-2 shadow-lg">
+                            <span class="text-[#FD9426] text-xs font-bold uppercase tracking-wider">Unit Produksi TEFA</span>
+                            <h4 class="text-base font-extrabold text-white">Wikrama Digital Commerce</h4>
+                            <p class="text-xs text-amber-200/80 leading-relaxed">Agensi live commerce yang mengelola etalase produk UMKM lokal Garut dan produk kreasi santri.</p>
                         </div>
                     </div>
                     <div class="space-y-4 pt-6">
-                        <div class="p-5 rounded-2xl bg-[#FD9426] text-white space-y-2 shadow-lg shadow-orange-500/20">
+                        <div class="p-5 rounded-2xl bg-gradient-to-br from-[#FD9426] to-amber-700 text-white space-y-2 shadow-xl shadow-orange-500/20">
                             <span class="text-amber-100 text-xs font-bold uppercase tracking-wider">Spesialisasi Modern</span>
-                            <h4 class="text-base font-extrabold">Social Ads &amp; Creator Hub</h4>
+                            <h4 class="text-base font-extrabold text-white">Social Ads &amp; Creator Hub</h4>
                             <p class="text-xs text-amber-100 leading-relaxed">Laboratorium riset audiens digital marketing, kampanye influencer, dan optimasi SEO Google.</p>
                         </div>
-                        <div class="rounded-2xl overflow-hidden shadow-md border border-slate-200">
+                        <div class="rounded-2xl overflow-hidden shadow-xl border border-amber-500/30 bg-slate-900/60">
                             <img src="{{ asset('images/landing/kelas-digital.jpg') }}" alt="Suasana Praktik Siswa Pemasaran" class="w-full h-48 sm:h-56 object-cover hover:scale-105 transition-all duration-300">
                         </div>
                     </div>
@@ -739,4 +814,367 @@
             </div>
         </div>
     </section>
+
+    <!-- ── INTERACTIVE LIVE SHOPPING CREATOR STUDIO SCRIPT ── -->
+    <script>
+        document.addEventListener('DOMContentLoaded', () => {
+            // 1. Dynamic Live Viewers & Likes Simulation
+            const viewersEl = document.getElementById('pmn-live-viewers');
+            const likesEl = document.getElementById('pmn-live-likes');
+            const likeBtn = document.getElementById('pmn-like-btn');
+            
+            let viewers = 4820;
+            let likes = 28410;
+
+            setInterval(() => {
+                viewers += Math.floor(Math.random() * 9) - 4;
+                if (viewersEl) viewersEl.textContent = viewers.toLocaleString();
+                likes += Math.floor(Math.random() * 6) + 1;
+                if (likesEl) likesEl.textContent = (likes / 1000).toFixed(1) + 'K';
+            }, 2500);
+
+            // 2. Floating Hearts Canvas Animation (TikTok/Shopee Live Style)
+            const canvas = document.getElementById('pmn-hearts-canvas');
+            if (canvas) {
+                const ctx = canvas.getContext('2d');
+                let width = canvas.width = canvas.offsetWidth;
+                let height = canvas.height = canvas.offsetHeight;
+
+                window.addEventListener('resize', () => {
+                    if (!canvas) return;
+                    width = canvas.width = canvas.offsetWidth;
+                    height = canvas.height = canvas.offsetHeight;
+                });
+
+                const hearts = [];
+                const heartColors = ['#ef4444', '#f97316', '#fdba74', '#ec4899', '#f59e0b', '#06b6d4'];
+
+                const spawnHeart = (burst = false) => {
+                    const originX = width - 35 + (Math.random() * 20 - 10);
+                    const originY = height - 25;
+                    hearts.push({
+                        x: originX,
+                        y: originY,
+                        size: 11 + Math.random() * 7,
+                        color: heartColors[Math.floor(Math.random() * heartColors.length)],
+                        alpha: 1.0,
+                        speedY: burst ? 2.5 + Math.random() * 2 : 1.6 + Math.random() * 1.4,
+                        wobbleSpeed: 0.04 + Math.random() * 0.04,
+                        wobbleAmp: 1.2 + Math.random() * 1.6,
+                        phase: Math.random() * Math.PI * 2
+                    });
+                };
+
+                // Ambient hearts every 450ms
+                setInterval(() => {
+                    if (hearts.length < 24) spawnHeart();
+                }, 450);
+
+                // User click on Love Button
+                if (likeBtn) {
+                    likeBtn.addEventListener('click', () => {
+                        likes += 12;
+                        if (likesEl) likesEl.textContent = (likes / 1000).toFixed(1) + 'K';
+                        for (let i = 0; i < 5; i++) {
+                            setTimeout(() => spawnHeart(true), i * 70);
+                        }
+                    });
+                }
+
+                const drawHeartShape = (context, x, y, size, color, alpha) => {
+                    context.save();
+                    context.globalAlpha = Math.max(0, alpha);
+                    context.fillStyle = color;
+                    context.beginPath();
+                    const topCurveHeight = size * 0.3;
+                    context.moveTo(x, y + topCurveHeight);
+                    context.bezierCurveTo(x, y, x - size / 2, y, x - size / 2, y + topCurveHeight);
+                    context.bezierCurveTo(x - size / 2, y + (size + topCurveHeight) / 2, x, y + size, x, y + size);
+                    context.bezierCurveTo(x, y + size, x + size / 2, y + (size + topCurveHeight) / 2, x + size / 2, y + topCurveHeight);
+                    context.bezierCurveTo(x + size / 2, y, x, y, x, y + topCurveHeight);
+                    context.closePath();
+                    context.fill();
+                    context.restore();
+                };
+
+                let step = 0;
+                const animateHearts = () => {
+                    ctx.clearRect(0, 0, width, height);
+                    step += 0.05;
+
+                    for (let i = hearts.length - 1; i >= 0; i--) {
+                        const h = hearts[i];
+                        h.y -= h.speedY;
+                        h.x += Math.sin(step * h.wobbleSpeed + h.phase) * h.wobbleAmp;
+                        h.alpha -= 0.009;
+
+                        if (h.alpha <= 0 || h.y < -20) {
+                            hearts.splice(i, 1);
+                        } else {
+                            drawHeartShape(ctx, h.x, h.y, h.size, h.color, h.alpha);
+                        }
+                    }
+                    requestAnimationFrame(animateHearts);
+                };
+                requestAnimationFrame(animateHearts);
+            }
+
+            // 3. Realtime Auto-Scrolling Live Comments
+            const chatBox = document.getElementById('pmn-chat-stream');
+            const commentsData = [
+                { user: '@sarah_shop', color: 'text-amber-300', text: 'Kak, bahannya renyah dan halal MUI kan?' },
+                { user: '@host_wikrama', color: 'text-[#FD9426]', text: 'Halal 100% kak, sudah izin P-IRT & BPOM ya!' },
+                { user: '@budi_tech', color: 'text-emerald-300', text: 'Langsung checkout 3 pack kak, mantap!' },
+                { user: '@maya_kuliner', color: 'text-rose-300', text: 'Spill dodol dark chocolatenya dong kak host!' },
+                { user: '@andi_garut', color: 'text-cyan-300', text: 'Kopinya wangi banget pas diseduh pagi2 🔥' },
+                { user: 'System', color: 'text-[#FD9426]', isAlert: true, text: 'Pesanan #WK-8902 baru saja dibayar via QRIS!' },
+                { user: '@host_wikrama', color: 'text-[#FD9426]', text: 'Siap kak Maya, etalase dodol ada promo bundling!' },
+                { user: '@rere_fashion', color: 'text-amber-200', text: 'Klaim voucher diskon 20% di pojok atas ya gaes' },
+                { user: '@dimas_pratama', color: 'text-sky-300', text: 'Pengiriman ke Jakarta berapa hari kak?' },
+                { user: '@host_wikrama', color: 'text-[#FD9426]', text: 'Reguler 1-2 hari sampai kak, kita kirim sore ini!' },
+                { user: 'System', color: 'text-emerald-400', isAlert: true, text: 'User @fitri_99 baru saja checkout Keripik Tempe!' },
+                { user: '@lina_agency', color: 'text-pink-300', text: 'Santri Wikrama live-nya udah setara pro creator 👍' }
+            ];
+
+            let chatIndex = 0;
+            const appendComment = () => {
+                if (!chatBox) return;
+                const c = commentsData[chatIndex % commentsData.length];
+                chatIndex++;
+
+                const p = document.createElement('p');
+                p.className = 'leading-tight transform translate-y-1 opacity-0 transition-all duration-300';
+                if (c.isAlert) {
+                    p.innerHTML = `<span class="${c.color} font-bold">${c.user}:</span> <span class="text-white">${c.text}</span>`;
+                } else {
+                    p.innerHTML = `<span class="${c.color} font-bold">${c.user}:</span> <span class="text-slate-300">${c.text}</span>`;
+                }
+
+                chatBox.appendChild(p);
+
+                // Force reflow for smooth animation
+                requestAnimationFrame(() => {
+                    p.classList.remove('translate-y-1', 'opacity-0');
+                });
+
+                // Maintain max 4 messages in view
+                if (chatBox.children.length > 4) {
+                    chatBox.removeChild(chatBox.firstElementChild);
+                }
+            };
+
+            // Seed initial comments
+            for (let i = 0; i < 3; i++) appendComment();
+            setInterval(appendComment, 2200);
+
+            // 4. Pinned Product Carousel Rotation (Every 6 seconds)
+            const products = [
+                { icon: '🛍️', label: 'Pin #1', title: 'Keripik Tempe Super Renyah Garut', price: 'Rp 25.000', original: 'Rp 35.000', discount: '-28%' },
+                { icon: '☕', label: 'Pin #2', title: 'Kopi Robusta Garut Signature Roast', price: 'Rp 45.000', original: 'Rp 60.000', discount: '-25%' },
+                { icon: '🍫', label: 'Pin #3', title: 'Dodol Premium Dark Chocolate Wikrama', price: 'Rp 32.000', original: 'Rp 42.000', discount: '-24%' }
+            ];
+
+            let productIndex = 0;
+            const pinnedCard = document.getElementById('pmn-pinned-card');
+            const iconEl = document.getElementById('pmn-product-icon');
+            const labelEl = document.getElementById('pmn-product-pin-label');
+            const titleEl = document.getElementById('pmn-product-title');
+            const priceEl = document.getElementById('pmn-product-price');
+            const origEl = document.getElementById('pmn-product-original');
+            const discEl = document.getElementById('pmn-product-discount');
+
+            setInterval(() => {
+                if (!pinnedCard) return;
+                productIndex = (productIndex + 1) % products.length;
+                const prod = products[productIndex];
+
+                pinnedCard.classList.add('opacity-40', 'scale-98');
+                setTimeout(() => {
+                    if (iconEl) iconEl.textContent = prod.icon;
+                    if (labelEl) labelEl.textContent = prod.label;
+                    if (titleEl) titleEl.textContent = prod.title;
+                    if (priceEl) priceEl.textContent = prod.price;
+                    if (origEl) origEl.textContent = prod.original;
+                    if (discEl) discEl.textContent = prod.discount;
+                    pinnedCard.classList.remove('opacity-40', 'scale-98');
+                }, 200);
+            }, 6000);
+
+            // 5. In-Stream Order Toast Notifications
+            const toastEl = document.getElementById('pmn-order-toast');
+            const toastTextEl = document.getElementById('pmn-order-toast-text');
+            const toastMessages = [
+                '@dina_99 baru saja checkout Keripik Tempe!',
+                '⚡ Flash Sale: Sisa stok etalase #1 tinggal 8 pcs!',
+                'User @ahmad_rizky berhasil bayar via QRIS (Rp 50.000)',
+                '🎉 Voucher Gratis Ongkir Se-Indonesia aktif!'
+            ];
+
+            let toastIndex = 0;
+            setInterval(() => {
+                if (!toastEl || !toastTextEl) return;
+                toastTextEl.textContent = toastMessages[toastIndex % toastMessages.length];
+                toastIndex++;
+
+                toastEl.classList.remove('opacity-0', '-translate-y-2');
+                setTimeout(() => {
+                    toastEl.classList.add('opacity-0', '-translate-y-2');
+                }, 2800);
+            }, 5500);
+
+            // 6. Section 3: Financial Growth & Global Commerce Pulse Canvas
+            const growthCanvas = document.getElementById('pmn-growth-canvas');
+            if (growthCanvas) {
+                const gCtx = growthCanvas.getContext('2d');
+                let gWidth = growthCanvas.width = growthCanvas.offsetWidth;
+                let gHeight = growthCanvas.height = growthCanvas.offsetHeight;
+
+                window.addEventListener('resize', () => {
+                    if (!growthCanvas) return;
+                    gWidth = growthCanvas.width = growthCanvas.offsetWidth;
+                    gHeight = growthCanvas.height = growthCanvas.offsetHeight;
+                });
+
+                // Traveling Transaction Sparks
+                const sparks = [];
+                for (let i = 0; i < 16; i++) {
+                    sparks.push({
+                        t: Math.random(),
+                        speed: 0.003 + Math.random() * 0.004,
+                        size: 3 + Math.random() * 2,
+                        color: Math.random() > 0.35 ? '#FD9426' : '#10b981'
+                    });
+                }
+
+                // Growth Curve Function: Cubic Bézier Curve Evaluation
+                const getCurvePoint = (p, time) => {
+                    const startY = gHeight * 0.82;
+                    const cp1Y = gHeight * (0.75 + Math.sin(time + 1) * 0.04);
+                    const cp2Y = gHeight * (0.35 + Math.cos(time) * 0.05);
+                    const endY = gHeight * (0.18 + Math.sin(time * 0.8) * 0.04);
+
+                    const x = p * gWidth;
+                    // Cubic interpolation
+                    const inv = 1 - p;
+                    const y = (inv * inv * inv * startY) +
+                              (3 * inv * inv * p * cp1Y) +
+                              (3 * inv * p * p * cp2Y) +
+                              (p * p * p * endY);
+                    return { x, y };
+                };
+
+                let gTime = 0;
+                const animateGrowth = () => {
+                    gCtx.clearRect(0, 0, gWidth, gHeight);
+                    gTime += 0.015;
+
+                    // 1. Draw Subtle Metric Grid Lines
+                    gCtx.strokeStyle = 'rgba(253, 148, 38, 0.04)';
+                    gCtx.lineWidth = 1;
+                    for (let gy = 0.2; gy <= 0.85; gy += 0.15) {
+                        gCtx.beginPath();
+                        gCtx.moveTo(0, gHeight * gy);
+                        gCtx.lineTo(gWidth, gHeight * gy);
+                        gCtx.stroke();
+                    }
+
+                    // 2. Build Gradient Area Under Curve
+                    gCtx.beginPath();
+                    const start = getCurvePoint(0, gTime);
+                    gCtx.moveTo(start.x, start.y);
+                    for (let p = 0.02; p <= 1; p += 0.02) {
+                        const pt = getCurvePoint(p, gTime);
+                        gCtx.lineTo(pt.x, pt.y);
+                    }
+                    gCtx.lineTo(gWidth, gHeight);
+                    gCtx.lineTo(0, gHeight);
+                    gCtx.closePath();
+
+                    const fillGrad = gCtx.createLinearGradient(0, gHeight * 0.2, 0, gHeight);
+                    fillGrad.addColorStop(0, 'rgba(253, 148, 38, 0.18)');
+                    fillGrad.addColorStop(0.5, 'rgba(253, 148, 38, 0.05)');
+                    fillGrad.addColorStop(1, 'rgba(253, 148, 38, 0.0)');
+                    gCtx.fillStyle = fillGrad;
+                    gCtx.fill();
+
+                    // 3. Draw Glowing Main Growth Line
+                    gCtx.beginPath();
+                    gCtx.moveTo(start.x, start.y);
+                    for (let p = 0.02; p <= 1; p += 0.02) {
+                        const pt = getCurvePoint(p, gTime);
+                        gCtx.lineTo(pt.x, pt.y);
+                    }
+                    const lineGrad = gCtx.createLinearGradient(0, 0, gWidth, 0);
+                    lineGrad.addColorStop(0, '#f97316');
+                    lineGrad.addColorStop(0.6, '#FD9426');
+                    lineGrad.addColorStop(1, '#10b981');
+                    gCtx.strokeStyle = lineGrad;
+                    gCtx.lineWidth = 2.5;
+                    gCtx.shadowBlur = 14;
+                    gCtx.shadowColor = '#FD9426';
+                    gCtx.stroke();
+                    gCtx.shadowBlur = 0; // reset
+
+                    // 4. Animate Traveling Sparks along Curve
+                    for (let i = 0; i < sparks.length; i++) {
+                        const sp = sparks[i];
+                        sp.t += sp.speed;
+                        if (sp.t > 1) sp.t = 0;
+
+                        const pt = getCurvePoint(sp.t, gTime);
+                        const prevPt = getCurvePoint(Math.max(0, sp.t - 0.04), gTime);
+
+                        // Spark tail
+                        gCtx.beginPath();
+                        gCtx.moveTo(prevPt.x, prevPt.y);
+                        gCtx.lineTo(pt.x, pt.y);
+                        gCtx.strokeStyle = sp.color;
+                        gCtx.lineWidth = sp.size;
+                        gCtx.shadowBlur = 10;
+                        gCtx.shadowColor = sp.color;
+                        gCtx.stroke();
+
+                        // Spark head
+                        gCtx.beginPath();
+                        gCtx.arc(pt.x, pt.y, sp.size * 0.9, 0, Math.PI * 2);
+                        gCtx.fillStyle = '#ffffff';
+                        gCtx.fill();
+                        gCtx.shadowBlur = 0;
+                    }
+
+                    // 5. Draw Milestone Target Nodes on Apex (e.g. at 50%, 75%, 95%)
+                    const milestones = [
+                        { p: 0.45, label: 'ROAS 5.2x', color: '#FD9426' },
+                        { p: 0.72, label: 'CTR +8.4%', color: '#f59e0b' },
+                        { p: 0.94, label: 'GMV Rp 12.8M+', color: '#10b981' }
+                    ];
+
+                    milestones.forEach((m) => {
+                        const pt = getCurvePoint(m.p, gTime);
+
+                        // Ripple ring
+                        gCtx.beginPath();
+                        gCtx.arc(pt.x, pt.y, 8 + Math.sin(gTime * 3) * 2, 0, Math.PI * 2);
+                        gCtx.strokeStyle = m.color;
+                        gCtx.lineWidth = 1;
+                        gCtx.stroke();
+
+                        // Core Node
+                        gCtx.beginPath();
+                        gCtx.arc(pt.x, pt.y, 4, 0, Math.PI * 2);
+                        gCtx.fillStyle = '#ffffff';
+                        gCtx.fill();
+
+                        // Floating Badge Tag
+                        gCtx.font = 'bold 10px monospace';
+                        gCtx.fillStyle = m.color;
+                        gCtx.fillText(m.label, pt.x - 24, pt.y - 14);
+                    });
+
+                    requestAnimationFrame(animateGrowth);
+                };
+                requestAnimationFrame(animateGrowth);
+            }
+        });
+    </script>
 </x-layouts.blank>

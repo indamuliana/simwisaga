@@ -100,5 +100,17 @@
                     </div>
                     @endforeach
                 </div>
+
+                <!-- Cheerful Pastel CTA Button Connecting to Public Prestasi Showcase -->
+                <div class="mt-12 sm:mt-16 text-center" data-animate="fade-up">
+                    <a href="{{ url('/prestasi') }}" 
+                       class="inline-flex items-center gap-3 px-8 py-4 rounded-full text-sm sm:text-base font-extrabold text-slate-800 shadow-md hover:shadow-xl transition-all duration-300 hover:scale-105 group"
+                       style="background: linear-gradient(135deg, #FFE0B2 0%, #FFF9C4 50%, #C8E6C9 100%); border: 1.5px solid rgba(253, 148, 38, 0.35);">
+                        <span>🏆 Jelajahi Seluruh Prestasi &amp; Penghargaan Resmi</span>
+                        <svg class="w-5 h-5 text-slate-700 transform group-hover:translate-x-1.5 transition-transform" fill="none" stroke="currentColor" stroke-width="2.5" viewBox="0 0 24 24">
+                            <path stroke-linecap="round" stroke-linejoin="round" d="M14 5l7 7m0 0l-7 7m7-7H3"/>
+                        </svg>
+                    </a>
+                </div>
             </div>
         </section>
