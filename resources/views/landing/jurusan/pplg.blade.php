@@ -71,32 +71,54 @@
                     </div>
                 </div>
 
-                <!-- Code Terminal Visual Mockup -->
+                <!-- Code Terminal Visual Mockup: Live TypeScript Interactive Simulator -->
                 <div class="lg:col-span-5">
-                    <div class="rounded-2xl bg-slate-950 border border-blue-900/60 shadow-2xl overflow-hidden font-mono-code text-xs">
+                    <div class="rounded-3xl bg-slate-950/95 border border-blue-500/35 shadow-2xl overflow-hidden text-white backdrop-blur-xl flex flex-col relative" style="height: 440px; min-height: 440px; max-height: 440px;">
+                        <!-- Terminal Scanline Overlay -->
+                        <div class="absolute inset-0 bg-[linear-gradient(rgba(0,180,255,0.02)_1px,transparent_1px)] [background-size:100%_3px] pointer-events-none z-10"></div>
+
                         <!-- Terminal Header -->
-                        <div class="px-4 py-3 bg-slate-900 border-b border-slate-800 flex items-center justify-between">
+                        <div class="px-4 py-3 bg-[#021329] border-b border-blue-900/60 flex items-center justify-between flex-shrink-0 z-20">
                             <div class="flex items-center gap-2">
-                                <span class="w-3 h-3 rounded-full bg-red-500/80"></span>
-                                <span class="w-3 h-3 rounded-full bg-yellow-500/80"></span>
-                                <span class="w-3 h-3 rounded-full bg-green-500/80"></span>
+                                <span class="w-3 h-3 rounded-full bg-red-500/80 inline-block"></span>
+                                <span class="w-3 h-3 rounded-full bg-yellow-500/80 inline-block"></span>
+                                <span class="w-3 h-3 rounded-full bg-green-500/80 inline-block"></span>
+                                <div class="flex items-center gap-1.5 pl-2">
+                                    <span class="px-1.5 py-0.2 rounded text-[10px] font-bold bg-[#3178C6] text-white font-mono">TS</span>
+                                    <span class="text-[11px] font-mono text-blue-200 font-semibold">PPLG_Student_Console.ts</span>
+                                </div>
                             </div>
-                            <span class="text-[11px] text-slate-400">PPLG_Student_Console.ts</span>
-                            <span class="text-[10px] text-cyan-400 font-bold">Node.js 22</span>
+                            <div class="flex items-center gap-2">
+                                <span class="flex items-center gap-1.5 text-[10px] font-mono text-cyan-400">
+                                    <span class="w-2 h-2 rounded-full bg-cyan-400 animate-ping"></span>
+                                    <span>AUTO CODING</span>
+                                </span>
+                            </div>
                         </div>
-                        <!-- Terminal Body -->
-                        <div class="p-5 space-y-2.5 text-slate-300 leading-relaxed overflow-x-auto">
-                            <p class="text-slate-500">// Program Keahlian Rekayasa Perangkat Lunak</p>
-                            <p><span class="text-purple-400">interface</span> <span class="text-yellow-300">SoftwareEngineer</span> {</p>
-                            <p class="pl-4">name: <span class="text-emerald-300">'Santri Wikrama'</span>;</p>
-                            <p class="pl-4">focus: <span class="text-emerald-300">'Fullstack, Mobile &amp; AI'</span>;</p>
-                            <p class="pl-4">competencies: [<span class="text-cyan-300">'Clean Code'</span>, <span class="text-cyan-300">'Agile'</span>, <span class="text-cyan-300">'DevOps'</span>];</p>
-                            <p class="pl-4">certification: <span class="text-emerald-300">'BNSP &amp; AWS Certified'</span>;</p>
-                            <p class="pl-4">readiness: <span class="text-amber-300">'BMW (Kerja, Kuliah, Bisnis)'</span>;</p>
-                            <p>}</p>
-                            <div class="pt-2 border-t border-slate-800 text-[11px] text-slate-400">
-                                <span class="text-emerald-400">&#10003; Build:</span> 0 errors &bull; Ready for deployment to global industry!
+
+                        <!-- Terminal Code Screen (Fixed Height, Hidden Scrollbar, Auto-Scroll Only) -->
+                        <div id="pplg-code-screen" class="flex-1 p-4 sm:p-5 font-mono text-[11px] leading-relaxed overflow-y-auto select-text relative z-20 [scrollbar-width:none] [-ms-overflow-style:none] [&::-webkit-scrollbar]:hidden" style="scrollbar-width: none; -ms-overflow-style: none;">
+                            <style>
+                                #pplg-code-screen::-webkit-scrollbar { display: none !important; width: 0 !important; height: 0 !important; }
+                            </style>
+                            <!-- Injected completed code lines -->
+                            <div id="pplg-code-lines" class="space-y-0.5"></div>
+
+                            <!-- Currently typing active line -->
+                            <div id="pplg-active-line" class="flex items-baseline font-mono text-[11px] pt-0.5">
+                                <span id="pplg-line-num" class="text-slate-600 select-none w-6 text-right pr-3 flex-shrink-0">01</span>
+                                <span id="pplg-line-content" class="text-white whitespace-pre font-mono"></span>
+                                <span class="w-2 h-3.5 bg-blue-400 inline-block animate-pulse ml-0.5 flex-shrink-0"></span>
                             </div>
+                        </div>
+
+                        <!-- Terminal Footer Telemetry -->
+                        <div class="px-4 py-2 bg-[#021329]/90 border-t border-blue-900/60 flex items-center justify-between text-[10px] font-mono text-slate-400 flex-shrink-0 z-20">
+                            <div class="flex items-center gap-3">
+                                <span>Target: <strong class="text-blue-300">ES2024 / Node.js 22</strong></span>
+                                <span>Framework: <strong class="text-cyan-300">Next.js 15 &bull; AI Agent</strong></span>
+                            </div>
+                            <span id="pplg-compile-badge" class="text-emerald-400 font-bold">&#10003; 0 errors</span>
                         </div>
                     </div>
                 </div>
@@ -128,77 +150,92 @@
         </div>
     </section>
 
-    <!-- ── 3. PENJELASAN & PROFIL JURUSAN ── -->
-    <section class="py-20 bg-white">
-        <div class="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
-            <div class="grid grid-cols-1 lg:grid-cols-12 gap-12 items-center">
-                <div class="lg:col-span-6 space-y-6">
-                    <div class="inline-flex items-center gap-2 px-3 py-1 rounded-full text-xs font-bold text-[#147EFB] bg-blue-100 border border-blue-200">
+    <!-- ── 3. PENJELASAN & PROFIL JURUSAN (NEURAL NETWORK MESH BACKDROP) ── -->
+    <section class="py-24 bg-[#020b18] text-white relative overflow-hidden" style="background-color: #020b18;">
+        <!-- Interactive Deep Learning Synaptic Mesh Canvas -->
+        <canvas id="pplg-neural-canvas" class="absolute inset-0 w-full h-full pointer-events-auto z-0 opacity-40"></canvas>
+
+        <!-- Dark Overlays & Vignette for Crystal Clear Text Readability -->
+        <div class="absolute inset-0 bg-[#020b18]/70 pointer-events-none z-1"></div>
+        <div class="absolute inset-0 bg-gradient-to-r from-[#020b18] via-[#020b18]/85 to-[#020b18]/45 pointer-events-none z-1"></div>
+        <div class="absolute inset-0 bg-[radial-gradient(circle_at_center,transparent_20%,#020b18_95%)] pointer-events-none z-1"></div>
+        <div class="absolute inset-0 bg-[linear-gradient(rgba(0,180,255,0.02)_1px,transparent_1px)] [background-size:100%_4px] pointer-events-none z-1"></div>
+
+        <div class="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 relative z-10">
+            <div class="grid grid-cols-1 lg:grid-cols-12 gap-8 lg:gap-12 items-center">
+                <!-- Left: Protected High-Contrast Glassmorphic Card -->
+                <div class="lg:col-span-6 p-6 sm:p-8 rounded-3xl bg-slate-950/80 backdrop-blur-xl border border-blue-500/25 shadow-2xl space-y-6">
+                    <div class="inline-flex items-center gap-2 px-3.5 py-1.5 rounded-full text-xs font-bold text-cyan-300 bg-blue-950/90 border border-blue-700/60 shadow-sm">
+                        <span class="w-2 h-2 rounded-full bg-cyan-400 animate-pulse"></span>
                         <span>Tentang Kompetensi Keahlian</span>
                     </div>
-                    <h2 class="text-2xl sm:text-4xl font-extrabold text-slate-900 tracking-tight leading-tight">
+
+                    <h2 class="text-2xl sm:text-4xl font-extrabold text-white tracking-tight leading-tight">
                         Mengapa Memilih Jurusan <br>
-                        <span class="text-[#147EFB]">PPLG Wikrama Garut?</span>
+                        <span class="bg-gradient-to-r from-[#5FC9F8] via-blue-300 to-cyan-200 bg-clip-text text-transparent">PPLG Wikrama Garut?</span>
                     </h2>
-                    <p class="text-slate-600 leading-relaxed text-sm sm:text-base">
-                        Program keahlian Pengembangan Perangkat Lunak dan Gim (PPLG) di {{ $schoolName }} dirancang khusus untuk mencetak <strong>software engineer berdaya saing global yang berakhlak mulia</strong>. Kurikulum diselaraskan langsung dengan standar software house dan tech unicorn terkemuka.
-                    </p>
-                    <p class="text-slate-600 leading-relaxed text-sm sm:text-base">
-                        Siswa tidak hanya diajarkan menulis sintaks kode, tetapi dibiasakan dengan <em>clean architecture, microservices, containerization Docker, version control Git</em>, serta kolaborasi tim berbasis Scrum Agile.
-                    </p>
+
+                    <div class="space-y-3 text-slate-200">
+                        <p class="text-blue-100/95 leading-relaxed text-sm sm:text-base">
+                            Program keahlian Pengembangan Perangkat Lunak dan Gim (PPLG) di {{ $schoolName }} dirancang khusus untuk mencetak <strong class="text-white font-bold">software engineer berdaya saing global yang berakhlak mulia</strong>. Kurikulum diselaraskan langsung dengan standar software house dan tech unicorn terkemuka.
+                        </p>
+                        <p class="text-blue-100/85 leading-relaxed text-sm sm:text-base">
+                            Siswa tidak hanya diajarkan menulis sintaks kode, tetapi dibiasakan dengan <em class="text-cyan-300 font-medium not-italic">clean architecture, microservices, containerization Docker, version control Git</em>, serta kolaborasi tim berbasis Scrum Agile.
+                        </p>
+                    </div>
 
                     <div class="space-y-3 pt-2">
-                        <div class="flex items-start gap-3 p-3.5 rounded-xl bg-blue-50/70 border border-blue-100">
-                            <span class="p-2 rounded-lg bg-[#147EFB] text-white">
-                                <svg class="w-4 h-4" fill="none" stroke="currentColor" stroke-width="2" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" d="M5 13l4 4L19 7"/></svg>
+                        <div class="flex items-start gap-3.5 p-4 rounded-2xl bg-blue-950/40 border border-blue-800/60 hover:border-blue-500/50 transition-colors">
+                            <span class="p-2 rounded-xl bg-blue-500/20 text-[#5FC9F8] border border-blue-500/30 flex-shrink-0">
+                                <svg class="w-4 h-4" fill="none" stroke="currentColor" stroke-width="2.5" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" d="M5 13l4 4L19 7"/></svg>
                             </span>
                             <div>
-                                <h4 class="text-sm font-bold text-slate-900">Kurikulum Berbasis Proyek Industri Riil</h4>
-                                <p class="text-xs text-slate-600">Siswa belajar dengan membangun produk aplikasi nyata (SaaS, Portal Edukasi, E-Commerce, dan Indie Game).</p>
+                                <h4 class="text-sm font-bold text-white">Kurikulum Berbasis Proyek Industri Riil</h4>
+                                <p class="text-xs text-blue-200/80 leading-relaxed mt-0.5">Siswa belajar dengan membangun produk aplikasi nyata (SaaS, Portal Edukasi, E-Commerce, dan Indie Game).</p>
                             </div>
                         </div>
 
-                        <div class="flex items-start gap-3 p-3.5 rounded-xl bg-blue-50/70 border border-blue-100">
-                            <span class="p-2 rounded-lg bg-[#147EFB] text-white">
-                                <svg class="w-4 h-4" fill="none" stroke="currentColor" stroke-width="2" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" d="M5 13l4 4L19 7"/></svg>
+                        <div class="flex items-start gap-3.5 p-4 rounded-2xl bg-blue-950/40 border border-blue-800/60 hover:border-blue-500/50 transition-colors">
+                            <span class="p-2 rounded-xl bg-blue-500/20 text-[#5FC9F8] border border-blue-500/30 flex-shrink-0">
+                                <svg class="w-4 h-4" fill="none" stroke="currentColor" stroke-width="2.5" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" d="M5 13l4 4L19 7"/></svg>
                             </span>
                             <div>
-                                <h4 class="text-sm font-bold text-slate-900">Kombinasi Web, Mobile &amp; Artificial Intelligence</h4>
-                                <p class="text-xs text-slate-600">Mengintegrasikan model AI generatif (OpenAI, Gemini API) ke dalam aplikasi modern masa kini.</p>
+                                <h4 class="text-sm font-bold text-white">Kombinasi Web, Mobile &amp; Artificial Intelligence</h4>
+                                <p class="text-xs text-blue-200/80 leading-relaxed mt-0.5">Mengintegrasikan model AI generatif (OpenAI, Gemini API) ke dalam aplikasi modern masa kini.</p>
                             </div>
                         </div>
 
-                        <div class="flex items-start gap-3 p-3.5 rounded-xl bg-blue-50/70 border border-blue-100">
-                            <span class="p-2 rounded-lg bg-[#147EFB] text-white">
-                                <svg class="w-4 h-4" fill="none" stroke="currentColor" stroke-width="2" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" d="M5 13l4 4L19 7"/></svg>
+                        <div class="flex items-start gap-3.5 p-4 rounded-2xl bg-blue-950/40 border border-blue-800/60 hover:border-blue-500/50 transition-colors">
+                            <span class="p-2 rounded-xl bg-blue-500/20 text-[#5FC9F8] border border-blue-500/30 flex-shrink-0">
+                                <svg class="w-4 h-4" fill="none" stroke="currentColor" stroke-width="2.5" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" d="M5 13l4 4L19 7"/></svg>
                             </span>
                             <div>
-                                <h4 class="text-sm font-bold text-slate-900">Magang Industri 6 Bulan &amp; Penyaluran Kerja</h4>
-                                <p class="text-xs text-slate-600">Terhubung dengan jaringan perusahaan teknologi mitra sekolah di Bandung, Jakarta, dan Bogor.</p>
+                                <h4 class="text-sm font-bold text-white">Magang Industri 6 Bulan &amp; Penyaluran Kerja</h4>
+                                <p class="text-xs text-blue-200/80 leading-relaxed mt-0.5">Terhubung dengan jaringan perusahaan teknologi mitra sekolah di Bandung, Jakarta, dan Bogor.</p>
                             </div>
                         </div>
                     </div>
                 </div>
 
-                <!-- Visual Collage Showcase -->
+                <!-- Right: Visual Collage Showcase -->
                 <div class="lg:col-span-6 grid grid-cols-2 gap-4">
                     <div class="space-y-4">
-                        <div class="rounded-2xl overflow-hidden shadow-md border border-slate-200">
+                        <div class="rounded-2xl overflow-hidden shadow-xl border border-blue-500/30 bg-slate-900/60">
                             <img src="{{ asset('images/landing/lab-komputer-pplg.jpg') }}" alt="Praktik Coding PPLG Wikrama" class="w-full h-48 sm:h-56 object-cover hover:scale-105 transition-all duration-300">
                         </div>
-                        <div class="p-5 rounded-2xl bg-gradient-to-br from-[#001D3D] to-[#0A192F] text-white space-y-2">
+                        <div class="p-5 rounded-2xl bg-slate-950/90 backdrop-blur-md border border-blue-500/30 text-white space-y-2 shadow-lg">
                             <span class="text-[#5FC9F8] text-xs font-bold uppercase tracking-wider">Unit Produksi TEFA</span>
                             <h4 class="text-base font-extrabold">Wikrama Software House</h4>
                             <p class="text-xs text-blue-200/90 leading-relaxed">Mengerjakan proyek pesanan klien riil: website perusahaan, aplikasi sekolah, dan sistem database.</p>
                         </div>
                     </div>
                     <div class="space-y-4 pt-6">
-                        <div class="p-5 rounded-2xl bg-[#147EFB] text-white space-y-2 shadow-lg shadow-blue-500/20">
-                            <span class="text-cyan-200 text-xs font-bold uppercase tracking-wider">Spesialisasi Modern</span>
+                        <div class="p-5 rounded-2xl bg-blue-950/90 backdrop-blur-md border border-[#147EFB]/40 text-white space-y-2 shadow-xl shadow-blue-950/40">
+                            <span class="text-cyan-300 text-xs font-bold uppercase tracking-wider">Spesialisasi Modern</span>
                             <h4 class="text-base font-extrabold">AI &amp; Mobile Studio</h4>
-                            <p class="text-xs text-blue-100 leading-relaxed">Pengembangan aplikasi Flutter lintas platform (Android/iOS) dan integrasi LLM AI.</p>
+                            <p class="text-xs text-blue-100/90 leading-relaxed">Pengembangan aplikasi Flutter lintas platform (Android/iOS) dan integrasi LLM AI.</p>
                         </div>
-                        <div class="rounded-2xl overflow-hidden shadow-md border border-slate-200">
+                        <div class="rounded-2xl overflow-hidden shadow-xl border border-blue-500/30 bg-slate-900/60">
                             <img src="{{ asset('images/web/hero-pplg.jpg') }}" alt="Suasana Belajar Siswa PPLG" class="w-full h-48 sm:h-56 object-cover hover:scale-105 transition-all duration-300">
                         </div>
                     </div>
@@ -728,4 +765,327 @@
             </div>
         </div>
     </section>
+
+    <!-- ── 12. CLIENT-SIDE PPLG INTERACTIVE SCRIPTS ── -->
+    <script>
+        document.addEventListener('DOMContentLoaded', () => {
+            // =========================================================================
+            // A. Live TypeScript Coding Simulator (PPLG_Student_Console.ts)
+            // =========================================================================
+            const codeLinesContainer = document.getElementById('pplg-code-lines');
+            const activeLineNum = document.getElementById('pplg-line-num');
+            const activeLineContent = document.getElementById('pplg-line-content');
+            const codeScreen = document.getElementById('pplg-code-screen');
+            const compileBadge = document.getElementById('pplg-compile-badge');
+
+            if (codeLinesContainer && activeLineNum && activeLineContent && codeScreen) {
+                const pplgCodeLines = [
+                    { num: '01', raw: "import { LLMClient, Agent } from '@ai/core';", html: "<span class=\"text-purple-400 font-bold\">import</span> { <span class=\"text-cyan-300\">LLMClient</span>, <span class=\"text-cyan-300\">Agent</span> } <span class=\"text-purple-400 font-bold\">from</span> <span class=\"text-emerald-400\">'@ai/core'</span>;" },
+                    { num: '02', raw: "import { Database } from '@wikrama/framework';", html: "<span class=\"text-purple-400 font-bold\">import</span> { <span class=\"text-cyan-300\">Database</span> } <span class=\"text-purple-400 font-bold\">from</span> <span class=\"text-emerald-400\">'@wikrama/framework'</span>;" },
+                    { num: '03', raw: "", html: "&nbsp;" },
+                    { num: '04', raw: "interface SoftwareEngineer {", html: "<span class=\"text-purple-400 font-bold\">interface</span> <span class=\"text-yellow-300 font-bold\">SoftwareEngineer</span> {" },
+                    { num: '05', raw: "  name: string;", html: "&nbsp;&nbsp;name: <span class=\"text-cyan-300\">string</span>;" },
+                    { num: '06', raw: "  stack: Array<'Next.js' | 'Laravel' | 'Flutter' | 'PyTorch'>;", html: "&nbsp;&nbsp;stack: <span class=\"text-yellow-300\">Array</span>&lt;<span class=\"text-emerald-400\">'Next.js'</span> | <span class=\"text-emerald-400\">'Laravel'</span> | <span class=\"text-emerald-400\">'Flutter'</span> | <span class=\"text-emerald-400\">'PyTorch'</span>&gt;;" },
+                    { num: '07', raw: "  certifications: string[];", html: "&nbsp;&nbsp;certifications: <span class=\"text-cyan-300\">string</span>[];" },
+                    { num: '08', raw: "  deployToCloud(): Promise<boolean>;", html: "&nbsp;&nbsp;<span class=\"text-blue-400 font-semibold\">deployToCloud</span>(): <span class=\"text-yellow-300\">Promise</span>&lt;<span class=\"text-cyan-300\">boolean</span>&gt;;" },
+                    { num: '09', raw: "}", html: "}" },
+                    { num: '10', raw: "", html: "&nbsp;" },
+                    { num: '11', raw: "export class WikramaDeveloper implements SoftwareEngineer {", html: "<span class=\"text-purple-400 font-bold\">export class</span> <span class=\"text-yellow-300 font-bold\">WikramaDeveloper</span> <span class=\"text-purple-400 font-bold\">implements</span> <span class=\"text-cyan-300\">SoftwareEngineer</span> {" },
+                    { num: '12', raw: "  public readonly name = 'Santri PPLG Wikrama';", html: "&nbsp;&nbsp;<span class=\"text-purple-400\">public readonly</span> name = <span class=\"text-emerald-400\">'Santri PPLG Wikrama'</span>;" },
+                    { num: '13', raw: "  public stack = ['Next.js 15', 'Laravel 11', 'Flutter', 'PyTorch'] as const;", html: "&nbsp;&nbsp;<span class=\"text-purple-400\">public</span> stack = [<span class=\"text-emerald-400\">'Next.js 15'</span>, <span class=\"text-emerald-400\">'Laravel 11'</span>, <span class=\"text-emerald-400\">'Flutter'</span>, <span class=\"text-emerald-400\">'PyTorch'</span>] <span class=\"text-purple-400\">as const</span>;" },
+                    { num: '14', raw: "  public certifications = ['BNSP Software Engineer', 'AWS Cloud Practitioner'];", html: "&nbsp;&nbsp;<span class=\"text-purple-400\">public</span> certifications = [<span class=\"text-emerald-400\">'BNSP Software Engineer'</span>, <span class=\"text-emerald-400\">'AWS Cloud Practitioner'</span>];" },
+                    { num: '15', raw: "", html: "&nbsp;" },
+                    { num: '16', raw: "  async deployToCloud(): Promise<boolean> {", html: "&nbsp;&nbsp;<span class=\"text-purple-400 font-bold\">async</span> <span class=\"text-blue-400 font-semibold\">deployToCloud</span>(): <span class=\"text-yellow-300\">Promise</span>&lt;<span class=\"text-cyan-300\">boolean</span>&gt; {" },
+                    { num: '17', raw: "    const agent = new Agent({ model: 'gemini-1.5-pro' });", html: "&nbsp;&nbsp;&nbsp;&nbsp;<span class=\"text-purple-400\">const</span> agent = <span class=\"text-purple-400\">new</span> <span class=\"text-cyan-300\">Agent</span>({ model: <span class=\"text-emerald-400\">'gemini-1.5-pro'</span> });" },
+                    { num: '18', raw: "    await agent.optimizeCodebase({ testCoverage: 98.5 });", html: "&nbsp;&nbsp;&nbsp;&nbsp;<span class=\"text-purple-400\">await</span> agent.<span class=\"text-blue-400\">optimizeCodebase</span>({ testCoverage: <span class=\"text-orange-400\">98.5</span> });" },
+                    { num: '19', raw: "    console.log('🚀 System live: 100% Production Ready!');", html: "&nbsp;&nbsp;&nbsp;&nbsp;<span class=\"text-cyan-300\">console</span>.<span class=\"text-blue-400\">log</span>(<span class=\"text-emerald-400\">'🚀 System live: 100% Production Ready!'</span>);" },
+                    { num: '20', raw: "    return true;", html: "&nbsp;&nbsp;&nbsp;&nbsp;<span class=\"text-purple-400\">return</span> <span class=\"text-orange-400 font-bold\">true</span>;" },
+                    { num: '21', raw: "  }", html: "&nbsp;&nbsp;}" },
+                    { num: '22', raw: "}", html: "}" }
+                ];
+
+                let lineIndex = 0;
+                let charIndex = 0;
+
+                const typeCode = () => {
+                    if (lineIndex >= pplgCodeLines.length) {
+                        // Finished typing whole code block
+                        if (compileBadge) {
+                            compileBadge.innerHTML = '&#10003; 0 errors &bull; Built in 380ms';
+                            compileBadge.className = 'text-emerald-400 font-bold animate-pulse';
+                        }
+
+                        const buildNotice = document.createElement('div');
+                        buildNotice.className = 'mt-3 pt-2 border-t border-blue-900/60 text-emerald-400 font-bold text-[11px] flex items-center gap-1.5';
+                        buildNotice.innerHTML = '&#10003; [BUILD SUCCESS] Next.js 15 &amp; AI Microservices compiled successfully.';
+                        codeLinesContainer.appendChild(buildNotice);
+
+                        const loopNotice = document.createElement('div');
+                        loopNotice.className = 'text-slate-500 text-[10px] pb-1';
+                        loopNotice.innerText = 'Restarting live coding cycle in 4 seconds...';
+                        codeLinesContainer.appendChild(loopNotice);
+
+                        codeScreen.scrollTop = codeScreen.scrollHeight;
+
+                        setTimeout(() => {
+                            codeLinesContainer.innerHTML = '';
+                            lineIndex = 0;
+                            charIndex = 0;
+                            activeLineContent.innerText = '';
+                            if (compileBadge) {
+                                compileBadge.innerHTML = '&#10003; 0 errors';
+                                compileBadge.className = 'text-emerald-400 font-bold';
+                            }
+                            typeCode();
+                        }, 4000);
+                        return;
+                    }
+
+                    const curLine = pplgCodeLines[lineIndex];
+                    activeLineNum.innerText = curLine.num;
+
+                    // Handle empty lines immediately
+                    if (curLine.raw.length === 0) {
+                        const committedLine = document.createElement('div');
+                        committedLine.className = 'flex items-baseline text-[11px] leading-relaxed';
+                        committedLine.innerHTML = `<span class="text-slate-600 select-none w-6 text-right pr-3 flex-shrink-0">${curLine.num}</span><span class="whitespace-pre">&nbsp;</span>`;
+                        codeLinesContainer.appendChild(committedLine);
+
+                        activeLineContent.innerText = '';
+                        lineIndex++;
+                        charIndex = 0;
+                        codeScreen.scrollTop = codeScreen.scrollHeight;
+                        setTimeout(typeCode, 40);
+                        return;
+                    }
+
+                    // Fast character typing (~14ms per character)
+                    if (charIndex < curLine.raw.length) {
+                        activeLineContent.innerText += curLine.raw.charAt(charIndex);
+                        charIndex++;
+                        codeScreen.scrollTop = codeScreen.scrollHeight;
+                        setTimeout(typeCode, 14);
+                    } else {
+                        // Line finished: commit syntax-highlighted HTML
+                        const committedLine = document.createElement('div');
+                        committedLine.className = 'flex items-baseline text-[11px] leading-relaxed';
+                        committedLine.innerHTML = `<span class="text-slate-600 select-none w-6 text-right pr-3 flex-shrink-0">${curLine.num}</span><span class="whitespace-pre font-mono">${curLine.html}</span>`;
+                        codeLinesContainer.appendChild(committedLine);
+
+                        activeLineContent.innerText = '';
+                        charIndex = 0;
+                        lineIndex++;
+                        codeScreen.scrollTop = codeScreen.scrollHeight;
+                        setTimeout(typeCode, 50);
+                    }
+                };
+
+                setTimeout(typeCode, 600);
+            }
+
+            // =========================================================================
+            // B. Deep Learning Synaptic Mesh Canvas (Section 3: Tentang Kompetensi)
+            // =========================================================================
+            const neuralCanvas = document.getElementById('pplg-neural-canvas');
+            if (neuralCanvas) {
+                const ctx = neuralCanvas.getContext('2d');
+                let width = 0;
+                let height = 0;
+                let layers = [];
+                let synapses = [];
+                let pulses = [];
+                let mouse = { x: null, y: null, radius: 140 };
+
+                const resizeNeural = () => {
+                    const rect = neuralCanvas.parentElement.getBoundingClientRect();
+                    width = neuralCanvas.width = rect.width;
+                    height = neuralCanvas.height = rect.height;
+                    initNetwork();
+                };
+
+                const initNetwork = () => {
+                    layers = [];
+                    synapses = [];
+                    pulses = [];
+
+                    // 5-Layer Deep Neural Architecture: Input (5) -> Hidden 1 (7) -> Hidden 2 (8) -> Hidden 3 (6) -> Output (4)
+                    const layerCounts = [5, 7, 8, 6, 4];
+                    const numLayers = layerCounts.length;
+
+                    for (let l = 0; l < numLayers; l++) {
+                        const count = layerCounts[l];
+                        const layerNodes = [];
+                        const x = (width * 0.08) + l * (width * 0.84 / (numLayers - 1));
+
+                        for (let n = 0; n < count; n++) {
+                            const y = (height * 0.12) + n * (height * 0.76 / Math.max(count - 1, 1));
+                            layerNodes.push({
+                                x: x,
+                                y: y,
+                                baseY: y,
+                                radius: l === 0 || l === numLayers - 1 ? 4.5 : 3.8,
+                                activation: Math.random() * 0.4,
+                                phase: Math.random() * Math.PI * 2,
+                                color: l === 0 ? '#5FC9F8' : (l === numLayers - 1 ? '#10b981' : '#38bdf8')
+                            });
+                        }
+                        layers.push(layerNodes);
+                    }
+
+                    // Build Synaptic Connections between adjacent layers
+                    for (let l = 0; l < numLayers - 1; l++) {
+                        const currLayer = layers[l];
+                        const nextLayer = layers[l + 1];
+
+                        for (let i = 0; i < currLayer.length; i++) {
+                            for (let j = 0; j < nextLayer.length; j++) {
+                                synapses.push({
+                                    fromLayer: l,
+                                    fromIdx: i,
+                                    toLayer: l + 1,
+                                    toIdx: j,
+                                    weight: 0.15 + Math.random() * 0.25
+                                });
+                            }
+                        }
+                    }
+
+                    // Spawn initial electrical pulses
+                    for (let p = 0; p < 16; p++) {
+                        spawnPulse();
+                    }
+                };
+
+                const spawnPulse = () => {
+                    if (layers.length < 2) return;
+                    const randomSynapse = synapses[Math.floor(Math.random() * synapses.length)];
+                    if (randomSynapse) {
+                        pulses.push({
+                            synapse: randomSynapse,
+                            progress: Math.random(),
+                            speed: 0.012 + Math.random() * 0.02,
+                            size: 2.2 + Math.random() * 1.5,
+                            color: Math.random() > 0.3 ? '#00f0ff' : '#818cf8'
+                        });
+                    }
+                };
+
+                // Track Mouse Movement over Section 3
+                const sectionContainer = neuralCanvas.parentElement;
+                if (sectionContainer) {
+                    sectionContainer.addEventListener('mousemove', (e) => {
+                        const rect = neuralCanvas.getBoundingClientRect();
+                        mouse.x = e.clientX - rect.left;
+                        mouse.y = e.clientY - rect.top;
+                    });
+                    sectionContainer.addEventListener('mouseleave', () => {
+                        mouse.x = null;
+                        mouse.y = null;
+                    });
+                }
+
+                window.addEventListener('resize', resizeNeural);
+                resizeNeural();
+
+                let time = 0;
+
+                const animateNeural = () => {
+                    ctx.clearRect(0, 0, width, height);
+                    time += 0.02;
+
+                    // 1. Draw Synapses (Axon connections)
+                    for (let s = 0; s < synapses.length; s++) {
+                        const syn = synapses[s];
+                        const n1 = layers[syn.fromLayer][syn.fromIdx];
+                        const n2 = layers[syn.toLayer][syn.toIdx];
+
+                        if (n1 && n2) {
+                            ctx.beginPath();
+                            ctx.moveTo(n1.x, n1.y);
+                            ctx.lineTo(n2.x, n2.y);
+                            const alpha = (syn.weight + (n1.activation + n2.activation) * 0.3) * 0.35;
+                            ctx.strokeStyle = `rgba(0, 190, 255, ${Math.min(alpha, 0.45)})`;
+                            ctx.lineWidth = 0.8;
+                            ctx.stroke();
+                        }
+                    }
+
+                    // 2. Animate Action Potentials (Traveling Data Sparks)
+                    for (let p = pulses.length - 1; p >= 0; p--) {
+                        const pulse = pulses[p];
+                        pulse.progress += pulse.speed;
+
+                        const syn = pulse.synapse;
+                        const n1 = layers[syn.fromLayer][syn.fromIdx];
+                        const n2 = layers[syn.toLayer][syn.toIdx];
+
+                        if (n1 && n2) {
+                            const px = n1.x + (n2.x - n1.x) * pulse.progress;
+                            const py = n1.y + (n2.y - n1.y) * pulse.progress;
+
+                            ctx.save();
+                            ctx.shadowBlur = 8;
+                            ctx.shadowColor = pulse.color;
+                            ctx.beginPath();
+                            ctx.arc(px, py, pulse.size, 0, Math.PI * 2);
+                            ctx.fillStyle = '#ffffff';
+                            ctx.fill();
+                            ctx.restore();
+
+                            // Pulse reached destination neuron
+                            if (pulse.progress >= 1) {
+                                n2.activation = 1.0; // Flash destination neuron
+                                pulses.splice(p, 1);
+                                spawnPulse(); // Continuous signal loop
+                            }
+                        }
+                    }
+
+                    // 3. Draw Neurons
+                    for (let l = 0; l < layers.length; l++) {
+                        const layer = layers[l];
+                        for (let n = 0; n < layer.length; n++) {
+                            const node = layer[n];
+
+                            // Subtle floating oscillation
+                            node.y = node.baseY + Math.sin(time + node.phase) * 6;
+
+                            // Decay activation
+                            node.activation = Math.max(0.15, node.activation * 0.94);
+
+                            // Mouse proximity charge
+                            if (mouse.x !== null && mouse.y !== null) {
+                                const mdx = node.x - mouse.x;
+                                const mdy = node.y - mouse.y;
+                                const mdist = Math.sqrt(mdx * mdx + mdy * mdy);
+                                if (mdist < mouse.radius) {
+                                    node.activation = Math.min(1.0, node.activation + 0.15);
+                                }
+                            }
+
+                            // Outer neuron glow
+                            ctx.save();
+                            ctx.shadowBlur = 10 * node.activation;
+                            ctx.shadowColor = node.color;
+                            ctx.beginPath();
+                            ctx.arc(node.x, node.y, node.radius + node.activation * 2.5, 0, Math.PI * 2);
+                            ctx.fillStyle = node.color;
+                            ctx.fill();
+
+                            // Inner core
+                            ctx.beginPath();
+                            ctx.arc(node.x, node.y, node.radius * 0.5, 0, Math.PI * 2);
+                            ctx.fillStyle = '#ffffff';
+                            ctx.fill();
+                            ctx.restore();
+                        }
+                    }
+
+                    requestAnimationFrame(animateNeural);
+                };
+
+                requestAnimationFrame(animateNeural);
+            }
+        });
+    </script>
 </x-layouts.blank>
