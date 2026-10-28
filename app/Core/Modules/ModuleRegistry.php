@@ -3,6 +3,7 @@
 namespace App\Core\Modules;
 
 use Illuminate\Support\Collection;
+use Illuminate\Support\Facades\Cache;
 use Illuminate\Support\Facades\File;
 
 /**
@@ -32,6 +33,13 @@ class ModuleRegistry
             return $this->modules;
         }
 
+        if (!app()->isLocal()) {
+            $cached = Cache::get('siraga_modules_manifest');
+            if (is_array($cached)) {
+                return $this->modules = collect($cached);
+            }
+        }
+
         $modules = collect();
 
         if (File::isDirectory($this->modulesPath)) {
@@ -50,7 +58,13 @@ class ModuleRegistry
             }
         }
 
-        return $this->modules = $modules->sortBy('order');
+        $sorted = $modules->sortBy('order');
+
+        if (!app()->isLocal()) {
+            Cache::forever('siraga_modules_manifest', $sorted->all());
+        }
+
+        return $this->modules = $sorted;
     }
 
     /** Kelas komponen Livewire yang ditampilkan di topbar (dari manifest `topbar`). */

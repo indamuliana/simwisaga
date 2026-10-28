@@ -4,7 +4,7 @@ use App\Modules\AiAssistant\Controllers\AiAssistantController;
 use App\Modules\AiAssistant\Controllers\ChatApiController;
 use Illuminate\Support\Facades\Route;
 
-Route::prefix('ai-assistant')->name('ai-assistant.')->group(function () {
+Route::prefix('ai-assistant')->name('ai-assistant.')->middleware(['role_or_permission:Super Admin|Admin|Kurikulum|Guru'])->group(function () {
     // Chat Routes
     Route::get('/', [AiAssistantController::class, 'chatView'])->name('chat.view');
     Route::post('/chat', [ChatApiController::class, 'chat'])->middleware('throttle:20,1')->name('chat.api');

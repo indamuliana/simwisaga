@@ -2,6 +2,7 @@
 
 namespace App\Modules\Sarpras\Livewire;
 
+use App\Core\Concerns\GuardsPermission;
 use App\Modules\Sarpras\Models\Aset;
 use App\Modules\Sarpras\Models\Kategori;
 use App\Modules\Sarpras\Models\Ruangan;
@@ -16,7 +17,7 @@ use Livewire\WithPagination;
 #[Title('Data Aset Tetap')]
 class AsetIndex extends Component
 {
-    use WithPagination;
+    use WithPagination, GuardsPermission;
 
     // Filters
     public string $search = '';
@@ -172,6 +173,8 @@ class AsetIndex extends Component
 
     public function save()
     {
+        $this->guard($this->isEdit ? 'sarpras.aset.edit' : 'sarpras.aset.tambah');
+
         $data = $this->validate();
 
         if ($this->isEdit && $this->asetId) {
@@ -240,6 +243,8 @@ class AsetIndex extends Component
 
     public function delete(int $id)
     {
+        $this->guard('sarpras.aset.hapus');
+
         $aset = Aset::findOrFail($id);
         if ($aset->status === 'Dipinjam') {
             session()->flash('error', "Aset '{$aset->kode_aset}' ({$aset->nama_barang}) sedang dalam status Dipinjam dan tidak dapat dihapus.");

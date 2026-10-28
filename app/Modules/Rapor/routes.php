@@ -11,9 +11,8 @@ use App\Modules\Sistem\Models\PeriodeRapor;
 use App\Modules\Rapor\Services\RaporScoreService;
 use Barryvdh\DomPDF\Facade\Pdf;
 
-Route::middleware(['web', 'auth'])->group(function () {
-    // 1. Menu Utama & Submodul Rapor
-    Route::redirect('/rapor', '/rapor/wikrama')->name('rapor.index');
+// 1. Menu Utama & Submodul Rapor
+Route::redirect('/rapor', '/rapor/wikrama')->name('rapor.index');
     Route::get('/rapor/wikrama', RaporWikramaIndex::class)->name('rapor.wikrama');
     Route::get('/rapor/pemerintah', RaporPemerintahIndex::class)->name('rapor.pemerintah');
     Route::get('/rapor/catatan-wali-kelas', CatatanWaliKelasIndex::class)->name('rapor.catatan-wali-kelas');
@@ -250,4 +249,3 @@ Route::middleware(['web', 'auth'])->group(function () {
         $pdf = Pdf::loadView('rapor::pdf.identitas', compact('siswa'))->setPaper('A4', 'portrait');
         return $pdf->stream('Rapor_Identitas_' . $siswa->nisn . '.pdf');
     })->whereNumber('siswa_id')->name('rapor.cetak.identitas');
-});

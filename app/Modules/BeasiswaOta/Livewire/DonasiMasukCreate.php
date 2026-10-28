@@ -480,6 +480,8 @@ class DonasiMasukCreate extends Component
 
     public function save()
     {
+        $this->guard('ota.donasi.tambah');
+
         if ($this->modeDonasi === 'perorangan') {
             return $this->savePerorangan();
         } else {

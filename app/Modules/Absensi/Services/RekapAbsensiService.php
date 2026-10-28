@@ -28,12 +28,28 @@ class RekapAbsensiService
             return 0;
         }
 
+        // Ambil data hari libur KBM dari Kalender Pendidikan
+        $liburList = collect();
+        if (class_exists(\App\Modules\KalenderPendidikan\Models\KalenderLibur::class)) {
+            $liburList = \App\Modules\KalenderPendidikan\Models\KalenderLibur::where('is_kbm_libur', true)
+                ->where('tgl_mulai', '<=', $end->toDateString())
+                ->where('tgl_selesai', '>=', $start->toDateString())
+                ->get();
+        }
+
         $effectiveDays = 0;
         $current = $start->copy();
 
         while ($current->lte($end)) {
             if (!$current->isWeekend()) {
-                $effectiveDays++;
+                $curStr = $current->toDateString();
+                $isHoliday = $liburList->contains(function ($l) use ($curStr) {
+                    return $curStr >= $l->tgl_mulai->toDateString() && $curStr <= $l->tgl_selesai->toDateString();
+                });
+
+                if (!$isHoliday) {
+                    $effectiveDays++;
+                }
             }
             $current->addDay();
         }

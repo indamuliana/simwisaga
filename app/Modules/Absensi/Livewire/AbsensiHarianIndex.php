@@ -2,6 +2,7 @@
 
 namespace App\Modules\Absensi\Livewire;
 
+use App\Core\Concerns\GuardsPermission;
 use App\Enums\StatusAbsensi;
 use App\Modules\Absensi\Models\AbsensiHarian;
 use App\Modules\Akademik\Models\Rayon;
@@ -14,6 +15,8 @@ use Livewire\Component;
 
 class AbsensiHarianIndex extends Component
 {
+    use GuardsPermission;
+
     public $tanggal;
     public $rombel_id;
     public $gender = '';
@@ -158,6 +161,8 @@ class AbsensiHarianIndex extends Component
 
     public function save()
     {
+        $this->guard('absensi.harian.input');
+
         $this->validate([
             'tanggal' => 'required|date',
             'rombel_id' => 'required|exists:rombels,id',

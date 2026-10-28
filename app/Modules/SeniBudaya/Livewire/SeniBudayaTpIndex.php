@@ -2,6 +2,7 @@
 
 namespace App\Modules\SeniBudaya\Livewire;
 
+use App\Core\Concerns\GuardsPermission;
 use Livewire\Component;
 use Livewire\Attributes\Layout;
 use Livewire\Attributes\Title;
@@ -13,6 +14,7 @@ use App\Modules\Akademik\Models\Semester;
 #[Title('Tujuan Pembelajaran Seni Budaya')]
 class SeniBudayaTpIndex extends Component
 {
+    use GuardsPermission;
     public ?int $selectedCabangId = null;
     public ?int $selectedSemesterId = null;
     public string $filterTargetAsesmen = 'all';
@@ -97,6 +99,8 @@ class SeniBudayaTpIndex extends Component
 
     public function save()
     {
+        $this->guard($this->editingId ? 'seni_budaya.tp.edit' : 'seni_budaya.tp.tambah');
+
         $validated = $this->validate();
 
         if ($this->editingId) {
@@ -127,6 +131,8 @@ class SeniBudayaTpIndex extends Component
 
     public function delete(int $id)
     {
+        $this->guard('seni_budaya.tp.hapus');
+
         $tp = SeniBudayaTp::findOrFail($id);
         $code = $tp->kode;
         $tp->delete();

@@ -8,6 +8,7 @@ use Illuminate\Support\Collection;
 class PenilaianScoreCalculator
 {
     protected ?PengaturanPenilaian $settings = null;
+    protected array $sortedIntervalsCache = [];
 
     public function __construct(?PengaturanPenilaian $settings = null)
     {
@@ -20,6 +21,17 @@ class PenilaianScoreCalculator
             $this->settings = PengaturanPenilaian::getActive($tahunAjaranId);
         }
         return $this->settings;
+    }
+
+    protected function getSortedIntervals(PengaturanPenilaian $cfg): array
+    {
+        $id = $cfg->id ?? 'default';
+        if (!isset($this->sortedIntervalsCache[$id])) {
+            $intervals = $cfg->predikat_intervals ?: PengaturanPenilaian::defaultIntervals();
+            usort($intervals, fn($a, $b) => ($b['min'] ?? 0) <=> ($a['min'] ?? 0));
+            $this->sortedIntervalsCache[$id] = $intervals;
+        }
+        return $this->sortedIntervalsCache[$id];
     }
 
     /**
@@ -36,10 +48,7 @@ class PenilaianScoreCalculator
         }
 
         $cfg = $settings ?: $this->getSettings();
-        $intervals = $cfg->predikat_intervals ?: PengaturanPenilaian::defaultIntervals();
-
-        // Sort descending by min
-        usort($intervals, fn($a, $b) => ($b['min'] ?? 0) <=> ($a['min'] ?? 0));
+        $intervals = $this->getSortedIntervals($cfg);
 
         foreach ($intervals as $interval) {
             $min = (float) ($interval['min'] ?? 0);

@@ -2,6 +2,7 @@
 
 namespace App\Modules\Sarpras\Livewire;
 
+use App\Core\Concerns\GuardsPermission;
 use App\Modules\Sarpras\Models\SumberDana;
 use Livewire\Attributes\Layout;
 use Livewire\Attributes\Title;
@@ -12,7 +13,7 @@ use Livewire\WithPagination;
 #[Title('Master Sumber Dana Aset')]
 class SumberDanaIndex extends Component
 {
-    use WithPagination;
+    use WithPagination, GuardsPermission;
 
     public string $search = '';
 
@@ -69,6 +70,8 @@ class SumberDanaIndex extends Component
 
     public function save()
     {
+        $this->guard($this->isEdit ? 'sarpras.sumber_dana.edit' : 'sarpras.sumber_dana.tambah');
+
         $this->kode = strtoupper(trim($this->kode));
         $data = $this->validate();
 
@@ -86,6 +89,8 @@ class SumberDanaIndex extends Component
 
     public function delete(int $id)
     {
+        $this->guard('sarpras.sumber_dana.hapus');
+
         $s = SumberDana::withCount('asets')->findOrFail($id);
         if ($s->asets_count > 0) {
             session()->flash('error', "Sumber Dana '{$s->nama}' tidak dapat dihapus karena masih terkait dengan {$s->asets_count} aset.");

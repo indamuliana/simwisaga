@@ -12,12 +12,13 @@ use Illuminate\Support\Facades\Storage;
 use Livewire\Attributes\Layout;
 use Livewire\Attributes\Url;
 use Livewire\Component;
+use App\Core\Concerns\GuardsPermission;
 use Livewire\WithFileUploads;
 use Livewire\WithPagination;
 
 class PrestasiGuruIndex extends Component
 {
-    use WithPagination, WithFileUploads;
+    use WithPagination, WithFileUploads, GuardsPermission;
 
     #[Url]
     public string $search = '';
@@ -182,6 +183,8 @@ class PrestasiGuruIndex extends Component
 
     public function save()
     {
+        $this->guard($this->prestasiGuruId ? 'prestasi.guru.edit' : 'prestasi.guru.tambah');
+
         // Jika mode individu dan memilih single dropdown
         if ($this->tipePeserta === 'individu' && $this->quickSinglePegawaiId && empty($this->selectedPegawaiIds)) {
             $this->updatedQuickSinglePegawaiId($this->quickSinglePegawaiId);
@@ -257,6 +260,8 @@ class PrestasiGuruIndex extends Component
 
     public function delete(int $id)
     {
+        $this->guard('prestasi.guru.hapus');
+
         $prestasi = PrestasiGuru::findOrFail($id);
         if ($prestasi->sertifikat_file_path) {
             Storage::disk('public')->delete($prestasi->sertifikat_file_path);

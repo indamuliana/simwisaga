@@ -2,6 +2,7 @@
 
 namespace App\Modules\SeniBudaya\Livewire;
 
+use App\Core\Concerns\GuardsPermission;
 use Livewire\Component;
 use Livewire\Attributes\Layout;
 use Livewire\Attributes\Title;
@@ -12,6 +13,7 @@ use App\Modules\Kepegawaian\Models\Pegawai;
 #[Title('Pengaturan Cabang Seni Budaya')]
 class SeniBudayaCabangIndex extends Component
 {
+    use GuardsPermission;
     public $cabangs;
     public $pegawais = [];
 
@@ -100,6 +102,8 @@ class SeniBudayaCabangIndex extends Component
 
     public function save()
     {
+        $this->guard($this->editingId ? 'seni_budaya.cabang.edit' : 'seni_budaya.cabang.tambah');
+
         $validated = $this->validate();
 
         if ($this->editingId) {
@@ -117,6 +121,8 @@ class SeniBudayaCabangIndex extends Component
 
     public function toggleActive(int $id)
     {
+        $this->guard('seni_budaya.cabang.edit');
+
         $cabang = SeniBudaya::findOrFail($id);
         $cabang->update(['is_active' => !$cabang->is_active]);
         $this->loadData();
@@ -125,6 +131,8 @@ class SeniBudayaCabangIndex extends Component
 
     public function delete(int $id)
     {
+        $this->guard('seni_budaya.cabang.hapus');
+
         $cabang = SeniBudaya::withCount(['anggotas', 'tps'])->findOrFail($id);
 
         if ($cabang->anggotas_count > 0) {

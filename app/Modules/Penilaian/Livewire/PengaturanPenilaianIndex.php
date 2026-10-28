@@ -45,6 +45,8 @@ class PengaturanPenilaianIndex extends Component
 
     public function resetToDefault()
     {
+        abort_unless(auth()->user()->hasAnyRole(['Super Admin', 'Admin', 'Kepala Sekolah', 'Waka Kurikulum']), 403, 'Akses terbatas.');
+
         $this->bobot_tp = 50;
         $this->bobot_sts = 30;
         $this->bobot_nh = 20;
@@ -64,6 +66,8 @@ class PengaturanPenilaianIndex extends Component
 
     public function save()
     {
+        abort_unless(auth()->user()->hasAnyRole(['Super Admin', 'Admin', 'Kepala Sekolah', 'Waka Kurikulum']), 403, 'Akses terbatas.');
+
         $this->validate([
             'bobot_tp' => 'required|integer|min:0|max:100',
             'bobot_sts' => 'required|integer|min:0|max:100',

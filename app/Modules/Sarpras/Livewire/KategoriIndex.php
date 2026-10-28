@@ -2,6 +2,7 @@
 
 namespace App\Modules\Sarpras\Livewire;
 
+use App\Core\Concerns\GuardsPermission;
 use App\Modules\Sarpras\Models\Kategori;
 use Livewire\Attributes\Layout;
 use Livewire\Attributes\Title;
@@ -11,6 +12,7 @@ use Livewire\Component;
 #[Title('Master Kategori Aset')]
 class KategoriIndex extends Component
 {
+    use GuardsPermission;
     public string $search = '';
 
     public bool $showModal = false;
@@ -61,6 +63,8 @@ class KategoriIndex extends Component
 
     public function save()
     {
+        $this->guard($this->isEdit ? 'sarpras.kategori.edit' : 'sarpras.kategori.tambah');
+
         $data = $this->validate();
 
         if ($this->isEdit && $this->kategoriId) {
@@ -77,6 +81,8 @@ class KategoriIndex extends Component
 
     public function delete(int $id)
     {
+        $this->guard('sarpras.kategori.hapus');
+
         $k = Kategori::withCount(['asets', 'bhps'])->findOrFail($id);
         $totalItems = $k->asets_count + $k->bhps_count;
         if ($totalItems > 0) {

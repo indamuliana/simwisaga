@@ -2,6 +2,7 @@
 
 namespace App\Modules\Sarpras\Livewire;
 
+use App\Core\Concerns\GuardsPermission;
 use App\Modules\Sarpras\Models\Bhp;
 use App\Modules\Sarpras\Models\BhpMutasi;
 use App\Modules\Sarpras\Models\Kategori;
@@ -17,7 +18,7 @@ use Livewire\WithPagination;
 #[Title('Bahan Habis Pakai (BHP)')]
 class BhpIndex extends Component
 {
-    use WithPagination;
+    use WithPagination, GuardsPermission;
 
     public string $search = '';
     public string $filterKategori = '';
@@ -90,6 +91,8 @@ class BhpIndex extends Component
 
     public function save()
     {
+        $this->guard($this->isEdit ? 'sarpras.bhp.edit' : 'sarpras.bhp.tambah');
+
         $this->validate([
             'kode_barang' => 'required|string|max:50|unique:sarpras_bhps,kode_barang,' . ($this->bhpId ?? 'NULL') . ',id',
             'nama_barang' => 'required|string|max:150',
@@ -142,6 +145,8 @@ class BhpIndex extends Component
 
     public function saveMutasi()
     {
+        $this->guard('sarpras.bhp.edit');
+
         $this->validate([
             'mutasiJenis' => 'required|in:masuk,keluar',
             'mutasiTanggal' => 'required|date',
@@ -200,6 +205,8 @@ class BhpIndex extends Component
 
     public function delete(int $id)
     {
+        $this->guard('sarpras.bhp.hapus');
+
         $b = Bhp::findOrFail($id);
         $nama = $b->nama_barang;
         $b->delete();

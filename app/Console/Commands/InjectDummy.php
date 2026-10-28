@@ -31,7 +31,7 @@ class InjectDummy extends Command
                 'name' => 'Budi Santoso, S.Kom',
                 'password' => Hash::make('password'),
                 'is_active' => true,
-                'force_password_change' => false,
+                'must_change_password' => false,
             ]
         );
         $user->assignRole('Guru');
@@ -148,7 +148,7 @@ class InjectDummy extends Command
                 'name' => 'Kak Pembina, S.Pd',
                 'password' => Hash::make('password'),
                 'is_active' => true,
-                'force_password_change' => false,
+                'must_change_password' => false,
             ]
         );
         $instruktur->assignRole('Instruktur Ekskul');

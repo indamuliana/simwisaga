@@ -2,6 +2,7 @@
 
 namespace App\Modules\Ekstrakurikuler\Livewire;
 
+use App\Core\Concerns\GuardsPermission;
 use Livewire\Component;
 use Livewire\Attributes\Layout;
 use App\Modules\Ekstrakurikuler\Models\Ekstrakurikuler;
@@ -10,6 +11,7 @@ use App\Models\User;
 
 class EkstrakurikulerSetting extends Component
 {
+    use GuardsPermission;
     public $search = '';
     public $filterKategori = 'all'; // all, wajib, pilihan
 
@@ -108,6 +110,8 @@ class EkstrakurikulerSetting extends Component
 
     public function save()
     {
+        $this->guard('ekstrakurikuler.ekskul.edit');
+
         $this->validate();
 
         $data = [
@@ -143,6 +147,8 @@ class EkstrakurikulerSetting extends Component
 
     public function toggleStatus($id)
     {
+        $this->guard('ekstrakurikuler.ekskul.edit');
+
         $ekskul = Ekstrakurikuler::findOrFail($id);
         $ekskul->is_active = !$ekskul->is_active;
         $ekskul->save();
@@ -152,6 +158,8 @@ class EkstrakurikulerSetting extends Component
 
     public function delete($id)
     {
+        $this->guard('ekstrakurikuler.ekskul.hapus');
+
         $ekskul = Ekstrakurikuler::findOrFail($id);
         $nama = $ekskul->nama;
         $ekskul->delete();

@@ -2,6 +2,7 @@
 
 namespace App\Modules\AdministrasiWeb\Livewire;
 
+use App\Core\Concerns\GuardsPermission;
 use App\Modules\AdministrasiWeb\Models\WebArticle;
 use App\Modules\AdministrasiWeb\Models\WebCategory;
 use Illuminate\Support\Str;
@@ -11,7 +12,7 @@ use Livewire\WithFileUploads;
 
 class ArticleForm extends Component
 {
-    use WithFileUploads;
+    use WithFileUploads, GuardsPermission;
 
     public ?int $articleId = null;
 

@@ -2,6 +2,7 @@
 
 namespace App\Modules\Absensi\Livewire;
 
+use App\Core\Concerns\GuardsPermission;
 use App\Enums\StatusAbsensi;
 use App\Modules\Absensi\Models\AbsensiHarian;
 use App\Modules\Absensi\Models\AbsensiMapel;
@@ -14,6 +15,8 @@ use Livewire\Component;
 
 class AbsensiMapelIndex extends Component
 {
+    use GuardsPermission;
+
     public $tanggal;
     public $penugasan_id;
     public $gender = '';
@@ -174,6 +177,8 @@ class AbsensiMapelIndex extends Component
 
     public function save()
     {
+        $this->guard('absensi.mapel.input');
+
         $this->validate([
             'tanggal' => 'required|date',
             'penugasan_id' => 'required|exists:penugasan_mengajars,id',

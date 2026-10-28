@@ -241,6 +241,8 @@ class PenerimaBeasiswaIndex extends Component
 
     public function save()
     {
+        $this->guard($this->penerimaId ? 'ota.penerima.edit' : 'ota.penerima.tambah');
+
         // 1. Bersihkan semua angka sebelum divalidasi dan disimpan
         foreach ($this->komponens as $idx => $kmp) {
             $this->komponens[$idx]['nominal_per_bulan'] = !empty($kmp['nominal_per_bulan'])
@@ -327,6 +329,8 @@ class PenerimaBeasiswaIndex extends Component
 
     public function delete(int $id)
     {
+        $this->guard('ota.penerima.hapus');
+
         $p = SiswaPenerima::findOrFail($id);
         $p->delete();
         session()->flash('message', 'Data penerima beasiswa berhasil dihapus.');

@@ -10,7 +10,7 @@ use App\Modules\SeniBudaya\Livewire\SeniBudayaPenilaian;
 use App\Modules\SeniBudaya\Livewire\SeniBudayaRekap;
 use App\Modules\SeniBudaya\Controllers\SeniBudayaExcelController;
 
-Route::middleware(['web', 'auth', 'can:seni_budaya.kelola'])->prefix('seni-budaya')->name('seni-budaya.')->group(function () {
+Route::middleware('can:seni_budaya.kelola')->prefix('seni-budaya')->name('seni-budaya.')->group(function () {
     Route::get('/', SeniBudayaDashboard::class)->name('index');
     Route::get('/cabang', SeniBudayaCabangIndex::class)->name('cabang');
     Route::get('/anggota', SeniBudayaAnggotaIndex::class)->name('anggota');

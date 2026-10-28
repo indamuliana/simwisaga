@@ -100,6 +100,41 @@ class RaporScoreService
                 $this->cohortCache['prestasi'][$sId] = $prestasis->filter(fn($p) => $p->siswas->contains('id', $sId))->values();
             }
         }
+
+        // 5. Preload Nilai Akhir
+        $naGrouped = NilaiAkhir::with(['penugasanMengajar.mapel.kelompokMapel'])
+            ->whereIn('siswa_id', $siswaIds)
+            ->whereHas('penugasanMengajar', fn($q) => $q->where('semester_id', $semester->id))
+            ->get()
+            ->groupBy('siswa_id');
+        foreach ($siswaIds as $sId) {
+            $this->cohortCache['nilai_akhir'][$sId] = $naGrouped->get($sId, collect())->keyBy('penugasan_mengajar_id');
+        }
+
+        // 6. Preload Nilai Formatif
+        $nfGrouped = NilaiFormatif::whereIn('siswa_id', $siswaIds)
+            ->whereNotNull('nilai')
+            ->get()
+            ->groupBy('siswa_id');
+        foreach ($siswaIds as $sId) {
+            $this->cohortCache['nilai_formatif'][$sId] = $nfGrouped->get($sId, collect())->keyBy('tujuan_pembelajaran_id');
+        }
+
+        // 7. Preload Nilai Harian (NH)
+        $nhGrouped = NilaiHarian::whereIn('siswa_id', $siswaIds)
+            ->get()
+            ->groupBy('siswa_id');
+        foreach ($siswaIds as $sId) {
+            $this->cohortCache['nilai_harian'][$sId] = $nhGrouped->get($sId, collect());
+        }
+
+        // 8. Preload Nilai Sumatif
+        $nsGrouped = NilaiSumatif::whereIn('siswa_id', $siswaIds)
+            ->get()
+            ->groupBy('siswa_id');
+        foreach ($siswaIds as $sId) {
+            $this->cohortCache['nilai_sumatif'][$sId] = $nsGrouped->get($sId, collect())->keyBy('penugasan_mengajar_id');
+        }
     }
     /**
      * Menentukan target period key (9M1, 9M2, 9M3, 9M4, atau Semester) dari PeriodeRapor
@@ -207,7 +242,7 @@ class RaporScoreService
         $penugasans = $this->penugasansCache[$penugasanKey];
 
         // 2. Ambil Nilai Akhir yang sudah tersimpan untuk siswa ini di semester ini
-        $nilaiAkademiks = NilaiAkhir::with(['penugasanMengajar.mapel.kelompokMapel'])
+        $nilaiAkademiks = $this->cohortCache['nilai_akhir'][$siswa->id] ?? NilaiAkhir::with(['penugasanMengajar.mapel.kelompokMapel'])
             ->where('siswa_id', $siswa->id)
             ->whereHas('penugasanMengajar', fn($q) => $q->where('semester_id', $semester->id))
             ->get()
@@ -280,18 +315,25 @@ class RaporScoreService
         // 4. Pre-fetch Formatif, Harian (NH), Sumatif, dan TP
         $allPmIds = $penugasans->pluck('id')->merge($nilaiAkademiks->pluck('penugasan_mengajar_id'))->filter()->unique()->values()->all();
 
-        $allFormatifs = NilaiFormatif::where('siswa_id', $siswa->id)
+        $allFormatifs = $this->cohortCache['nilai_formatif'][$siswa->id] ?? NilaiFormatif::where('siswa_id', $siswa->id)
             ->whereNotNull('nilai')
             ->get()
             ->keyBy('tujuan_pembelajaran_id');
 
-        $allNhs = NilaiHarian::where('siswa_id', $siswa->id)
-            ->where('target_periode', $normKey)
-            ->whereIn('penugasan_mengajar_id', $allPmIds)
-            ->get()
-            ->keyBy('penugasan_mengajar_id');
+        if (isset($this->cohortCache['nilai_harian'][$siswa->id])) {
+            $allNhs = $this->cohortCache['nilai_harian'][$siswa->id]
+                ->where('target_periode', $normKey)
+                ->whereIn('penugasan_mengajar_id', $allPmIds)
+                ->keyBy('penugasan_mengajar_id');
+        } else {
+            $allNhs = NilaiHarian::where('siswa_id', $siswa->id)
+                ->where('target_periode', $normKey)
+                ->whereIn('penugasan_mengajar_id', $allPmIds)
+                ->get()
+                ->keyBy('penugasan_mengajar_id');
+        }
 
-        $allSumatifs = NilaiSumatif::where('siswa_id', $siswa->id)
+        $allSumatifs = $this->cohortCache['nilai_sumatif'][$siswa->id] ?? NilaiSumatif::where('siswa_id', $siswa->id)
             ->whereIn('penugasan_mengajar_id', $allPmIds)
             ->get()
             ->keyBy('penugasan_mengajar_id');

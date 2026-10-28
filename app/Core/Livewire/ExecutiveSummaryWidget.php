@@ -61,15 +61,11 @@ class ExecutiveSummaryWidget extends Component
         }
 
         // 3. Akademik (Rata-rata Nilai Akhir per Mata Pelajaran - Top 7)
-        // Adjust column name mapping for Mapel if necessary. Assuming mapels.nama or mapels.nama_mapel exists
-        $hasNamaMapel = DB::getSchemaBuilder()->hasColumn('mapels', 'nama_mapel');
-        $mapelCol = $hasNamaMapel ? 'mapels.nama_mapel' : 'mapels.nama';
-
         $akademikRaw = DB::table('nilai_akhirs')
             ->join('penugasan_mengajars', 'nilai_akhirs.penugasan_mengajar_id', '=', 'penugasan_mengajars.id')
             ->join('mapels', 'penugasan_mengajars.mapel_id', '=', 'mapels.id')
-            ->select("$mapelCol as mapel", DB::raw('AVG(nilai_akhirs.nilai_akhir) as rata_rata'))
-            ->groupBy('mapels.id', $mapelCol)
+            ->select('mapels.nama as mapel', DB::raw('AVG(nilai_akhirs.nilai_akhir) as rata_rata'))
+            ->groupBy('mapels.id', 'mapels.nama')
             ->orderByDesc('rata_rata')
             ->limit(7)
             ->get();

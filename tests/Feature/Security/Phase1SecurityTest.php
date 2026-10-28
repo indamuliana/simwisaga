@@ -146,4 +146,112 @@ class Phase1SecurityTest extends TestCase
         $this->assertFalse($userSiswa1->canViewStudent($this->siswa2));
         $this->get(route('rapor.cetak.wikrama', ['siswa_id' => $this->siswa2->id]))->assertForbidden();
     }
+
+    public function test_f1_ai_assistant_hanya_dapat_diakses_staf_akademik(): void
+    {
+        $userSiswa = User::factory()->create(['username' => 'siswa_ai', 'is_active' => true]);
+        $userSiswa->assignRole('Siswa');
+
+        // Siswa tidak boleh mengakses endpoint AI Assistant
+        $this->actingAs($userSiswa)
+            ->get(route('ai-assistant.chat.view'))
+            ->assertForbidden();
+
+        $this->actingAs($userSiswa)
+            ->postJson(route('ai-assistant.chat.api'), ['message' => 'Halo'])
+            ->assertForbidden();
+
+        // Admin boleh mengakses
+        $this->actingAs($this->admin)
+            ->get(route('ai-assistant.chat.view'))
+            ->assertOk();
+    }
+
+    public function test_f5_qrcode_service_menghasilkan_svg_offline(): void
+    {
+        $svg = \App\Modules\Sarpras\Services\QrCodeService::generateSvg('SRG-TEST-12345', 150);
+
+        $this->assertNotEmpty($svg);
+        $this->assertStringContainsString('<svg', $svg);
+        $this->assertStringContainsString('xmlns="http://www.w3.org/2000/svg"', $svg);
+        $this->assertStringNotContainsString('api.qrserver.com', $svg);
+    }
+
+    public function test_f7_siswa_model_otomatis_sinkron_is_active_dengan_status(): void
+    {
+        $siswa = Siswa::create([
+            'nama' => 'Siswa Status Test',
+            'nisn' => '9998887771',
+            'nipd' => '999881',
+            'jk' => 'L',
+            'rombel_id' => $this->rombel->id,
+            'status' => 'lulus',
+        ]);
+
+        $this->assertFalse($siswa->is_active);
+
+        $siswa->update(['status' => 'aktif']);
+        $this->assertTrue($siswa->fresh()->is_active);
+
+        $siswa->update(['status' => 'mutasi_keluar']);
+        $this->assertFalse($siswa->fresh()->is_active);
+    }
+
+    public function test_f6_rekap_absensi_service_menghitung_libur_kalender_pendidikan(): void
+    {
+        $rekapService = new \App\Modules\Absensi\Services\RekapAbsensiService();
+        $startDate = '2026-10-01'; // Kamis
+        $endDate = '2026-10-07';   // Rabu (total hari: 7, weekdays: 5)
+
+        $initialEfektif = $rekapService->hitungHariEfektif($startDate, $endDate);
+
+        // Tambah hari libur kalender pada hari kerja (Jumat 2026-10-02)
+        \App\Modules\KalenderPendidikan\Models\KalenderLibur::create([
+            'nama' => 'Libur Uji Coba',
+            'tgl_mulai' => '2026-10-02',
+            'tgl_selesai' => '2026-10-02',
+            'jenis' => \App\Modules\KalenderPendidikan\Models\KalenderLibur::JENIS_SEKOLAH,
+            'keterangan' => 'Libur Uji Coba',
+            'is_kbm_libur' => true,
+        ]);
+
+        $afterLiburEfektif = $rekapService->hitungHariEfektif($startDate, $endDate);
+        $this->assertEquals($initialEfektif - 1, $afterLiburEfektif);
+    }
+
+    public function test_f3_unique_constraint_mencegah_duplikasi_nilai_akhir(): void
+    {
+        $pegawai = Pegawai::create([
+            'user_id' => $this->admin->id,
+            'nama_lengkap' => 'Guru Penilai',
+            'is_active' => true,
+        ]);
+
+        $mapel = \App\Modules\Akademik\Models\Mapel::create([
+            'kode' => 'MP01',
+            'nama' => 'Mata Pelajaran 01',
+            'kelompok' => \App\Modules\Akademik\Models\Mapel::KELOMPOK_UMUM,
+        ]);
+
+        $penugasan = \App\Modules\Kepegawaian\Models\PenugasanMengajar::create([
+            'semester_id' => $this->sem->id,
+            'rombel_id' => $this->rombel->id,
+            'mapel_id' => $mapel->id,
+            'pegawai_id' => $pegawai->id,
+        ]);
+
+        \App\Modules\Penilaian\Models\NilaiAkhir::create([
+            'siswa_id' => $this->siswa1->id,
+            'penugasan_mengajar_id' => $penugasan->id,
+            'nilai_akhir' => 85,
+        ]);
+
+        // Percobaan duplikasi record dengan kombinasi siswa_id dan penugasan_mengajar_id yang sama
+        $this->expectException(\Illuminate\Database\QueryException::class);
+        \App\Modules\Penilaian\Models\NilaiAkhir::create([
+            'siswa_id' => $this->siswa1->id,
+            'penugasan_mengajar_id' => $penugasan->id,
+            'nilai_akhir' => 90,
+        ]);
+    }
 }

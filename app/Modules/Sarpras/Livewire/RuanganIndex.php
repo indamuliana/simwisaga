@@ -2,6 +2,7 @@
 
 namespace App\Modules\Sarpras\Livewire;
 
+use App\Core\Concerns\GuardsPermission;
 use App\Modules\Sarpras\Models\Ruangan;
 use Livewire\Attributes\Layout;
 use Livewire\Attributes\Title;
@@ -12,7 +13,7 @@ use Livewire\WithPagination;
 #[Title('Master Ruangan')]
 class RuanganIndex extends Component
 {
-    use WithPagination;
+    use WithPagination, GuardsPermission;
 
     public string $search = '';
 
@@ -68,6 +69,8 @@ class RuanganIndex extends Component
 
     public function save()
     {
+        $this->guard($this->isEdit ? 'sarpras.ruangan.edit' : 'sarpras.ruangan.tambah');
+
         $data = $this->validate();
 
         if ($this->isEdit && $this->ruanganId) {
@@ -84,6 +87,8 @@ class RuanganIndex extends Component
 
     public function delete(int $id)
     {
+        $this->guard('sarpras.ruangan.hapus');
+
         $r = Ruangan::withCount('asets')->findOrFail($id);
         if ($r->asets_count > 0) {
             session()->flash('error', "Ruangan '{$r->nama_ruangan}' tidak dapat dihapus karena masih menampung {$r->asets_count} aset.");

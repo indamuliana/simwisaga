@@ -17,12 +17,13 @@ use Illuminate\Support\Facades\Storage;
 use Livewire\Attributes\Layout;
 use Livewire\Attributes\Url;
 use Livewire\Component;
+use App\Core\Concerns\GuardsPermission;
 use Livewire\WithFileUploads;
 use Livewire\WithPagination;
 
 class PrestasiSiswaIndex extends Component
 {
-    use WithPagination, WithFileUploads;
+    use WithPagination, WithFileUploads, GuardsPermission;
 
     // Filter & Search
     #[Url]
@@ -216,6 +217,8 @@ class PrestasiSiswaIndex extends Component
 
     public function save()
     {
+        $this->guard($this->prestasiId ? 'prestasi.siswa.edit' : 'prestasi.siswa.tambah');
+
         $this->validate([
             'namaPrestasi' => 'required|string|max:255',
             'penyelenggaraNama' => 'required|string|max:255',
@@ -297,6 +300,8 @@ class PrestasiSiswaIndex extends Component
 
     public function delete(int $id)
     {
+        $this->guard('prestasi.siswa.hapus');
+
         $prestasi = Prestasi::findOrFail($id);
         if ($prestasi->sertifikat_file_path) {
             Storage::disk('public')->delete($prestasi->sertifikat_file_path);

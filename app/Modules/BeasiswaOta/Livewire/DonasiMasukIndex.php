@@ -24,6 +24,8 @@ class DonasiMasukIndex extends Component
 
     public function delete(int $id)
     {
+        $this->guard('ota.donasi.hapus');
+
         $donasi = DonasiMasuk::findOrFail($id);
 
         $posKas = ($donasi->tipe_donatur === 'rutin' && $donasi->kelompok_id) ? 'kelompok' : 'insidental';

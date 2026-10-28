@@ -20,10 +20,6 @@ class AppServiceProvider extends ServiceProvider
      */
     public function boot(): void
     {
-        Gate::before(function ($user, $ability) {
-            return method_exists($user, 'isSuperAdmin') && $user->isSuperAdmin() ? true : null;
-        });
-
         if (class_exists(\Livewire\Livewire::class)) {
             \Livewire\Livewire::component('core.auth.modal-change-password', \App\Core\Livewire\Auth\ModalChangePassword::class);
         }

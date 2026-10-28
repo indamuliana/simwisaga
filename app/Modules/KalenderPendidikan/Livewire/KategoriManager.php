@@ -2,6 +2,7 @@
 
 namespace App\Modules\KalenderPendidikan\Livewire;
 
+use App\Core\Concerns\GuardsPermission;
 use App\Modules\KalenderPendidikan\Models\KalenderKategori;
 use Livewire\Attributes\Layout;
 use Livewire\Attributes\Title;
@@ -11,6 +12,7 @@ use Livewire\Component;
 #[Title('Kelola Kategori Agenda Kegiatan')]
 class KategoriManager extends Component
 {
+    use GuardsPermission;
     public bool $showModal = false;
     public bool $isEditing = false;
     public ?int $kategoriId = null;
@@ -60,6 +62,8 @@ class KategoriManager extends Component
 
     public function save(): void
     {
+        $this->guard($this->isEditing ? 'kalender.kategori.edit' : 'kalender.kategori.tambah');
+
         $this->validate();
 
         if ($this->isEditing && $this->kategoriId) {
@@ -88,6 +92,8 @@ class KategoriManager extends Component
 
     public function toggleActive(int $id): void
     {
+        $this->guard('kalender.kategori.edit');
+
         $kategori = KalenderKategori::findOrFail($id);
         $kategori->update(['is_active' => ! $kategori->is_active]);
         session()->flash('status', 'Status kategori berhasil diubah.');

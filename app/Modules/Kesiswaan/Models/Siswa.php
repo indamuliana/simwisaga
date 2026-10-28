@@ -80,6 +80,17 @@ class Siswa extends Model implements Auditable
         'jarak_ke_sekolah_km' => 'decimal:2',
     ];
 
+    protected static function booted(): void
+    {
+        static::saving(function (Siswa $siswa) {
+            if ($siswa->isDirty('status')) {
+                $siswa->is_active = ($siswa->status === 'aktif');
+            } elseif ($siswa->isDirty('is_active')) {
+                $siswa->status = $siswa->is_active ? 'aktif' : ($siswa->status === 'aktif' ? 'mutasi' : $siswa->status);
+            }
+        });
+    }
+
     public function user(): BelongsTo
     {
         return $this->belongsTo(User::class);

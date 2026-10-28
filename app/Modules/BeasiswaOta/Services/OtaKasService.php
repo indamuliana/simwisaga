@@ -212,6 +212,9 @@ class OtaKasService
             $kelompok, $siswa, $details, $totalNominal, $surplusDialihkan,
             $tanggal, $semesterId, $tahunAjaranId, $catatan, $userId
         ) {
+            // Lock baris kelompok untuk mencegah concurrent check-then-write race conditions
+            Kelompok::where('id', $kelompok->id)->lockForUpdate()->first();
+
             $saldoKelompok = static::getSaldoKelompok($kelompok->id);
             $totalKeluar = $totalNominal + $surplusDialihkan;
             if ($saldoKelompok < $totalKeluar) {
@@ -245,7 +248,6 @@ class OtaKasService
             }
 
             // 1. Mutasi Kas Keluar dari Kelompok untuk Alokasi Siswa
-            $saldoKelompok = static::getSaldoKelompok($kelompok->id);
             KasMutasi::create([
                 'tanggal' => $tanggal,
                 'tipe' => 'keluar',

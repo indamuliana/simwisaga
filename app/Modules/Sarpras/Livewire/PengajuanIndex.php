@@ -2,6 +2,7 @@
 
 namespace App\Modules\Sarpras\Livewire;
 
+use App\Core\Concerns\GuardsPermission;
 use App\Modules\Sarpras\Models\Kategori;
 use App\Modules\Sarpras\Models\Pengajuan;
 use App\Modules\Sarpras\Models\Ruangan;
@@ -15,7 +16,7 @@ use Livewire\WithPagination;
 #[Title('Pengajuan Pembelian Aset')]
 class PengajuanIndex extends Component
 {
-    use WithPagination;
+    use WithPagination, GuardsPermission;
 
     public string $search = '';
     public string $filterStatus = '';
@@ -64,6 +65,8 @@ class PengajuanIndex extends Component
 
     public function submitPengajuan()
     {
+        $this->guard('sarpras.pengajuan.tambah');
+
         $data = $this->validate();
         $totalEstimasi = $this->jumlah * $this->estimasi_harga_satuan;
 

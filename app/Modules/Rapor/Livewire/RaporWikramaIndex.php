@@ -36,7 +36,6 @@ class RaporWikramaIndex extends Component
     // Modal Preview Siswa
     public bool $showPreviewModal = false;
     public ?int $previewSiswaId = null;
-    public ?array $previewData = null;
 
     public bool $canSelectAll = false;
 
@@ -214,7 +213,27 @@ class RaporWikramaIndex extends Component
 
     public function openPreview(int $siswaId): void
     {
-        $siswa = Siswa::with(['rombel.jurusan', 'rayon.pembimbing'])->findOrFail($siswaId);
+        $this->previewSiswaId = $siswaId;
+        $this->showPreviewModal = true;
+    }
+
+    public function closePreview(): void
+    {
+        $this->showPreviewModal = false;
+        $this->previewSiswaId = null;
+    }
+
+    public function getPreviewDataProperty(): ?array
+    {
+        if (!$this->showPreviewModal || !$this->previewSiswaId) {
+            return null;
+        }
+
+        $siswa = Siswa::with(['rombel.jurusan', 'rayon.pembimbing'])->find($this->previewSiswaId);
+        if (!$siswa) {
+            return null;
+        }
+
         $semester = AcademicContext::currentSemester();
         $service = app(RaporScoreService::class);
 
@@ -230,8 +249,7 @@ class RaporWikramaIndex extends Component
         $belowKkmCount = $records->where('status', 'belum_kompeten')->count();
         $seniItem = $records->firstWhere('is_seni', true);
 
-        $this->previewSiswaId = $siswaId;
-        $this->previewData = [
+        return [
             'siswa' => $siswa,
             'semester' => $semester,
             'sekolah' => School::current(),
@@ -246,15 +264,6 @@ class RaporWikramaIndex extends Component
             'incompleteCount' => $incompleteCount,
             'belowKkmCount' => $belowKkmCount,
         ];
-
-        $this->showPreviewModal = true;
-    }
-
-    public function closePreview(): void
-    {
-        $this->showPreviewModal = false;
-        $this->previewSiswaId = null;
-        $this->previewData = null;
     }
 
     #[Layout('components.layouts.app')]
@@ -269,6 +278,7 @@ class RaporWikramaIndex extends Component
             'periodMeta' => $this->periodMeta,
             'siswas' => $this->siswas,
             'seniBudayaMap' => $this->seniBudayaMap,
+            'previewData' => $this->previewData,
         ]);
     }
 }

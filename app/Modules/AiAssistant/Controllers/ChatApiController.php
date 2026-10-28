@@ -5,6 +5,7 @@ namespace App\Modules\AiAssistant\Controllers;
 use App\Http\Controllers\Controller;
 use App\Modules\AiAssistant\Models\AiSetting;
 use Illuminate\Http\Request;
+use Illuminate\Support\Facades\Cache;
 use Illuminate\Support\Facades\DB;
 use Illuminate\Support\Facades\Http;
 use Illuminate\Support\Facades\Log;
@@ -80,7 +81,7 @@ class ChatApiController extends Controller
             // Mencegah query destruktif, akses ke tabel sensitif, dan ekstraksi kredensial
             $forbiddenPatterns = [
                 '/\b(INSERT|UPDATE|DELETE|DROP|TRUNCATE|ALTER|CREATE|REPLACE|GRANT|REVOKE)\b/i',
-                '/\b(users|audits|sessions|password_resets|cache|failed_jobs|personal_access_tokens)\b/i',
+                '/\b(users|audits|sessions|password_resets|cache|failed_jobs|personal_access_tokens|permissions|roles|model_has_roles|role_has_permissions|beasiswa_ota|kas_mutasis|kelompoks|donaturs|alokasis|donasi_masuks)\b/i',
                 '/\b(password|remember_token|secret)\b/i',
                 '/\b(INTO\s+OUTFILE|INTO\s+DUMPFILE|LOAD_FILE|BENCHMARK|SLEEP)\b/i',
             ];
@@ -147,30 +148,45 @@ class ChatApiController extends Controller
 
     private function getDatabaseSchema()
     {
-        $sensitiveColumns = [
-            'nik', 'no_kk', 'no_akta_lahir', 'nomor_rekening_bank', 'rekening_atas_nama',
-            'hp', 'telepon', 'email', 'user_id', 'foto_path', 'skhun', 'no_peserta_un', 'no_seri_ijazah'
-        ];
+        return Cache::remember('ai_assistant_db_schema_summary', 86400, function () {
+            $sensitiveColumns = [
+                'nik', 'no_kk', 'no_akta_lahir', 'nomor_rekening_bank', 'rekening_atas_nama',
+                'hp', 'telepon', 'email', 'user_id', 'foto_path', 'skhun', 'no_peserta_un', 'no_seri_ijazah'
+            ];
 
-        $schema = "";
-        foreach ($this->relevantTables as $table) {
-            try {
-                $columns = DB::select('SHOW COLUMNS FROM ' . $table);
-                $schema .= "Tabel: $table\nKolom: ";
-                $colNames = [];
-                foreach ($columns as $column) {
-                    if (in_array(strtolower($column->Field), $sensitiveColumns)) {
-                        continue;
+            $schema = "";
+            $isSqlite = DB::getDriverName() === 'sqlite';
+
+            foreach ($this->relevantTables as $table) {
+                try {
+                    $colNames = [];
+                    if ($isSqlite) {
+                        $columns = DB::select("PRAGMA table_info({$table})");
+                        foreach ($columns as $column) {
+                            if (in_array(strtolower($column->name), $sensitiveColumns)) {
+                                continue;
+                            }
+                            $colNames[] = $column->name . " (" . $column->type . ")";
+                        }
+                    } else {
+                        $columns = DB::select('SHOW COLUMNS FROM ' . $table);
+                        foreach ($columns as $column) {
+                            if (in_array(strtolower($column->Field), $sensitiveColumns)) {
+                                continue;
+                            }
+                            $colNames[] = $column->Field . " (" . $column->Type . ")";
+                        }
                     }
-                    $colNames[] = $column->Field . " (" . $column->Type . ")";
+
+                    if (!empty($colNames)) {
+                        $schema .= "Tabel: $table\nKolom: " . implode(", ", $colNames) . "\n\n";
+                    }
+                } catch (\Exception $e) {
+                    continue;
                 }
-                $schema .= implode(", ", $colNames) . "\n\n";
-            } catch (\Exception $e) {
-                // Abaikan jika tabel tidak ada
-                continue;
             }
-        }
-        return $schema;
+            return $schema;
+        });
     }
 
     private function callGemini($apiKey, $prompt, array $generationConfig = [])

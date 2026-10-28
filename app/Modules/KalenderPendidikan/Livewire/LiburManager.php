@@ -2,6 +2,7 @@
 
 namespace App\Modules\KalenderPendidikan\Livewire;
 
+use App\Core\Concerns\GuardsPermission;
 use App\Modules\Akademik\Models\TahunAjaran;
 use App\Modules\KalenderPendidikan\Models\KalenderLibur;
 use App\Modules\KalenderPendidikan\Services\KalenderService;
@@ -13,6 +14,7 @@ use Livewire\Component;
 #[Title('Pengaturan Hari Libur')]
 class LiburManager extends Component
 {
+    use GuardsPermission;
     public bool $showModal = false;
     public bool $isEditing = false;
     public ?int $liburId = null;
@@ -75,6 +77,8 @@ class LiburManager extends Component
 
     public function save(): void
     {
+        $this->guard($this->isEditing ? 'kalender.libur.edit' : 'kalender.libur.tambah');
+
         $this->validate();
         $activeTa = TahunAjaran::active()->first();
 
@@ -107,6 +111,8 @@ class LiburManager extends Component
 
     public function syncNational(KalenderService $service): void
     {
+        $this->guard('kalender.libur.tambah');
+
         $year = (int) ($this->filterTahun ?: date('Y'));
         $count = $service->syncHariLiburNasional($year);
 
@@ -115,6 +121,8 @@ class LiburManager extends Component
 
     public function deleteLibur(int $id): void
     {
+        $this->guard('kalender.libur.hapus');
+
         KalenderLibur::findOrFail($id)->delete();
         session()->flash('status', 'Hari libur berhasil dihapus.');
     }

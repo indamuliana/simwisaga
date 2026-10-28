@@ -66,14 +66,23 @@ class User extends Authenticatable implements Auditable
         return $this->hasOne(Siswa::class);
     }
 
+    protected ?array $memoizedLinkedProfile = null;
+    protected bool $hasResolvedLinkedProfile = false;
+
     /**
      * Mendapatkan metadata profil Pegawai atau Siswa yang tertaut ke akun ini
      */
     public function getLinkedProfileAttribute(): ?array
     {
+        if ($this->hasResolvedLinkedProfile) {
+            return $this->memoizedLinkedProfile;
+        }
+
+        $this->hasResolvedLinkedProfile = true;
+
         if ($this->relationLoaded('pegawai') ? $this->pegawai : $this->pegawai()->first()) {
             $p = $this->pegawai;
-            return [
+            return $this->memoizedLinkedProfile = [
                 'type' => 'pegawai',
                 'label' => 'Pegawai',
                 'name' => $p->nama_lengkap,
@@ -84,7 +93,7 @@ class User extends Authenticatable implements Auditable
 
         if ($this->relationLoaded('siswa') ? $this->siswa : $this->siswa()->with('rombel')->first()) {
             $s = $this->siswa;
-            return [
+            return $this->memoizedLinkedProfile = [
                 'type' => 'siswa',
                 'label' => 'Siswa',
                 'name' => $s->nama,
@@ -97,7 +106,7 @@ class User extends Authenticatable implements Auditable
             $nipd = str_starts_with($this->username, 'ortu_') ? substr($this->username, 5) : null;
             $siswa = $nipd ? Siswa::with('rombel')->where('nipd', $nipd)->first() : null;
             if ($siswa) {
-                return [
+                return $this->memoizedLinkedProfile = [
                     'type' => 'ortu',
                     'label' => 'Orang Tua',
                     'name' => 'Wali dari ' . $siswa->nama,
@@ -109,7 +118,7 @@ class User extends Authenticatable implements Auditable
             }
         }
 
-        return null;
+        return $this->memoizedLinkedProfile = null;
     }
 
     /**
