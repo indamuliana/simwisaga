@@ -1,5 +1,6 @@
 <?php
 
+use App\Modules\Sistem\Livewire\DatabaseManager;
 use App\Modules\Sistem\Livewire\HakAkses;
 use App\Modules\Sistem\Livewire\IdentitasSekolah;
 use App\Modules\Sistem\Livewire\LogAktivitas;
@@ -10,6 +11,7 @@ Route::prefix('sistem')->name('sistem.')->group(function () {
     Route::get('/sekolah', IdentitasSekolah::class)->name('sekolah');
     Route::get('/template-dokumen', \App\Modules\Sistem\Livewire\TemplateDokumenIndex::class)->name('template');
     Route::get('/titimangsa-rapor', \App\Modules\Sistem\Livewire\PeriodeRaporIndex::class)->name('titimangsa');
+    Route::get('/database', DatabaseManager::class)->name('database');
     Route::get('/pengguna', Pengguna::class)->name('pengguna');
     Route::get('/hak-akses', HakAkses::class)->name('hakakses');
     Route::get('/log-aktivitas', LogAktivitas::class)->name('audit');
