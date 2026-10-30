@@ -59,6 +59,9 @@ class SpmbSekolahAsalExporter
             $headers[] = $j->kode;
         }
 
+        // Tambah kolom catatan
+        $headers[] = 'Catatan Master';
+
         $headerRow = 5;
         $colIndex = 1;
         foreach ($headers as $header) {
@@ -103,12 +106,20 @@ class SpmbSekolahAsalExporter
                 $colIdx++;
             }
 
+            // Catatan Master
+            $sheet->setCellValue("{$lastColLetter}{$currentRow}", $item->catatan ?: '-');
+
+            $lastJurusanColLetter = Coordinate::stringFromColumnIndex(12 + count($jurusans));
+
             // Alignments
             $sheet->getStyle("A{$currentRow}")->getAlignment()->setHorizontal(Alignment::HORIZONTAL_CENTER);
             $sheet->getStyle("C{$currentRow}:G{$currentRow}")->getAlignment()->setHorizontal(Alignment::HORIZONTAL_CENTER);
             $sheet->getStyle("H{$currentRow}:K{$currentRow}")->getAlignment()->setHorizontal(Alignment::HORIZONTAL_RIGHT);
             $sheet->getStyle("L{$currentRow}")->getAlignment()->setHorizontal(Alignment::HORIZONTAL_CENTER);
-            $sheet->getStyle("M{$currentRow}:{$lastColLetter}{$currentRow}")->getAlignment()->setHorizontal(Alignment::HORIZONTAL_RIGHT);
+            if (count($jurusans) > 0) {
+                $sheet->getStyle("M{$currentRow}:{$lastJurusanColLetter}{$currentRow}")->getAlignment()->setHorizontal(Alignment::HORIZONTAL_RIGHT);
+            }
+            $sheet->getStyle("{$lastColLetter}{$currentRow}")->getAlignment()->setHorizontal(Alignment::HORIZONTAL_LEFT);
 
             $currentRow++;
         }
@@ -128,6 +139,8 @@ class SpmbSekolahAsalExporter
             $sheet->setCellValue("{$jLetter}{$currentRow}", "=SUM({$jLetter}6:{$jLetter}" . ($currentRow - 1) . ")");
             $colIdx++;
         }
+
+        $sheet->setCellValue("{$lastColLetter}{$currentRow}", '-');
 
         $sheet->getStyle("A{$currentRow}:{$lastColLetter}{$currentRow}")->applyFromArray([
             'font' => ['bold' => true],

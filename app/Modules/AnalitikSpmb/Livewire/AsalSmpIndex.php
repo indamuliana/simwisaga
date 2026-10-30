@@ -422,6 +422,7 @@ class AsalSmpIndex extends Component
             'spmb_sekolah_asals.kecamatan',
             'spmb_sekolah_asals.kabupaten_kota',
             'spmb_sekolah_asals.tier',
+            'spmb_sekolah_asals.catatan',
             DB::raw('count(siswas.id) as total_siswa'),
             DB::raw('sum(case when siswas.jk = "L" then 1 else 0 end) as siswa_l'),
             DB::raw('sum(case when siswas.jk = "P" then 1 else 0 end) as siswa_p'),
@@ -457,7 +458,8 @@ class AsalSmpIndex extends Component
                 'spmb_sekolah_asals.status_sekolah',
                 'spmb_sekolah_asals.kecamatan',
                 'spmb_sekolah_asals.kabupaten_kota',
-                'spmb_sekolah_asals.tier'
+                'spmb_sekolah_asals.tier',
+                'spmb_sekolah_asals.catatan'
             );
 
         // Filter Sekolah
@@ -466,7 +468,8 @@ class AsalSmpIndex extends Component
             $schoolQuery->where(function ($q) use ($s) {
                 $q->where('spmb_sekolah_asals.nama_resmi', 'like', $s)
                     ->orWhere('spmb_sekolah_asals.npsn', 'like', $s)
-                    ->orWhere('spmb_sekolah_asals.kecamatan', 'like', $s);
+                    ->orWhere('spmb_sekolah_asals.kecamatan', 'like', $s)
+                    ->orWhere('spmb_sekolah_asals.catatan', 'like', $s);
             });
         }
 

@@ -45,8 +45,10 @@ class SpmbDataCleansingService
                 'is_mapped' => (bool) $master,
                 'master_id' => $master?->id,
                 'master_name' => $master?->nama_resmi,
+                'master_npsn' => $master?->npsn,
                 'master_tier' => $master?->tier,
                 'master_jenis' => $master?->jenis,
+                'master_catatan' => $master?->catatan,
             ];
         });
 
@@ -55,7 +57,9 @@ class SpmbDataCleansingService
             $s = strtolower(trim($search));
             $result = $result->filter(function ($item) use ($s) {
                 return str_contains(strtolower($item->raw_name), $s)
-                    || ($item->master_name && str_contains(strtolower($item->master_name), $s));
+                    || ($item->master_name && str_contains(strtolower($item->master_name), $s))
+                    || ($item->master_npsn && str_contains(strtolower($item->master_npsn), $s))
+                    || ($item->master_catatan && str_contains(strtolower($item->master_catatan), $s));
             });
         }
 

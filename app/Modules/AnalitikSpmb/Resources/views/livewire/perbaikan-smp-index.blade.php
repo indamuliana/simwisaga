@@ -226,9 +226,11 @@
                             <input type="checkbox" wire:model.live="selectAll" class="rounded border-border text-primary focus:ring-primary/40">
                         </th>
                         <th class="py-3 px-2 text-center w-10">No</th>
+                        <th class="py-3 px-3 text-center min-w-[110px]">NPSN</th>
                         <th class="py-3 px-4 min-w-[240px]">Teks Sekolah Asal di Biodata Siswa</th>
                         <th class="py-3 px-4 min-w-[200px]">Terpetakan ke Master (Analitik)</th>
                         <th class="py-3 px-3 text-center w-28">Jumlah Siswa</th>
+                        <th class="py-3 px-3 min-w-[130px]">Catatan Master</th>
                         <th class="py-3 px-3 text-center w-36">Aksi</th>
                     </tr>
                 </thead>
@@ -244,6 +246,24 @@
                             </td>
                             <td class="py-3 px-2 text-center text-text-muted font-mono">{{ $rowNum }}</td>
                             
+                            {{-- NPSN Master --}}
+                            <td class="py-3 px-3 text-center">
+                                @if ($item->is_mapped && $item->master_npsn)
+                                    <span class="font-mono text-xs font-semibold text-text-main bg-surface-subtle px-2 py-0.5 rounded border border-border">
+                                        {{ $item->master_npsn }}
+                                    </span>
+                                @elseif ($item->is_mapped)
+                                    <span class="inline-flex items-center gap-1 text-[10px] font-semibold px-1.5 py-0.5 rounded bg-amber-50 text-amber-700 border border-amber-300 dark:bg-amber-950/40 dark:text-amber-300" title="NPSN master belum diisi">
+                                        <svg xmlns="http://www.w3.org/2000/svg" class="h-3 w-3 text-amber-600" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                                            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 9v2m0 4h.01m-6.938 4h13.856c1.54 0 2.502-1.667 1.732-3L13.732 4c-.77-1.333-2.694-1.333-3.464 0L3.34 16c-.77 1.333.192 3 1.732 3z" />
+                                        </svg>
+                                        <span>Belum diisi</span>
+                                    </span>
+                                @else
+                                    <span class="text-xs text-text-muted/50">-</span>
+                                @endif
+                            </td>
+
                             {{-- Teks Mentah --}}
                             <td class="py-3 px-4">
                                 <div class="font-bold text-text-main text-sm">{{ $item->raw_name }}</div>
@@ -274,6 +294,17 @@
                                 <span class="text-[11px] text-text-muted block">({{ $item->total_aktif }} aktif)</span>
                             </td>
 
+                            {{-- Catatan Master --}}
+                            <td class="py-3 px-3 min-w-[130px] max-w-[200px]">
+                                @if ($item->is_mapped && !empty($item->master_catatan))
+                                    <span class="text-xs text-text-secondary truncate block" title="{{ $item->master_catatan }}">
+                                        {{ \Illuminate\Support\Str::limit($item->master_catatan, 35) }}
+                                    </span>
+                                @else
+                                    <span class="text-xs text-text-muted/60">-</span>
+                                @endif
+                            </td>
+
                             {{-- Aksi --}}
                             <td class="py-3 px-3 text-center">
                                 <div class="inline-flex items-center gap-1">
@@ -286,10 +317,19 @@
                                     </button>
 
                                     @can('analitik_spmb.perbaikan_smp.kelola')
-                                        {{-- Quick Rename --}}
-                                        <button type="button" wire:click="openRenameModal('{{ addslashes($item->raw_name) }}')" class="btn btn-secondary !p-1.5" title="Ganti Nama">
+                                        {{-- Edit Master (NPSN & Catatan) jika sudah terpetakan --}}
+                                        @if ($item->is_mapped && $item->master_id)
+                                            <button type="button" wire:click="openEditMasterModal({{ $item->master_id }})" class="btn btn-secondary !p-1.5 text-amber-600 hover:text-amber-700" title="Edit Master (NPSN & Catatan)">
+                                                <svg xmlns="http://www.w3.org/2000/svg" class="h-3.5 w-3.5" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                                                    <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M11 5H6a2 2 0 00-2 2v11a2 2 0 002 2h11a2 2 0 002-2v-5m-1.414-9.414a2 2 0 112.828 2.828L11.828 15H9v-2.828l8.586-8.586z" />
+                                                </svg>
+                                            </button>
+                                        @endif
+
+                                        {{-- Quick Rename Teks Mentah --}}
+                                        <button type="button" wire:click="openRenameModal('{{ addslashes($item->raw_name) }}')" class="btn btn-secondary !p-1.5" title="Ganti Nama Mentah">
                                             <svg xmlns="http://www.w3.org/2000/svg" class="h-3.5 w-3.5 text-blue-600" fill="none" viewBox="0 0 24 24" stroke="currentColor">
-                                                <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M11 5H6a2 2 0 00-2 2v11a2 2 0 002 2h11a2 2 0 002-2v-5m-1.414-9.414a2 2 0 112.828 2.828L11.828 15H9v-2.828l8.586-8.586z" />
+                                                <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M15.232 5.232l3.536 3.536m-2.036-5.036a2.5 2.5 0 113.536 3.536L6.5 21.036H3v-3.572L16.732 3.732z" />
                                             </svg>
                                         </button>
 
@@ -305,7 +345,7 @@
                         </tr>
                     @empty
                         <tr>
-                            <td colspan="6" class="py-10 text-center text-text-muted">
+                            <td colspan="8" class="py-10 text-center text-text-muted">
                                 Tidak ada data sekolah asal yang sesuai dengan filter.
                             </td>
                         </tr>
@@ -453,6 +493,72 @@
                                     Konfirmasi & Gabungkan
                                 </button>
                             </div>
+                        </div>
+                    </form>
+                </div>
+            </div>
+        </div>
+    @endif
+
+    {{-- MODAL QUICK EDIT MASTER SEKOLAH (NPSN & CATATAN) --}}
+    @if ($showEditMasterModal)
+        <div class="fixed inset-0 z-50 overflow-y-auto" aria-labelledby="modal-edit-master-title" role="dialog" aria-modal="true">
+            {{-- Backdrop --}}
+            <div class="fixed inset-0 bg-slate-900/60 backdrop-blur-xs transition-opacity z-10 cursor-pointer" wire:click="closeEditMasterModal"></div>
+
+            <div class="flex min-h-full items-center justify-center p-4 text-center sm:p-0 relative z-20 pointer-events-none">
+                <div class="relative transform overflow-hidden rounded-2xl bg-surface border border-border text-left shadow-2xl transition-all sm:my-8 sm:w-full sm:max-w-md text-text-main pointer-events-auto" @click.stop>
+                    <form wire:submit.prevent="saveEditMaster">
+                        {{-- Header --}}
+                        <div class="p-4 sm:p-5 border-b border-border bg-surface-subtle flex items-center justify-between">
+                            <div class="flex items-center gap-2">
+                                <span class="p-1.5 rounded-lg bg-amber-500/10 text-amber-600">
+                                    <svg xmlns="http://www.w3.org/2000/svg" class="h-5 w-5" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                                        <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M11 5H6a2 2 0 00-2 2v11a2 2 0 002 2h11a2 2 0 002-2v-5m-1.414-9.414a2 2 0 112.828 2.828L11.828 15H9v-2.828l8.586-8.586z" />
+                                    </svg>
+                                </span>
+                                <div>
+                                    <h3 class="text-sm font-bold text-text-main" id="modal-edit-master-title">Perbarui Master Sekolah Asal</h3>
+                                    <p class="text-xs text-text-secondary">Lengkapi nomor unik NPSN dan catatan perbaikan.</p>
+                                </div>
+                            </div>
+                            <button type="button" wire:click="closeEditMasterModal" class="text-text-muted hover:text-text-main text-lg">&times;</button>
+                        </div>
+
+                        {{-- Body --}}
+                        <div class="p-4 space-y-3.5 text-xs">
+                            <div>
+                                <label class="label font-semibold text-text-muted">Nama Resmi Master:</label>
+                                <div class="p-2 rounded bg-surface-subtle border border-border font-bold text-text-main flex items-center justify-between">
+                                    <span>{{ $editMasterNamaResmi }}</span>
+                                    <span class="text-[10px] px-1.5 py-0.2 rounded border bg-surface text-text-muted">
+                                        {{ $editMasterJenis }} &bull; {{ $editMasterTier }}
+                                    </span>
+                                </div>
+                            </div>
+
+                            <div>
+                                <label class="label font-semibold">Nomor Pokok Sekolah Nasional (NPSN)</label>
+                                <input type="text" wire:model="editMasterNpsn" placeholder="Contoh: 20209912" class="input w-full font-mono text-sm">
+                                <span class="text-[11px] text-text-muted block mt-0.5">8 digit nomor unik resmi Kemendikbudristek / Kemenag.</span>
+                                @error('editMasterNpsn') <span class="text-rose-500 text-xs">{{ $message }}</span> @enderror
+                            </div>
+
+                            <div>
+                                <label class="label font-semibold">Catatan Perbaikan / Keterangan</label>
+                                <textarea wire:model="editMasterCatatan" rows="3" placeholder="Contoh: Telah diverifikasi dengan Dapodik; Sekolah induk merger SMPN 2..." class="input w-full text-xs"></textarea>
+                                @error('editMasterCatatan') <span class="text-rose-500 text-xs">{{ $message }}</span> @enderror
+                            </div>
+                        </div>
+
+                        {{-- Footer --}}
+                        <div class="p-3.5 border-t border-border bg-surface-subtle flex items-center justify-end gap-2">
+                            <button type="button" wire:click="closeEditMasterModal" class="btn btn-secondary !py-1.5 !px-3 text-xs">
+                                Batal
+                            </button>
+                            <button type="submit" class="btn btn-primary !py-1.5 !px-4 text-xs">
+                                Simpan Data Master
+                            </button>
                         </div>
                     </form>
                 </div>

@@ -45,6 +45,16 @@ class PerbaikanSmpIndex extends Component
     public bool $renameOptUpdateSiswa = true;
     public bool $renameOptCreateAlias = true;
 
+    // Quick Edit Master Modal State
+    public bool $showEditMasterModal = false;
+    public ?int $editMasterId = null;
+    public string $editMasterNamaResmi = '';
+    public string $editMasterNpsn = '';
+    public string $editMasterCatatan = '';
+    public string $editMasterTier = 'Rintisan';
+    public string $editMasterJenis = 'SMP';
+    public string $editMasterStatus = 'Negeri';
+
     // Drawer Detail Siswa
     public bool $showDrawer = false;
     public string $drawerSchoolName = '';
@@ -222,6 +232,53 @@ class PerbaikanSmpIndex extends Component
         $this->refreshSuggestions();
 
         session()->flash('success', "Penggabungan berhasil! {$result['affected_students']} data siswa diperbarui ke '{$result['target_name']}'.");
+    }
+
+    public function openEditMasterModal(int $masterId): void
+    {
+        $this->guard('analitik_spmb.perbaikan_smp.kelola');
+
+        $master = SpmbSekolahAsal::findOrFail($masterId);
+        $this->editMasterId = $master->id;
+        $this->editMasterNamaResmi = $master->nama_resmi;
+        $this->editMasterNpsn = $master->npsn ?? '';
+        $this->editMasterCatatan = $master->catatan ?? '';
+        $this->editMasterTier = $master->tier ?? 'Rintisan';
+        $this->editMasterJenis = $master->jenis ?? 'SMP';
+        $this->editMasterStatus = $master->status_sekolah ?? 'Negeri';
+        $this->showEditMasterModal = true;
+    }
+
+    public function closeEditMasterModal(): void
+    {
+        $this->showEditMasterModal = false;
+        $this->editMasterId = null;
+        $this->editMasterNamaResmi = '';
+        $this->editMasterNpsn = '';
+        $this->editMasterCatatan = '';
+    }
+
+    public function saveEditMaster(): void
+    {
+        $this->guard('analitik_spmb.perbaikan_smp.kelola');
+
+        if (! $this->editMasterId) {
+            return;
+        }
+
+        $this->validate([
+            'editMasterNpsn' => 'nullable|string|max:20',
+            'editMasterCatatan' => 'nullable|string|max:500',
+        ]);
+
+        $master = SpmbSekolahAsal::findOrFail($this->editMasterId);
+        $master->update([
+            'npsn' => trim($this->editMasterNpsn) ?: null,
+            'catatan' => trim($this->editMasterCatatan) ?: null,
+        ]);
+
+        $this->closeEditMasterModal();
+        session()->flash('success', "Data master '{$master->nama_resmi}' berhasil diperbarui (NPSN & Catatan tersimpan).");
     }
 
     public function render()
