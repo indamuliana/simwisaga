@@ -2,6 +2,7 @@
 
 namespace App\Modules\AnalitikSpmb\Services;
 
+use App\Modules\AnalitikSpmb\Models\SpmbIgnoredDuplicate;
 use App\Modules\AnalitikSpmb\Models\SpmbSekolahAsal;
 use App\Modules\AnalitikSpmb\Models\SpmbSekolahAsalAlias;
 use App\Modules\Kesiswaan\Models\Siswa;
@@ -118,6 +119,7 @@ class SpmbDataCleansingService
 
         $clusters = [];
         $visited = [];
+        $ignoredHashes = SpmbIgnoredDuplicate::pluck('pair_hash')->flip()->toArray();
 
         $count = count($items);
         for ($i = 0; $i < $count; $i++) {
@@ -134,6 +136,11 @@ class SpmbDataCleansingService
 
             for ($j = $i + 1; $j < $count; $j++) {
                 if (isset($visited[$j])) {
+                    continue;
+                }
+
+                $pairHash = SpmbIgnoredDuplicate::hashPair($items[$i]['raw_name'], $items[$j]['raw_name']);
+                if (isset($ignoredHashes[$pairHash])) {
                     continue;
                 }
 
@@ -176,6 +183,43 @@ class SpmbDataCleansingService
      */
     protected function isSimilarSchool(string $coreA, string $coreB, string $rawA, string $rawB): bool
     {
+        // 0. Cek perbedaan nomor urut sekolah (misal: SMPN 1 Leles vs SMPN 2 Leles)
+        // Jika kedua sekolah memiliki angka urut yang berbeda, dipastikan BUKAN sekolah yang sama!
+        preg_match_all('/\b(\d+)\b/', $rawA, $matchesA);
+        preg_match_all('/\b(\d+)\b/', $rawB, $matchesB);
+        $numsA = $matchesA[1] ?? [];
+        $numsB = $matchesB[1] ?? [];
+        if (! empty($numsA) && ! empty($numsB)) {
+            $firstNumA = $numsA[0];
+            $firstNumB = $numsB[0];
+            if ($firstNumA !== $firstNumB) {
+                return false;
+            }
+        }
+
+        // Cek jika satu adalah Negeri (SMPN/MTsN) dan satu lagi adalah swasta yayasan spesifik
+        $isNegeriA = (bool) preg_match('/\b(smpn|mtsn|negeri)\b/i', $rawA);
+        $isNegeriB = (bool) preg_match('/\b(smpn|mtsn|negeri)\b/i', $rawB);
+        $hasYayasanA = (bool) preg_match('/\b(muhammadiyah|persis|islam terpadu|maarif|ma\'arif|pgri)\b/i', $rawA);
+        $hasYayasanB = (bool) preg_match('/\b(muhammadiyah|persis|islam terpadu|maarif|ma\'arif|pgri)\b/i', $rawB);
+
+        if (($isNegeriA && ! $hasYayasanA && $hasYayasanB) || ($isNegeriB && ! $hasYayasanB && $hasYayasanA)) {
+            return false;
+        }
+
+        // Cek jika satu MTs dan satu SMP
+        $isMtsA = (bool) preg_match('/\b(mts|mtsn|madrasah)\b/i', $rawA);
+        $isMtsB = (bool) preg_match('/\b(mts|mtsn|madrasah)\b/i', $rawB);
+        $isSmpA = (bool) preg_match('/\b(smp|smpn)\b/i', $rawA);
+        $isSmpB = (bool) preg_match('/\b(smp|smpn)\b/i', $rawB);
+
+        if ($isMtsA && $isSmpB && ! $isMtsB) {
+            return false;
+        }
+        if ($isMtsB && $isSmpA && ! $isMtsA) {
+            return false;
+        }
+
         // 1. Core sama persis (misal: "smp baitul hikmah" vs "smpn baitul hikmah")
         if ($coreA === $coreB) {
             return true;
@@ -202,6 +246,39 @@ class SpmbDataCleansingService
         }
 
         return false;
+    }
+
+    /**
+     * Tandai bahwa dua nama sekolah asal adalah sekolah yang berbeda (bukan duplikat).
+     */
+    public function markAsDifferent(string $rawA, string $rawB): void
+    {
+        SpmbIgnoredDuplicate::ignorePair($rawA, $rawB);
+    }
+
+    /**
+     * Tandai seluruh pasangan di dalam kelompok/cluster sebagai sekolah yang berbeda.
+     */
+    public function markClusterAsDifferent(array $schoolNames): int
+    {
+        $count = count($schoolNames);
+        $added = 0;
+        for ($i = 0; $i < $count; $i++) {
+            for ($j = $i + 1; $j < $count; $j++) {
+                SpmbIgnoredDuplicate::ignorePair($schoolNames[$i], $schoolNames[$j]);
+                $added++;
+            }
+        }
+
+        return $added;
+    }
+
+    /**
+     * Batalkan tanda berbeda untuk pasangan tertentu.
+     */
+    public function unmarkDifferent(int $ignoredId): void
+    {
+        SpmbIgnoredDuplicate::where('id', $ignoredId)->delete();
     }
 
     /**

@@ -120,12 +120,20 @@
                         <p class="text-xs text-text-secondary">Sistem mendeteksi kelompok nama sekolah yang sangat mirip dan berpotensi merupakan sekolah yang sama.</p>
                     </div>
                 </div>
-                <button type="button" wire:click="refreshSuggestions" class="text-xs text-primary hover:underline font-semibold flex items-center gap-1">
-                    <svg xmlns="http://www.w3.org/2000/svg" class="h-3.5 w-3.5" fill="none" viewBox="0 0 24 24" stroke="currentColor">
-                        <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M4 4v5h.582m15.356 2A8.001 8.001 0 004.582 9m0 0H9m11 11v-5h-.581m0 0a8.003 8.003 0 01-15.357-2m15.357 2H15" />
-                    </svg>
-                    <span>Pindai Ulang</span>
-                </button>
+                <div class="flex items-center gap-2">
+                    <button type="button" wire:click="refreshSuggestions" class="text-xs text-primary hover:underline font-semibold flex items-center gap-1">
+                        <svg xmlns="http://www.w3.org/2000/svg" class="h-3.5 w-3.5" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M4 4v5h.582m15.356 2A8.001 8.001 0 004.582 9m0 0H9m11 11v-5h-.581m0 0a8.003 8.003 0 01-15.357-2m15.357 2H15" />
+                        </svg>
+                        <span>Pindai Ulang</span>
+                    </button>
+                    @if ($ignoredCount > 0)
+                        <span class="text-text-muted text-xs">&bull;</span>
+                        <button type="button" wire:click="$toggle('showIgnoredModal')" class="text-xs text-text-secondary hover:text-text-main font-medium underline flex items-center gap-1">
+                            <span>{{ $ignoredCount }} ditandai berbeda</span>
+                        </button>
+                    @endif
+                </div>
             </div>
 
             <div class="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-3 pt-1">
@@ -139,11 +147,22 @@
 
                             <div class="space-y-1.5">
                                 @foreach ($cluster['items'] as $cItem)
-                                    <div class="flex items-center justify-between p-1.5 rounded bg-surface-subtle text-xs border border-border/50">
-                                        <span class="font-medium text-text-main truncate mr-2" title="{{ $cItem['raw_name'] }}">{{ $cItem['raw_name'] }}</span>
-                                        <span class="text-[10px] px-1.5 py-0.2 rounded-full bg-surface text-text-muted border border-border shrink-0 font-mono">
-                                            {{ $cItem['total_siswa'] }}
-                                        </span>
+                                    <div class="flex items-center justify-between p-1.5 rounded bg-surface-subtle text-xs border border-border/50 group/item">
+                                        <span class="font-medium text-text-main truncate mr-1.5" title="{{ $cItem['raw_name'] }}">{{ $cItem['raw_name'] }}</span>
+                                        <div class="flex items-center gap-1 shrink-0">
+                                            <span class="text-[10px] px-1.5 py-0.2 rounded-full bg-surface text-text-muted border border-border font-mono">
+                                                {{ $cItem['total_siswa'] }}
+                                            </span>
+                                            @if (count($cluster['items']) > 2)
+                                                @can('analitik_spmb.perbaikan_smp.kelola')
+                                                    <button type="button" wire:click="excludeFromSuggestion({{ $idx }}, @js($cItem['raw_name']))" class="opacity-0 group-hover/item:opacity-100 text-rose-500 hover:text-rose-700 p-0.5 transition-opacity" title="Keluarkan sekolah ini dari kelompok (bukan duplikat)">
+                                                        <svg xmlns="http://www.w3.org/2000/svg" class="h-3 w-3" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                                                            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M6 18L18 6M6 6l12 12" />
+                                                        </svg>
+                                                    </button>
+                                                @endcan
+                                            @endif
+                                        </div>
                                     </div>
                                 @endforeach
                             </div>
@@ -154,12 +173,20 @@
                         </div>
 
                         @can('analitik_spmb.perbaikan_smp.kelola')
-                            <button type="button" wire:click="openMergeFromSuggestion({{ $idx }})" class="btn btn-secondary !py-1.5 !px-3 text-xs w-full justify-center gap-1.5 hover:bg-primary hover:text-white transition-colors">
-                                <svg xmlns="http://www.w3.org/2000/svg" class="h-3.5 w-3.5" fill="none" viewBox="0 0 24 24" stroke="currentColor">
-                                    <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M8 7h12m0 0l-4-4m4 4l-4 4m0 6H4m0 0l4 4m-4-4l4-4" />
-                                </svg>
-                                <span>Tinjau & Satukan Sekolah Ini</span>
-                            </button>
+                            <div class="flex items-center gap-1.5 pt-1">
+                                <button type="button" wire:click="openMergeFromSuggestion({{ $idx }})" class="btn btn-secondary !py-1.5 !px-2.5 text-xs flex-1 justify-center gap-1 hover:bg-primary hover:text-white transition-colors" title="Satukan ke satu master sekolah">
+                                    <svg xmlns="http://www.w3.org/2000/svg" class="h-3.5 w-3.5" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                                        <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M8 7h12m0 0l-4-4m4 4l-4 4m0 6H4m0 0l4 4m-4-4l4-4" />
+                                    </svg>
+                                    <span>Satukan</span>
+                                </button>
+                                <button type="button" wire:click="markAsNotDuplicate({{ $idx }})" class="btn btn-secondary !py-1.5 !px-2.5 text-xs text-rose-600 hover:text-rose-700 hover:bg-rose-50 border-rose-200 dark:border-rose-900/50 justify-center gap-1" title="Tandai bahwa sekolah-sekolah ini berbeda (bukan duplikat)">
+                                    <svg xmlns="http://www.w3.org/2000/svg" class="h-3.5 w-3.5 text-rose-500" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                                        <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M6 18L18 6M6 6l12 12" />
+                                    </svg>
+                                    <span>Bukan Duplikat</span>
+                                </button>
+                            </div>
                         @endcan
                     </div>
                 @endforeach
@@ -309,7 +336,7 @@
                             <td class="py-3 px-3 text-center">
                                 <div class="inline-flex items-center gap-1">
                                     {{-- Lihat Siswa --}}
-                                    <button type="button" wire:click="openDrawer('{{ addslashes($item->raw_name) }}')" class="btn btn-secondary !p-1.5" title="Lihat Siswa">
+                                    <button type="button" wire:click="openDrawer(@js($item->raw_name))" class="btn btn-secondary !p-1.5" title="Lihat Siswa">
                                         <svg xmlns="http://www.w3.org/2000/svg" class="h-3.5 w-3.5 text-primary" fill="none" viewBox="0 0 24 24" stroke="currentColor">
                                             <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M15 12a3 3 0 11-6 0 3 3 0 016 0z" />
                                             <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M2.458 12C3.732 7.943 7.523 5 12 5c4.478 0 8.268 2.943 9.542 7-1.274 4.057-5.064 7-9.542 7-4.477 0-8.268-2.943-9.542-7z" />
@@ -327,14 +354,14 @@
                                         @endif
 
                                         {{-- Quick Rename Teks Mentah --}}
-                                        <button type="button" wire:click="openRenameModal('{{ addslashes($item->raw_name) }}')" class="btn btn-secondary !p-1.5" title="Ganti Nama Mentah">
+                                        <button type="button" wire:click="openRenameModal(@js($item->raw_name))" class="btn btn-secondary !p-1.5" title="Ganti Nama Mentah">
                                             <svg xmlns="http://www.w3.org/2000/svg" class="h-3.5 w-3.5 text-blue-600" fill="none" viewBox="0 0 24 24" stroke="currentColor">
                                                 <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M15.232 5.232l3.536 3.536m-2.036-5.036a2.5 2.5 0 113.536 3.536L6.5 21.036H3v-3.572L16.732 3.732z" />
                                             </svg>
                                         </button>
 
                                         {{-- Merge Single --}}
-                                        <button type="button" wire:click="$set('selectedSchools', ['{{ addslashes($item->raw_name) }}']); openMergeFromSelection();" class="btn btn-secondary !p-1.5" title="Gabungkan Sekolah Ini">
+                                        <button type="button" wire:click="openMergeSingle(@js($item->raw_name))" class="btn btn-secondary !p-1.5" title="Gabungkan Sekolah Ini">
                                             <svg xmlns="http://www.w3.org/2000/svg" class="h-3.5 w-3.5 text-emerald-600" fill="none" viewBox="0 0 24 24" stroke="currentColor">
                                                 <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M8 7h12m0 0l-4-4m4 4l-4 4m0 6H4m0 0l4 4m-4-4l4-4" />
                                             </svg>
@@ -703,6 +730,61 @@
                     {{-- Footer --}}
                     <div class="p-3 border-t border-border bg-surface-subtle flex items-center justify-end">
                         <button type="button" wire:click="closeDrawer" class="btn btn-secondary !py-1.5 !px-3 text-xs">
+                            Tutup
+                        </button>
+                    </div>
+                </div>
+            </div>
+        </div>
+    @endif
+
+    {{-- MODAL DAFTAR REKOMENDASI YANG DITANDAI BERBEDA --}}
+    @if ($showIgnoredModal)
+        <div class="fixed inset-0 z-50 overflow-y-auto" aria-labelledby="modal-ignored-title" role="dialog" aria-modal="true">
+            {{-- Backdrop --}}
+            <div class="fixed inset-0 bg-slate-900/60 backdrop-blur-xs transition-opacity z-10 cursor-pointer" wire:click="$set('showIgnoredModal', false)"></div>
+
+            <div class="flex min-h-full items-center justify-center p-4 text-center sm:p-0 relative z-20 pointer-events-none">
+                <div class="relative transform overflow-hidden rounded-2xl bg-surface border border-border text-left shadow-2xl transition-all sm:my-8 sm:w-full sm:max-w-xl text-text-main pointer-events-auto" @click.stop>
+                    {{-- Header --}}
+                    <div class="p-4 sm:p-5 border-b border-border bg-surface-subtle flex items-center justify-between">
+                        <div class="flex items-center gap-2">
+                            <span class="p-1.5 rounded-lg bg-rose-500/10 text-rose-600">
+                                <svg xmlns="http://www.w3.org/2000/svg" class="h-5 w-5" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                                    <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M18.364 18.364A9 9 0 005.636 5.636m12.728 12.728A9 9 0 015.636 5.636m12.728 12.728L5.636 5.636" />
+                                </svg>
+                            </span>
+                            <div>
+                                <h3 class="text-base font-bold text-text-main" id="modal-ignored-title">Sekolah Ditandai Berbeda</h3>
+                                <p class="text-xs text-text-secondary">Daftar pasangan nama sekolah yang ditandai bukan duplikat.</p>
+                            </div>
+                        </div>
+                        <button type="button" wire:click="$set('showIgnoredModal', false)" class="text-text-muted hover:text-text-main text-lg">&times;</button>
+                    </div>
+
+                    {{-- Body --}}
+                    <div class="p-4 max-h-[60vh] overflow-y-auto space-y-2">
+                        @forelse ($ignoredPairs as $pair)
+                            <div class="p-2.5 rounded-lg border border-border bg-surface-subtle flex items-center justify-between text-xs gap-2">
+                                <div class="flex items-center gap-2 min-w-0">
+                                    <span class="font-semibold text-text-main truncate">{{ $pair->school_a }}</span>
+                                    <span class="text-rose-500 font-bold shrink-0">&ne;</span>
+                                    <span class="font-semibold text-text-main truncate">{{ $pair->school_b }}</span>
+                                </div>
+                                <button type="button" wire:click="restoreIgnoredPair({{ $pair->id }})" class="btn btn-secondary !py-1 !px-2 text-[11px] text-text-secondary hover:text-primary shrink-0" title="Batalkan tanda berbeda (bisa direkomendasikan kembali)">
+                                    Batalkan
+                                </button>
+                            </div>
+                        @empty
+                            <div class="py-8 text-center text-text-muted text-xs">
+                                Belum ada pasangan sekolah yang ditandai berbeda.
+                            </div>
+                        @endforelse
+                    </div>
+
+                    {{-- Footer --}}
+                    <div class="p-3.5 border-t border-border bg-surface-subtle flex items-center justify-end">
+                        <button type="button" wire:click="$set('showIgnoredModal', false)" class="btn btn-secondary !py-1.5 !px-3 text-xs">
                             Tutup
                         </button>
                     </div>

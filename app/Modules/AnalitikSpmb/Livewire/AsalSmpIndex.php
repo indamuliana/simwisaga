@@ -206,7 +206,10 @@ class AsalSmpIndex extends Component
             'formNpsn' => 'nullable|string|max:20',
             'formJenis' => 'required|in:SMP,MTs,Pesantren,Lainnya',
             'formStatusSekolah' => 'required|in:Negeri,Swasta',
+            'formKecamatan' => 'nullable|string|max:100',
+            'formKabupatenKota' => 'nullable|string|max:100',
             'formTier' => 'required|in:Utama,Potensial,Rintisan',
+            'formCatatan' => 'nullable|string|max:500',
         ], [
             'formNamaResmi.unique' => 'Nama sekolah resmi ini sudah terdaftar sebagai master sekolah lain. Jika ini sekolah yang sama, silakan gunakan menu "Perbaikan Data Asal SMP" untuk menggabungkannya.',
         ]);
@@ -461,7 +464,7 @@ class AsalSmpIndex extends Component
         ];
 
         foreach ($jurusans as $j) {
-            $selects[] = DB::raw("sum(case when jurusans.id = {$j->id} then 1 else 0 end) as jurusan_{$j->id}");
+            $selects[] = DB::raw("sum(case when siswas.jurusan_id = {$j->id} then 1 else 0 end) as jurusan_{$j->id}");
         }
 
         $schoolQuery = SpmbSekolahAsal::query()
@@ -480,7 +483,6 @@ class AsalSmpIndex extends Component
                 '=',
                 'siswas.sekolah_asal'
             )
-            ->leftJoin('jurusans', 'siswas.jurusan_id', '=', 'jurusans.id')
             ->select($selects)
             ->groupBy(
                 'spmb_sekolah_asals.id',

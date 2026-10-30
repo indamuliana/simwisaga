@@ -257,4 +257,182 @@ class AnalitikSpmbNpsnCatatanTest extends TestCase
         $this->assertCount(1, $filteredDrawerSiswas);
         $this->assertEquals('Siswa X', $filteredDrawerSiswas->first()->nama);
     }
+
+    public function test_smpn_1_dan_smpn_2_tidak_dianggap_duplikat(): void
+    {
+        $rombel = Rombel::firstOrFail();
+
+        Siswa::create([
+            'nama' => 'Ahmad',
+            'nipd' => '12500001',
+            'nisn' => '0093333331',
+            'jk' => 'L',
+            'rombel_id' => $rombel->id,
+            'sekolah_asal' => 'SMPN 1 Leles',
+            'is_active' => true,
+            'status' => 'aktif',
+        ]);
+
+        Siswa::create([
+            'nama' => 'Bambang',
+            'nipd' => '12500002',
+            'nisn' => '0093333332',
+            'jk' => 'L',
+            'rombel_id' => $rombel->id,
+            'sekolah_asal' => 'SMPN 2 Leles',
+            'is_active' => true,
+            'status' => 'aktif',
+        ]);
+
+        $service = app(\App\Modules\AnalitikSpmb\Services\SpmbDataCleansingService::class);
+        $suggestions = $service->detectPotentialDuplicates();
+
+        $combinedClusterFound = false;
+        foreach ($suggestions as $cluster) {
+            $names = array_column($cluster['items'], 'raw_name');
+            if (in_array('SMPN 1 Leles', $names) && in_array('SMPN 2 Leles', $names)) {
+                $combinedClusterFound = true;
+            }
+        }
+
+        $this->assertFalse($combinedClusterFound, 'SMPN 1 Leles dan SMPN 2 Leles seharusnya tidak digabung sebagai duplikat!');
+    }
+
+    public function test_user_bisa_menandai_rekomendasi_sebagai_bukan_duplikat(): void
+    {
+        $rombel = Rombel::firstOrFail();
+
+        Siswa::create([
+            'nama' => 'Cecep',
+            'nipd' => '12500003',
+            'nisn' => '0093333333',
+            'jk' => 'L',
+            'rombel_id' => $rombel->id,
+            'sekolah_asal' => 'SMP Pasundan Garut',
+            'is_active' => true,
+            'status' => 'aktif',
+        ]);
+
+        Siswa::create([
+            'nama' => 'Deden',
+            'nipd' => '12500004',
+            'nisn' => '0093333334',
+            'jk' => 'L',
+            'rombel_id' => $rombel->id,
+            'sekolah_asal' => 'SMP Pasundan Garut Kota',
+            'is_active' => true,
+            'status' => 'aktif',
+        ]);
+
+        $component = Livewire::actingAs($this->admin)
+            ->test(PerbaikanSmpIndex::class);
+
+        $initialSuggestions = $component->viewData('suggestions');
+        $this->assertNotEmpty($initialSuggestions);
+
+        // Cari index cluster yang memuat 'SMP Pasundan Garut'
+        $targetIndex = null;
+        foreach ($initialSuggestions as $idx => $cluster) {
+            $names = array_column($cluster['items'], 'raw_name');
+            if (in_array('SMP Pasundan Garut', $names)) {
+                $targetIndex = $idx;
+                break;
+            }
+        }
+
+        $this->assertNotNull($targetIndex);
+
+        // Klik 'Bukan Duplikat'
+        $component->call('markAsNotDuplicate', $targetIndex);
+
+        // Verifikasi tersimpan di spmb_ignored_duplicates
+        $this->assertDatabaseHas('spmb_ignored_duplicates', [
+            'school_a' => 'SMP Pasundan Garut',
+            'school_b' => 'SMP Pasundan Garut Kota',
+        ]);
+
+        // Verifikasi setelah diabaikan, cluster tersebut hilang dari rekomendasi
+        $newSuggestions = $component->viewData('suggestions');
+        foreach ($newSuggestions as $cluster) {
+            $names = array_column($cluster['items'], 'raw_name');
+            $this->assertFalse(in_array('SMP Pasundan Garut', $names) && in_array('SMP Pasundan Garut Kota', $names));
+        }
+    }
+
+    public function test_sekolah_dengan_karakter_petik_berjalan_tanpa_error(): void
+    {
+        $rombel = Rombel::firstOrFail();
+
+        Siswa::create([
+            'nama' => 'Agus',
+            'nipd' => '12600001',
+            'nisn' => '0094444441',
+            'jk' => 'L',
+            'rombel_id' => $rombel->id,
+            'sekolah_asal' => 'SMP "Bina Taruna"',
+            'is_active' => true,
+            'status' => 'aktif',
+        ]);
+
+        Livewire::actingAs($this->admin)
+            ->test(PerbaikanSmpIndex::class)
+            ->assertStatus(200)
+            ->assertSee('SMP &quot;Bina Taruna&quot;', false)
+            ->call('openDrawer', 'SMP "Bina Taruna"')
+            ->assertSet('drawerSchoolName', 'SMP "Bina Taruna"')
+            ->assertSet('showDrawer', true)
+            ->call('openRenameModal', 'SMP "Bina Taruna"')
+            ->assertSet('renameOldName', 'SMP "Bina Taruna"')
+            ->assertSet('showRenameModal', true)
+            ->call('openMergeSingle', 'SMP "Bina Taruna"')
+            ->assertSet('selectedSchools', ['SMP "Bina Taruna"'])
+            ->assertSet('showMergeModal', true);
+    }
+
+    public function test_update_all_tiers_menggunakan_agregasi_tunggal(): void
+    {
+        $rombel = Rombel::firstOrFail();
+
+        $sekolahUtama = SpmbSekolahAsal::create([
+            'nama_resmi' => 'SMP Hebat 1',
+            'tier' => 'Rintisan',
+        ]);
+        $sekolahPotensial = SpmbSekolahAsal::create([
+            'nama_resmi' => 'SMP Hebat 2',
+            'tier' => 'Rintisan',
+        ]);
+
+        // Buat 20 siswa untuk sekolah 1
+        for ($i = 1; $i <= 20; $i++) {
+            Siswa::create([
+                'nama' => "Siswa Utama {$i}",
+                'nipd' => "127000{$i}",
+                'nisn' => "00955555{$i}",
+                'jk' => 'L',
+                'rombel_id' => $rombel->id,
+                'sekolah_asal' => 'SMP Hebat 1',
+                'is_active' => true,
+                'status' => 'aktif',
+            ]);
+        }
+
+        // Buat 8 siswa untuk sekolah 2
+        for ($i = 1; $i <= 8; $i++) {
+            Siswa::create([
+                'nama' => "Siswa Potensial {$i}",
+                'nipd' => "128000{$i}",
+                'nisn' => "00966666{$i}",
+                'jk' => 'P',
+                'rombel_id' => $rombel->id,
+                'sekolah_asal' => 'SMP Hebat 2',
+                'is_active' => true,
+                'status' => 'aktif',
+            ]);
+        }
+
+        app(\App\Modules\AnalitikSpmb\Services\SpmbSekolahAsalSyncService::class)->updateAllTiers();
+
+        $this->assertEquals('Utama', $sekolahUtama->fresh()->tier);
+        $this->assertEquals('Potensial', $sekolahPotensial->fresh()->tier);
+    }
 }

@@ -3,6 +3,7 @@
 namespace App\Modules\AnalitikSpmb\Livewire;
 
 use App\Core\Concerns\GuardsPermission;
+use App\Modules\AnalitikSpmb\Models\SpmbIgnoredDuplicate;
 use App\Modules\AnalitikSpmb\Models\SpmbSekolahAsal;
 use App\Modules\AnalitikSpmb\Services\SpmbDataCleansingService;
 use Illuminate\Pagination\LengthAwarePaginator;
@@ -54,6 +55,9 @@ class PerbaikanSmpIndex extends Component
     public string $editMasterTier = 'Rintisan';
     public string $editMasterJenis = 'SMP';
     public string $editMasterStatus = 'Negeri';
+
+    // Modal Daftar Rekomendasi Diabaikan
+    public bool $showIgnoredModal = false;
 
     // Drawer Detail Siswa
     public bool $showDrawer = false;
@@ -173,6 +177,12 @@ class PerbaikanSmpIndex extends Component
         $this->showMergeModal = true;
     }
 
+    public function openMergeSingle(string $rawName): void
+    {
+        $this->selectedSchools = [$rawName];
+        $this->openMergeFromSelection();
+    }
+
     public function openMergeFromSuggestion(int $suggestionIndex): void
     {
         $this->guard('analitik_spmb.perbaikan_smp.kelola');
@@ -281,6 +291,54 @@ class PerbaikanSmpIndex extends Component
         session()->flash('success', "Data master '{$master->nama_resmi}' berhasil diperbarui (NPSN & Catatan tersimpan).");
     }
 
+    public function markAsNotDuplicate(int $suggestionIndex): void
+    {
+        $this->guard('analitik_spmb.perbaikan_smp.kelola');
+
+        if (! isset($this->suggestions[$suggestionIndex])) {
+            return;
+        }
+
+        $cluster = $this->suggestions[$suggestionIndex];
+        $names = array_column($cluster['items'], 'raw_name');
+
+        $cleansingService = app(SpmbDataCleansingService::class);
+        $cleansingService->markClusterAsDifferent($names);
+
+        $this->refreshSuggestions();
+        session()->flash('success', 'Rekomendasi duplikat ditandai sebagai sekolah yang berbeda dan tidak akan disarankan lagi.');
+    }
+
+    public function excludeFromSuggestion(int $suggestionIndex, string $rawName): void
+    {
+        $this->guard('analitik_spmb.perbaikan_smp.kelola');
+
+        if (! isset($this->suggestions[$suggestionIndex])) {
+            return;
+        }
+
+        $cluster = $this->suggestions[$suggestionIndex];
+        $cleansingService = app(SpmbDataCleansingService::class);
+
+        foreach ($cluster['items'] as $item) {
+            if ($item['raw_name'] !== $rawName) {
+                $cleansingService->markAsDifferent($rawName, $item['raw_name']);
+            }
+        }
+
+        $this->refreshSuggestions();
+        session()->flash('success', "Sekolah '{$rawName}' berhasil dikeluarkan dari rekomendasi kelompok ini.");
+    }
+
+    public function restoreIgnoredPair(int $id): void
+    {
+        $this->guard('analitik_spmb.perbaikan_smp.kelola');
+
+        app(SpmbDataCleansingService::class)->unmarkDifferent($id);
+        $this->refreshSuggestions();
+        session()->flash('success', 'Tanda sekolah berbeda berhasil dibatalkan.');
+    }
+
     public function render()
     {
         $cleansingService = app(SpmbDataCleansingService::class);
@@ -315,6 +373,8 @@ class PerbaikanSmpIndex extends Component
         $totalVariasi = $allUnique->count();
         $totalSiswaTerdata = $allUnique->sum('total_siswa');
         $totalUnmapped = $allUnique->where('is_mapped', false)->count();
+        $ignoredCount = SpmbIgnoredDuplicate::count();
+        $ignoredPairs = $this->showIgnoredModal ? SpmbIgnoredDuplicate::latest()->get() : collect();
 
         return view('analitikspmb::livewire.perbaikan-smp-index', array_merge(get_object_vars($this), [
             'paginated' => $paginated,
@@ -324,6 +384,8 @@ class PerbaikanSmpIndex extends Component
             'totalVariasi' => $totalVariasi,
             'totalSiswaTerdata' => $totalSiswaTerdata,
             'totalUnmapped' => $totalUnmapped,
+            'ignoredCount' => $ignoredCount,
+            'ignoredPairs' => $ignoredPairs,
         ]));
     }
 }

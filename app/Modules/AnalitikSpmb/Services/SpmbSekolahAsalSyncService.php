@@ -213,13 +213,16 @@ class SpmbSekolahAsalSyncService
      */
     public function updateAllTiers(): void
     {
-        $masters = SpmbSekolahAsal::with('aliases')->get();
-        foreach ($masters as $master) {
-            $aliases = $master->all_names;
-            $total = Siswa::whereIn('sekolah_asal', $aliases)
-                ->where('is_active', true)
-                ->count();
+        $counts = Siswa::query()
+            ->where('siswas.is_active', true)
+            ->join('spmb_sekolah_asal_aliases', 'siswas.sekolah_asal', '=', 'spmb_sekolah_asal_aliases.alias_raw')
+            ->groupBy('spmb_sekolah_asal_aliases.sekolah_asal_id')
+            ->selectRaw('spmb_sekolah_asal_aliases.sekolah_asal_id, count(distinct siswas.id) as total_siswa')
+            ->pluck('total_siswa', 'sekolah_asal_id');
 
+        $masters = SpmbSekolahAsal::select('id', 'tier')->get();
+        foreach ($masters as $master) {
+            $total = (int) ($counts[$master->id] ?? 0);
             $newTier = $this->calculateTier($total);
             if ($master->tier !== $newTier) {
                 $master->update(['tier' => $newTier]);
