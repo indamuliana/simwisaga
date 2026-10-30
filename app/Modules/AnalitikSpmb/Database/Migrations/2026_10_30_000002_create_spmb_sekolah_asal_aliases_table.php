@@ -14,6 +14,26 @@ return new class extends Migration
             $table->string('alias_raw', 150)->unique();
             $table->timestamps();
         });
+
+        // Otomatis sinkronkan permission dan beri akses ke role standar saat migrasi
+        try {
+            app(\Spatie\Permission\PermissionRegistrar::class)->forgetCachedPermissions();
+            $perms = [
+                'analitik_spmb.asal_smp.lihat',
+                'analitik_spmb.asal_smp.kelola',
+                'analitik_spmb.perbaikan_smp.lihat',
+                'analitik_spmb.perbaikan_smp.kelola',
+            ];
+            foreach ($perms as $p) {
+                \Spatie\Permission\Models\Permission::findOrCreate($p, 'web');
+            }
+            $roles = \Spatie\Permission\Models\Role::whereIn('name', ['Super Admin', 'Admin', 'Kepala Sekolah', 'Kesiswaan', 'Operator'])->get();
+            foreach ($roles as $r) {
+                $r->givePermissionTo($perms);
+            }
+        } catch (\Throwable $e) {
+            // Lanjutkan jika ada kendala
+        }
     }
 
     public function down(): void
