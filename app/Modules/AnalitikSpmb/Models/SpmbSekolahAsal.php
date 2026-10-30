@@ -22,6 +22,26 @@ class SpmbSekolahAsal extends Model implements Auditable
         'catatan',
     ];
 
+    protected static function booted(): void
+    {
+        static::saved(function (self $model) {
+            $name = trim($model->nama_resmi);
+            if (! empty($name)) {
+                $alias = SpmbSekolahAsalAlias::where('alias_raw', $name)->first();
+                if ($alias) {
+                    if ($alias->sekolah_asal_id !== $model->id) {
+                        $alias->update(['sekolah_asal_id' => $model->id]);
+                    }
+                } else {
+                    SpmbSekolahAsalAlias::create([
+                        'sekolah_asal_id' => $model->id,
+                        'alias_raw' => $name,
+                    ]);
+                }
+            }
+        });
+    }
+
     public function aliases(): HasMany
     {
         return $this->hasMany(SpmbSekolahAsalAlias::class, 'sekolah_asal_id');

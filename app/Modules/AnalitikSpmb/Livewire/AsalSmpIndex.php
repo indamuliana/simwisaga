@@ -135,9 +135,9 @@ class AsalSmpIndex extends Component
         $this->selectedSekolahId = $sekolahId;
         $this->selectedSekolahNama = $sekolah->nama_resmi;
         $this->drawerSearch = '';
-        $this->drawerFilterTingkat = '';
-        $this->drawerFilterJurusan = '';
-        $this->drawerFilterJk = '';
+        $this->drawerFilterTingkat = $this->filterTingkat;
+        $this->drawerFilterJurusan = $this->filterJurusanId;
+        $this->drawerFilterJk = $this->filterJk;
         $this->showDrawer = true;
     }
 
@@ -196,53 +196,63 @@ class AsalSmpIndex extends Component
     {
         $this->guard('analitik_spmb.asal_smp.kelola');
 
+        $uniqueRule = 'required|string|max:150|unique:spmb_sekolah_asals,nama_resmi';
+        if ($this->editingMasterId) {
+            $uniqueRule .= ',' . $this->editingMasterId;
+        }
+
         $this->validate([
-            'formNamaResmi' => 'required|string|max:150',
+            'formNamaResmi' => $uniqueRule,
             'formNpsn' => 'nullable|string|max:20',
             'formJenis' => 'required|in:SMP,MTs,Pesantren,Lainnya',
             'formStatusSekolah' => 'required|in:Negeri,Swasta',
             'formTier' => 'required|in:Utama,Potensial,Rintisan',
+        ], [
+            'formNamaResmi.unique' => 'Nama sekolah resmi ini sudah terdaftar sebagai master sekolah lain. Jika ini sekolah yang sama, silakan gunakan menu "Perbaikan Data Asal SMP" untuk menggabungkannya.',
         ]);
 
-        if ($this->editingMasterId) {
-            $master = SpmbSekolahAsal::findOrFail($this->editingMasterId);
-            $master->update([
-                'nama_resmi' => trim($this->formNamaResmi),
-                'npsn' => $this->formNpsn ?: null,
-                'jenis' => $this->formJenis,
-                'status_sekolah' => $this->formStatusSekolah,
-                'kecamatan' => $this->formKecamatan ?: null,
-                'kabupaten_kota' => $this->formKabupatenKota ?: 'Garut',
-                'tier' => $this->formTier,
-                'catatan' => $this->formCatatan ?: null,
-            ]);
+        $cleanName = trim($this->formNamaResmi);
 
-            // Pastikan nama_resmi juga ada di alias
-            SpmbSekolahAsalAlias::firstOrCreate([
-                'sekolah_asal_id' => $master->id,
-                'alias_raw' => trim($this->formNamaResmi),
-            ]);
+        // Cek apakah nama resmi ini terdaftar sebagai alias pada master lain
+        $existingAlias = SpmbSekolahAsalAlias::where('alias_raw', $cleanName)->first();
+        if ($existingAlias && $this->editingMasterId && $existingAlias->sekolah_asal_id !== $this->editingMasterId) {
+            $this->addError('formNamaResmi', "Nama '{$cleanName}' sudah terdaftar sebagai alias untuk master lain ('{$existingAlias->sekolahAsal?->nama_resmi}'). Silakan satukan melalui fitur 'Gabungkan Sekolah' di menu Perbaikan Data.");
+            return;
+        }
 
-            session()->flash('success', "Data master sekolah '{$master->nama_resmi}' berhasil diperbarui.");
-        } else {
-            $master = SpmbSekolahAsal::create([
-                'nama_resmi' => trim($this->formNamaResmi),
-                'npsn' => $this->formNpsn ?: null,
-                'jenis' => $this->formJenis,
-                'status_sekolah' => $this->formStatusSekolah,
-                'kecamatan' => $this->formKecamatan ?: null,
-                'kabupaten_kota' => $this->formKabupatenKota ?: 'Garut',
-                'tier' => $this->formTier,
-                'catatan' => $this->formCatatan ?: null,
-            ]);
+        try {
+            if ($this->editingMasterId) {
+                $master = SpmbSekolahAsal::findOrFail($this->editingMasterId);
+                $master->update([
+                    'nama_resmi' => $cleanName,
+                    'npsn' => $this->formNpsn ?: null,
+                    'jenis' => $this->formJenis,
+                    'status_sekolah' => $this->formStatusSekolah,
+                    'kecamatan' => $this->formKecamatan ?: null,
+                    'kabupaten_kota' => $this->formKabupatenKota ?: 'Garut',
+                    'tier' => $this->formTier,
+                    'catatan' => $this->formCatatan ?: null,
+                ]);
 
-            SpmbSekolahAsalAlias::create([
-                'sekolah_asal_id' => $master->id,
-                'alias_raw' => trim($this->formNamaResmi),
-            ]);
+                session()->flash('success', "Data master sekolah '{$master->nama_resmi}' berhasil diperbarui.");
+            } else {
+                $master = SpmbSekolahAsal::create([
+                    'nama_resmi' => $cleanName,
+                    'npsn' => $this->formNpsn ?: null,
+                    'jenis' => $this->formJenis,
+                    'status_sekolah' => $this->formStatusSekolah,
+                    'kecamatan' => $this->formKecamatan ?: null,
+                    'kabupaten_kota' => $this->formKabupatenKota ?: 'Garut',
+                    'tier' => $this->formTier,
+                    'catatan' => $this->formCatatan ?: null,
+                ]);
 
-            $this->editingMasterId = $master->id;
-            session()->flash('success', "Master sekolah '{$master->nama_resmi}' berhasil dibuat.");
+                $this->editingMasterId = $master->id;
+                session()->flash('success', "Master sekolah '{$master->nama_resmi}' berhasil dibuat.");
+            }
+        } catch (\Illuminate\Database\UniqueConstraintViolationException | \Illuminate\Database\QueryException $e) {
+            $this->addError('formNamaResmi', 'Nama sekolah ini sudah terdaftar sebagai master sekolah lain di database. Gunakan fitur "Gabungkan Sekolah" di menu Perbaikan Data Asal SMP.');
+            return;
         }
 
         $this->checkUnmapped();
@@ -346,16 +356,38 @@ class AsalSmpIndex extends Component
         $this->guard('analitik_spmb.asal_smp.lihat');
 
         $sekolah = SpmbSekolahAsal::with('aliases')->findOrFail($sekolahId);
-        $aliases = $sekolah->all_names;
-
-        $query = Siswa::with(['rombel.jurusan'])
-            ->whereIn('sekolah_asal', $aliases);
-
-        if ($this->filterStatus === 'aktif') {
-            $query->where('is_active', true);
+        $aliases = SpmbSekolahAsalAlias::where('sekolah_asal_id', $sekolah->id)->pluck('alias_raw')->toArray();
+        if (! in_array($sekolah->nama_resmi, $aliases)) {
+            $aliases[] = $sekolah->nama_resmi;
         }
 
-        $siswas = $query->orderBy('nama')->get();
+        $query = Siswa::with(['rombel.jurusan'])
+            ->leftJoin('rombels', 'siswas.rombel_id', '=', 'rombels.id')
+            ->whereIn('siswas.sekolah_asal', $aliases);
+
+        if ($this->filterStatus === 'aktif') {
+            $query->where('siswas.is_active', true);
+        } elseif ($this->filterStatus !== 'semua' && ! empty($this->filterStatus)) {
+            $query->where('siswas.status', $this->filterStatus);
+        }
+
+        if ($this->filterTingkat) {
+            $query->where('rombels.tingkat', $this->filterTingkat);
+        }
+
+        if ($this->filterTahunAjaranId) {
+            $query->where('rombels.tahun_ajaran_id', $this->filterTahunAjaranId);
+        }
+
+        if ($this->filterJurusanId) {
+            $query->where('rombels.jurusan_id', $this->filterJurusanId);
+        }
+
+        if ($this->filterJk) {
+            $query->where('siswas.jk', $this->filterJk);
+        }
+
+        $siswas = $query->select('siswas.*')->orderBy('siswas.nama')->get();
 
         $exporter = new SpmbSekolahAsalExporter();
         $spreadsheet = $exporter->exportDaftarSiswa($sekolah, $siswas);
@@ -433,7 +465,7 @@ class AsalSmpIndex extends Component
         }
 
         $schoolQuery = SpmbSekolahAsal::query()
-            ->join('spmb_sekolah_asal_aliases', 'spmb_sekolah_asals.id', '=', 'spmb_sekolah_asal_aliases.sekolah_asal_id')
+            ->leftJoin('spmb_sekolah_asal_aliases', 'spmb_sekolah_asals.id', '=', 'spmb_sekolah_asal_aliases.sekolah_asal_id')
             ->leftJoinSub(
                 (clone $siswaQuery)->select(
                     'siswas.id',
@@ -570,13 +602,26 @@ class AsalSmpIndex extends Component
         if ($this->showDrawer && $this->selectedSekolahId) {
             $drawerSekolah = SpmbSekolahAsal::with('aliases')->find($this->selectedSekolahId);
             if ($drawerSekolah) {
-                $aliases = $drawerSekolah->all_names;
+                // Seluruh alias resmi master ini
+                $aliases = SpmbSekolahAsalAlias::where('sekolah_asal_id', $drawerSekolah->id)->pluck('alias_raw')->toArray();
+                if (! in_array($drawerSekolah->nama_resmi, $aliases)) {
+                    $aliases[] = $drawerSekolah->nama_resmi;
+                }
+
                 $sQuery = Siswa::with(['rombel.jurusan'])
                     ->leftJoin('rombels', 'siswas.rombel_id', '=', 'rombels.id')
                     ->whereIn('siswas.sekolah_asal', $aliases);
 
+                // Filter status konsisten dengan tabel utama
                 if ($this->filterStatus === 'aktif') {
                     $sQuery->where('siswas.is_active', true);
+                } elseif ($this->filterStatus !== 'semua' && ! empty($this->filterStatus)) {
+                    $sQuery->where('siswas.status', $this->filterStatus);
+                }
+
+                // Filter tahun ajaran dari halaman utama
+                if ($this->filterTahunAjaranId) {
+                    $sQuery->where('rombels.tahun_ajaran_id', $this->filterTahunAjaranId);
                 }
 
                 if ($this->drawerSearch) {
@@ -588,16 +633,20 @@ class AsalSmpIndex extends Component
                     });
                 }
 
-                if ($this->drawerFilterTingkat) {
-                    $sQuery->where('rombels.tingkat', $this->drawerFilterTingkat);
+                // Prioritas filter drawer, fallback filter utama
+                $activeTingkat = $this->drawerFilterTingkat ?: $this->filterTingkat;
+                if ($activeTingkat) {
+                    $sQuery->where('rombels.tingkat', $activeTingkat);
                 }
 
-                if ($this->drawerFilterJurusan) {
-                    $sQuery->where('rombels.jurusan_id', $this->drawerFilterJurusan);
+                $activeJurusan = $this->drawerFilterJurusan ?: $this->filterJurusanId;
+                if ($activeJurusan) {
+                    $sQuery->where('rombels.jurusan_id', $activeJurusan);
                 }
 
-                if ($this->drawerFilterJk) {
-                    $sQuery->where('siswas.jk', $this->drawerFilterJk);
+                $activeJk = $this->drawerFilterJk ?: $this->filterJk;
+                if ($activeJk) {
+                    $sQuery->where('siswas.jk', $activeJk);
                 }
 
                 $drawerSiswas = $sQuery->select('siswas.*')->orderBy('siswas.nama')->get();

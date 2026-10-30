@@ -52,11 +52,6 @@ class AnalitikSpmbNpsnCatatanTest extends TestCase
             'catatan' => 'Sekolah mitra utama wilayah kota',
         ]);
 
-        SpmbSekolahAsalAlias::create([
-            'sekolah_asal_id' => $sekolah->id,
-            'alias_raw' => 'SMPN 1 Garut',
-        ]);
-
         $sekolahTanpaNpsn = SpmbSekolahAsal::create([
             'nama_resmi' => 'SMP Swasta Merdeka',
             'npsn' => null,
@@ -64,11 +59,6 @@ class AnalitikSpmbNpsnCatatanTest extends TestCase
             'status_sekolah' => 'Swasta',
             'tier' => 'Rintisan',
             'catatan' => null,
-        ]);
-
-        SpmbSekolahAsalAlias::create([
-            'sekolah_asal_id' => $sekolahTanpaNpsn->id,
-            'alias_raw' => 'SMP Swasta Merdeka',
         ]);
 
         $rombel = Rombel::firstOrFail();
@@ -178,5 +168,93 @@ class AnalitikSpmbNpsnCatatanTest extends TestCase
 
         $this->assertContains('NPSN', $headers);
         $this->assertContains('Catatan Master', $headers);
+    }
+
+    public function test_edit_master_nama_resmi_duplikat_memberikan_pesan_validasi_ramah(): void
+    {
+        $sekolahA = SpmbSekolahAsal::create([
+            'nama_resmi' => 'MTSS MATHLAUL ULUM',
+            'npsn' => '20278409',
+            'jenis' => 'MTs',
+            'status_sekolah' => 'Swasta',
+            'tier' => 'Rintisan',
+        ]);
+
+        $sekolahB = SpmbSekolahAsal::create([
+            'nama_resmi' => 'SMP IT Arrahmah',
+            'npsn' => null,
+            'jenis' => 'SMP',
+            'status_sekolah' => 'Swasta',
+            'tier' => 'Rintisan',
+        ]);
+
+        Livewire::actingAs($this->admin)
+            ->test(AsalSmpIndex::class)
+            ->call('openModalKelola', $sekolahB->id)
+            ->set('formNamaResmi', 'MTSS MATHLAUL ULUM')
+            ->call('saveMasterSekolah')
+            ->assertHasErrors(['formNamaResmi']);
+    }
+
+    public function test_drawer_sinkron_dengan_total_siswa_dan_filter(): void
+    {
+        $sekolah = SpmbSekolahAsal::create([
+            'nama_resmi' => 'SMPN 1 Kadungora',
+            'npsn' => '20209999',
+            'jenis' => 'SMP',
+            'status_sekolah' => 'Negeri',
+            'tier' => 'Utama',
+        ]);
+
+        $rombelX = Rombel::where('tingkat', 'X')->firstOrFail();
+        $rombelXI = Rombel::create([
+            'tahun_ajaran_id' => $rombelX->tahun_ajaran_id,
+            'jurusan_id' => $rombelX->jurusan_id,
+            'tingkat' => 'XI',
+            'nomor_urut' => 1,
+            'nama' => 'XI PPLG 1',
+        ]);
+
+        // Siswa Kelas X
+        Siswa::create([
+            'nama' => 'Siswa X',
+            'nipd' => '12400001',
+            'nisn' => '0091111111',
+            'jk' => 'L',
+            'rombel_id' => $rombelX->id,
+            'sekolah_asal' => 'SMPN 1 Kadungora',
+            'is_active' => true,
+            'status' => 'aktif',
+        ]);
+
+        // Siswa Kelas Lain
+        Siswa::create([
+            'nama' => 'Siswa XI',
+            'nipd' => '12400002',
+            'nisn' => '0092222222',
+            'jk' => 'P',
+            'rombel_id' => $rombelXI->id,
+            'sekolah_asal' => 'SMPN 1 Kadungora',
+            'is_active' => true,
+            'status' => 'aktif',
+        ]);
+
+        // Buka drawer tanpa filter -> harus ada 2 siswa
+        $component = Livewire::actingAs($this->admin)
+            ->test(AsalSmpIndex::class)
+            ->call('openDrawer', $sekolah->id);
+
+        $drawerSiswas = $component->viewData('drawerSiswas');
+        $this->assertCount(2, $drawerSiswas);
+
+        // Buka drawer dengan filter Tingkat X aktif di halaman utama -> harus hanya 1 siswa
+        $componentWithFilter = Livewire::actingAs($this->admin)
+            ->test(AsalSmpIndex::class)
+            ->set('filterTingkat', $rombelX->tingkat)
+            ->call('openDrawer', $sekolah->id);
+
+        $filteredDrawerSiswas = $componentWithFilter->viewData('drawerSiswas');
+        $this->assertCount(1, $filteredDrawerSiswas);
+        $this->assertEquals('Siswa X', $filteredDrawerSiswas->first()->nama);
     }
 }
