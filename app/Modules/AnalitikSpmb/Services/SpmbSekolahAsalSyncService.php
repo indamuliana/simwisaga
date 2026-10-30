@@ -152,7 +152,7 @@ class SpmbSekolahAsalSyncService
     /**
      * Menghasilkan bentuk alternatif (misal SMPN 1 <-> SMP Negeri 1)
      */
-    protected function getAlternativeName(string $normalized): ?string
+    public function getAlternativeName(string $normalized): ?string
     {
         if (preg_match('/^SMPN\s+(\d+)/i', $normalized, $matches)) {
             return preg_replace('/^SMPN\s+(\d+)/i', 'SMP Negeri ' . $matches[1], $normalized);

@@ -8,6 +8,7 @@ use App\Modules\Akademik\Models\TahunAjaran;
 use App\Modules\AnalitikSpmb\Models\SpmbMasterSmp;
 use App\Modules\AnalitikSpmb\Models\SpmbSekolahAsal;
 use App\Modules\AnalitikSpmb\Models\SpmbSekolahAsalAlias;
+use App\Modules\AnalitikSpmb\Services\SpmbDataCleansingService;
 use App\Modules\AnalitikSpmb\Services\SpmbSekolahAsalExporter;
 use App\Modules\AnalitikSpmb\Services\SpmbSekolahAsalSyncService;
 use App\Modules\Kesiswaan\Models\Siswa;
@@ -130,6 +131,16 @@ class AsalSmpIndex extends Component
         $this->checkUnmapped();
 
         session()->flash('success', "Sinkronisasi berhasil! Dipindai {$result['total_scanned']} sekolah asal, ditambahkan {$result['new_masters']} master baru dan {$result['new_aliases']} alias pemetaan.");
+    }
+
+    public function syncWithMasterSmp()
+    {
+        $this->guard('analitik_spmb.asal_smp.kelola');
+
+        $result = app(SpmbDataCleansingService::class)->syncAllWithMasterSmp();
+        $this->checkUnmapped();
+
+        session()->flash('success', "Sinkronisasi Master SMP selesai! {$result['matched_masters']} data sekolah asal disesuaikan dengan referensi resmi, {$result['matched_unmapped_siswa']} variasi siswa otomatis dipetakan.");
     }
 
     public function openDrawer(int $sekolahId)

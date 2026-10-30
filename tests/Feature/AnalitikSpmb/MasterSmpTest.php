@@ -253,4 +253,101 @@ class MasterSmpTest extends TestCase
             ->call('downloadTemplate', 'xlsx')
             ->assertFileDownloaded('Template_Master_SMP.xlsx');
     }
+
+    public function test_tombol_sinkronkan_ke_master_smp_mencocokkan_data_secara_multilevel(): void
+    {
+        $rombel = Rombel::firstOrFail();
+
+        // 1. Data Master SMP Resmi
+        $m1 = SpmbMasterSmp::create([
+            'npsn' => '20220385',
+            'nama' => 'SMP NEGERI 1 BOGOR',
+            'bentuk' => 'SMP',
+            'status' => 'Negeri',
+            'provinsi' => 'Jawa Barat',
+            'kabupaten' => 'Kota Bogor',
+            'kecamatan' => 'Kota Bogor Tengah',
+        ]);
+
+        $m2 = SpmbMasterSmp::create([
+            'npsn' => '20270258',
+            'nama' => 'SMP MANGGALA LELES',
+            'bentuk' => 'SMP',
+            'status' => 'Swasta',
+            'provinsi' => 'Jawa Barat',
+            'kabupaten' => 'Kab. Garut',
+            'kecamatan' => 'Leles',
+        ]);
+
+        $m3 = SpmbMasterSmp::create([
+            'npsn' => '70009639',
+            'nama' => 'SMP NEGERI 50 KOTA BEKASI',
+            'bentuk' => 'SMP',
+            'status' => 'Negeri',
+            'provinsi' => 'Jawa Barat',
+            'kabupaten' => 'Kota Bekasi',
+            'kecamatan' => 'Rawalumbu',
+        ]);
+
+        // 2. Local master 1 dengan singkatan 'SMPN 1 Bogor' (belum ada NPSN/Kecamatan)
+        $local1 = SpmbSekolahAsal::create([
+            'nama_resmi' => 'SMPN 1 Bogor',
+            'jenis' => 'SMP',
+            'status_sekolah' => 'Negeri',
+            'kabupaten_kota' => 'Garut',
+        ]);
+
+        // Local master 2 dengan nama case-insensitive 'smp manggala leles'
+        $local2 = SpmbSekolahAsal::create([
+            'nama_resmi' => 'smp manggala leles',
+            'jenis' => 'SMP',
+            'status_sekolah' => 'Swasta',
+            'kabupaten_kota' => 'Garut',
+        ]);
+
+        // 3. Siswa unmapped dengan nama 'SMP NEGERI 50 KOTA BEKASI'
+        Siswa::create([
+            'nama' => 'Ahmad Bekasi',
+            'nipd' => '13000001',
+            'nisn' => '0098888881',
+            'jk' => 'L',
+            'rombel_id' => $rombel->id,
+            'sekolah_asal' => 'SMP NEGERI 50 KOTA BEKASI',
+            'is_active' => true,
+            'status' => 'aktif',
+        ]);
+
+        // 4. Jalankan tombol sync di MasterSmpIndex
+        Livewire::actingAs($this->admin)
+            ->test(MasterSmpIndex::class)
+            ->call('syncToSekolahAsal')
+            ->assertHasNoErrors()
+            ->assertSee('Sinkronisasi selesai!');
+
+        // Verifikasi local1 terhubung ke m1 (via Level 4 prefix abbreviation)
+        $this->assertEquals($m1->id, $local1->fresh()->master_smp_id);
+        $this->assertEquals('20220385', $local1->fresh()->npsn);
+        $this->assertEquals('Kota Bogor', $local1->fresh()->kabupaten_kota);
+        $this->assertEquals('Kota Bogor Tengah', $local1->fresh()->kecamatan);
+
+        // Verifikasi local2 terhubung ke m2 (via Level 2 exact name)
+        $this->assertEquals($m2->id, $local2->fresh()->master_smp_id);
+        $this->assertEquals('20270258', $local2->fresh()->npsn);
+        $this->assertEquals('Kab. Garut', $local2->fresh()->kabupaten_kota);
+        $this->assertEquals('Leles', $local2->fresh()->kecamatan);
+
+        // Verifikasi siswa unmapped otomatis terpetakan ke master m3
+        $this->assertDatabaseHas('spmb_sekolah_asals', [
+            'master_smp_id' => $m3->id,
+            'npsn' => '70009639',
+            'nama_resmi' => 'SMP NEGERI 50 KOTA BEKASI',
+        ]);
+
+        // 5. Jalankan tombol sync di AsalSmpIndex
+        Livewire::actingAs($this->admin)
+            ->test(\App\Modules\AnalitikSpmb\Livewire\AsalSmpIndex::class)
+            ->call('syncWithMasterSmp')
+            ->assertHasNoErrors()
+            ->assertSee('Sinkronisasi Master SMP selesai!');
+    }
 }

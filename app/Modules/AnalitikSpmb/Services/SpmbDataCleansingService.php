@@ -523,4 +523,98 @@ class SpmbDataCleansingService
 
         return $sekolahAsal;
     }
+
+    /**
+     * Sinkronisasikan seluruh data sekolah asal (master & unmapped siswa) dengan Master SMP resmi.
+     * Menggunakan strategi multi-level matching (NPSN -> Exact Name -> Alias -> Prefix Alternatif).
+     *
+     * @return array{matched_masters: int, matched_unmapped_siswa: int, total_affected_students: int}
+     */
+    public function syncAllWithMasterSmp(): array
+    {
+        $syncService = app(SpmbSekolahAsalSyncService::class);
+        $matchedMasters = 0;
+        $matchedUnmappedSiswa = 0;
+        $totalAffectedStudents = 0;
+
+        // 1. Sinkronkan SpmbSekolahAsal yang sudah ada ke SpmbMasterSmp
+        $allLocalMasters = SpmbSekolahAsal::with('aliases')->get();
+        foreach ($allLocalMasters as $local) {
+            $matchedMasterSmp = null;
+
+            // Level 1: Match by NPSN jika sudah ada
+            if ($local->npsn) {
+                $matchedMasterSmp = SpmbMasterSmp::where('npsn', $local->npsn)->first();
+            }
+
+            // Level 2: Match by exact name (case-insensitive)
+            if (! $matchedMasterSmp) {
+                $matchedMasterSmp = SpmbMasterSmp::whereRaw('LOWER(nama) = ?', [strtolower(trim($local->nama_resmi))])->first();
+            }
+
+            // Level 3: Match by alias
+            if (! $matchedMasterSmp) {
+                foreach ($local->aliases as $al) {
+                    $m = SpmbMasterSmp::whereRaw('LOWER(nama) = ?', [strtolower(trim($al->alias_raw))])->first();
+                    if ($m) {
+                        $matchedMasterSmp = $m;
+                        break;
+                    }
+                }
+            }
+
+            // Level 4: Match by alternative abbreviation (SMPN <-> SMP Negeri, MTsN <-> MTs Negeri)
+            if (! $matchedMasterSmp) {
+                $alt = $syncService->getAlternativeName($local->nama_resmi);
+                if ($alt) {
+                    $matchedMasterSmp = SpmbMasterSmp::whereRaw('LOWER(nama) = ?', [strtolower(trim($alt))])->first();
+                }
+            }
+
+            if ($matchedMasterSmp) {
+                $this->linkMasterSmpToSekolahAsal($matchedMasterSmp->id, $local->id);
+                $matchedMasters++;
+            }
+        }
+
+        // 2. Cocokkan siswa yang berstatus unmapped
+        $unmapped = $this->getUniqueSchoolStrings('', 'unmapped');
+        foreach ($unmapped as $item) {
+            $raw = trim($item->raw_name);
+            $matchedMasterSmp = null;
+
+            // Level 2: Exact name match
+            $matchedMasterSmp = SpmbMasterSmp::whereRaw('LOWER(nama) = ?', [strtolower($raw)])->first();
+
+            // Level 4: Prefix abbreviation variation
+            if (! $matchedMasterSmp) {
+                $alt = $syncService->getAlternativeName($raw);
+                if ($alt) {
+                    $matchedMasterSmp = SpmbMasterSmp::whereRaw('LOWER(nama) = ?', [strtolower(trim($alt))])->first();
+                }
+            }
+
+            if ($matchedMasterSmp) {
+                $mergeRes = $this->mergeSchoolStrings(
+                    [$raw],
+                    $matchedMasterSmp->nama,
+                    true,
+                    true,
+                    null,
+                    $matchedMasterSmp->id
+                );
+                $matchedUnmappedSiswa++;
+                $totalAffectedStudents += (int) ($mergeRes['affected_students'] ?? 0);
+            }
+        }
+
+        // 3. Update tiering seluruh master sekolah asal
+        $syncService->updateAllTiers();
+
+        return [
+            'matched_masters' => $matchedMasters,
+            'matched_unmapped_siswa' => $matchedUnmappedSiswa,
+            'total_affected_students' => $totalAffectedStudents,
+        ];
+    }
 }

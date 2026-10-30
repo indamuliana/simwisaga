@@ -130,8 +130,22 @@ class MasterSmpIndex extends Component
         $importer = app(SpmbMasterSmpImportService::class);
         $result = $importer->import($path, $this->inputProvinsi, $ext);
 
+        // Otomatis sinkronkan dan petakan dengan data sekolah asal & siswa yang sudah ada
+        $syncRes = app(SpmbDataCleansingService::class)->syncAllWithMasterSmp();
+
         $this->importResult = $result;
-        session()->flash('success', "Import {$result['provinsi']} berhasil! {$result['inserted']} sekolah baru ditambahkan, {$result['updated']} diperbarui.");
+        session()->flash('success', "Import {$result['provinsi']} berhasil! {$result['inserted']} sekolah baru ditambahkan. Terpetakan otomatis: {$syncRes['matched_masters']} data master & {$syncRes['matched_unmapped_siswa']} variasi siswa.");
+    }
+
+    /**
+     * Tombol sinkronisasi manual: memicu multi-level matching ke data sekolah asal & siswa
+     */
+    public function syncToSekolahAsal(): void
+    {
+        $this->guard('analitik_spmb.master_smp.kelola');
+
+        $res = app(SpmbDataCleansingService::class)->syncAllWithMasterSmp();
+        session()->flash('success', "Sinkronisasi selesai! {$res['matched_masters']} data sekolah master diperbarui, {$res['matched_unmapped_siswa']} variasi siswa berhasil dipetakan otomatis.");
     }
 
     public function downloadTemplate(string $format = 'csv')
