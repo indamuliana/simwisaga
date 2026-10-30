@@ -5,6 +5,7 @@ namespace App\Modules\AnalitikSpmb\Livewire;
 use App\Core\Concerns\GuardsPermission;
 use App\Modules\Akademik\Models\Jurusan;
 use App\Modules\Akademik\Models\TahunAjaran;
+use App\Modules\AnalitikSpmb\Models\SpmbMasterSmp;
 use App\Modules\AnalitikSpmb\Models\SpmbSekolahAsal;
 use App\Modules\AnalitikSpmb\Models\SpmbSekolahAsalAlias;
 use App\Modules\AnalitikSpmb\Services\SpmbSekolahAsalExporter;
@@ -50,6 +51,8 @@ class AsalSmpIndex extends Component
     // Modal Kelola Master & Alias
     public bool $showModalKelola = false;
     public ?int $editingMasterId = null;
+    public ?int $formMasterSmpId = null;
+    public string $masterSmpSearch = '';
     public string $formNamaResmi = '';
     public string $formNpsn = '';
     public string $formJenis = 'SMP';
@@ -153,6 +156,8 @@ class AsalSmpIndex extends Component
         $this->guard('analitik_spmb.asal_smp.kelola');
 
         $this->reset([
+            'formMasterSmpId',
+            'masterSmpSearch',
             'formNamaResmi',
             'formNpsn',
             'formJenis',
@@ -165,8 +170,9 @@ class AsalSmpIndex extends Component
         ]);
 
         if ($id) {
-            $master = SpmbSekolahAsal::with('aliases')->findOrFail($id);
+            $master = SpmbSekolahAsal::with(['aliases', 'masterSmp'])->findOrFail($id);
             $this->editingMasterId = $id;
+            $this->formMasterSmpId = $master->master_smp_id;
             $this->formNamaResmi = $master->nama_resmi;
             $this->formNpsn = $master->npsn ?? '';
             $this->formJenis = $master->jenis;
@@ -175,6 +181,9 @@ class AsalSmpIndex extends Component
             $this->formKabupatenKota = $master->kabupaten_kota ?? 'Garut';
             $this->formTier = $master->tier;
             $this->formCatatan = $master->catatan ?? '';
+            if ($master->masterSmp) {
+                $this->masterSmpSearch = "{$master->masterSmp->nama} (NPSN: {$master->masterSmp->npsn})";
+            }
         } else {
             $this->editingMasterId = null;
             $this->formJenis = 'SMP';
@@ -184,6 +193,27 @@ class AsalSmpIndex extends Component
         }
 
         $this->showModalKelola = true;
+    }
+
+    public function selectMasterSmp(int $id): void
+    {
+        $m = SpmbMasterSmp::find($id);
+        if ($m) {
+            $this->formMasterSmpId = $m->id;
+            $this->formNamaResmi = $m->nama;
+            $this->formNpsn = $m->npsn ?? '';
+            $this->formJenis = str_contains(strtoupper($m->bentuk ?? ''), 'MTS') ? 'MTs' : 'SMP';
+            $this->formStatusSekolah = str_contains(strtoupper($m->status ?? ''), 'NEG') ? 'Negeri' : 'Swasta';
+            $this->formKecamatan = $m->kecamatan ?? '';
+            $this->formKabupatenKota = $m->kabupaten ?? 'Garut';
+            $this->masterSmpSearch = "{$m->nama} (NPSN: {$m->npsn})";
+        }
+    }
+
+    public function clearMasterSmpSelection(): void
+    {
+        $this->formMasterSmpId = null;
+        $this->masterSmpSearch = '';
     }
 
     public function closeModalKelola()
@@ -227,6 +257,7 @@ class AsalSmpIndex extends Component
             if ($this->editingMasterId) {
                 $master = SpmbSekolahAsal::findOrFail($this->editingMasterId);
                 $master->update([
+                    'master_smp_id' => $this->formMasterSmpId ?: null,
                     'nama_resmi' => $cleanName,
                     'npsn' => $this->formNpsn ?: null,
                     'jenis' => $this->formJenis,
@@ -240,6 +271,7 @@ class AsalSmpIndex extends Component
                 session()->flash('success', "Data master sekolah '{$master->nama_resmi}' berhasil diperbarui.");
             } else {
                 $master = SpmbSekolahAsal::create([
+                    'master_smp_id' => $this->formMasterSmpId ?: null,
                     'nama_resmi' => $cleanName,
                     'npsn' => $this->formNpsn ?: null,
                     'jenis' => $this->formJenis,
@@ -657,8 +689,14 @@ class AsalSmpIndex extends Component
 
         // Data Master yang sedang diedit jika modal kelola terbuka
         $editingMaster = null;
-        if ($this->showModalKelola && $this->editingMasterId) {
-            $editingMaster = SpmbSekolahAsal::with('aliases')->find($this->editingMasterId);
+        $masterSmpSearchResults = collect();
+        if ($this->showModalKelola) {
+            if ($this->editingMasterId) {
+                $editingMaster = SpmbSekolahAsal::with('aliases')->find($this->editingMasterId);
+            }
+            if (strlen(trim($this->masterSmpSearch)) >= 2 && ! $this->formMasterSmpId) {
+                $masterSmpSearchResults = app(SpmbDataCleansingService::class)->searchMasterSmp($this->masterSmpSearch, null, 6);
+            }
         }
 
         return view('analitikspmb::livewire.asal-smp-index', array_merge([
@@ -673,6 +711,7 @@ class AsalSmpIndex extends Component
             'drawerSiswas' => $drawerSiswas,
             'drawerSekolah' => $drawerSekolah,
             'editingMaster' => $editingMaster,
+            'masterSmpSearchResults' => $masterSmpSearchResults,
         ], get_object_vars($this)));
     }
 }

@@ -4,6 +4,7 @@ namespace App\Modules\AnalitikSpmb\Models;
 
 use App\Modules\Kesiswaan\Models\Siswa;
 use Illuminate\Database\Eloquent\Model;
+use Illuminate\Database\Eloquent\Relations\BelongsTo;
 use Illuminate\Database\Eloquent\Relations\HasMany;
 use OwenIt\Auditing\Contracts\Auditable;
 
@@ -12,6 +13,7 @@ class SpmbSekolahAsal extends Model implements Auditable
     use \OwenIt\Auditing\Auditable;
 
     protected $fillable = [
+        'master_smp_id',
         'nama_resmi',
         'npsn',
         'jenis',
@@ -45,6 +47,11 @@ class SpmbSekolahAsal extends Model implements Auditable
     public function aliases(): HasMany
     {
         return $this->hasMany(SpmbSekolahAsalAlias::class, 'sekolah_asal_id');
+    }
+
+    public function masterSmp(): BelongsTo
+    {
+        return $this->belongsTo(SpmbMasterSmp::class, 'master_smp_id');
     }
 
     /**

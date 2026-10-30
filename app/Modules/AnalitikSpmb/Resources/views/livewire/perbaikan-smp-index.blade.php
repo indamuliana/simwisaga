@@ -20,15 +20,32 @@
             </p>
         </div>
 
-        <div class="flex items-center gap-2">
+        <div class="flex flex-wrap items-center gap-2">
             <a href="{{ route('analitik-spmb.asal-smp') }}" class="btn btn-secondary !py-2 !px-3 text-xs gap-1.5 shadow-2xs">
                 <svg xmlns="http://www.w3.org/2000/svg" class="h-4 w-4 text-text-muted" fill="none" viewBox="0 0 24 24" stroke="currentColor">
                     <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M10 19l-7-7m0 0l7-7m-7 7h18" />
                 </svg>
-                <span>Kembali ke Analitik SMP</span>
+                <span>Analitik SMP</span>
+            </a>
+
+            <a href="{{ route('analitik-spmb.master-smp') }}" class="btn btn-secondary !py-2 !px-3 text-xs gap-1.5 shadow-2xs">
+                <svg xmlns="http://www.w3.org/2000/svg" class="h-4 w-4 text-primary" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                    <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M19 21V5a2 2 0 00-2-2H7a2 2 0 00-2 2v16m14 0h2m-2 0h-5m-9 0H3m2 0h5M9 7h1m-1 4h1m4-4h1m-1 4h1m-5 10v-5a1 1 0 011-1h2a1 1 0 011 1v5m-4 0h4" />
+                </svg>
+                <span>Master Data SMP</span>
             </a>
 
             @can('analitik_spmb.perbaikan_smp.kelola')
+                @if ($totalMasterSmp > 0 && $totalUnmapped > 0)
+                    <button type="button" wire:click="autoMatchWithMasterSmp" wire:loading.attr="disabled" class="btn btn-secondary !py-2 !px-3 text-xs gap-1.5 text-emerald-600 hover:text-emerald-700 hover:bg-emerald-50 border-emerald-200 shadow-2xs" title="Cocokkan otomatis sekolah yang belum terpetakan ke database Master SMP resmi">
+                        <svg xmlns="http://www.w3.org/2000/svg" class="h-4 w-4" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M13 10V3L4 14h7v7l9-11h-7z" />
+                        </svg>
+                        <span wire:loading.remove wire:target="autoMatchWithMasterSmp">Auto-Match Master SMP</span>
+                        <span wire:loading wire:target="autoMatchWithMasterSmp">Mencocokkan...</span>
+                    </button>
+                @endif
+
                 @if (count($selectedSchools) > 0)
                     <button type="button" wire:click="openMergeFromSelection" class="btn btn-primary !py-2 !px-3.5 text-xs gap-1.5 shadow-sm animate-pulse">
                         <svg xmlns="http://www.w3.org/2000/svg" class="h-4 w-4" fill="none" viewBox="0 0 24 24" stroke="currentColor">
@@ -432,10 +449,56 @@
 
                             {{-- Pilihan Target Nama Sekolah --}}
                             <div class="space-y-3 pt-2 border-t border-border">
+                                {{-- Cari dari Master SMP Resmi --}}
+                                @if ($totalMasterSmp > 0)
+                                    <div>
+                                        <div class="flex items-center justify-between mb-1">
+                                            <label class="label font-semibold text-primary flex items-center gap-1">
+                                                <svg xmlns="http://www.w3.org/2000/svg" class="h-3.5 w-3.5" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                                                    <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M19 21V5a2 2 0 00-2-2H7a2 2 0 00-2 2v16m14 0h2m-2 0h-5m-9 0H3m2 0h5M9 7h1m-1 4h1m4-4h1m-1 4h1m-5 10v-5a1 1 0 011-1h2a1 1 0 011 1v5m-4 0h4" />
+                                                </svg>
+                                                <span>Cari dari Katalog Master SMP Resmi:</span>
+                                            </label>
+                                            @if ($mergeTargetMasterSmpId)
+                                                <button type="button" wire:click="clearMasterSmpTarget" class="text-[11px] text-rose-500 hover:underline">Lepas Pilihan</button>
+                                            @endif
+                                        </div>
+
+                                        <div class="relative">
+                                            <input type="text" wire:model.live.debounce.250ms="masterSmpSearch" placeholder="Ketik nama atau NPSN master resmi..." class="input w-full {{ $mergeTargetMasterSmpId ? 'border-emerald-500 bg-emerald-50/50 dark:bg-emerald-950/20 text-emerald-900 dark:text-emerald-100 font-semibold' : '' }}">
+                                            @if ($mergeTargetMasterSmpId)
+                                                <div class="absolute right-2 top-2 text-emerald-600 flex items-center gap-1 text-[11px]">
+                                                    <svg xmlns="http://www.w3.org/2000/svg" class="h-4 w-4" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                                                        <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M5 13l4 4L19 7" />
+                                                    </svg>
+                                                    <span>Terpilih</span>
+                                                </div>
+                                            @endif
+                                        </div>
+
+                                        {{-- Dropdown Suggestion Master SMP --}}
+                                        @if (! empty($masterSmpSearchResults) && $masterSmpSearchResults->isNotEmpty() && ! $mergeTargetMasterSmpId)
+                                            <div class="mt-1 p-1 rounded-xl bg-surface border border-border shadow-lg max-h-48 overflow-y-auto space-y-1">
+                                                @foreach ($masterSmpSearchResults as $res)
+                                                    <div wire:click="selectMasterSmpTarget({{ $res->id }})" class="p-2 rounded-lg hover:bg-surface-hover cursor-pointer text-xs flex items-center justify-between transition-colors">
+                                                        <div>
+                                                            <div class="font-bold text-text-main">{{ $res->nama }}</div>
+                                                            <div class="text-[10px] text-text-muted">
+                                                                NPSN: <span class="font-mono font-semibold">{{ $res->npsn }}</span> &bull; {{ $res->kecamatan }}, {{ $res->kabupaten }} ({{ $res->status }})
+                                                            </div>
+                                                        </div>
+                                                        <span class="text-[11px] text-primary font-semibold shrink-0">Pilih &rarr;</span>
+                                                    </div>
+                                                @endforeach
+                                            </div>
+                                        @endif
+                                    </div>
+                                @endif
+
                                 <div>
-                                    <label class="label font-semibold">Pilih dari Master Sekolah yang Sudah Ada (Opsional):</label>
+                                    <label class="label font-semibold">Atau Pilih dari Master Asal SMP Lokal:</label>
                                     <select wire:model.live="mergeTargetMasterId" class="input w-full">
-                                        <option value="">-- Ketik Nama Baru di Bawah Ini Atau Pilih Master --</option>
+                                        <option value="">-- Ketik Nama Manual Atau Pilih Master Lokal --</option>
                                         @foreach ($masterSekolahs as $ms)
                                             <option value="{{ $ms->id }}">{{ $ms->nama_resmi }} (Tier: {{ $ms->tier }})</option>
                                         @endforeach

@@ -4,6 +4,7 @@ namespace App\Modules\AnalitikSpmb\Livewire;
 
 use App\Core\Concerns\GuardsPermission;
 use App\Modules\AnalitikSpmb\Models\SpmbIgnoredDuplicate;
+use App\Modules\AnalitikSpmb\Models\SpmbMasterSmp;
 use App\Modules\AnalitikSpmb\Models\SpmbSekolahAsal;
 use App\Modules\AnalitikSpmb\Services\SpmbDataCleansingService;
 use Illuminate\Pagination\LengthAwarePaginator;
@@ -38,6 +39,8 @@ class PerbaikanSmpIndex extends Component
     public ?int $mergeTargetMasterId = null;
     public bool $optUpdateSiswa = true;
     public bool $optCreateAlias = true;
+    public string $masterSmpSearch = '';
+    public ?int $mergeTargetMasterSmpId = null;
 
     // Quick Rename Modal State
     public bool $showRenameModal = false;
@@ -172,6 +175,8 @@ class PerbaikanSmpIndex extends Component
         $this->mergeSourceNames = array_values($this->selectedSchools);
         $this->mergeTargetName = $this->mergeSourceNames[0] ?? '';
         $this->mergeTargetMasterId = null;
+        $this->mergeTargetMasterSmpId = null;
+        $this->masterSmpSearch = '';
         $this->optUpdateSiswa = true;
         $this->optCreateAlias = true;
         $this->showMergeModal = true;
@@ -195,6 +200,8 @@ class PerbaikanSmpIndex extends Component
         $this->mergeSourceNames = array_column($cluster['items'], 'raw_name');
         $this->mergeTargetName = $cluster['suggested_target'];
         $this->mergeTargetMasterId = null;
+        $this->mergeTargetMasterSmpId = null;
+        $this->masterSmpSearch = '';
         $this->optUpdateSiswa = true;
         $this->optCreateAlias = true;
         $this->showMergeModal = true;
@@ -206,8 +213,26 @@ class PerbaikanSmpIndex extends Component
             $master = SpmbSekolahAsal::find($value);
             if ($master) {
                 $this->mergeTargetName = $master->nama_resmi;
+                $this->mergeTargetMasterSmpId = $master->master_smp_id;
             }
         }
+    }
+
+    public function selectMasterSmpTarget(int $id): void
+    {
+        $master = SpmbMasterSmp::find($id);
+        if ($master) {
+            $this->mergeTargetName = $master->nama;
+            $this->mergeTargetMasterSmpId = $master->id;
+            $this->mergeTargetMasterId = null;
+            $this->masterSmpSearch = "{$master->nama} (NPSN: {$master->npsn})";
+        }
+    }
+
+    public function clearMasterSmpTarget(): void
+    {
+        $this->mergeTargetMasterSmpId = null;
+        $this->masterSmpSearch = '';
     }
 
     public function closeMergeModal(): void
@@ -216,6 +241,8 @@ class PerbaikanSmpIndex extends Component
         $this->mergeSourceNames = [];
         $this->mergeTargetName = '';
         $this->mergeTargetMasterId = null;
+        $this->mergeTargetMasterSmpId = null;
+        $this->masterSmpSearch = '';
     }
 
     public function executeMerge(): void
@@ -233,7 +260,8 @@ class PerbaikanSmpIndex extends Component
             $this->mergeTargetName,
             $this->optUpdateSiswa,
             $this->optCreateAlias,
-            $this->mergeTargetMasterId
+            $this->mergeTargetMasterId,
+            $this->mergeTargetMasterSmpId
         );
 
         $this->selectedSchools = [];
@@ -242,6 +270,47 @@ class PerbaikanSmpIndex extends Component
         $this->refreshSuggestions();
 
         session()->flash('success', "Penggabungan berhasil! {$result['affected_students']} data siswa diperbarui ke '{$result['target_name']}'.");
+    }
+
+    public function autoMatchWithMasterSmp(): void
+    {
+        $this->guard('analitik_spmb.perbaikan_smp.kelola');
+
+        $cleansingService = app(SpmbDataCleansingService::class);
+        $unmapped = $cleansingService->getUniqueSchoolStrings('', 'unmapped');
+
+        if ($unmapped->isEmpty()) {
+            session()->flash('info', 'Tidak ada sekolah asal yang berstatus belum terpetakan.');
+            return;
+        }
+
+        $matchedCount = 0;
+        foreach ($unmapped as $item) {
+            $raw = $item->raw_name;
+            // Cari exact match atau case-insensitive di spmb_master_smps
+            $master = SpmbMasterSmp::where('nama', $raw)
+                ->orWhereRaw('LOWER(nama) = ?', [strtolower($raw)])
+                ->first();
+
+            if ($master) {
+                $cleansingService->mergeSchoolStrings(
+                    [$raw],
+                    $master->nama,
+                    true,
+                    true,
+                    null,
+                    $master->id
+                );
+                $matchedCount++;
+            }
+        }
+
+        $this->refreshSuggestions();
+        if ($matchedCount > 0) {
+            session()->flash('success', "Auto-Match selesai! {$matchedCount} sekolah asal berhasil dicocokkan otomatis ke Master SMP resmi.");
+        } else {
+            session()->flash('info', 'Tidak ditemukan nama sekolah yang sama persis dengan database Master SMP.');
+        }
     }
 
     public function openEditMasterModal(int $masterId): void
@@ -376,9 +445,18 @@ class PerbaikanSmpIndex extends Component
         $ignoredCount = SpmbIgnoredDuplicate::count();
         $ignoredPairs = $this->showIgnoredModal ? SpmbIgnoredDuplicate::latest()->get() : collect();
 
+        // Hasil pencarian Master SMP resmi
+        $masterSmpSearchResults = collect();
+        if ($this->showMergeModal && strlen(trim($this->masterSmpSearch)) >= 2 && ! $this->mergeTargetMasterSmpId) {
+            $masterSmpSearchResults = $cleansingService->searchMasterSmp($this->masterSmpSearch, null, 8);
+        }
+        $totalMasterSmp = SpmbMasterSmp::count();
+
         return view('analitikspmb::livewire.perbaikan-smp-index', array_merge(get_object_vars($this), [
             'paginated' => $paginated,
             'masterSekolahs' => $masterSekolahs,
+            'masterSmpSearchResults' => $masterSmpSearchResults,
+            'totalMasterSmp' => $totalMasterSmp,
             'previewStudents' => $previewStudents,
             'drawerStudents' => $drawerStudents,
             'totalVariasi' => $totalVariasi,

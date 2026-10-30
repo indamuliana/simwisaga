@@ -3,6 +3,7 @@
 namespace App\Modules\AnalitikSpmb\Services;
 
 use App\Modules\AnalitikSpmb\Models\SpmbIgnoredDuplicate;
+use App\Modules\AnalitikSpmb\Models\SpmbMasterSmp;
 use App\Modules\AnalitikSpmb\Models\SpmbSekolahAsal;
 use App\Modules\AnalitikSpmb\Models\SpmbSekolahAsalAlias;
 use App\Modules\Kesiswaan\Models\Siswa;
@@ -324,7 +325,8 @@ class SpmbDataCleansingService
         string $targetName,
         bool $updateSiswa = true,
         bool $createAlias = true,
-        ?int $targetMasterId = null
+        ?int $targetMasterId = null,
+        ?int $targetMasterSmpId = null
     ): array {
         $targetName = trim($targetName);
         if (empty($targetName)) {
@@ -336,7 +338,7 @@ class SpmbDataCleansingService
             throw new \InvalidArgumentException('Daftar sekolah sumber tidak boleh kosong.');
         }
 
-        return DB::transaction(function () use ($sourceNames, $targetName, $updateSiswa, $createAlias, $targetMasterId) {
+        return DB::transaction(function () use ($sourceNames, $targetName, $updateSiswa, $createAlias, $targetMasterId, $targetMasterSmpId) {
             $syncService = app(SpmbSekolahAsalSyncService::class);
 
             // 1. Tentukan atau buat master target di spmb_sekolah_asals
@@ -354,6 +356,11 @@ class SpmbDataCleansingService
                         'tier' => 'Rintisan',
                     ]);
                 }
+            }
+
+            // Jika ada targetMasterSmpId, sinkronisasikan metadata dari master SMP resmi
+            if ($targetMasterSmpId) {
+                $targetMaster = $this->linkMasterSmpToSekolahAsal($targetMasterSmpId, $targetMaster->id);
             }
 
             // Pastikan targetName sendiri terdaftar sebagai alias ke master target
@@ -424,5 +431,96 @@ class SpmbDataCleansingService
         bool $createAlias = true
     ): array {
         return $this->mergeSchoolStrings([$oldName], $newName, $updateSiswa, $createAlias);
+    }
+
+    /**
+     * Pencarian Master SMP resmi berdasarkan nama atau NPSN untuk dropdown / autocomplete.
+     */
+    public function searchMasterSmp(string $search, ?string $kabupaten = null, int $limit = 20): Collection
+    {
+        $term = trim($search);
+        if (strlen($term) < 2) {
+            return collect();
+        }
+
+        $query = SpmbMasterSmp::query();
+
+        if ($kabupaten) {
+            $query->where('kabupaten', $kabupaten);
+        }
+
+        $s = '%' . $term . '%';
+        $query->where(function ($q) use ($s, $term) {
+            $q->where('nama', 'like', $s)
+                ->orWhere('npsn', 'like', $term . '%');
+        });
+
+        return $query->orderBy('nama')->take($limit)->get();
+    }
+
+    /**
+     * Hubungkan / Sinkronisasikan sebuah data master sekolah asal dengan Master SMP resmi.
+     */
+    public function linkMasterSmpToSekolahAsal(int $masterSmpId, ?int $sekolahAsalId = null): SpmbSekolahAsal
+    {
+        $masterSmp = SpmbMasterSmp::findOrFail($masterSmpId);
+
+        $jenis = 'SMP';
+        $bentukUpper = strtoupper($masterSmp->bentuk ?? '');
+        if (str_contains($bentukUpper, 'MTS')) {
+            $jenis = 'MTs';
+        } elseif (str_contains($bentukUpper, 'PESANTREN')) {
+            $jenis = 'Pesantren';
+        }
+
+        $status = str_contains(strtoupper($masterSmp->status ?? ''), 'NEG') ? 'Negeri' : 'Swasta';
+
+        if ($sekolahAsalId) {
+            $sekolahAsal = SpmbSekolahAsal::findOrFail($sekolahAsalId);
+            $sekolahAsal->update([
+                'master_smp_id' => $masterSmp->id,
+                'npsn' => $masterSmp->npsn,
+                'jenis' => $jenis,
+                'status_sekolah' => $status,
+                'kecamatan' => $masterSmp->kecamatan,
+                'kabupaten_kota' => $masterSmp->kabupaten,
+            ]);
+        } else {
+            // Cari apakah sudah ada master sekolah asal dengan npsn ini atau nama ini
+            $sekolahAsal = SpmbSekolahAsal::where('master_smp_id', $masterSmp->id)
+                ->orWhere('npsn', $masterSmp->npsn)
+                ->orWhere('nama_resmi', $masterSmp->nama)
+                ->first();
+
+            if ($sekolahAsal) {
+                $sekolahAsal->update([
+                    'master_smp_id' => $masterSmp->id,
+                    'npsn' => $masterSmp->npsn,
+                    'jenis' => $jenis,
+                    'status_sekolah' => $status,
+                    'kecamatan' => $masterSmp->kecamatan,
+                    'kabupaten_kota' => $masterSmp->kabupaten,
+                ]);
+            } else {
+                $sekolahAsal = SpmbSekolahAsal::create([
+                    'master_smp_id' => $masterSmp->id,
+                    'nama_resmi' => $masterSmp->nama,
+                    'npsn' => $masterSmp->npsn,
+                    'jenis' => $jenis,
+                    'status_sekolah' => $status,
+                    'kecamatan' => $masterSmp->kecamatan,
+                    'kabupaten_kota' => $masterSmp->kabupaten,
+                    'tier' => 'Rintisan',
+                ]);
+            }
+        }
+
+        // Daftarkan nama resmi Master SMP sebagai alias
+        SpmbSekolahAsalAlias::firstOrCreate([
+            'sekolah_asal_id' => $sekolahAsal->id,
+            'alias_raw' => $masterSmp->nama,
+        ]);
+
+        return $sekolahAsal;
     }
 }

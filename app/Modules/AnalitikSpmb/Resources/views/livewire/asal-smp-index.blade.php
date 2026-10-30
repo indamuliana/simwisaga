@@ -35,6 +35,13 @@
                     <span>Tambah Master Sekolah</span>
                 </button>
 
+                <a href="{{ route('analitik-spmb.master-smp') }}" class="btn btn-secondary text-xs gap-1.5 shadow-2xs">
+                    <svg xmlns="http://www.w3.org/2000/svg" class="h-4 w-4 text-primary" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                        <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M19 21V5a2 2 0 00-2-2H7a2 2 0 00-2 2v16m14 0h2m-2 0h-5m-9 0H3m2 0h5M9 7h1m-1 4h1m4-4h1m-1 4h1m-5 10v-5a1 1 0 011-1h2a1 1 0 011 1v5m-4 0h4" />
+                    </svg>
+                    <span>Master Data SMP</span>
+                </a>
+
                 <a href="{{ route('analitik-spmb.perbaikan-smp') }}" class="btn btn-secondary text-xs gap-1.5 shadow-2xs">
                     <svg xmlns="http://www.w3.org/2000/svg" class="h-4 w-4 text-blue-600" fill="none" viewBox="0 0 24 24" stroke="currentColor">
                         <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M11 5H6a2 2 0 00-2 2v11a2 2 0 002 2h11a2 2 0 002-2v-5m-1.414-9.414a2 2 0 112.828 2.828L11.828 15H9v-2.828l8.586-8.586z" />
@@ -732,6 +739,47 @@
 
                         {{-- Modal Body --}}
                         <div class="p-5 space-y-4 max-h-[75vh] overflow-y-auto">
+                            {{-- Tarik dari Master SMP Resmi --}}
+                            <div>
+                                <div class="flex items-center justify-between mb-1">
+                                    <label class="label font-semibold text-primary flex items-center gap-1">
+                                        <svg xmlns="http://www.w3.org/2000/svg" class="h-3.5 w-3.5" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                                            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M19 21V5a2 2 0 00-2-2H7a2 2 0 00-2 2v16m14 0h2m-2 0h-5m-9 0H3m2 0h5M9 7h1m-1 4h1m4-4h1m-1 4h1m-5 10v-5a1 1 0 011-1h2a1 1 0 011 1v5m-4 0h4" />
+                                        </svg>
+                                        <span>Tarik Profil dari Master Data SMP Resmi:</span>
+                                    </label>
+                                    @if ($formMasterSmpId)
+                                        <button type="button" wire:click="clearMasterSmpSelection" class="text-[11px] text-rose-500 hover:underline">Lepas Pilihan</button>
+                                    @endif
+                                </div>
+                                <div class="relative">
+                                    <input type="text" wire:model.live.debounce.250ms="masterSmpSearch" placeholder="Ketik nama atau NPSN sekolah resmi..." class="input w-full {{ $formMasterSmpId ? 'border-emerald-500 bg-emerald-50/50 dark:bg-emerald-950/20 text-emerald-900 dark:text-emerald-100 font-semibold' : '' }}">
+                                    @if ($formMasterSmpId)
+                                        <div class="absolute right-2 top-2 text-emerald-600 flex items-center gap-1 text-[11px]">
+                                            <svg xmlns="http://www.w3.org/2000/svg" class="h-4 w-4" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                                                <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M5 13l4 4L19 7" />
+                                            </svg>
+                                            <span>Terhubung</span>
+                                        </div>
+                                    @endif
+                                </div>
+                                @if (! empty($masterSmpSearchResults) && $masterSmpSearchResults->isNotEmpty() && ! $formMasterSmpId)
+                                    <div class="mt-1 p-1 rounded-xl bg-surface border border-border shadow-lg max-h-48 overflow-y-auto space-y-1">
+                                        @foreach ($masterSmpSearchResults as $mRes)
+                                            <div wire:click="selectMasterSmp({{ $mRes->id }})" class="p-2 rounded-lg hover:bg-surface-hover cursor-pointer text-xs flex items-center justify-between transition-colors">
+                                                <div>
+                                                    <div class="font-bold text-text-main">{{ $mRes->nama }}</div>
+                                                    <div class="text-[10px] text-text-muted">
+                                                        NPSN: <span class="font-mono font-semibold">{{ $mRes->npsn }}</span> &bull; {{ $mRes->kecamatan }}, {{ $mRes->kabupaten }} ({{ $mRes->status }})
+                                                    </div>
+                                                </div>
+                                                <span class="text-[11px] text-primary font-semibold shrink-0">Gunakan &rarr;</span>
+                                            </div>
+                                        @endforeach
+                                    </div>
+                                @endif
+                            </div>
+
                             {{-- Nama Resmi --}}
                             <div>
                                 <label class="label font-semibold">Nama Resmi Sekolah (Standar Master) <span class="text-rose-500">*</span></label>
