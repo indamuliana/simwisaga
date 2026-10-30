@@ -6,9 +6,13 @@ use App\Core\Concerns\GuardsPermission;
 use App\Modules\AnalitikSpmb\Models\SpmbSekolahAsal;
 use App\Modules\AnalitikSpmb\Services\SpmbDataCleansingService;
 use Illuminate\Pagination\LengthAwarePaginator;
+use Livewire\Attributes\Layout;
+use Livewire\Attributes\Title;
 use Livewire\Component;
 use Livewire\WithPagination;
 
+#[Layout('components.layouts.app')]
+#[Title('Perbaikan Data Asal SMP &bull; SPMB')]
 class PerbaikanSmpIndex extends Component
 {
     use GuardsPermission;
@@ -263,6 +267,6 @@ class PerbaikanSmpIndex extends Component
             'totalVariasi' => $totalVariasi,
             'totalSiswaTerdata' => $totalSiswaTerdata,
             'totalUnmapped' => $totalUnmapped,
-        ]))->layout('layouts.app', ['title' => 'Perbaikan Data Asal SMP']);
+        ]));
     }
 }
