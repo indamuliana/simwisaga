@@ -536,10 +536,10 @@
     @if ($showDrawer && $drawerSekolah)
         <div class="fixed inset-0 z-50 overflow-hidden" aria-labelledby="slide-over-title" role="dialog" aria-modal="true">
             {{-- Backdrop --}}
-            <div class="fixed inset-0 bg-slate-900/50 backdrop-blur-xs transition-opacity" wire:click="closeDrawer"></div>
+            <div class="fixed inset-0 bg-slate-900/60 backdrop-blur-xs transition-opacity z-10 cursor-pointer" wire:click="closeDrawer"></div>
 
-            <div class="fixed inset-y-0 right-0 max-w-full flex pl-10">
-                <div class="w-screen max-w-2xl bg-surface shadow-2xl flex flex-col border-l border-border">
+            <div class="fixed inset-y-0 right-0 max-w-full flex pl-10 z-20 pointer-events-none">
+                <div class="w-screen max-w-2xl bg-surface shadow-2xl flex flex-col border-l border-border pointer-events-auto relative" @click.stop>
                     {{-- Drawer Header --}}
                     <div class="p-4 sm:p-5 border-b border-border bg-surface-subtle flex items-start justify-between gap-3">
                         <div class="min-w-0">
@@ -672,11 +672,11 @@
     {{-- Modal Kelola Master & Alias Sekolah --}}
     @if ($showModalKelola)
         <div class="fixed inset-0 z-50 overflow-y-auto" aria-labelledby="modal-title" role="dialog" aria-modal="true">
-            <div class="flex items-center justify-center min-h-screen pt-4 px-4 pb-20 text-center sm:block sm:p-0">
-                <div class="fixed inset-0 bg-slate-900/50 backdrop-blur-xs transition-opacity" wire:click="closeModalKelola"></div>
-                <span class="hidden sm:inline-block sm:align-middle sm:h-screen" aria-hidden="true">&#8203;</span>
+            {{-- Backdrop --}}
+            <div class="fixed inset-0 bg-slate-900/60 backdrop-blur-xs transition-opacity z-10 cursor-pointer" wire:click="closeModalKelola"></div>
 
-                <div class="inline-block align-bottom bg-surface rounded-xl text-left overflow-hidden shadow-2xl transform transition-all sm:my-8 sm:align-middle sm:max-w-2xl sm:w-full border border-border">
+            <div class="flex min-h-full items-center justify-center p-4 text-center sm:p-0 relative z-20 pointer-events-none">
+                <div class="relative transform overflow-hidden rounded-2xl bg-surface border border-border text-left shadow-2xl transition-all sm:my-8 sm:w-full sm:max-w-2xl text-text-main pointer-events-auto" @click.stop>
                     <form wire:submit.prevent="saveMasterSekolah">
                         {{-- Modal Header --}}
                         <div class="p-4 sm:p-5 border-b border-border bg-surface-subtle flex items-center justify-between">
