@@ -24,6 +24,9 @@ class AnalitikSpmbPermissionSeeder extends Seeder
             'analitik_spmb.master_smp.lihat',
             'analitik_spmb.master_smp.kelola',
             'analitik_spmb.master_smp.import',
+            'analitik_spmb.wilayah.lihat',
+            'analitik_spmb.wilayah.kelola',
+            'analitik_spmb.wilayah.ekspor',
         ];
 
         foreach ($permissions as $perm) {

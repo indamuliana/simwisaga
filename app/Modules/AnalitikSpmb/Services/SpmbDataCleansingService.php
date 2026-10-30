@@ -352,7 +352,7 @@ class SpmbDataCleansingService
                         'nama_resmi' => $targetName,
                         'jenis' => $meta['jenis'],
                         'status_sekolah' => $meta['status_sekolah'],
-                        'kabupaten_kota' => 'Garut',
+                        'kabupaten_kota' => 'Kab. Garut',
                         'tier' => 'Rintisan',
                     ]);
                 }

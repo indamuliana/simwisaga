@@ -33,6 +33,15 @@
                 <span>Perbaikan Data</span>
             </a>
 
+            @can('analitik_spmb.wilayah.lihat')
+                <a href="{{ route('analitik-spmb.wilayah') }}" class="btn btn-secondary text-xs gap-1.5 shadow-2xs">
+                    <svg xmlns="http://www.w3.org/2000/svg" class="h-3.5 w-3.5 text-indigo-600" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                        <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M3.055 11H5a2 2 0 012 2v1a2 2 0 002 2 2 2 0 012 2v2.945M8 3.935V5.5A2.5 2.5 0 0010.5 8h.5a2 2 0 012 2 2 2 0 104 0 2 2 0 012-2h1.064M15 20.488V18a2 2 0 012-2h3.064M21 12a9 9 0 11-18 0 9 9 0 0118 0z" />
+                    </svg>
+                    <span>Sebaran Wilayah</span>
+                </a>
+            @endcan
+
             @can('analitik_spmb.master_smp.kelola')
                 <button type="button" wire:click="syncToSekolahAsal" wire:loading.attr="disabled" class="btn btn-secondary text-xs gap-1.5 shadow-2xs text-emerald-600 hover:text-emerald-700 hover:bg-emerald-50 border-emerald-200" title="Cocokkan dan perbarui data sekolah asal & siswa secara otomatis dengan database Master SMP resmi">
                     <svg wire:loading.remove wire:target="syncToSekolahAsal" xmlns="http://www.w3.org/2000/svg" class="h-3.5 w-3.5" fill="none" viewBox="0 0 24 24" stroke="currentColor">
@@ -322,8 +331,8 @@
                             {{-- Aksi --}}
                             <td class="py-3 px-3 text-center">
                                 <div class="inline-flex items-center gap-1">
-                                    {{-- Cek Referensi Kemendikbud --}}
-                                    <a href="{{ $item->referensi_kemendikbud_url }}" target="_blank" rel="noopener noreferrer" class="btn btn-secondary !p-1.5" title="Buka Profil Resmi Kemendikbud">
+                                    {{-- Cek Referensi Kemendikdasmen --}}
+                                    <a href="{{ $item->referensi_kemendikbud_url }}" target="_blank" rel="noopener noreferrer" class="btn btn-secondary !p-1.5" title="Buka Profil Resmi Kemendikdasmen">
                                         <svg xmlns="http://www.w3.org/2000/svg" class="h-3.5 w-3.5 text-blue-600" fill="none" viewBox="0 0 24 24" stroke="currentColor">
                                             <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M10 6H6a2 2 0 00-2 2v10a2 2 0 002 2h10a2 2 0 002-2v-4M14 4h6m0 0v6m0-6L10 14" />
                                         </svg>

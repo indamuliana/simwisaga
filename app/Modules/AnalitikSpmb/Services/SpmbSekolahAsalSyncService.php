@@ -78,7 +78,7 @@ class SpmbSekolahAsalSyncService
                     'nama_resmi' => $normalizedName,
                     'jenis' => $meta['jenis'],
                     'status_sekolah' => $meta['status_sekolah'],
-                    'kabupaten_kota' => 'Garut',
+                    'kabupaten_kota' => 'Kab. Garut',
                     'tier' => $tier,
                 ]);
                 $newMasters++;

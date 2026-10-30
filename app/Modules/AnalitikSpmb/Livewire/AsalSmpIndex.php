@@ -59,7 +59,7 @@ class AsalSmpIndex extends Component
     public string $formJenis = 'SMP';
     public string $formStatusSekolah = 'Negeri';
     public string $formKecamatan = '';
-    public string $formKabupatenKota = 'Garut';
+    public string $formKabupatenKota = 'Kab. Garut';
     public string $formTier = 'Rintisan';
     public string $formCatatan = '';
     public string $newAliasInput = '';
@@ -189,7 +189,7 @@ class AsalSmpIndex extends Component
             $this->formJenis = $master->jenis;
             $this->formStatusSekolah = $master->status_sekolah;
             $this->formKecamatan = $master->kecamatan ?? '';
-            $this->formKabupatenKota = $master->kabupaten_kota ?? 'Garut';
+            $this->formKabupatenKota = $master->kabupaten_kota ?? 'Kab. Garut';
             $this->formTier = $master->tier;
             $this->formCatatan = $master->catatan ?? '';
             if ($master->masterSmp) {
@@ -199,7 +199,7 @@ class AsalSmpIndex extends Component
             $this->editingMasterId = null;
             $this->formJenis = 'SMP';
             $this->formStatusSekolah = 'Negeri';
-            $this->formKabupatenKota = 'Garut';
+            $this->formKabupatenKota = 'Kab. Garut';
             $this->formTier = 'Rintisan';
         }
 
@@ -216,7 +216,7 @@ class AsalSmpIndex extends Component
             $this->formJenis = str_contains(strtoupper($m->bentuk ?? ''), 'MTS') ? 'MTs' : 'SMP';
             $this->formStatusSekolah = str_contains(strtoupper($m->status ?? ''), 'NEG') ? 'Negeri' : 'Swasta';
             $this->formKecamatan = $m->kecamatan ?? '';
-            $this->formKabupatenKota = $m->kabupaten ?? 'Garut';
+            $this->formKabupatenKota = $m->kabupaten ?? 'Kab. Garut';
             $this->masterSmpSearch = "{$m->nama} (NPSN: {$m->npsn})";
         }
     }
@@ -274,7 +274,7 @@ class AsalSmpIndex extends Component
                     'jenis' => $this->formJenis,
                     'status_sekolah' => $this->formStatusSekolah,
                     'kecamatan' => $this->formKecamatan ?: null,
-                    'kabupaten_kota' => $this->formKabupatenKota ?: 'Garut',
+                    'kabupaten_kota' => $this->formKabupatenKota ?: 'Kab. Garut',
                     'tier' => $this->formTier,
                     'catatan' => $this->formCatatan ?: null,
                 ]);
@@ -288,7 +288,7 @@ class AsalSmpIndex extends Component
                     'jenis' => $this->formJenis,
                     'status_sekolah' => $this->formStatusSekolah,
                     'kecamatan' => $this->formKecamatan ?: null,
-                    'kabupaten_kota' => $this->formKabupatenKota ?: 'Garut',
+                    'kabupaten_kota' => $this->formKabupatenKota ?: 'Kab. Garut',
                     'tier' => $this->formTier,
                     'catatan' => $this->formCatatan ?: null,
                 ]);

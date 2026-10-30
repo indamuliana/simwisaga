@@ -34,11 +34,11 @@ class SpmbMasterSmp extends Model implements Auditable
     }
 
     /**
-     * URL referensi data Kemendikbud resmi.
+     * URL referensi data Kemendikdasmen resmi.
      */
     public function getReferensiKemendikbudUrlAttribute(): string
     {
-        return 'https://referensi.data.kemdikbud.go.id/tabs.php?npsn=' . urlencode($this->npsn);
+        return 'https://referensi.data.kemendikdasmen.go.id/pendidikan/npsn/' . urlencode($this->npsn);
     }
 
     /**
