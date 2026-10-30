@@ -34,6 +34,13 @@
                     </svg>
                     <span>Tambah Master Sekolah</span>
                 </button>
+
+                <a href="{{ route('analitik-spmb.perbaikan-smp') }}" class="btn btn-secondary text-xs gap-1.5 shadow-2xs">
+                    <svg xmlns="http://www.w3.org/2000/svg" class="h-4 w-4 text-blue-600" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                        <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M11 5H6a2 2 0 00-2 2v11a2 2 0 002 2h11a2 2 0 002-2v-5m-1.414-9.414a2 2 0 112.828 2.828L11.828 15H9v-2.828l8.586-8.586z" />
+                    </svg>
+                    <span>Perbaikan Data Asal SMP</span>
+                </a>
             @endcan
 
             <button type="button" wire:click="exportExcel" wire:loading.attr="disabled" class="btn btn-primary text-xs gap-1.5 shadow-2xs">
@@ -78,9 +85,14 @@
                 <span>Ditemukan <strong>{{ $unmappedCount }}</strong> variasi nama sekolah asal siswa baru yang belum terpetakan ke master.</span>
             </div>
             @can('analitik_spmb.asal_smp.kelola')
-                <button type="button" wire:click="syncSekolah" class="btn btn-secondary !py-1 !px-3 !text-xs self-start sm:self-auto bg-amber-100 dark:bg-amber-900 text-amber-900 dark:text-amber-100 hover:bg-amber-200 border-amber-300">
-                    Sinkronkan Sekarang
-                </button>
+                <div class="flex items-center gap-2 self-start sm:self-auto">
+                    <a href="{{ route('analitik-spmb.perbaikan-smp') }}" class="btn btn-secondary !py-1 !px-3 !text-xs bg-amber-100 dark:bg-amber-900 text-amber-900 dark:text-amber-100 hover:bg-amber-200 border-amber-300">
+                        Perbaiki Data
+                    </a>
+                    <button type="button" wire:click="syncSekolah" class="btn btn-secondary !py-1 !px-3 !text-xs bg-amber-100 dark:bg-amber-900 text-amber-900 dark:text-amber-100 hover:bg-amber-200 border-amber-300">
+                        Sinkronkan Sekarang
+                    </button>
+                </div>
             @endcan
         </div>
     @endif

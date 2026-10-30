@@ -1,0 +1,268 @@
+<?php
+
+namespace App\Modules\AnalitikSpmb\Livewire;
+
+use App\Core\Concerns\GuardsPermission;
+use App\Modules\AnalitikSpmb\Models\SpmbSekolahAsal;
+use App\Modules\AnalitikSpmb\Services\SpmbDataCleansingService;
+use Illuminate\Pagination\LengthAwarePaginator;
+use Livewire\Component;
+use Livewire\WithPagination;
+
+class PerbaikanSmpIndex extends Component
+{
+    use GuardsPermission;
+    use WithPagination;
+
+    // Filter & Search
+    public string $search = '';
+    public string $filterMapping = ''; // '', 'mapped', 'unmapped'
+    public int $perPage = 20;
+
+    // Selection for Multi-Merge
+    public array $selectedSchools = [];
+    public bool $selectAll = false;
+
+    // Smart Duplicate Suggestions
+    public array $suggestions = [];
+
+    // Merge Modal State
+    public bool $showMergeModal = false;
+    public array $mergeSourceNames = [];
+    public string $mergeTargetName = '';
+    public ?int $mergeTargetMasterId = null;
+    public bool $optUpdateSiswa = true;
+    public bool $optCreateAlias = true;
+
+    // Quick Rename Modal State
+    public bool $showRenameModal = false;
+    public string $renameOldName = '';
+    public string $renameNewName = '';
+    public bool $renameOptUpdateSiswa = true;
+    public bool $renameOptCreateAlias = true;
+
+    // Drawer Detail Siswa
+    public bool $showDrawer = false;
+    public string $drawerSchoolName = '';
+
+    protected $queryString = [
+        'search' => ['except' => ''],
+        'filterMapping' => ['except' => ''],
+    ];
+
+    public function mount(): void
+    {
+        $this->guard('analitik_spmb.perbaikan_smp.lihat');
+        $this->refreshSuggestions();
+    }
+
+    public function updatingSearch(): void
+    {
+        $this->resetPage();
+        $this->selectedSchools = [];
+        $this->selectAll = false;
+    }
+
+    public function updatingFilterMapping(): void
+    {
+        $this->resetPage();
+        $this->selectedSchools = [];
+        $this->selectAll = false;
+    }
+
+    public function refreshSuggestions(): void
+    {
+        $this->suggestions = app(SpmbDataCleansingService::class)->detectPotentialDuplicates();
+    }
+
+    public function updatedSelectAll($value): void
+    {
+        if ($value) {
+            $cleansingService = app(SpmbDataCleansingService::class);
+            $items = $cleansingService->getUniqueSchoolStrings($this->search, $this->filterMapping);
+            $this->selectedSchools = $items->pluck('raw_name')->toArray();
+        } else {
+            $this->selectedSchools = [];
+        }
+    }
+
+    public function openDrawer(string $rawName): void
+    {
+        $this->drawerSchoolName = $rawName;
+        $this->showDrawer = true;
+    }
+
+    public function closeDrawer(): void
+    {
+        $this->showDrawer = false;
+        $this->drawerSchoolName = '';
+    }
+
+    public function openRenameModal(string $rawName): void
+    {
+        $this->guard('analitik_spmb.perbaikan_smp.kelola');
+
+        $this->renameOldName = $rawName;
+        $this->renameNewName = $rawName;
+        $this->renameOptUpdateSiswa = true;
+        $this->renameOptCreateAlias = true;
+        $this->showRenameModal = true;
+    }
+
+    public function closeRenameModal(): void
+    {
+        $this->showRenameModal = false;
+        $this->renameOldName = '';
+        $this->renameNewName = '';
+    }
+
+    public function executeRename(): void
+    {
+        $this->guard('analitik_spmb.perbaikan_smp.kelola');
+
+        $this->validate([
+            'renameNewName' => 'required|string|min:3|max:150',
+        ]);
+
+        if (trim($this->renameOldName) === trim($this->renameNewName)) {
+            $this->closeRenameModal();
+            return;
+        }
+
+        $cleansingService = app(SpmbDataCleansingService::class);
+        $result = $cleansingService->renameSchoolString(
+            $this->renameOldName,
+            $this->renameNewName,
+            $this->renameOptUpdateSiswa,
+            $this->renameOptCreateAlias
+        );
+
+        $this->closeRenameModal();
+        $this->refreshSuggestions();
+        session()->flash('success', "Berhasil mengubah '{$this->renameOldName}' menjadi '{$result['target_name']}'. {$result['affected_students']} data siswa diperbarui.");
+    }
+
+    public function openMergeFromSelection(): void
+    {
+        $this->guard('analitik_spmb.perbaikan_smp.kelola');
+
+        if (empty($this->selectedSchools)) {
+            session()->flash('error', 'Pilih minimal 1 sekolah asal dari tabel untuk digabungkan.');
+            return;
+        }
+
+        $this->mergeSourceNames = array_values($this->selectedSchools);
+        $this->mergeTargetName = $this->mergeSourceNames[0] ?? '';
+        $this->mergeTargetMasterId = null;
+        $this->optUpdateSiswa = true;
+        $this->optCreateAlias = true;
+        $this->showMergeModal = true;
+    }
+
+    public function openMergeFromSuggestion(int $suggestionIndex): void
+    {
+        $this->guard('analitik_spmb.perbaikan_smp.kelola');
+
+        if (! isset($this->suggestions[$suggestionIndex])) {
+            return;
+        }
+
+        $cluster = $this->suggestions[$suggestionIndex];
+        $this->mergeSourceNames = array_column($cluster['items'], 'raw_name');
+        $this->mergeTargetName = $cluster['suggested_target'];
+        $this->mergeTargetMasterId = null;
+        $this->optUpdateSiswa = true;
+        $this->optCreateAlias = true;
+        $this->showMergeModal = true;
+    }
+
+    public function updatedMergeTargetMasterId($value): void
+    {
+        if ($value) {
+            $master = SpmbSekolahAsal::find($value);
+            if ($master) {
+                $this->mergeTargetName = $master->nama_resmi;
+            }
+        }
+    }
+
+    public function closeMergeModal(): void
+    {
+        $this->showMergeModal = false;
+        $this->mergeSourceNames = [];
+        $this->mergeTargetName = '';
+        $this->mergeTargetMasterId = null;
+    }
+
+    public function executeMerge(): void
+    {
+        $this->guard('analitik_spmb.perbaikan_smp.kelola');
+
+        $this->validate([
+            'mergeTargetName' => 'required|string|min:3|max:150',
+            'mergeSourceNames' => 'required|array|min:1',
+        ]);
+
+        $cleansingService = app(SpmbDataCleansingService::class);
+        $result = $cleansingService->mergeSchoolStrings(
+            $this->mergeSourceNames,
+            $this->mergeTargetName,
+            $this->optUpdateSiswa,
+            $this->optCreateAlias,
+            $this->mergeTargetMasterId
+        );
+
+        $this->selectedSchools = [];
+        $this->selectAll = false;
+        $this->closeMergeModal();
+        $this->refreshSuggestions();
+
+        session()->flash('success', "Penggabungan berhasil! {$result['affected_students']} data siswa diperbarui ke '{$result['target_name']}'.");
+    }
+
+    public function render()
+    {
+        $cleansingService = app(SpmbDataCleansingService::class);
+        $allUnique = $cleansingService->getUniqueSchoolStrings($this->search, $this->filterMapping);
+
+        // Manual pagination untuk collection
+        $page = LengthAwarePaginator::resolveCurrentPage();
+        $paginated = new LengthAwarePaginator(
+            $allUnique->forPage($page, $this->perPage)->values(),
+            $allUnique->count(),
+            $this->perPage,
+            $page,
+            ['path' => LengthAwarePaginator::resolveCurrentPath()]
+        );
+
+        // Ambil daftar master sekolah untuk dropdown target merge
+        $masterSekolahs = SpmbSekolahAsal::orderBy('nama_resmi')->get(['id', 'nama_resmi', 'tier']);
+
+        // Data siswa untuk pratinjau modal merge
+        $previewStudents = collect();
+        if ($this->showMergeModal && ! empty($this->mergeSourceNames)) {
+            $previewStudents = $cleansingService->getAffectedStudents($this->mergeSourceNames);
+        }
+
+        // Data siswa untuk drawer
+        $drawerStudents = collect();
+        if ($this->showDrawer && $this->drawerSchoolName) {
+            $drawerStudents = $cleansingService->getAffectedStudents([$this->drawerSchoolName]);
+        }
+
+        // Statistik ringkas
+        $totalVariasi = $allUnique->count();
+        $totalSiswaTerdata = $allUnique->sum('total_siswa');
+        $totalUnmapped = $allUnique->where('is_mapped', false)->count();
+
+        return view('analitikspmb::livewire.perbaikan-smp-index', array_merge(get_object_vars($this), [
+            'paginated' => $paginated,
+            'masterSekolahs' => $masterSekolahs,
+            'previewStudents' => $previewStudents,
+            'drawerStudents' => $drawerStudents,
+            'totalVariasi' => $totalVariasi,
+            'totalSiswaTerdata' => $totalSiswaTerdata,
+            'totalUnmapped' => $totalUnmapped,
+        ]))->layout('layouts.app', ['title' => 'Perbaikan Data Asal SMP']);
+    }
+}
