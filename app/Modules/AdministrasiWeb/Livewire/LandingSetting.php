@@ -18,12 +18,18 @@ class LandingSetting extends Component
     public array $branding = [];
     public array $hero = [];
     public array $welcome = [];
+    public array $fast_facts = [];
+    public array $principal = [];
     public array $student_moments = [];
     public array $mitra = [];
     public string $typewriterInput = '';
 
     // File upload for hero background image
     public $hero_bg_file = null;
+
+    // File upload for principal image & fast facts images
+    public $principalImageFile = null;
+    public array $fastFactsImageFiles = [];
 
     // Inline file uploads for slides (images / videos)
     public array $slideUploadFiles = [];
@@ -90,8 +96,38 @@ class LandingSetting extends Component
         $this->branding = WebSetting::getGroup('branding');
         $this->hero = WebSetting::getGroup('hero');
         $this->welcome = WebSetting::getGroup('welcome');
+        $this->fast_facts = WebSetting::getGroup('fast_facts');
+        $this->principal = WebSetting::getGroup('principal');
         $this->student_moments = WebSetting::getGroup('student_moments');
         $this->mitra = WebSetting::getGroup('mitra');
+
+        if (empty($this->fast_facts)) {
+            $this->fast_facts = config('landing.fast_facts', []);
+        }
+        while (count($this->fast_facts) < 4) {
+            $this->fast_facts[] = [
+                'number' => '100%',
+                'label' => 'Metrik Unggulan',
+                'desc' => 'Deskripsi pencapaian mutu...',
+                'image' => 'images/web/campus-environment.jpg',
+                'tag' => 'Standar Mutu',
+            ];
+        }
+
+        if (empty($this->principal)) {
+            $this->principal = config('landing.principal', []);
+        }
+        if (empty($this->principal['pillars'])) {
+            $this->principal['pillars'] = config('landing.principal.pillars', []);
+        }
+        while (count($this->principal['pillars'] ?? []) < 4) {
+            $pIdx = count($this->principal['pillars'] ?? []) + 1;
+            $this->principal['pillars'][] = [
+                'num' => sprintf('%02d', $pIdx),
+                'title' => 'Pilar Keunggulan ' . $pIdx,
+                'desc' => 'Uraian pilar keunggulan kelembagaan...',
+            ];
+        }
 
         if (empty($this->mitra['items'])) {
             $defaultMitra = config('landing.mitra', []);
@@ -282,6 +318,95 @@ class LandingSetting extends Component
         }
     }
 
+    public function getPrincipalPhotoPreviewProperty(): string
+    {
+        if ($this->principalImageFile) {
+            try {
+                return $this->principalImageFile->temporaryUrl();
+            } catch (\Throwable $e) {
+                // Ignore temporaryUrl errors
+            }
+        }
+
+        return WebSetting::resolveImageUrl(
+            $this->principal['image'] ?? null,
+            'images/web/principal-kunedi.jpg'
+        );
+    }
+
+    public function getFactImagePreview(int $index): string
+    {
+        if (isset($this->fastFactsImageFiles[$index]) && $this->fastFactsImageFiles[$index]) {
+            try {
+                return $this->fastFactsImageFiles[$index]->temporaryUrl();
+            } catch (\Throwable $e) {
+                // Ignore temporaryUrl errors
+            }
+        }
+
+        return WebSetting::resolveImageUrl(
+            $this->fast_facts[$index]['image'] ?? null,
+            'images/web/campus-environment.jpg'
+        );
+    }
+
+    public function updatedFastFactsImageFiles($value, $key): void
+    {
+        abort_unless(auth()->user()->can('web.landing.edit'), 403, 'Anda tidak memiliki hak akses.');
+
+        $index = (int) $key;
+        if (!isset($this->fastFactsImageFiles[$index]) || !$this->fastFactsImageFiles[$index]) {
+            return;
+        }
+
+        $this->validate([
+            "fastFactsImageFiles.{$index}" => 'required|image|max:5120',
+        ]);
+
+        $path = $this->fastFactsImageFiles[$index]->store('web/facts', 'public');
+        $this->fast_facts[$index]['image'] = $path;
+        WebSetting::setGroup('fast_facts', $this->fast_facts);
+        $this->fastFactsImageFiles[$index] = null;
+        session()->flash('message', 'Foto Kartu Metrik #' . ($index + 1) . ' berhasil diunggah!');
+    }
+
+    public function updatedPrincipalImageFile(): void
+    {
+        abort_unless(auth()->user()->can('web.landing.edit'), 403, 'Anda tidak memiliki hak akses.');
+        if (!$this->principalImageFile) {
+            return;
+        }
+
+        $this->validate([
+            'principalImageFile' => 'required|image|max:5120',
+        ]);
+
+        $path = $this->principalImageFile->store('web/principal', 'public');
+        $this->principal['image'] = $path;
+        WebSetting::setGroup('principal', $this->principal);
+        $this->principalImageFile = null;
+        session()->flash('message', 'Foto Kepala Sekolah berhasil diunggah dan disimpan!');
+    }
+
+    public function resetFactImage(int $index): void
+    {
+        abort_unless(auth()->user()->can('web.landing.edit'), 403, 'Anda tidak memiliki hak akses.');
+
+        $defaultFacts = config('landing.fast_facts', []);
+        $this->fast_facts[$index]['image'] = $defaultFacts[$index]['image'] ?? 'images/web/campus-environment.jpg';
+        WebSetting::setGroup('fast_facts', $this->fast_facts);
+        session()->flash('message', 'Foto Kartu Metrik #' . ($index + 1) . ' berhasil direset ke foto bawaan!');
+    }
+
+    public function resetPrincipalPhoto(): void
+    {
+        abort_unless(auth()->user()->can('web.landing.edit'), 403, 'Anda tidak memiliki hak akses.');
+
+        $this->principal['image'] = 'images/web/principal-kunedi.jpg';
+        WebSetting::setGroup('principal', $this->principal);
+        session()->flash('message', 'Foto Kepala Sekolah berhasil direset ke foto bawaan!');
+    }
+
     public function save(): void
     {
         abort_unless(auth()->user()->can('web.landing.edit'), 403, 'Anda tidak memiliki hak akses untuk mengubah pengaturan landing page.');
@@ -312,10 +437,15 @@ class LandingSetting extends Component
             $this->hero['typewriter_words'] = $words;
         }
 
+        // Pastikan welcome.pillars tersinkronisasi dengan principal.pillars
+        $this->welcome['pillars'] = $this->principal['pillars'] ?? [];
+
         WebSetting::setGroup('announcement', $this->announcement);
         WebSetting::setGroup('branding', $this->branding);
         WebSetting::setGroup('hero', $this->hero);
         WebSetting::setGroup('welcome', $this->welcome);
+        WebSetting::setGroup('fast_facts', $this->fast_facts);
+        WebSetting::setGroup('principal', $this->principal);
         WebSetting::setGroup('student_moments', $this->student_moments);
         WebSetting::setGroup('mitra', $this->mitra);
 

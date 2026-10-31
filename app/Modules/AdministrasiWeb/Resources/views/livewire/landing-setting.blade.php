@@ -39,17 +39,17 @@
         <button type="button" 
                 wire:click="$set('activeTab', 'hero')" 
                 class="py-2.5 px-4 text-xs sm:text-sm font-bold rounded-t-xl transition-all border-b-2 {{ $activeTab === 'hero' ? 'border-primary text-primary bg-surface' : 'border-transparent text-text-secondary hover:text-text-main' }}">
-            🌟 Hero Section &amp; Teks
+            📊 Slider &amp; Metrik Fakta
         </button>
         <button type="button" 
                 wire:click="$set('activeTab', 'slides')" 
                 class="py-2.5 px-4 text-xs sm:text-sm font-bold rounded-t-xl transition-all border-b-2 {{ $activeTab === 'slides' ? 'border-primary text-primary bg-surface' : 'border-transparent text-text-secondary hover:text-text-main' }}">
-            🖼️ Showcase 3 Pilar &amp; Slide
+            🖼️ Slide Show Beranda
         </button>
         <button type="button" 
                 wire:click="$set('activeTab', 'welcome')" 
                 class="py-2.5 px-4 text-xs sm:text-sm font-bold rounded-t-xl transition-all border-b-2 {{ $activeTab === 'welcome' ? 'border-primary text-primary bg-surface' : 'border-transparent text-text-secondary hover:text-text-main' }}">
-            📖 Filosofi &amp; Manifesto
+            🏛️ Filosofi &amp; Profil Pimpinan
         </button>
         <button type="button" 
                 wire:click="$set('activeTab', 'student_moments')" 
@@ -124,201 +124,150 @@
         </div>
         @endif
 
-        {{-- ── TAB 2: HERO SECTION ── --}}
+        {{-- ── TAB 2: SLIDER & METRIK FAKTA ── --}}
         @if ($activeTab === 'hero')
-        <div class="card space-y-5">
-            <div class="border-b border-border pb-3">
-                <h2 class="text-base font-bold text-text-main">Hero Section &amp; Tipografi</h2>
-                <p class="text-xs text-text-secondary">Headline utama, gambar latar belakang, highlight gradasi, efek mesin tik, dan deskripsi.</p>
+        <div class="card space-y-6">
+            <div class="border-b border-border pb-3 flex flex-col sm:flex-row sm:items-center sm:justify-between gap-2">
+                <div>
+                    <h2 class="text-base font-bold text-text-main">Slider Beranda &amp; Metrik Fakta</h2>
+                    <p class="text-xs text-text-secondary">Atur durasi tayang otomatis slide hero serta 4 kartu metrik capaian utama (Data &amp; Fakta).</p>
+                </div>
+                <button type="button" 
+                        wire:click="$set('activeTab', 'slides')"
+                        class="btn-secondary text-xs py-1.5 px-3 inline-flex items-center gap-1.5 self-start sm:self-auto">
+                    <span>Kelola Konten Slide di Tab 3</span>
+                    <svg class="w-3.5 h-3.5" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                        <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9 5l7 7-7 7" />
+                    </svg>
+                </button>
             </div>
 
-            {{-- ── Pengaturan Gambar Latar Belakang Hero (Dinamis) ── --}}
+            {{-- 1. Pengaturan Global Hero Slider --}}
             <div class="p-4 rounded-2xl bg-surface-hover border border-border space-y-4">
-                <div class="flex flex-col sm:flex-row sm:items-center sm:justify-between gap-2">
-                    <div>
-                        <h3 class="text-sm font-bold text-text-main">Gambar Latar Belakang (Hero Background)</h3>
-                        <p class="text-xs text-text-secondary">Foto beresolusi tinggi yang menjadi latar utama section pertama landing page.</p>
-                    </div>
-                    @if(!empty($hero['background_image']) && $hero['background_image'] !== 'images/web/campus-environment.jpg')
-                        <button type="button" 
-                                wire:click="resetHeroBackground" 
-                                wire:confirm="Kembalikan gambar latar ke foto bawaan kampus?"
-                                class="btn-ghost text-xs text-danger hover:bg-danger/10 py-1.5 px-3 self-start sm:self-auto">
-                            <svg class="w-4 h-4 mr-1 inline" fill="none" viewBox="0 0 24 24" stroke="currentColor">
-                                <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M4 4v5h.582m15.356 2A8.001 8.001 0 004.582 9m0 0H9m11 11v-5h-.581m0 0a8.003 8.003 0 01-15.357-2m15.357 2H15" />
-                            </svg>
-                            Reset ke Foto Bawaan
-                        </button>
-                    @endif
+                <div class="flex items-center gap-2">
+                    <span class="w-2.5 h-2.5 rounded-full bg-primary animate-pulse"></span>
+                    <h3 class="text-sm font-bold text-text-main">Kontrol Tayangan Hero Slider</h3>
                 </div>
 
-                <div class="grid grid-cols-1 md:grid-cols-12 gap-5 items-start">
-                    {{-- Pratinjau Gambar Dinamis dengan Live Feedback Slider --}}
-                    <div class="md:col-span-6 space-y-3">
-                        <div class="relative rounded-xl overflow-hidden aspect-[16/9] bg-slate-950 border border-border shadow-inner group">
-                            <img src="{{ $this->heroBgPreview }}" 
-                                 alt="Pratinjau Latar Belakang" 
-                                 class="w-full h-full object-cover object-center"
-                                 style="filter: brightness({{ (($hero['image_brightness'] ?? 40) / 100) }}) contrast(1.15);">
-                            <div class="absolute inset-0" 
-                                 style="background-color: rgba(2, 6, 23, {{ (($hero['overlay_opacity'] ?? 70) / 100) }}); backdrop-filter: blur(1px);"></div>
-                            <div class="absolute inset-0 flex flex-col justify-center items-center text-center p-4 z-10 pointer-events-none">
-                                <span class="text-[10px] font-mono font-bold text-amber-400 bg-slate-950/80 px-2.5 py-0.5 rounded-full border border-white/10 mb-2">
-                                    Simulasi: {{ $hero['overlay_opacity'] ?? 70 }}% Gelap • {{ $hero['image_brightness'] ?? 40 }}% Kecerahan
-                                </span>
-                                <p class="text-white font-extrabold text-sm sm:text-base drop-shadow-sm leading-tight">
-                                    {{ $hero['title_line1'] ?? 'Solusi Pendidikan Akhlaq Berkualitas' }}
-                                </p>
-                                <span class="text-[11px] text-slate-300 mt-1">Teks putih terlihat jelas &amp; kontras</span>
-                            </div>
+                <div class="grid grid-cols-1 md:grid-cols-2 gap-4 items-center">
+                    <div>
+                        <label class="label">Durasi Tayang Tiap Slide (Detik)</label>
+                        <div class="flex items-center gap-3">
+                            <input type="number" 
+                                   min="3" 
+                                   max="30" 
+                                   wire:model="hero.slider_delay" 
+                                   class="input w-28 text-center font-bold text-sm">
+                            <span class="text-xs text-text-secondary">Detik (Rekomendasi: 5 – 8 detik per slide)</span>
                         </div>
-
-                        {{-- Tombol Preset Cepat --}}
-                        <div>
-                            <span class="text-[11px] font-bold text-text-secondary block mb-1.5">Preset Cepat:</span>
-                            <div class="flex flex-wrap gap-1.5">
-                                <button type="button" 
-                                        wire:click="setHeroPreset(70, 40)" 
-                                        class="px-2.5 py-1 rounded-lg text-[11px] font-semibold transition-colors {{ ($hero['overlay_opacity'] ?? 70) == 70 && ($hero['image_brightness'] ?? 40) == 40 ? 'bg-primary text-white' : 'bg-surface border border-border text-text-main hover:bg-surface-hover' }}">
-                                    Seimbang (70% / 40%)
-                                </button>
-                                <button type="button" 
-                                        wire:click="setHeroPreset(60, 50)" 
-                                        class="px-2.5 py-1 rounded-lg text-[11px] font-semibold transition-colors {{ ($hero['overlay_opacity'] ?? 70) == 60 && ($hero['image_brightness'] ?? 40) == 50 ? 'bg-primary text-white' : 'bg-surface border border-border text-text-main hover:bg-surface-hover' }}">
-                                    Sedang (60% / 50%)
-                                </button>
-                                <button type="button" 
-                                        wire:click="setHeroPreset(50, 60)" 
-                                        class="px-2.5 py-1 rounded-lg text-[11px] font-semibold transition-colors {{ ($hero['overlay_opacity'] ?? 70) == 50 && ($hero['image_brightness'] ?? 40) == 60 ? 'bg-primary text-white' : 'bg-surface border border-border text-text-main hover:bg-surface-hover' }}">
-                                    Terang (50% / 60%)
-                                </button>
-                                <button type="button" 
-                                        wire:click="setHeroPreset(85, 20)" 
-                                        class="px-2.5 py-1 rounded-lg text-[11px] font-semibold transition-colors {{ ($hero['overlay_opacity'] ?? 70) == 85 && ($hero['image_brightness'] ?? 40) == 20 ? 'bg-primary text-white' : 'bg-surface border border-border text-text-main hover:bg-surface-hover' }}">
-                                    Pekat (85% / 20%)
-                                </button>
-                            </div>
-                        </div>
+                        <p class="text-[11px] text-text-secondary mt-1">Jika slide aktif berisi video, durasi otomatis mengikuti durasi video hingga selesai.</p>
                     </div>
 
-                    {{-- Form Upload & Slider Kontrol Kegelapan --}}
-                    <div class="md:col-span-6 space-y-4">
-                        <div>
-                            <label class="label">Pilih Foto Pengganti (Maks. 5 MB)</label>
-                            <input type="file" 
-                                   wire:model="hero_bg_file" 
-                                   accept="image/png,image/jpeg,image/webp,image/jpg" 
-                                   class="file:mr-4 file:py-2 file:px-4 file:rounded-xl file:border-0 file:text-xs file:font-semibold file:bg-primary file:text-white hover:file:bg-primary-hover text-xs text-text-secondary cursor-pointer border border-border rounded-xl p-2 w-full bg-surface">
-                            <div wire:loading wire:target="hero_bg_file" class="text-xs text-primary font-semibold mt-1">
-                                <svg class="animate-spin -ml-1 mr-2 h-3.5 w-3.5 inline text-primary" fill="none" viewBox="0 0 24 24">
-                                    <circle class="opacity-25" cx="12" cy="12" r="10" stroke="currentColor" stroke-width="4"></circle>
-                                    <path class="opacity-75" fill="currentColor" d="M4 12a8 8 0 018-8v8H4z"></path>
-                                </svg>
-                                Mengunggah dan memproses pratinjau gambar...
-                            </div>
-                            @error('hero_bg_file') <span class="text-xs text-danger mt-1 block">{{ $message }}</span> @enderror
-                        </div>
-
-                        {{-- Slider 1: Kegelapan Overlay Gelap --}}
-                        <div class="p-3 rounded-xl bg-surface border border-border space-y-1.5">
-                            <div class="flex items-center justify-between text-xs">
-                                <label class="font-bold text-text-main">Tingkat Kegelapan Lapisan (Dark Overlay)</label>
-                                <span class="font-mono font-bold text-primary px-2 py-0.5 rounded bg-primary/10">{{ $hero['overlay_opacity'] ?? 70 }}%</span>
-                            </div>
-                            <input type="range" 
-                                   min="0" 
-                                   max="100" 
-                                   step="5" 
-                                   wire:model.live="hero.overlay_opacity" 
-                                   class="w-full h-2 bg-surface-hover rounded-lg appearance-none cursor-pointer accent-primary">
-                            <div class="flex justify-between text-[10px] text-text-secondary">
-                                <span>0% (Transparan)</span>
-                                <span>Default 70%</span>
-                                <span>100% (Hitam Pekat)</span>
-                            </div>
-                        </div>
-
-                        {{-- Slider 2: Kecerahan Foto Latar Belakang --}}
-                        <div class="p-3 rounded-xl bg-surface border border-border space-y-1.5">
-                            <div class="flex items-center justify-between text-xs">
-                                <label class="font-bold text-text-main">Kecerahan Foto Latar (Dimming Filter)</label>
-                                <span class="font-mono font-bold text-primary px-2 py-0.5 rounded bg-primary/10">{{ $hero['image_brightness'] ?? 40 }}%</span>
-                            </div>
-                            <input type="range" 
-                                   min="10" 
-                                   max="100" 
-                                   step="5" 
-                                   wire:model.live="hero.image_brightness" 
-                                   class="w-full h-2 bg-surface-hover rounded-lg appearance-none cursor-pointer accent-primary">
-                            <div class="flex justify-between text-[10px] text-text-secondary">
-                                <span>10% (Sangat Redup)</span>
-                                <span>Default 40%</span>
-                                <span>100% (Asli)</span>
-                            </div>
-                        </div>
-
-                        <div class="text-[11px] text-text-secondary space-y-1 pt-1">
-                            <p class="flex items-center gap-1.5">
-                                <svg class="w-3.5 h-3.5 text-success inline shrink-0" fill="none" viewBox="0 0 24 24" stroke="currentColor">
-                                    <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M5 13l4 4L19 7" />
-                                </svg>
-                                Rekomendasi: Overlay 60% - 75% untuk keseimbangan estetika foto dan keterbacaan teks.
-                            </p>
-                        </div>
+                    <div class="flex items-start gap-3 p-3 rounded-xl bg-surface border border-border">
+                        <input type="checkbox" 
+                               id="hero_autoplay" 
+                               wire:model="hero.slider_autoplay" 
+                               class="checkbox mt-0.5">
+                        <label for="hero_autoplay" class="text-xs text-text-main cursor-pointer select-none">
+                            <span class="font-bold block">Putar Otomatis (Autoplay)</span>
+                            <span class="text-text-secondary text-[11px] block mt-0.5">Slide berganti otomatis tanpa perlu klik tombol. Otomatis jeda saat mouse melayang di atas slider.</span>
+                        </label>
                     </div>
                 </div>
             </div>
 
-            <div class="space-y-4">
+            {{-- 2. 4 Kartu Metrik Capaian Utama (Impact & Key Metrics / Fakta) --}}
+            <div class="space-y-4 pt-2">
                 <div>
-                    <label class="label">Pill Tag / Lencana Atas</label>
-                    <input type="text" wire:model="hero.tag" class="input" placeholder="SMK PUSAT KEUNGGULAN • ISLAMIC BOARDING SCHOOL">
+                    <h3 class="text-sm font-bold text-text-main">4 Kartu Metrik Capaian Unggulan (Data &amp; Fakta)</h3>
+                    <p class="text-xs text-text-secondary">Tampil langsung di seksi <strong>Capaian Nyata yang Membanggakan</strong> (Impact &amp; Key Metrics) di halaman beranda.</p>
                 </div>
 
-                <div class="grid gap-4 sm:grid-cols-2">
-                    <div>
-                        <label class="label">Baris Judul 1 (Teks Putih/Gelap)</label>
-                        <input type="text" wire:model="hero.title_line1" class="input" placeholder="Mendidik Generasi Juara untuk Menjadi">
-                    </div>
-                    <div>
-                        <label class="label">Highlight Judul (Gradasi Berwarna)</label>
-                        <input type="text" wire:model="hero.title_highlight" class="input" placeholder="Terbaik bagi Masa Depan">
-                    </div>
-                </div>
-
-                <div>
-                    <label class="label">Daftar Kata Efek Mesin Tik (Ketik 1 kata/frasa per baris)</label>
-                    <textarea wire:model="typewriterInput" rows="5" class="input font-mono text-xs" placeholder="Teknologi &amp; AI&#10;Bisnis Digital&#10;Hospitaliti Bintang 5&#10;Karakter Qur'ani&#10;Kepemimpinan Global"></textarea>
-                    <p class="text-xs text-text-secondary mt-1">Kata-kata ini akan berganti secara otomatis dengan animasi mesin tik halus.</p>
-                </div>
-
-                <div>
-                    <label class="label">Deskripsi Pembuka Hero</label>
-                    <textarea wire:model="hero.description" rows="3" class="input"></textarea>
-                </div>
-
-                <!-- 4 Statistik Hero -->
-                <div class="pt-4 border-t border-border">
-                    <h3 class="text-sm font-bold text-text-main mb-3">4 Metrik Capaian Hero Strip</h3>
-                    <div class="grid gap-4 sm:grid-cols-2 lg:grid-cols-4">
-                        @for ($i = 0; $i < 4; $i++)
-                        <div class="p-3 rounded-xl bg-surface-hover border border-border space-y-2">
-                            <span class="text-[10px] font-mono font-bold text-primary">KARTU METRIK #{{ $i + 1 }}</span>
-                            <div>
-                                <label class="text-[11px] font-semibold text-text-secondary">Angka / Nilai</label>
-                                <input type="text" wire:model="hero.stats.{{ $i }}.number" class="input text-xs py-1">
+                <div class="grid gap-4 sm:grid-cols-2 lg:grid-cols-4">
+                    @for ($i = 0; $i < 4; $i++)
+                    @php
+                        $badgeColors = [
+                            0 => 'text-blue-500 bg-blue-50 border-blue-200',
+                            1 => 'text-emerald-500 bg-emerald-50 border-emerald-200',
+                            2 => 'text-amber-500 bg-amber-50 border-amber-200',
+                            3 => 'text-rose-500 bg-rose-50 border-rose-200',
+                        ];
+                    @endphp
+                    <div class="p-3.5 rounded-2xl bg-surface-hover border border-border space-y-3 flex flex-col justify-between">
+                        <div class="space-y-2.5">
+                            <div class="flex items-center justify-between">
+                                <span class="text-[10px] font-mono font-bold px-2 py-0.5 rounded-full border {{ $badgeColors[$i] }}">
+                                    KARTU METRIK #{{ $i + 1 }}
+                                </span>
                             </div>
-                            <div>
-                                <label class="text-[11px] font-semibold text-text-secondary">Label Utama</label>
-                                <input type="text" wire:model="hero.stats.{{ $i }}.label" class="input text-xs py-1">
+
+                            {{-- Pratinjau Foto & Upload Inline --}}
+                            <div class="space-y-1.5">
+                                <div class="relative aspect-[16/10] rounded-xl overflow-hidden bg-slate-900 border border-border">
+                                    <img src="{{ $this->getFactImagePreview($i) }}" 
+                                         alt="{{ $fast_facts[$i]['label'] ?? 'Metrik' }}" 
+                                         class="w-full h-full object-cover">
+                                    <span class="absolute top-1.5 left-1.5 text-[9px] font-bold px-2 py-0.5 rounded-md bg-black/60 text-white backdrop-blur-xs">
+                                        {{ $fast_facts[$i]['tag'] ?? 'Tag' }}
+                                    </span>
+                                </div>
+                                <div class="flex items-center gap-1.5">
+                                    <label class="btn-secondary !text-[10px] !py-1 !px-2 flex-1 text-center cursor-pointer">
+                                        <span>Ganti Foto</span>
+                                        <input type="file" 
+                                               wire:model="fastFactsImageFiles.{{ $i }}" 
+                                               accept="image/png,image/jpeg,image/webp,image/jpg" 
+                                               class="hidden">
+                                    </label>
+                                    @if(!empty($fast_facts[$i]['image']))
+                                    <button type="button" 
+                                            wire:click="resetFactImage({{ $i }})" 
+                                            wire:confirm="Reset foto metrik #{{ $i + 1 }} ke bawaan?"
+                                            title="Kembalikan foto bawaan"
+                                            class="btn-ghost !text-[10px] !py-1 !px-2 text-danger hover:bg-danger/10">
+                                        Reset
+                                    </button>
+                                    @endif
+                                </div>
+                                <div wire:loading wire:target="fastFactsImageFiles.{{ $i }}" class="text-[10px] text-primary font-semibold">
+                                    Mengunggah foto...
+                                </div>
                             </div>
+
                             <div>
-                                <label class="text-[11px] font-semibold text-text-secondary">Sub Label</label>
-                                <input type="text" wire:model="hero.stats.{{ $i }}.sub" class="input text-xs py-1">
+                                <label class="text-[11px] font-semibold text-text-secondary">Angka / Nilai Utama</label>
+                                <input type="text" 
+                                       wire:model="fast_facts.{{ $i }}.number" 
+                                       class="input text-xs font-bold py-1" 
+                                       placeholder="100% / Top 20% / 210+">
+                            </div>
+
+                            <div>
+                                <label class="text-[11px] font-semibold text-text-secondary">Label / Judul</label>
+                                <input type="text" 
+                                       wire:model="fast_facts.{{ $i }}.label" 
+                                       class="input text-xs font-semibold py-1" 
+                                       placeholder="Judul metrik...">
+                            </div>
+
+                            <div>
+                                <label class="text-[11px] font-semibold text-text-secondary">Tag Kategori / Lembaga</label>
+                                <input type="text" 
+                                       wire:model="fast_facts.{{ $i }}.tag" 
+                                       class="input text-xs py-1" 
+                                       placeholder="Standar Mutu Vokasi">
+                            </div>
+
+                            <div>
+                                <label class="text-[11px] font-semibold text-text-secondary">Deskripsi Penjelas</label>
+                                <textarea wire:model="fast_facts.{{ $i }}.desc" 
+                                          rows="3" 
+                                          class="input text-xs py-1" 
+                                          placeholder="Uraian capaian prestasi..."></textarea>
                             </div>
                         </div>
-                        @endfor
                     </div>
+                    @endfor
                 </div>
             </div>
         </div>
@@ -462,45 +411,129 @@
         </div>
         @endif
 
-        {{-- ── TAB 4: FILOSOFI & MANIFESTO ── --}}
+        {{-- ── TAB 4: FILOSOFI & PROFIL PIMPINAN ── --}}
         @if ($activeTab === 'welcome')
-        <div class="card space-y-5">
+        <div class="card space-y-6">
             <div class="border-b border-border pb-3">
-                <h2 class="text-base font-bold text-text-main">Filosofi Pendidikan &amp; Nilai Karakter</h2>
-                <p class="text-xs text-text-secondary">Kutipan manifesto pendidikan Wikrama dan 4 pilar pertumbuhan holistik.</p>
+                <h2 class="text-base font-bold text-text-main">Filosofi &amp; Profil Pimpinan Lembaga</h2>
+                <p class="text-xs text-text-secondary">Kutipan manifesto filosofi, profil kepala sekolah, komitmen visi, serta 4 pilar misi karakter kelembagaan.</p>
             </div>
 
             <div class="space-y-4">
-                <div>
-                    <label class="label">Tag / Lencana Filosofi</label>
-                    <input type="text" wire:model="welcome.tag" class="input" placeholder="Filosofi Pendidikan Wikrama">
+                <div class="p-4 rounded-2xl bg-surface-hover border border-border space-y-3">
+                    <h3 class="text-sm font-bold text-text-main">Manifesto Filosofi Pendidikan (Seksi Filosofi)</h3>
+                    <div>
+                        <label class="label">Tag / Lencana Filosofi</label>
+                        <input type="text" wire:model="welcome.tag" class="input" placeholder="Filosofi Pendidikan &amp; Karakter">
+                    </div>
+
+                    <div>
+                        <label class="label">Teks Kutipan Manifesto Pendidikan</label>
+                        <textarea wire:model="welcome.quote" rows="3" class="input" placeholder="Di SMK Wikrama 1 Garut, kami mempersiapkan anak bangsa..."></textarea>
+                    </div>
+
+                    <div>
+                        <label class="label">Penulis / Penandatangan Manifesto</label>
+                        <input type="text" wire:model="welcome.author" class="input" placeholder="Kunedi, S.Si. — Kepala SMK Wikrama 1 Garut">
+                    </div>
                 </div>
 
-                <div>
-                    <label class="label">Teks Kutipan Manifesto Pendidikan</label>
-                    <textarea wire:model="welcome.quote" rows="4" class="input"></textarea>
-                </div>
+                {{-- Seksi Profil Kepala Sekolah & Komitmen Kelembagaan (profil.blade.php) --}}
+                <div class="pt-2 space-y-4">
+                    <div>
+                        <h3 class="text-sm font-bold text-text-main">Visi &amp; Komitmen Kelembagaan (Profil Kepala Sekolah)</h3>
+                        <p class="text-xs text-text-secondary">Tampil langsung di seksi <strong>Visi &amp; Komitmen Kelembagaan</strong> (#profil) di halaman beranda.</p>
+                    </div>
 
-                <div>
-                    <label class="label">Penulis / Penandatangan Manifesto</label>
-                    <input type="text" wire:model="welcome.author" class="input" placeholder="Dewan Pembina &amp; Manajemen Pendidikan Wikrama Indonesia">
-                </div>
-
-                <!-- 4 Pilar Pertumbuhan -->
-                <div class="pt-4 border-t border-border">
-                    <h3 class="text-sm font-bold text-text-main mb-3">4 Pilar Karakter Holistik</h3>
-                    <div class="grid gap-4 sm:grid-cols-2 lg:grid-cols-4">
-                        @for ($p = 0; $p < 4; $p++)
-                        <div class="p-3.5 rounded-xl bg-surface-hover border border-border space-y-2">
-                            <div class="flex items-center gap-2">
-                                <input type="text" wire:model="welcome.pillars.{{ $p }}.icon" class="input text-center text-lg w-12 py-1" placeholder="🕌">
-                                <input type="text" wire:model="welcome.pillars.{{ $p }}.name" class="input text-xs font-bold py-1" placeholder="Nama Pilar">
+                    <div class="grid grid-cols-1 md:grid-cols-12 gap-5 items-start p-4 rounded-2xl bg-surface-hover border border-border">
+                        {{-- Foto Pimpinan --}}
+                        <div class="md:col-span-4 space-y-2">
+                            <label class="text-xs font-bold text-text-main block">Foto Kepala Sekolah</label>
+                            <div class="relative w-32 h-40 rounded-2xl overflow-hidden border-2 border-primary/20 shadow-md bg-surface mx-auto sm:mx-0">
+                                <img src="{{ $this->principalPhotoPreview }}" 
+                                     alt="{{ $principal['name'] ?? 'Kepala Sekolah' }}" 
+                                     class="w-full h-full object-cover object-top">
                             </div>
-                            <div>
-                                <textarea wire:model="welcome.pillars.{{ $p }}.desc" rows="3" class="input text-xs py-1" placeholder="Deskripsi pilar..."></textarea>
+                            <div class="flex items-center gap-1.5 pt-1">
+                                <label class="btn-secondary !text-xs !py-1 !px-2.5 flex-1 text-center cursor-pointer">
+                                    <span>Ganti Foto</span>
+                                    <input type="file" 
+                                           wire:model="principalImageFile" 
+                                           accept="image/png,image/jpeg,image/webp,image/jpg" 
+                                           class="hidden">
+                                </label>
+                                @if(!empty($principal['image']) && $principal['image'] !== 'images/web/principal-kunedi.jpg')
+                                <button type="button" 
+                                        wire:click="resetPrincipalPhoto" 
+                                        wire:confirm="Kembalikan foto kepala sekolah ke bawaan?"
+                                        class="btn-ghost !text-xs !py-1 !px-2.5 text-danger hover:bg-danger/10">
+                                    Reset
+                                </button>
+                                @endif
+                            </div>
+                            <div wire:loading wire:target="principalImageFile" class="text-xs text-primary font-semibold">
+                                Mengunggah foto...
                             </div>
                         </div>
-                        @endfor
+
+                        {{-- Data Teks Pimpinan & Visi --}}
+                        <div class="md:col-span-8 space-y-3">
+                            <div class="grid grid-cols-1 sm:grid-cols-2 gap-3">
+                                <div>
+                                    <label class="label">Nama Kepala Sekolah</label>
+                                    <input type="text" wire:model="principal.name" class="input" placeholder="Kunedi, S.Si.">
+                                </div>
+                                <div>
+                                    <label class="label">Jabatan / Peran</label>
+                                    <input type="text" wire:model="principal.role" class="input" placeholder="Kepala SMK Wikrama 1 Garut">
+                                </div>
+                            </div>
+
+                            <div>
+                                <label class="label">Kutipan Singkat Kepala Sekolah</label>
+                                <textarea wire:model="principal.quote" rows="2" class="input" placeholder="Mendidik anak bangsa dengan hati dan teknologi..."></textarea>
+                            </div>
+
+                            <div>
+                                <label class="label">Judul Visi Kelembagaan</label>
+                                <input type="text" wire:model="principal.vision_title" class="input" placeholder="Sekolah Kejuruan Teladan Nasional">
+                            </div>
+
+                            <div>
+                                <label class="label">Uraian Visi Kelembagaan</label>
+                                <textarea wire:model="principal.vision_desc" rows="3" class="input" placeholder="Menjadi sekolah kejuruan teladan nasional yang berbudaya lingkungan berkelanjutan..."></textarea>
+                            </div>
+                        </div>
+                    </div>
+
+                    <!-- 4 Pilar Misi & Karakter Kelembagaan -->
+                    <div class="pt-2">
+                        <div class="mb-3">
+                            <h3 class="text-sm font-bold text-text-main">4 Pilar Misi Wikrama</h3>
+                            <p class="text-xs text-text-secondary">4 pilar brick yang tampil di samping visi kelembagaan (profil.blade.php).</p>
+                        </div>
+                        <div class="grid gap-4 sm:grid-cols-2 lg:grid-cols-4">
+                            @for ($p = 0; $p < 4; $p++)
+                            <div class="p-3.5 rounded-xl bg-surface-hover border border-border space-y-2">
+                                <div class="flex items-center gap-2">
+                                    <input type="text" 
+                                           wire:model="principal.pillars.{{ $p }}.num" 
+                                           class="input text-center text-xs font-mono font-bold w-12 py-1" 
+                                           placeholder="{{ sprintf('%02d', $p + 1) }}">
+                                    <input type="text" 
+                                           wire:model="principal.pillars.{{ $p }}.title" 
+                                           class="input text-xs font-bold py-1" 
+                                           placeholder="Judul Pilar">
+                                </div>
+                                <div>
+                                    <textarea wire:model="principal.pillars.{{ $p }}.desc" 
+                                              rows="3" 
+                                              class="input text-xs py-1" 
+                                              placeholder="Uraian deskripsi pilar..."></textarea>
+                                </div>
+                            </div>
+                            @endfor
+                        </div>
                     </div>
                 </div>
             </div>

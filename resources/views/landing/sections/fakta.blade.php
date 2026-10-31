@@ -66,7 +66,7 @@
                         <div>
                             <!-- Photo Header with Tag Badge -->
                             <div class="aspect-[16/10] w-full relative overflow-hidden bg-slate-100">
-                                <img src="{{ asset($f['image']) }}" alt="{{ $f['label'] }}" class="w-full h-full object-cover group-hover:scale-105 transition-transform duration-700" loading="lazy">
+                                <img src="{{ class_exists(\App\Modules\AdministrasiWeb\Models\WebSetting::class) ? \App\Modules\AdministrasiWeb\Models\WebSetting::resolveImageUrl($f['image'] ?? null, 'images/web/hero-tjkt.jpg') : asset($f['image']) }}" alt="{{ $f['label'] }}" class="w-full h-full object-cover group-hover:scale-105 transition-transform duration-700" loading="lazy">
                                 <span class="absolute top-3 left-3 text-[10px] font-extrabold px-3 py-1 rounded-full shadow-xs"
                                       style="background-color: {{ $cStyle['bg_badge'] }}; color: {{ $cStyle['color'] }}; border: 1px solid {{ $cStyle['border_badge'] }};">
                                     {{ $f['tag'] }}

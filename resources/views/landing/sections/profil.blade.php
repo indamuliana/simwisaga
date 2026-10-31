@@ -15,7 +15,7 @@
                             <div class="flex flex-col sm:flex-row items-center sm:items-start text-center sm:text-left gap-5">
                                 <div class="shrink-0 relative">
                                     <div class="w-28 sm:w-32 h-36 sm:h-40 rounded-2xl overflow-hidden border-2 border-orange-200 shadow-md bg-white mx-auto">
-                                        <img src="{{ asset($cfg['principal']['image'] ?? 'images/web/principal-kunedi.jpg') }}" 
+                                        <img src="{{ class_exists(\App\Modules\AdministrasiWeb\Models\WebSetting::class) ? \App\Modules\AdministrasiWeb\Models\WebSetting::resolveImageUrl($cfg['principal']['image'] ?? null, 'images/web/principal-kunedi.jpg') : asset($cfg['principal']['image'] ?? 'images/web/principal-kunedi.jpg') }}" 
                                              alt="{{ $cfg['principal']['name'] ?? 'Kepala Sekolah' }}" 
                                              class="w-full h-full object-cover object-top"
                                              loading="lazy">

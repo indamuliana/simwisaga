@@ -206,7 +206,7 @@
                                          :class="activeIdx === {{ $idx }} ? 'opacity-100 translate-y-0' : 'opacity-0 translate-y-4'">
                                         <div class="inline-flex items-center gap-2 px-3 py-1 rounded-full bg-white/15 border border-white/25 text-[#F5D84A] text-[10px] sm:text-xs font-bold uppercase tracking-wider mb-2.5 backdrop-blur-xs">
                                             <span class="w-1.5 h-1.5 rounded-full bg-[#F5D84A] animate-pulse"></span>
-                                            <span>Learning in Indonesia to be Best for the World</span>
+                                            <span>{{ !empty($slide['badge']) ? $slide['badge'] : 'Learning in Indonesia to be Best for the World' }}</span>
                                         </div>
                                         <h1 class="text-2xl sm:text-3xl lg:text-5xl font-extrabold text-white tracking-tight leading-[1.14] break-words drop-shadow-[0_2px_8px_rgba(0,0,0,0.6)]">
                                             {{ $slide['title'] }}
