@@ -25,6 +25,9 @@ class LandingSetting extends Component
     // File upload for hero background image
     public $hero_bg_file = null;
 
+    // Inline file uploads for slides (images / videos)
+    public array $slideUploadFiles = [];
+
     // Hero Slide modal management
     public bool $showHeroSlideModal = false;
     public ?int $heroSlideIndexEditing = null;
@@ -207,6 +210,76 @@ class LandingSetting extends Component
         WebSetting::setGroup('hero', $this->hero);
 
         session()->flash('message', 'Foto latar belakang Hero berhasil direset ke foto bawaan kampus!');
+    }
+
+    /**
+     * Upload inline media (gambar atau video) untuk slide showcase.
+     */
+    public function updatedSlideUploadFiles($value, $key): void
+    {
+        abort_unless(auth()->user()->can('web.landing.edit'), 403, 'Anda tidak memiliki hak akses.');
+
+        $index = (int) $key;
+        if (!isset($this->slideUploadFiles[$index]) || !$this->slideUploadFiles[$index]) {
+            return;
+        }
+
+        $this->validate([
+            "slideUploadFiles.{$index}" => 'required|file|mimes:jpg,jpeg,png,webp,mp4,webm|max:25600',
+        ], [
+            "slideUploadFiles.{$index}.mimes" => 'File harus berupa gambar (JPG, PNG, WEBP) atau video (MP4, WebM).',
+            "slideUploadFiles.{$index}.max" => 'Ukuran file maksimal adalah 25 MB.',
+        ]);
+
+        $file = $this->slideUploadFiles[$index];
+        $mime = $file->getMimeType() ?? '';
+        $path = $file->store('web/hero', 'public');
+
+        if (str_starts_with($mime, 'video/')) {
+            $this->hero['slides'][$index]['media_type'] = 'video_upload';
+            $this->hero['slides'][$index]['video_url'] = $path;
+            if (empty($this->hero['slides'][$index]['poster'])) {
+                $this->hero['slides'][$index]['poster'] = $this->hero['slides'][$index]['image'] ?? 'images/web/campus-environment.jpg';
+            }
+        } else {
+            $this->hero['slides'][$index]['media_type'] = 'image';
+            $this->hero['slides'][$index]['image'] = $path;
+            $this->hero['slides'][$index]['poster'] = $path;
+            $this->hero['slides'][$index]['video_url'] = '';
+        }
+
+        // Auto save group hero
+        WebSetting::setGroup('hero', $this->hero);
+
+        $this->slideUploadFiles[$index] = null;
+        session()->flash('message', 'Media Slide #' . ($index + 1) . ' berhasil diunggah dan disimpan!');
+    }
+
+    /**
+     * Kembalikan media slide ke pengaturan bawaan konfigurasi.
+     */
+    public function resetSlideMedia(int $index): void
+    {
+        abort_unless(auth()->user()->can('web.landing.edit'), 403, 'Anda tidak memiliki hak akses.');
+
+        $defaultSlides = config('landing.hero.slides', []);
+        $default = $defaultSlides[$index] ?? [
+            'image' => 'images/web/campus-environment.jpg',
+            'poster' => 'images/web/campus-environment.jpg',
+            'video_url' => '',
+            'media_type' => 'image',
+        ];
+
+        if (isset($this->hero['slides'][$index])) {
+            $this->hero['slides'][$index]['media_type'] = $default['media_type'] ?? 'image';
+            $this->hero['slides'][$index]['image'] = $default['image'] ?? 'images/web/campus-environment.jpg';
+            $this->hero['slides'][$index]['poster'] = $default['poster'] ?? 'images/web/campus-environment.jpg';
+            $this->hero['slides'][$index]['video_url'] = $default['video_url'] ?? '';
+
+            WebSetting::setGroup('hero', $this->hero);
+            $this->slideUploadFiles[$index] = null;
+            session()->flash('message', 'Media Slide #' . ($index + 1) . ' berhasil dikembalikan ke bawaan!');
+        }
     }
 
     public function save(): void

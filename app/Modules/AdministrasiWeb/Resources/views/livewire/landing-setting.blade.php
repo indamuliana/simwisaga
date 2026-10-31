@@ -359,13 +359,101 @@
                             <label class="label">Deskripsi Singkat</label>
                             <textarea wire:model="hero.slides.{{ $s }}.desc" rows="2" class="input text-xs"></textarea>
                         </div>
-                        <div>
-                            <label class="label">Path Gambar (dari folder public)</label>
-                            <input type="text" wire:model="hero.slides.{{ $s }}.image" class="input text-xs font-mono">
-                        </div>
-                        <div>
+                        <div class="sm:col-span-2">
                             <label class="label">Teks Tombol Aksi</label>
                             <input type="text" wire:model="hero.slides.{{ $s }}.cta_text" class="input text-xs">
+                        </div>
+
+                        {{-- ── Inline Media Upload & Preview (Gambar / Video) ── --}}
+                        <div class="sm:col-span-2 p-3.5 rounded-xl bg-surface border border-border space-y-3">
+                            @php
+                                $slideItem = $hero['slides'][$s] ?? [];
+                                $isSlideVideo = in_array($slideItem['media_type'] ?? 'image', ['video_upload', 'video_url']) && !empty($slideItem['video_url']);
+                                $slideMediaSrc = $isSlideVideo 
+                                    ? \App\Modules\AdministrasiWeb\Models\WebSetting::resolveImageUrl($slideItem['video_url']) 
+                                    : \App\Modules\AdministrasiWeb\Models\WebSetting::resolveImageUrl($slideItem['image'] ?? null, 'images/web/campus-environment.jpg');
+                            @endphp
+
+                            <div class="flex flex-col sm:flex-row sm:items-center justify-between gap-2 border-b border-border/50 pb-2">
+                                <div class="flex items-center gap-2">
+                                    <span class="text-xs font-bold text-text-main">Media Slide (Gambar atau Video)</span>
+                                    @if ($isSlideVideo)
+                                        <span class="px-2 py-0.5 rounded text-[10px] font-bold bg-purple-100 text-purple-700 dark:bg-purple-950/60 dark:text-purple-300 uppercase flex items-center gap-1">
+                                            <svg class="w-3 h-3" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                                                <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M15 10l4.553-2.276A1 1 0 0121 8.618v6.764a1 1 0 01-1.447.894L15 14M5 18h8a2 2 0 002-2V8a2 2 0 00-2-2H5a2 2 0 00-2 2v8a2 2 0 002 2z" />
+                                            </svg>
+                                            <span>Video Aktif</span>
+                                        </span>
+                                    @else
+                                        <span class="px-2 py-0.5 rounded text-[10px] font-bold bg-blue-100 text-blue-700 dark:bg-blue-950/60 dark:text-blue-300 uppercase flex items-center gap-1">
+                                            <svg class="w-3 h-3" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                                                <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M4 16l4.586-4.586a2 2 0 012.828 0L16 16m-2-2l1.586-1.586a2 2 0 012.828 0L20 14m-6-6h.01M6 20h12a2 2 0 002-2V6a2 2 0 00-2-2H6a2 2 0 00-2 2v12a2 2 0 002 2z" />
+                                            </svg>
+                                            <span>Gambar Aktif</span>
+                                        </span>
+                                    @endif
+                                </div>
+
+                                <button type="button" 
+                                        wire:click="resetSlideMedia({{ $s }})" 
+                                        wire:confirm="Kembalikan media slide #{{ $s + 1 }} ke gambar bawaan?" 
+                                        class="text-[11px] text-danger hover:underline font-semibold flex items-center gap-1 self-start sm:self-auto">
+                                    <svg class="w-3.5 h-3.5" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                                        <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M4 4v5h.582m15.356 2A8.001 8.001 0 004.582 9m0 0H9m11 11v-5h-.581m0 0a8.003 8.003 0 01-15.357-2m15.357 2H15" />
+                                    </svg>
+                                    <span>Reset ke Bawaan</span>
+                                </button>
+                            </div>
+
+                            <div class="grid grid-cols-1 md:grid-cols-12 gap-4 items-center">
+                                {{-- Preview Box --}}
+                                <div class="md:col-span-5">
+                                    <div class="relative rounded-xl overflow-hidden aspect-[16/9] bg-slate-950 border border-border shadow-inner flex items-center justify-center">
+                                        @if ($isSlideVideo)
+                                            <video src="{{ $slideMediaSrc }}" 
+                                                   class="w-full h-full object-cover" 
+                                                   controls 
+                                                   muted 
+                                                   preload="metadata">
+                                            </video>
+                                        @else
+                                            <img src="{{ $slideMediaSrc }}" 
+                                                 alt="Pratinjau Slide #{{ $s + 1 }}" 
+                                                 class="w-full h-full object-cover">
+                                        @endif
+                                    </div>
+                                </div>
+
+                                {{-- Upload Input --}}
+                                <div class="md:col-span-7 space-y-2">
+                                    <div>
+                                        <label class="text-[11px] font-bold text-text-secondary block mb-1">
+                                            Pilih File Media Baru (Maks. 25 MB)
+                                        </label>
+                                        <input type="file" 
+                                               wire:model="slideUploadFiles.{{ $s }}" 
+                                               accept="image/png,image/jpeg,image/webp,image/jpg,video/mp4,video/webm" 
+                                               class="file:mr-3 file:py-1.5 file:px-3 file:rounded-lg file:border-0 file:text-xs file:font-semibold file:bg-primary file:text-white hover:file:bg-primary-hover text-xs text-text-secondary cursor-pointer border border-border rounded-xl p-1.5 w-full bg-surface">
+                                        
+                                        <div wire:loading wire:target="slideUploadFiles.{{ $s }}" class="text-xs text-primary font-semibold mt-1 flex items-center gap-1.5">
+                                            <svg class="animate-spin h-3.5 w-3.5 text-primary" fill="none" viewBox="0 0 24 24">
+                                                <circle class="opacity-25" cx="12" cy="12" r="10" stroke="currentColor" stroke-width="4"></circle>
+                                                <path class="opacity-75" fill="currentColor" d="M4 12a8 8 0 018-8v8H4z"></path>
+                                            </svg>
+                                            <span>Mengunggah media slide #{{ $s + 1 }}...</span>
+                                        </div>
+                                        @error('slideUploadFiles.' . $s) 
+                                            <span class="text-xs text-danger mt-1 block">{{ $message }}</span> 
+                                        @enderror
+                                    </div>
+                                    
+                                    <div class="p-2 rounded-lg bg-surface-hover/80 border border-border/60 text-[11px] text-text-muted leading-relaxed space-y-1">
+                                        <div><strong class="text-text-secondary">&bull; Gambar:</strong> JPG, JPEG, PNG, WEBP.</div>
+                                        <div><strong class="text-text-secondary">&bull; Video:</strong> WebM (.webm) atau MP4 (.mp4).</div>
+                                        <div class="text-[10px] text-primary font-semibold">&bull; Rekomendasi: Gunakan video <strong>.webm</strong> untuk ukuran sangat ringan. Di landing page, durasi slide otomatis mengikuti panjang video ini sampai selesai.</div>
+                                    </div>
+                                </div>
+                            </div>
                         </div>
                     </div>
                 </div>

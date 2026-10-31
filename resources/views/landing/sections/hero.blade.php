@@ -38,16 +38,12 @@
                      },
 
                      init() {
-                         if (this.autoplayEnabled) {
-                             this.startTimer();
-                         }
+                         this.handleSlideChange();
                      },
 
                      goToSlide(idx) {
                          this.activeIdx = (idx + this.slidesCount) % this.slidesCount;
-                         if (this.autoplayEnabled) {
-                             this.startTimer();
-                         }
+                         this.handleSlideChange();
                      },
 
                      nextSlide() {
@@ -65,6 +61,31 @@
                                  this.nextSlide();
                              }
                          }, this.sliderDelay);
+                     },
+
+                     stopTimer() {
+                         if (this.timer) {
+                             clearInterval(this.timer);
+                             this.timer = null;
+                         }
+                     },
+
+                     handleSlideChange() {
+                         if (!this.autoplayEnabled) return;
+                         
+                         this.$nextTick(() => {
+                             // Cek apakah slide aktif memiliki elemen video
+                             const activeVideo = this.$el.querySelector(`video[data-slide='${this.activeIdx}']`);
+                             if (activeVideo) {
+                                 // Pause timer statis karena durasi slide dikendalikan oleh durasi video
+                                 this.stopTimer();
+                                 activeVideo.currentTime = 0;
+                                 activeVideo.play().catch(() => {});
+                             } else {
+                                 // Jika slide berupa gambar, gunakan timer interval normal
+                                 this.startTimer();
+                             }
+                         });
                      }
                  }"
                  x-init="init()"
@@ -101,11 +122,12 @@
                                :class="activeIdx === {{ $idx }} ? 'scale-110' : 'scale-100'"
                                autoplay 
                                muted 
-                               loop 
                                playsinline 
                                preload="metadata"
                                poster="{{ $posterUrl }}"
+                               data-slide="{{ $idx }}"
                                x-ref="slideVideo{{ $idx }}"
+                               @ended="if (autoplayEnabled && !isHovered) { nextSlide(); }"
                                x-init="$watch('activeIdx', val => { 
                                    if (val === {{ $idx }}) { 
                                        $el.currentTime = 0; 
@@ -115,6 +137,9 @@
                                    } 
                                })"
                                style="filter: brightness({{ $sDim }}) contrast(1.12);">
+                            @if(str_ends_with(strtolower($videoSrc), '.webm'))
+                                <source src="{{ $videoSrc }}" type="video/webm">
+                            @endif
                             <source src="{{ $videoSrc }}" type="video/mp4">
                         </video>
                     @else
