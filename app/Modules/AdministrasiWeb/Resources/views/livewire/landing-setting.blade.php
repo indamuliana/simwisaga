@@ -174,6 +174,111 @@
                         </label>
                     </div>
                 </div>
+
+                {{-- Kontrol Kegelapan & Kecerahan Hero Slider --}}
+                <div class="pt-4 border-t border-border/70 space-y-4">
+                    <div>
+                        <h4 class="text-xs font-bold text-text-main">Tingkat Kegelapan &amp; Kecerahan Hero Slider (Dark Overlay &amp; Brightness)</h4>
+                        <p class="text-[11px] text-text-secondary">Atur kontras kegelapan lapisan (dark overlay) dan kecerahan media agar teks putih headline selalu terbaca tajam dan elegan.</p>
+                    </div>
+
+                    <div class="grid grid-cols-1 lg:grid-cols-12 gap-5 items-start">
+                        {{-- Form Slider & Preset Cepat --}}
+                        <div class="lg:col-span-7 space-y-3.5">
+                            {{-- Slider 1: Kegelapan Overlay --}}
+                            <div class="p-3.5 rounded-xl bg-surface border border-border space-y-2">
+                                <div class="flex items-center justify-between text-xs">
+                                    <label class="font-bold text-text-main">Tingkat Kegelapan Lapisan (Dark Overlay)</label>
+                                    <span class="font-mono font-bold text-primary px-2.5 py-0.5 rounded-full bg-primary/10 border border-primary/20">
+                                        {{ $hero['overlay_opacity'] ?? 70 }}%
+                                    </span>
+                                </div>
+                                <input type="range" 
+                                       min="0" 
+                                       max="100" 
+                                       step="5" 
+                                       wire:model.live="hero.overlay_opacity" 
+                                       class="w-full h-2 bg-surface-hover rounded-lg appearance-none cursor-pointer accent-primary">
+                                <div class="flex justify-between text-[10px] text-text-secondary">
+                                    <span>0% (Transparan)</span>
+                                    <span>Bawaan: 70%</span>
+                                    <span>100% (Hitam Pekat)</span>
+                                </div>
+                            </div>
+
+                            {{-- Slider 2: Kecerahan Foto/Video (Dimming Filter) --}}
+                            <div class="p-3.5 rounded-xl bg-surface border border-border space-y-2">
+                                <div class="flex items-center justify-between text-xs">
+                                    <label class="font-bold text-text-main">Kecerahan Foto/Video Latar (Brightness Filter)</label>
+                                    <span class="font-mono font-bold text-primary px-2.5 py-0.5 rounded-full bg-primary/10 border border-primary/20">
+                                        {{ $hero['image_brightness'] ?? 40 }}%
+                                    </span>
+                                </div>
+                                <input type="range" 
+                                       min="10" 
+                                       max="100" 
+                                       step="5" 
+                                       wire:model.live="hero.image_brightness" 
+                                       class="w-full h-2 bg-surface-hover rounded-lg appearance-none cursor-pointer accent-primary">
+                                <div class="flex justify-between text-[10px] text-text-secondary">
+                                    <span>10% (Sangat Redup)</span>
+                                    <span>Bawaan: 40%</span>
+                                    <span>100% (Kecerahan Asli)</span>
+                                </div>
+                            </div>
+
+                            {{-- Tombol Preset Cepat --}}
+                            <div class="flex flex-wrap items-center gap-2 pt-1">
+                                <span class="text-[11px] font-bold text-text-secondary">Preset Cepat:</span>
+                                <button type="button" 
+                                        wire:click="setHeroPreset(70, 40)" 
+                                        class="px-2.5 py-1 rounded-lg text-[11px] font-semibold transition-colors {{ ($hero['overlay_opacity'] ?? 70) == 70 && ($hero['image_brightness'] ?? 40) == 40 ? 'bg-primary text-white shadow-xs' : 'bg-surface border border-border text-text-main hover:bg-surface-hover' }}">
+                                    Seimbang (70% / 40%)
+                                </button>
+                                <button type="button" 
+                                        wire:click="setHeroPreset(60, 50)" 
+                                        class="px-2.5 py-1 rounded-lg text-[11px] font-semibold transition-colors {{ ($hero['overlay_opacity'] ?? 70) == 60 && ($hero['image_brightness'] ?? 40) == 50 ? 'bg-primary text-white shadow-xs' : 'bg-surface border border-border text-text-main hover:bg-surface-hover' }}">
+                                    Sedang (60% / 50%)
+                                </button>
+                                <button type="button" 
+                                        wire:click="setHeroPreset(50, 60)" 
+                                        class="px-2.5 py-1 rounded-lg text-[11px] font-semibold transition-colors {{ ($hero['overlay_opacity'] ?? 70) == 50 && ($hero['image_brightness'] ?? 40) == 60 ? 'bg-primary text-white shadow-xs' : 'bg-surface border border-border text-text-main hover:bg-surface-hover' }}">
+                                    Terang (50% / 60%)
+                                </button>
+                                <button type="button" 
+                                        wire:click="setHeroPreset(85, 20)" 
+                                        class="px-2.5 py-1 rounded-lg text-[11px] font-semibold transition-colors {{ ($hero['overlay_opacity'] ?? 70) == 85 && ($hero['image_brightness'] ?? 40) == 20 ? 'bg-primary text-white shadow-xs' : 'bg-surface border border-border text-text-main hover:bg-surface-hover' }}">
+                                    Pekat (85% / 20%)
+                                </button>
+                            </div>
+                        </div>
+
+                        {{-- Live Visual Preview Box --}}
+                        <div class="lg:col-span-5 space-y-2">
+                            <label class="text-xs font-bold text-text-main flex items-center justify-between">
+                                <span>Simulasi Kontras Teks Hero:</span>
+                                <span class="text-[10px] text-primary font-mono">Live Visual</span>
+                            </label>
+                            <div class="relative rounded-2xl overflow-hidden aspect-[16/10] bg-slate-950 border border-border shadow-inner group">
+                                <img src="{{ asset('images/web/campus-environment.jpg') }}" 
+                                     alt="Simulasi Kegelapan" 
+                                     class="w-full h-full object-cover object-center"
+                                     style="filter: brightness({{ (($hero['image_brightness'] ?? 40) / 100) }}) contrast(1.15);">
+                                <div class="absolute inset-0" 
+                                     style="background-color: rgba(2, 6, 23, {{ (($hero['overlay_opacity'] ?? 70) / 100) }}); backdrop-filter: blur(0.5px);"></div>
+                                <div class="absolute inset-0 flex flex-col justify-center items-center text-center p-4 z-10 pointer-events-none">
+                                    <span class="text-[10px] font-mono font-bold text-[#F5D84A] bg-slate-950/80 px-2.5 py-0.5 rounded-full border border-white/10 mb-2">
+                                        Overlay: {{ $hero['overlay_opacity'] ?? 70 }}% &bull; Kecerahan: {{ $hero['image_brightness'] ?? 40 }}%
+                                    </span>
+                                    <p class="text-white font-extrabold text-sm sm:text-base drop-shadow-sm leading-snug">
+                                        Penerimaan Peserta Didik Baru Resmi Dibuka
+                                    </p>
+                                    <span class="text-[11px] text-slate-300 mt-1">Teks putih terlihat tajam &amp; kontras</span>
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+                </div>
             </div>
 
             {{-- 2. 4 Kartu Metrik Capaian Utama (Impact & Key Metrics / Fakta) --}}

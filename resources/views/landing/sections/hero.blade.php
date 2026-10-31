@@ -113,8 +113,10 @@
                         $imgUrl = class_exists(\App\Modules\AdministrasiWeb\Models\WebSetting::class)
                             ? \App\Modules\AdministrasiWeb\Models\WebSetting::resolveImageUrl($imgPath, 'images/web/campus-environment.jpg')
                             : asset('images/web/campus-environment.jpg');
-                        $sDim = number_format((isset($slide['dimming']) ? (int)$slide['dimming'] : 40) / 100, 2, '.', '');
-                        $sOver = number_format((isset($slide['overlay_opacity']) ? (int)$slide['overlay_opacity'] : 70) / 100, 2, '.', '');
+                        $globalDim = isset($cfg['hero']['image_brightness']) ? (int)$cfg['hero']['image_brightness'] : (isset($slide['dimming']) ? (int)$slide['dimming'] : 40);
+                        $globalOver = isset($cfg['hero']['overlay_opacity']) ? (int)$cfg['hero']['overlay_opacity'] : (isset($slide['overlay_opacity']) ? (int)$slide['overlay_opacity'] : 70);
+                        $sDim = number_format($globalDim / 100, 2, '.', '');
+                        $sOver = number_format($globalOver / 100, 2, '.', '');
                     @endphp
 
                     @if($isVid && !empty($videoSrc))
