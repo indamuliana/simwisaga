@@ -21,13 +21,13 @@
                                              loading="lazy">
                                     </div>
                                     <span class="absolute -bottom-2 -right-2 bg-gradient-to-r from-orange-500 to-[#FF6B4A] text-white font-bold text-[10px] px-3 py-0.5 rounded-full shadow-md">
-                                        Kepala Sekolah
+                                        {{ $cfg['principal']['role'] ?? 'Kepala Sekolah' }}
                                     </span>
                                 </div>
                                 <div class="min-w-0">
                                     <span class="text-xs font-bold text-[#FF6B4A] uppercase tracking-wider block">Pimpinan Lembaga</span>
                                     <h3 class="text-lg sm:text-xl font-extrabold text-slate-900 mt-0.5">
-                                        {{ $sekolah->kepala_sekolah_nama ?? ($cfg['principal']['name'] ?? 'Kunedi, S.Si.') }}
+                                        {{ !empty($cfg['principal']['name']) ? $cfg['principal']['name'] : ($sekolah->kepala_sekolah_nama ?? 'Kunedi, S.Si.') }}
                                     </h3>
                                     <span class="text-xs text-slate-500 font-semibold block mt-0.5">{{ $schoolName }}</span>
                                     <p class="text-xs sm:text-sm text-slate-700 mt-3 font-editorial italic leading-relaxed font-medium">

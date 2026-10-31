@@ -413,130 +413,268 @@
 
         {{-- ── TAB 4: FILOSOFI & PROFIL PIMPINAN ── --}}
         @if ($activeTab === 'welcome')
-        <div class="card space-y-6">
-            <div class="border-b border-border pb-3">
-                <h2 class="text-base font-bold text-text-main">Filosofi &amp; Profil Pimpinan Lembaga</h2>
-                <p class="text-xs text-text-secondary">Kutipan manifesto filosofi, profil kepala sekolah, komitmen visi, serta 4 pilar misi karakter kelembagaan.</p>
-            </div>
+        <div class="space-y-6">
 
-            <div class="space-y-4">
-                <div class="p-4 rounded-2xl bg-surface-hover border border-border space-y-3">
-                    <h3 class="text-sm font-bold text-text-main">Manifesto Filosofi Pendidikan (Seksi Filosofi)</h3>
-                    <div>
-                        <label class="label">Tag / Lencana Filosofi</label>
-                        <input type="text" wire:model="welcome.tag" class="input" placeholder="Filosofi Pendidikan &amp; Karakter">
+            <!-- 1. MANIFESTO & FILOSOFI PENDIDIKAN (#filosofi) -->
+            <div class="card space-y-5">
+                <div class="border-b border-border pb-3 flex flex-col sm:flex-row sm:items-center sm:justify-between gap-2">
+                    <div class="flex items-center gap-2.5">
+                        <div class="w-9 h-9 rounded-xl bg-blue-50 border border-blue-200 text-primary flex items-center justify-center text-lg shrink-0">
+                            📜
+                        </div>
+                        <div>
+                            <h2 class="text-base font-bold text-text-main">Manifesto &amp; Filosofi Pendidikan</h2>
+                            <p class="text-xs text-text-secondary">Tampil pada kartu manifesto beranda (seksi <code class="text-primary font-mono">#filosofi</code>) tepat di bawah slider utama.</p>
+                        </div>
                     </div>
-
-                    <div>
-                        <label class="label">Teks Kutipan Manifesto Pendidikan</label>
-                        <textarea wire:model="welcome.quote" rows="3" class="input" placeholder="Di SMK Wikrama 1 Garut, kami mempersiapkan anak bangsa..."></textarea>
-                    </div>
-
-                    <div>
-                        <label class="label">Penulis / Penandatangan Manifesto</label>
-                        <input type="text" wire:model="welcome.author" class="input" placeholder="Kunedi, S.Si. — Kepala SMK Wikrama 1 Garut">
-                    </div>
+                    <span class="inline-flex items-center gap-1.5 px-3 py-1 rounded-full text-xs font-bold bg-blue-50 text-blue-600 border border-blue-200 self-start sm:self-auto">
+                        <span class="w-2 h-2 rounded-full bg-blue-500 animate-pulse"></span>
+                        Seksi Beranda #2
+                    </span>
                 </div>
 
-                {{-- Seksi Profil Kepala Sekolah & Komitmen Kelembagaan (profil.blade.php) --}}
-                <div class="pt-2 space-y-4">
-                    <div>
-                        <h3 class="text-sm font-bold text-text-main">Visi &amp; Komitmen Kelembagaan (Profil Kepala Sekolah)</h3>
-                        <p class="text-xs text-text-secondary">Tampil langsung di seksi <strong>Visi &amp; Komitmen Kelembagaan</strong> (#profil) di halaman beranda.</p>
-                    </div>
-
-                    <div class="grid grid-cols-1 md:grid-cols-12 gap-5 items-start p-4 rounded-2xl bg-surface-hover border border-border">
-                        {{-- Foto Pimpinan --}}
-                        <div class="md:col-span-4 space-y-2">
-                            <label class="text-xs font-bold text-text-main block">Foto Kepala Sekolah</label>
-                            <div class="relative w-32 h-40 rounded-2xl overflow-hidden border-2 border-primary/20 shadow-md bg-surface mx-auto sm:mx-0">
-                                <img src="{{ $this->principalPhotoPreview }}" 
-                                     alt="{{ $principal['name'] ?? 'Kepala Sekolah' }}" 
-                                     class="w-full h-full object-cover object-top">
-                            </div>
-                            <div class="flex items-center gap-1.5 pt-1">
-                                <label class="btn-secondary !text-xs !py-1 !px-2.5 flex-1 text-center cursor-pointer">
-                                    <span>Ganti Foto</span>
-                                    <input type="file" 
-                                           wire:model="principalImageFile" 
-                                           accept="image/png,image/jpeg,image/webp,image/jpg" 
-                                           class="hidden">
-                                </label>
-                                @if(!empty($principal['image']) && $principal['image'] !== 'images/web/principal-kunedi.jpg')
-                                <button type="button" 
-                                        wire:click="resetPrincipalPhoto" 
-                                        wire:confirm="Kembalikan foto kepala sekolah ke bawaan?"
-                                        class="btn-ghost !text-xs !py-1 !px-2.5 text-danger hover:bg-danger/10">
-                                    Reset
-                                </button>
-                                @endif
-                            </div>
-                            <div wire:loading wire:target="principalImageFile" class="text-xs text-primary font-semibold">
-                                Mengunggah foto...
-                            </div>
+                <div class="grid grid-cols-1 lg:grid-cols-12 gap-6 items-start">
+                    {{-- Form Input Kolom Kiri --}}
+                    <div class="lg:col-span-7 space-y-4">
+                        <div>
+                            <label class="label">Lencana / Badge Manifesto</label>
+                            <input type="text" 
+                                   wire:model.live="welcome.tag" 
+                                   class="input" 
+                                   placeholder="Contoh: Manifesto Pendidikan Wikrama">
+                            <p class="text-[11px] text-text-secondary mt-1">Teks lencana biru yang melayang di bagian atas kartu manifesto.</p>
                         </div>
 
-                        {{-- Data Teks Pimpinan & Visi --}}
-                        <div class="md:col-span-8 space-y-3">
-                            <div class="grid grid-cols-1 sm:grid-cols-2 gap-3">
-                                <div>
-                                    <label class="label">Nama Kepala Sekolah</label>
-                                    <input type="text" wire:model="principal.name" class="input" placeholder="Kunedi, S.Si.">
-                                </div>
-                                <div>
-                                    <label class="label">Jabatan / Peran</label>
-                                    <input type="text" wire:model="principal.role" class="input" placeholder="Kepala SMK Wikrama 1 Garut">
-                                </div>
-                            </div>
+                        <div>
+                            <label class="label">Teks Kutipan Utama Manifesto</label>
+                            <textarea wire:model.live="welcome.quote" 
+                                      rows="4" 
+                                      class="input font-medium leading-relaxed" 
+                                      placeholder="Tuliskan pesan filosofi pendidikan..."></textarea>
+                            <p class="text-[11px] text-text-secondary mt-1">Kutipan tebal bernada inspiratif yang menjadi ruh pendidikan sekolah.</p>
+                        </div>
 
-                            <div>
-                                <label class="label">Kutipan Singkat Kepala Sekolah</label>
-                                <textarea wire:model="principal.quote" rows="2" class="input" placeholder="Mendidik anak bangsa dengan hati dan teknologi..."></textarea>
-                            </div>
-
-                            <div>
-                                <label class="label">Judul Visi Kelembagaan</label>
-                                <input type="text" wire:model="principal.vision_title" class="input" placeholder="Sekolah Kejuruan Teladan Nasional">
-                            </div>
-
-                            <div>
-                                <label class="label">Uraian Visi Kelembagaan</label>
-                                <textarea wire:model="principal.vision_desc" rows="3" class="input" placeholder="Menjadi sekolah kejuruan teladan nasional yang berbudaya lingkungan berkelanjutan..."></textarea>
-                            </div>
+                        <div>
+                            <label class="label">Penandatangan / Sumber Kutipan</label>
+                            <input type="text" 
+                                   wire:model.live="welcome.author" 
+                                   class="input" 
+                                   placeholder="Contoh: Kunedi, S.Si. — Kepala SMK Wikrama 1 Garut">
+                            <p class="text-[11px] text-text-secondary mt-1">Nama lengkap &amp; amanah penandatangan piagam integritas karakter.</p>
                         </div>
                     </div>
 
-                    <!-- 4 Pilar Misi & Karakter Kelembagaan -->
-                    <div class="pt-2">
-                        <div class="mb-3">
-                            <h3 class="text-sm font-bold text-text-main">4 Pilar Misi Wikrama</h3>
-                            <p class="text-xs text-text-secondary">4 pilar brick yang tampil di samping visi kelembagaan (profil.blade.php).</p>
-                        </div>
-                        <div class="grid gap-4 sm:grid-cols-2 lg:grid-cols-4">
-                            @for ($p = 0; $p < 4; $p++)
-                            <div class="p-3.5 rounded-xl bg-surface-hover border border-border space-y-2">
+                    {{-- Live Simulation Mini Card Kolom Kanan --}}
+                    <div class="lg:col-span-5 space-y-2">
+                        <label class="text-xs font-bold text-text-main flex items-center justify-between">
+                            <span>Simulasi Tampilan di Beranda:</span>
+                            <span class="text-[10px] text-primary font-mono">Live Preview</span>
+                        </label>
+                        <div class="relative p-5 rounded-2xl bg-white border border-slate-200 border-t-4 border-t-[#00519E] shadow-sm text-center overflow-hidden">
+                            <div class="absolute -top-4 -right-2 w-20 h-20 text-blue-900/5 pointer-events-none select-none font-serif text-7xl font-black">
+                                &rdquo;
+                            </div>
+                            
+                            <div class="inline-flex items-center gap-1.5 px-3 py-1 rounded-full bg-[#EBF4FC] border border-blue-200 text-[#00519E] text-[10px] font-bold uppercase tracking-wider mb-3">
+                                <span class="w-1.5 h-1.5 rounded-full bg-[#00519E] animate-ping"></span>
+                                <span>{{ $welcome['tag'] ?: 'Manifesto Pendidikan Wikrama' }}</span>
+                            </div>
+
+                            <blockquote class="text-xs sm:text-sm font-extrabold text-slate-800 leading-snug tracking-tight">
+                                &ldquo;{{ $welcome['quote'] ?: 'Di SMK Wikrama 1 Garut, kami mempersiapkan anak bangsa...' }}&rdquo;
+                            </blockquote>
+
+                            <div class="mt-4 pt-3 border-t border-slate-100 flex items-center justify-between text-left gap-2">
                                 <div class="flex items-center gap-2">
-                                    <input type="text" 
-                                           wire:model="principal.pillars.{{ $p }}.num" 
-                                           class="input text-center text-xs font-mono font-bold w-12 py-1" 
-                                           placeholder="{{ sprintf('%02d', $p + 1) }}">
-                                    <input type="text" 
-                                           wire:model="principal.pillars.{{ $p }}.title" 
-                                           class="input text-xs font-bold py-1" 
-                                           placeholder="Judul Pilar">
+                                    <div class="w-7 h-7 rounded-full bg-[#EBF4FC] border border-blue-200 flex items-center justify-center text-xs shrink-0">
+                                        🎓
+                                    </div>
+                                    <div class="min-w-0">
+                                        <p class="text-[11px] font-bold text-slate-900 truncate">
+                                            {{ $welcome['author'] ?: 'Kunedi, S.Si. — Kepala SMK Wikrama 1 Garut' }}
+                                        </p>
+                                        <p class="text-[9px] text-slate-500 font-medium">Pemimpin Lembaga</p>
+                                    </div>
                                 </div>
-                                <div>
-                                    <textarea wire:model="principal.pillars.{{ $p }}.desc" 
-                                              rows="3" 
-                                              class="input text-xs py-1" 
-                                              placeholder="Uraian deskripsi pilar..."></textarea>
-                                </div>
+                                <span class="text-[9px] font-bold text-emerald-700 bg-emerald-50 px-2 py-0.5 rounded-full border border-emerald-200 shrink-0">
+                                    Piagam Integritas
+                                </span>
                             </div>
-                            @endfor
                         </div>
                     </div>
                 </div>
             </div>
+
+            <!-- 2. PROFIL PIMPINAN & VISI KELEMBAGAAN (#profil) -->
+            <div class="card space-y-5">
+                <div class="border-b border-border pb-3 flex flex-col sm:flex-row sm:items-center sm:justify-between gap-2">
+                    <div class="flex items-center gap-2.5">
+                        <div class="w-9 h-9 rounded-xl bg-orange-50 border border-orange-200 text-orange-600 flex items-center justify-center text-lg shrink-0">
+                            👔
+                        </div>
+                        <div>
+                            <h2 class="text-base font-bold text-text-main">Profil Pimpinan &amp; Visi Kelembagaan</h2>
+                            <p class="text-xs text-text-secondary">Tampil pada seksi kepemimpinan &amp; visi misi (seksi <code class="text-primary font-mono">#profil</code>) di halaman beranda.</p>
+                        </div>
+                    </div>
+                    <span class="inline-flex items-center gap-1.5 px-3 py-1 rounded-full text-xs font-bold bg-orange-50 text-orange-600 border border-orange-200 self-start sm:self-auto">
+                        <span class="w-2 h-2 rounded-full bg-orange-500"></span>
+                        Seksi Beranda #7
+                    </span>
+                </div>
+
+                <div class="grid grid-cols-1 lg:grid-cols-12 gap-6 items-start">
+                    {{-- Sisi Kiri: Foto Eksekutif & Upload --}}
+                    <div class="lg:col-span-4 p-4 rounded-2xl bg-surface-hover border border-border flex flex-col items-center text-center space-y-3">
+                        <label class="text-xs font-bold text-text-main self-start">Foto Resmi Kepala Sekolah</label>
+                        
+                        <div class="relative w-36 h-48 rounded-2xl overflow-hidden border-2 border-orange-200 shadow-md bg-white group">
+                            <img src="{{ $this->principalPhotoPreview }}" 
+                                 alt="{{ $principal['name'] ?? 'Kepala Sekolah' }}" 
+                                 class="w-full h-full object-cover object-top transition-transform duration-300 group-hover:scale-105">
+                            <span class="absolute bottom-2 inset-x-2 bg-slate-900/85 text-white font-bold text-[10px] py-1 px-2 rounded-lg backdrop-blur-xs shadow">
+                                {{ $principal['role'] ?? 'Kepala Sekolah' }}
+                            </span>
+                        </div>
+
+                        <div class="w-full space-y-2 pt-1">
+                            <label class="btn-primary !text-xs !py-2 !px-3 w-full justify-center flex items-center gap-1.5 cursor-pointer shadow-sm">
+                                <svg class="w-4 h-4" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                                    <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M4 16l4.586-4.586a2 2 0 012.828 0L16 16m-2-2l1.586-1.586a2 2 0 012.828 0L20 14m-6-6h.01M6 20h12a2 2 0 002-2V6a2 2 0 00-2-2H6a2 2 0 00-2 2v12a2 2 0 002 2z" />
+                                </svg>
+                                <span>Ganti Foto Pimpinan</span>
+                                <input type="file" 
+                                       wire:model="principalImageFile" 
+                                       accept="image/png,image/jpeg,image/webp,image/jpg" 
+                                       class="hidden">
+                            </label>
+
+                            @if(!empty($principal['image']) && $principal['image'] !== 'images/web/principal-kunedi.jpg')
+                            <button type="button" 
+                                    wire:click="resetPrincipalPhoto" 
+                                    wire:confirm="Kembalikan foto kepala sekolah ke foto bawaan kampus?"
+                                    class="btn-ghost !text-xs !py-1.5 w-full text-danger hover:bg-danger/10">
+                                ↺ Reset ke Foto Bawaan
+                            </button>
+                            @endif
+
+                            <div wire:loading wire:target="principalImageFile" class="text-xs text-primary font-semibold py-1">
+                                <svg class="animate-spin -ml-1 mr-1.5 h-3.5 w-3.5 inline text-primary" fill="none" viewBox="0 0 24 24">
+                                    <circle class="opacity-25" cx="12" cy="12" r="10" stroke="currentColor" stroke-width="4"></circle>
+                                    <path class="opacity-75" fill="currentColor" d="M4 12a8 8 0 018-8v8H4z"></path>
+                                </svg>
+                                Mengunggah foto pimpinan...
+                            </div>
+                            <p class="text-[10px] text-text-secondary">Format: JPG, PNG, WEBP (Maksimal 5 MB). Dianjurkan rasio potret 3:4.</p>
+                        </div>
+                    </div>
+
+                    {{-- Sisi Kanan: Form Teks Pimpinan & Pernyataan Visi --}}
+                    <div class="lg:col-span-8 space-y-4">
+                        <div class="grid grid-cols-1 sm:grid-cols-2 gap-4">
+                            <div>
+                                <label class="label">Nama Lengkap Kepala Sekolah &amp; Gelar</label>
+                                <input type="text" 
+                                       wire:model="principal.name" 
+                                       class="input font-semibold" 
+                                       placeholder="Contoh: Kunedi, S.Si.">
+                            </div>
+                            <div>
+                                <label class="label">Jabatan Resmi / Peran</label>
+                                <input type="text" 
+                                       wire:model="principal.role" 
+                                       class="input" 
+                                       placeholder="Contoh: Kepala SMK Wikrama 1 Garut">
+                            </div>
+                        </div>
+
+                        <div>
+                            <label class="label">Kutipan Singkat / Pernyataan Pimpinan (Quote)</label>
+                            <textarea wire:model="principal.quote" 
+                                      rows="2" 
+                                      class="input italic text-sm" 
+                                      placeholder="Pesan ringkas kepala sekolah kepada siswa dan wali murid..."></textarea>
+                            <p class="text-[11px] text-text-secondary mt-1">Tampil miring bercetak tebal tepat di bawah nama kepala sekolah.</p>
+                        </div>
+
+                        <div class="pt-3 border-t border-border space-y-3">
+                            <span class="text-xs font-bold text-orange-600 uppercase tracking-wider block">
+                                Pernyataan Visi Kelembagaan
+                            </span>
+
+                            <div>
+                                <label class="label">Judul Utama Visi Lembaga</label>
+                                <input type="text" 
+                                       wire:model="principal.vision_title" 
+                                       class="input font-bold" 
+                                       placeholder="Contoh: Teladan Nasional Berbudaya Lingkungan &amp; Teknologi">
+                            </div>
+
+                            <div>
+                                <label class="label">Uraian Lengkap Visi Lembaga</label>
+                                <textarea wire:model="principal.vision_desc" 
+                                          rows="3" 
+                                          class="input text-sm leading-relaxed" 
+                                          placeholder="Uraian komitmen kelembagaan jangka panjang sekolah..."></textarea>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+            </div>
+
+            <!-- 3. 4 PILAR MISI WIKRAMA (profil.blade.php) -->
+            <div class="card space-y-5">
+                <div class="border-b border-border pb-3 flex flex-col sm:flex-row sm:items-center sm:justify-between gap-2">
+                    <div class="flex items-center gap-2.5">
+                        <div class="w-9 h-9 rounded-xl bg-emerald-50 border border-emerald-200 text-emerald-600 flex items-center justify-center text-lg shrink-0">
+                            🏛️
+                        </div>
+                        <div>
+                            <h2 class="text-base font-bold text-text-main">4 Pilar Misi &amp; Karakter Wikrama</h2>
+                            <p class="text-xs text-text-secondary">4 pilar brick yang mendampingi uraian visi kelembagaan pada seksi profil beranda.</p>
+                        </div>
+                    </div>
+                    <span class="text-xs text-text-secondary font-medium">Tersinkron otomatis ke halaman depan</span>
+                </div>
+
+                <div class="grid gap-4 sm:grid-cols-2 lg:grid-cols-4">
+                    @for ($p = 0; $p < 4; $p++)
+                    @php
+                        $pilarNumbers = ['01', '02', '03', '04'];
+                    @endphp
+                    <div class="p-4 rounded-2xl bg-surface-hover border border-border hover:border-primary/40 transition-colors space-y-3 flex flex-col justify-between">
+                        <div class="space-y-3">
+                            {{-- Header Nomor Pilar & Judul --}}
+                            <div class="flex items-center gap-2.5">
+                                <input type="text" 
+                                       wire:model="principal.pillars.{{ $p }}.num" 
+                                       class="input text-center text-xs font-mono font-bold w-12 py-1.5 bg-white border-orange-200 text-orange-600" 
+                                       placeholder="{{ $pilarNumbers[$p] }}">
+                                <input type="text" 
+                                       wire:model="principal.pillars.{{ $p }}.title" 
+                                       class="input text-xs font-bold py-1.5 flex-1" 
+                                       placeholder="Judul Pilar #{{ $p + 1 }}">
+                            </div>
+
+                            {{-- Deskripsi Pilar --}}
+                            <div>
+                                <label class="text-[11px] font-semibold text-text-secondary block mb-1">Uraian Misi &amp; Karakter</label>
+                                <textarea wire:model="principal.pillars.{{ $p }}.desc" 
+                                          rows="4" 
+                                          class="input text-xs leading-relaxed py-2" 
+                                          placeholder="Uraian ringkas implementasi pilar..."></textarea>
+                            </div>
+                        </div>
+
+                        <div class="pt-2 border-t border-border/60 flex items-center justify-between text-[10px] text-text-secondary">
+                            <span>Pilar Karakter</span>
+                            <span class="font-mono font-bold text-primary">#{{ $p + 1 }}</span>
+                        </div>
+                    </div>
+                    @endfor
+                </div>
+            </div>
+
         </div>
         @endif
 

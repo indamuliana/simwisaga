@@ -114,9 +114,23 @@ class LandingSetting extends Component
             ];
         }
 
-        if (empty($this->principal)) {
-            $this->principal = config('landing.principal', []);
-        }
+        $defaultWelcome = config('landing.welcome', []);
+        $this->welcome = array_merge([
+            'tag' => 'Manifesto Pendidikan Wikrama',
+            'quote' => 'Di SMK Wikrama 1 Garut, kami mempersiapkan anak bangsa dari berbagai daerah untuk menjadi yang terbaik dalam keahlian yang mereka tekuni, sekaligus menjadi pribadi yang membawa kemaslahatan terbaik bagi keluarga, masyarakat, dan masa depan peradaban.',
+            'author' => 'Kunedi, S.Si. — Kepala SMK Wikrama 1 Garut',
+        ], $defaultWelcome, $this->welcome ?: []);
+
+        $defaultPrincipal = config('landing.principal', []);
+        $this->principal = array_merge([
+            'name' => 'Kunedi, S.Si.',
+            'role' => 'Kepala SMK Wikrama 1 Garut',
+            'image' => 'images/web/principal-kunedi.jpg',
+            'quote' => 'Mendidik anak bangsa dengan hati dan teknologi sehingga memenuhi kebutuhan mutu dunia kerja, serta melahirkan generasi pemimpin berkarakter mulia yang membawa kemaslahatan umat.',
+            'vision_title' => 'Sekolah Kejuruan Teladan Nasional',
+            'vision_desc' => 'Menjadi sekolah kejuruan teladan nasional yang berbudaya lingkungan berkelanjutan, berbasis teknologi informasi, berkomitmen mencetak lulusan berkarakter mulia, sehat jasmani rohani, berdaya saing global, serta mampu beradaptasi dengan perkembangan industri 4.0 dan 5.0 dengan berpedoman pada Al Qur\'an dan Hadis.',
+        ], $defaultPrincipal, $this->principal ?: []);
+
         if (empty($this->principal['pillars'])) {
             $this->principal['pillars'] = config('landing.principal.pillars', []);
         }

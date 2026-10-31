@@ -50,7 +50,7 @@
                     <!-- Header Pill Badge -->
                     <div class="inline-flex items-center gap-2 px-3.5 py-1.5 rounded-full bg-[#EBF4FC] border border-blue-200 text-[#00519E] text-[11px] sm:text-xs font-bold uppercase tracking-wider mb-6">
                         <span class="w-2 h-2 rounded-full bg-[#00519E] animate-ping"></span>
-                        <span>Manifesto Pendidikan Wikrama</span>
+                        <span>{{ $cfg['welcome']['tag'] ?? 'Manifesto Pendidikan Wikrama' }}</span>
                     </div>
 
                     <!-- Core Quote Text -->
