@@ -70,21 +70,22 @@
                          :class="activeItem.id === item.id ? 'opacity-100 scale-100' : 'opacity-0 scale-105'">
                         <img :src="item.image" 
                              :alt="item.title" 
-                             class="w-full h-full object-cover" 
+                             class="w-full h-full object-cover filter brightness-[0.50]" 
                              loading="lazy"
                              decoding="async">
                     </div>
                 </template>
 
-                <!-- Cinematic Vignette & Deep Multi-Gradient Overlays -->
-                <div class="absolute inset-0 bg-gradient-to-r from-slate-950/95 via-slate-950/75 to-slate-950/40 z-10"></div>
-                <div class="absolute inset-0 bg-gradient-to-t from-slate-950 via-transparent to-slate-950/70 z-10"></div>
+                <!-- Deep Dark Overlay Base & Multi-Gradients for Maximum Text Contrast -->
+                <div class="absolute inset-0 bg-slate-950/65 z-10"></div>
+                <div class="absolute inset-0 bg-gradient-to-r from-slate-950 via-slate-950/85 to-slate-950/60 z-10"></div>
+                <div class="absolute inset-0 bg-gradient-to-t from-slate-950 via-transparent to-slate-950/85 z-10"></div>
                 <!-- Subtle Ambient Atmosphere -->
-                <div class="absolute inset-0 bg-[radial-gradient(transparent_0%,rgba(0,0,0,0.4)_100%)] z-10"></div>
+                <div class="absolute inset-0 bg-[radial-gradient(transparent_0%,rgba(0,0,0,0.5)_100%)] z-10"></div>
             </div>
 
             <!-- ── Top Header Bar (Tanpa Tab Filter - 1 Kelompok Utuh) ── -->
-            <div class="relative z-20 w-full max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 pt-6 sm:pt-8">
+            <div class="relative z-20 w-full max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 pt-6 sm:pt-8 lg:pt-12">
                 <div class="flex items-center justify-between gap-4 border-b border-white/15 pb-3">
                     <!-- Section Title Badge Tag -->
                     <div class="flex items-center gap-3">
@@ -102,30 +103,30 @@
             </div>
 
             <!-- ── Main Showcase Body: Left Active Story & Right Preview Cards ── -->
-            <div class="relative z-20 w-full max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-4 sm:py-6 my-auto">
+            <div class="relative z-20 w-full max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-5 sm:py-8 lg:py-12 my-auto">
                 <div class="grid grid-cols-1 lg:grid-cols-12 gap-6 lg:gap-10 items-center">
                     
                     <!-- Left Column: Featured Facility Details -->
                     <div class="lg:col-span-6 xl:col-span-5 text-left">
                         <!-- Subtitle with Gold Dash Indicator -->
-                        <div class="flex items-center gap-2 text-amber-400 text-xs sm:text-sm font-bold uppercase tracking-wider mb-2">
+                        <div class="flex items-center gap-2 text-amber-400 text-xs sm:text-sm font-bold uppercase tracking-wider mb-2.5">
                             <span class="w-5 h-0.5 bg-amber-400 inline-block"></span>
                             <span x-text="activeItem.cat_label || activeItem.badge"></span>
                         </div>
 
-                        <!-- Display Title (Lebih Ringkas & Proporsional) -->
-                        <h2 class="text-2xl sm:text-3xl lg:text-4xl xl:text-5xl font-black uppercase tracking-tight text-white leading-tight mb-3 drop-shadow-md"
+                        <!-- Display Title -->
+                        <h2 class="text-2xl sm:text-4xl lg:text-5xl font-black uppercase tracking-tight text-white leading-tight mb-3.5 drop-shadow-md"
                             x-text="activeItem.title">
                         </h2>
 
                         <!-- Description Paragraph -->
-                        <p class="text-xs sm:text-sm text-slate-200/90 leading-relaxed mb-4 font-normal max-w-lg line-clamp-3"
+                        <p class="text-xs sm:text-sm md:text-base text-slate-200/95 leading-relaxed mb-5 font-normal max-w-lg line-clamp-3 sm:line-clamp-4"
                            x-text="activeItem.desc">
                         </p>
 
                         <!-- Key Specification / Highlight Pill -->
                         <template x-if="activeItem.highlight">
-                            <div class="inline-flex items-center gap-2 px-3 py-1 rounded-full bg-white/10 backdrop-blur-md border border-white/20 text-xs text-white/95 font-medium mb-5 shadow-xs">
+                            <div class="inline-flex items-center gap-2 px-3.5 py-1.5 rounded-full bg-white/10 backdrop-blur-md border border-white/20 text-xs text-white/95 font-medium mb-6 shadow-xs">
                                 <svg class="w-3.5 h-3.5 text-amber-400 shrink-0" fill="currentColor" viewBox="0 0 20 20">
                                     <path fill-rule="evenodd" d="M16.707 5.293a1 1 0 010 1.414l-8 8a1 1 0 01-1.414 0l-4-4a1 1 0 011.414-1.414L8 12.586l7.293-7.293a1 1 0 011.414 0z" clip-rule="evenodd"/>
                                 </svg>
@@ -134,21 +135,21 @@
                         </template>
 
                         <!-- Action Buttons -->
-                        <div class="flex items-center gap-3 flex-wrap">
+                        <div class="flex items-center gap-3 sm:gap-4 flex-wrap">
                             <button type="button"
                                     @click="openImageModal(activeItem.image, activeItem.title, activeItem.cat_label)"
-                                    class="w-10 h-10 rounded-full bg-amber-400 hover:bg-amber-300 text-slate-950 flex items-center justify-center transition-transform duration-200 hover:scale-105 shadow-md cursor-pointer focus-visible:outline-hidden"
+                                    class="w-10 h-10 sm:w-11 sm:h-11 rounded-full bg-amber-400 hover:bg-amber-300 text-slate-950 flex items-center justify-center transition-transform duration-200 hover:scale-105 shadow-md cursor-pointer focus-visible:outline-hidden"
                                     title="Perbesar Foto HD">
-                                <svg class="w-4 h-4" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                                <svg class="w-4 h-4 sm:w-5 sm:h-5" fill="none" viewBox="0 0 24 24" stroke="currentColor">
                                     <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M21 21l-6-6m2-5a7 7 0 11-14 0 7 7 0 0114 0zM10 7v6m3-3H7"/>
                                 </svg>
                             </button>
 
                             <button type="button"
                                     @click="openImageModal(activeItem.image, activeItem.title, activeItem.cat_label)"
-                                    class="px-5 py-2 rounded-full border border-white/40 hover:border-white text-white hover:bg-white/10 text-xs font-bold uppercase tracking-wider transition-all duration-200 cursor-pointer backdrop-blur-xs flex items-center gap-2 shadow-xs hover:translate-x-0.5 focus-visible:outline-hidden">
+                                    class="px-5 sm:px-6 py-2 sm:py-2.5 rounded-full border border-white/40 hover:border-white text-white hover:bg-white/10 text-xs font-bold uppercase tracking-wider transition-all duration-200 cursor-pointer backdrop-blur-xs flex items-center gap-2 shadow-xs hover:translate-x-0.5 focus-visible:outline-hidden">
                                 <span>Lihat Pratinjau HD</span>
-                                <svg class="w-3.5 h-3.5" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                                <svg class="w-3.5 h-3.5 sm:w-4 sm:h-4" fill="none" viewBox="0 0 24 24" stroke="currentColor">
                                     <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M14 5l7 7m0 0l-7 7m7-7H3"/>
                                 </svg>
                             </button>
@@ -200,7 +201,7 @@
             </div>
 
             <!-- ── Bottom Navigation Controls Bar ── -->
-            <div class="relative z-20 w-full max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 pb-5 sm:pb-7 pt-1">
+            <div class="relative z-20 w-full max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 pb-6 sm:pb-8 lg:pb-10 pt-2">
                 <div class="flex items-center justify-between sm:justify-end gap-4 border-t border-white/10 pt-3">
                     <!-- Prev & Next Circular Arrow Buttons -->
                     <div class="flex items-center gap-2">

@@ -210,7 +210,7 @@
         .facility-showcase-section {
             width: 100%;
             position: relative;
-            min-height: 460px;
+            min-height: 480px;
             overflow: hidden;
             background-color: #020617;
             color: #FFFFFF;
@@ -218,12 +218,17 @@
         }
         @media (min-width: 640px) {
             .facility-showcase-section {
-                min-height: 500px;
+                min-height: 520px;
             }
         }
         @media (min-width: 1024px) {
             .facility-showcase-section {
-                min-height: 520px;
+                min-height: 620px;
+            }
+        }
+        @media (min-width: 1280px) {
+            .facility-showcase-section {
+                min-height: 650px;
             }
         }
 
@@ -254,12 +259,12 @@
         }
         @media (min-width: 1024px) {
             .facility-thumb-card {
-                width: 180px !important;
-                min-width: 180px !important;
-                max-width: 180px !important;
-                height: 240px !important;
-                min-height: 240px !important;
-                max-height: 240px !important;
+                width: 190px !important;
+                min-width: 190px !important;
+                max-width: 190px !important;
+                height: 260px !important;
+                min-height: 260px !important;
+                max-height: 260px !important;
             }
         }
         .facility-thumb-card img {
