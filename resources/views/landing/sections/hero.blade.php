@@ -191,6 +191,24 @@
             <div class="relative z-20 w-full pb-16 sm:pb-24 lg:pb-28 mb-4 sm:mb-8 lg:mb-12 pt-4 sm:pt-6">
                 <div class="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
                     
+                    <!-- Slide Counter & Progress Track (JIS Signature) -->
+                    <div class="flex items-center justify-between pb-3 text-xs font-mono-code font-bold tracking-wider text-white/70">
+                        <div class="flex items-center gap-2">
+                            <span class="text-[#F5D84A]" x-text="String(activeIdx + 1).padStart(2, '0')">01</span>
+                            <span class="text-white/40">/</span>
+                            <span class="text-white/80" x-text="String(slidesCount).padStart(2, '0')">{{ sprintf('%02d', count($activeSlides)) }}</span>
+                        </div>
+                        <div class="flex items-center gap-1.5">
+                            @foreach($activeSlides as $sIdx => $sItem)
+                            <button type="button" 
+                                    @click="goToSlide({{ $sIdx }})"
+                                    class="h-1 rounded-full transition-all duration-300 cursor-pointer"
+                                    :class="activeIdx === {{ $sIdx }} ? 'w-8 bg-[#F5D84A]' : 'w-2 bg-white/30 hover:bg-white/60'"
+                                    title="Slide {{ $sIdx + 1 }}"></button>
+                            @endforeach
+                        </div>
+                    </div>
+
                     <!-- Hairline Divider -->
                     <div class="border-t border-white/20 w-full pt-6 sm:pt-8">
                         <div class="grid grid-cols-1 items-center [&>*]:col-start-1 [&>*]:row-start-1 relative w-full">

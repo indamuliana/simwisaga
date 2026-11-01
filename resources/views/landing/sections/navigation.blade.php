@@ -13,8 +13,8 @@
     $isSubpage = !request()->is('/');
 @endphp
 
-    <!-- ── Floating Sticky Quick-Action Dock (Only on Extra Wide 2xl+ Displays to prevent layout overlap) ── -->
-    <aside class="hidden 2xl:flex hp-sticky-dock" aria-label="Aksi Cepat Sekolah">
+    <!-- ── Floating Sticky Quick-Action Dock (Desktop XL+ Displays) ── -->
+    <aside class="hidden xl:flex hp-sticky-dock" aria-label="Aksi Cepat Sekolah">
         @foreach($cfg['sticky_actions'] ?? [] as $st)
         <a href="{{ $st['url'] }}" 
            target="{{ $st['target'] }}" 
@@ -42,8 +42,8 @@
         @endforeach
     </aside>
 
-    <!-- ── Compact Quick Action FAB for Standard Laptops & Mobile (< 2xl) ── -->
-    <div class="2xl:hidden fixed bottom-5 right-4 sm:bottom-6 sm:right-6 z-40" x-show="!mobileMenu" x-data="{ fabOpen: false }" @click.outside="fabOpen = false">
+    <!-- ── Compact Quick Action FAB for Tablets & Mobile (< xl) ── -->
+    <div class="xl:hidden fixed bottom-5 right-4 sm:bottom-6 sm:right-6 z-40" x-show="!mobileMenu" x-data="{ fabOpen: false }" @click.outside="fabOpen = false">
         <div x-show="fabOpen" x-cloak
              x-transition:enter="transition ease-out duration-200"
              x-transition:enter-start="opacity-0 translate-y-3 scale-95"
