@@ -19,7 +19,6 @@
                      activeIdx: 0,
                      sliderDelay: {{ $sliderDelay * 1000 }},
                      autoplayEnabled: {{ $sliderAutoplay ? 'true' : 'false' }},
-                     isHovered: false,
                      timer: null,
 
                      touchStartX: 0,
@@ -42,6 +41,7 @@
                      },
 
                      goToSlide(idx) {
+                         if (this.slidesCount <= 1) return;
                          this.activeIdx = ((idx % this.slidesCount) + this.slidesCount) % this.slidesCount;
                          this.handleSlideChange();
                      },
@@ -54,43 +54,96 @@
                          this.goToSlide(this.activeIdx - 1);
                      },
 
-                     startTimer() {
-                         if (this.timer) clearInterval(this.timer);
-                         this.timer = setInterval(() => {
-                             if (!this.isHovered && this.autoplayEnabled) {
-                                 this.nextSlide();
-                             }
-                         }, this.sliderDelay);
-                     },
-
                      stopTimer() {
                          if (this.timer) {
-                             clearInterval(this.timer);
+                             clearTimeout(this.timer);
                              this.timer = null;
                          }
                      },
 
+                     startTimer() {
+                         this.stopTimer();
+                         if (!this.autoplayEnabled || this.slidesCount <= 1) return;
+                         this.timer = setTimeout(() => {
+                             this.nextSlide();
+                         }, this.sliderDelay);
+                     },
+
+                     onVideoEnded(slideIdx) {
+                         if (this.activeIdx === slideIdx && this.autoplayEnabled) {
+                             this.nextSlide();
+                         }
+                     },
+
+                     onVideoError(slideIdx) {
+                         if (this.activeIdx === slideIdx) {
+                             this.startTimer();
+                         }
+                     },
+
                      handleSlideChange() {
-                         if (!this.autoplayEnabled) return;
+                         this.stopTimer();
                          
                          this.$nextTick(() => {
-                             // Cek apakah slide aktif memiliki elemen video
+                             // Hentikan video lain yang tidak sedang aktif
+                             const allVideos = this.$el.querySelectorAll('video');
+                             allVideos.forEach(v => {
+                                 const vIdx = parseInt(v.getAttribute('data-slide'));
+                                 if (vIdx !== this.activeIdx) {
+                                     try {
+                                         v.pause();
+                                     } catch(e) {}
+                                 }
+                             });
+
+                             if (!this.autoplayEnabled || this.slidesCount <= 1) return;
+
+                             // Cek apakah slide aktif adalah video
                              const activeVideo = this.$el.querySelector(`video[data-slide='${this.activeIdx}']`);
                              if (activeVideo) {
-                                 // Pause timer statis karena durasi slide dikendalikan oleh durasi video
-                                 this.stopTimer();
-                                 activeVideo.currentTime = 0;
-                                 activeVideo.play().catch(() => {});
+                                 try {
+                                     activeVideo.currentTime = 0;
+                                     const playPromise = activeVideo.play();
+                                     if (playPromise !== undefined) {
+                                         playPromise.catch(() => {
+                                             // Fallback jika browser memblokir autoplay
+                                             this.startTimer();
+                                         });
+                                     }
+                                 } catch(e) {
+                                     this.startTimer();
+                                     return;
+                                 }
+
+                                 // Fallback safety timeout jika event ended terlewat
+                                 const setSafetyTimeout = () => {
+                                     const dur = activeVideo.duration;
+                                     if (dur && !isNaN(dur) && isFinite(dur) && dur > 0) {
+                                         this.timer = setTimeout(() => {
+                                             if (this.activeIdx === parseInt(activeVideo.getAttribute('data-slide'))) {
+                                                 this.nextSlide();
+                                             }
+                                         }, Math.ceil((dur + 0.6) * 1000));
+                                     }
+                                 };
+
+                                 if (activeVideo.readyState >= 1) {
+                                     setSafetyTimeout();
+                                 } else {
+                                     activeVideo.addEventListener('loadedmetadata', setSafetyTimeout, { once: true });
+                                     // Fallback 25s jika metadata tidak selesai dimuat
+                                     this.timer = setTimeout(() => {
+                                         this.nextSlide();
+                                     }, 25000);
+                                 }
                              } else {
-                                 // Jika slide berupa gambar, gunakan timer interval normal
+                                 // Slide gambar: waktu tayang persis sesuai slider_delay yang diatur di admin
                                  this.startTimer();
                              }
                          });
                      }
                  }"
                  x-init="init()"
-                 @mouseenter="isHovered = true"
-                 @mouseleave="isHovered = false"
                  @touchstart.passive="handleTouchStart($event)"
                  @touchend.passive="handleTouchEnd($event)">
 
@@ -129,19 +182,13 @@
                                autoplay 
                                muted 
                                playsinline 
-                               preload="metadata"
+                               preload="auto"
                                poster="{{ $posterUrl }}"
                                data-slide="{{ $idx }}"
                                x-ref="slideVideo{{ $idx }}"
-                               @ended="if (autoplayEnabled && !isHovered) { nextSlide(); }"
-                               x-init="$watch('activeIdx', val => { 
-                                   if (val === {{ $idx }}) { 
-                                       $el.currentTime = 0; 
-                                       $el.play().catch(() => {}); 
-                                   } else { 
-                                       $el.pause(); 
-                                   } 
-                               })"
+                               x-on:ended="onVideoEnded({{ $idx }})"
+                               x-on:timeupdate="if (autoplayEnabled && $el.duration && $el.currentTime >= ($el.duration - 0.25)) { onVideoEnded({{ $idx }}); }"
+                               x-on:error="onVideoError({{ $idx }})"
                                style="filter: brightness({{ $sDim }}) contrast(1.12);">
                             @if(str_ends_with(strtolower($videoSrc), '.webm'))
                                 <source src="{{ $videoSrc }}" type="video/webm">
