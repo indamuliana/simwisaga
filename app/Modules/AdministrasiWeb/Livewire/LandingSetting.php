@@ -886,14 +886,13 @@ class LandingSetting extends Component
         abort_unless(auth()->user()->can('web.landing.edit'), 403, 'Anda tidak memiliki hak akses.');
 
         $this->validate([
-            'mitraForm.text' => 'nullable|string|max:500',
             'mitraForm.name' => 'nullable|string|max:255',
             'mitraForm.url' => 'nullable|string|max:500',
             'mitraImageFile' => 'nullable|image|max:5120',
         ]);
 
-        if (empty($this->mitraForm['name']) && !empty($this->mitraForm['text'])) {
-            $this->mitraForm['name'] = strtok($this->mitraForm['text'], "\n");
+        if (empty($this->mitraForm['name'])) {
+            $this->mitraForm['name'] = 'Mitra Industri';
         }
 
         if ($this->mitraImageFile) {

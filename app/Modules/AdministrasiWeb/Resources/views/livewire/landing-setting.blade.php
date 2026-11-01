@@ -954,7 +954,7 @@
                     <div>
                         <h2 class="text-base font-bold text-text-main">Daftar Mitra &amp; Logo Industri (Running Marquee)</h2>
                         <p class="text-xs text-text-secondary">
-                            Logo dan teks pendamping di sebelah kanan yang berjalan otomatis pada halaman depan.
+                            Deretan logo murni kemitraan industri &amp; perguruan tinggi yang berjalan otomatis pada halaman depan.
                         </p>
                     </div>
                     <button type="button" 
@@ -995,23 +995,18 @@
                                 </button>
                             </div>
 
-                            <!-- Live Visual Preview of [Logo] [Text] -->
-                            <div class="flex items-center gap-3 p-2.5 rounded-xl border border-slate-200 bg-white shadow-xs shrink-0 max-w-xs sm:max-w-sm">
-                                <div class="w-20 h-10 flex items-center justify-center p-1 bg-slate-50 rounded-lg border border-slate-100 shrink-0">
-                                    <img src="{{ \App\Modules\AdministrasiWeb\Models\WebSetting::resolveImageUrl($item['image'] ?? null, 'images/landing/mitra-huawei.png') }}" 
-                                         alt="{{ $item['name'] ?? 'Logo' }}" 
-                                         class="max-h-8 max-w-full object-contain">
-                                </div>
-                                <div class="text-left text-xs font-semibold text-slate-800 leading-tight whitespace-pre-line truncate max-w-[140px]">
-                                    {{ !empty($item['text']) ? $item['text'] : ($item['name'] ?: 'Tanpa Teks') }}
-                                </div>
+                            <!-- Live Visual Preview of Logo -->
+                            <div class="h-12 w-28 flex items-center justify-center p-1.5 rounded-xl border border-slate-200 bg-white shadow-xs shrink-0">
+                                <img src="{{ \App\Modules\AdministrasiWeb\Models\WebSetting::resolveImageUrl($item['image'] ?? null, 'images/landing/mitra-huawei.png') }}" 
+                                     alt="{{ $item['name'] ?? 'Logo' }}" 
+                                     class="max-h-9 max-w-full object-contain">
                             </div>
 
                             <!-- Text Details -->
                             <div class="min-w-0">
                                 <div class="flex items-center gap-2 flex-wrap">
                                     <h3 class="text-sm font-bold text-text-main truncate">
-                                        {{ $item['name'] ?: ($item['text'] ?? 'Mitra Tanpa Nama') }}
+                                        {{ $item['name'] ?: 'Mitra Industri' }}
                                     </h3>
                                     @if(!($item['is_active'] ?? true))
                                     <span class="badge badge-neutral text-[10px]">Nonaktif</span>
@@ -1177,9 +1172,9 @@
             <div class="flex items-center justify-between border-b border-border pb-3">
                 <div>
                     <h3 class="text-lg font-bold text-text-main">
-                        {{ $mitraIndexEditing !== null ? 'Edit Mitra Link & Match' : 'Tambah Mitra Baru' }}
+                        {{ $mitraIndexEditing !== null ? 'Edit Logo Mitra' : 'Tambah Logo Mitra Baru' }}
                     </h3>
-                    <p class="text-xs text-text-secondary">Atur teks pendamping (2 baris rata kiri) dan upload logo mitra.</p>
+                    <p class="text-xs text-text-secondary">Upload file logo mitra industri / perguruan tinggi dan tautan situs (opsional).</p>
                 </div>
                 <button type="button" wire:click="closeMitraModal" class="p-1 rounded-lg text-text-muted hover:text-text-main hover:bg-surface-raised cursor-pointer">
                     <svg class="w-5 h-5" fill="none" viewBox="0 0 24 24" stroke="currentColor"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M6 18L18 6M6 6l12 12"/></svg>
@@ -1187,19 +1182,6 @@
             </div>
 
             <div class="space-y-4">
-                <!-- Teks Samping Kanan Logo (Bisa 2 Baris) -->
-                <div>
-                    <div class="flex items-center justify-between">
-                        <label class="label">Teks Samping Kanan Logo</label>
-                        <span class="text-[11px] text-text-muted font-normal">Tekan Enter untuk baris ke-2</span>
-                    </div>
-                    <textarea wire:model="mitraForm.text" rows="2" class="input text-xs" placeholder="Contoh:&#10;Mitra Industri&#10;PT Telkom Indonesia"></textarea>
-                    <p class="text-[11px] text-text-muted mt-1">
-                        Teks ini akan ditampilkan di sebelah kanan logo dengan format rata kiri. Bisa 1 atau 2 baris.
-                    </p>
-                    @error('mitraForm.text') <span class="error">{{ $message }}</span> @enderror
-                </div>
-
                 <!-- Logo Mitra Upload & Preview -->
                 <div>
                     <label class="label">Upload Logo Mitra</label>
@@ -1218,22 +1200,20 @@
                 </div>
 
                 <!-- Live Preview of Result -->
-                <div class="p-3.5 rounded-2xl bg-slate-50 border border-slate-200 space-y-1.5">
-                    <span class="text-[10px] font-bold uppercase tracking-wider text-slate-500 block">Pratinjau Tampilan di Halaman Depan:</span>
-                    <div class="inline-flex items-center gap-3 p-2 px-3 rounded-xl bg-white border border-slate-200 shadow-2xs">
-                        <div class="w-20 h-10 flex items-center justify-center p-1 bg-slate-50 rounded-lg border border-slate-100 shrink-0">
-                            <img src="{{ $this->mitraImagePreview }}" alt="Preview" class="max-h-8 max-w-full object-contain">
-                        </div>
-                        <div class="text-left text-xs font-semibold text-slate-800 leading-tight whitespace-pre-line max-w-[150px]">
-                            {{ !empty($mitraForm['text']) ? $mitraForm['text'] : ($mitraForm['name'] ?: 'Teks Kemitraan (Baris 1&#10;Baris 2)') }}
-                        </div>
+                <div class="p-3.5 rounded-2xl bg-slate-50 border border-slate-200 space-y-1 text-center">
+                    <span class="text-[10px] font-bold uppercase tracking-wider text-slate-500 block">Pratinjau Tampilan Logo di Halaman Depan:</span>
+                    <div class="inline-flex items-center justify-center h-14 w-32 p-2 rounded-xl bg-white border border-slate-200 shadow-2xs mx-auto">
+                        <img src="{{ $this->mitraImagePreview }}" alt="Preview" class="max-h-10 max-w-full object-contain">
                     </div>
+                    <p class="text-[11px] text-text-muted">
+                        {{ !empty($mitraForm['name']) ? $mitraForm['name'] : 'Nama mitra tampil sebagai tooltip saat kursor diarahkan ke logo' }}
+                    </p>
                 </div>
 
                 <!-- Nama Instansi / Perusahaan & URL -->
                 <div class="grid gap-3 sm:grid-cols-2">
                     <div>
-                        <label class="label">Nama Instansi / Mitra (Alt/Title)</label>
+                        <label class="label">Nama Instansi / Mitra (Tooltip/Alt)</label>
                         <input type="text" wire:model="mitraForm.name" class="input text-xs" placeholder="Contoh: Huawei ICT Academy">
                         @error('mitraForm.name') <span class="error">{{ $message }}</span> @enderror
                     </div>
