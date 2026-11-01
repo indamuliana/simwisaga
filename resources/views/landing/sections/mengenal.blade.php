@@ -1,8 +1,9 @@
         <!-- ── 3. "Get to Know Wikrama" Destination Card Showcase (Gaya Visual Rekomendasi Sesuai Referensi) ── -->
         <section class="py-14 sm:py-20 lg:py-24 bg-[#FAF9F6] text-slate-800 relative overflow-hidden" id="mengenal"
                  x-data="{
+                     activeKnowTab: '{{ array_key_first($cfg['get_to_know']['tabs'] ?? []) ?: 'admissions' }}',
                      scrollSlider(direction) {
-                         const slider = document.getElementById('know-slider-' + activeKnowTab);
+                         const slider = document.getElementById('know-slider-' + this.activeKnowTab);
                          if (slider) {
                              const step = Math.min(slider.clientWidth * 0.8, 360);
                              slider.scrollBy({ left: direction * step, behavior: 'smooth' });
@@ -87,7 +88,7 @@
                     @endphp
                     <a href="{{ $cardUrl }}"
                        {{ $isExternal ? 'target="_blank" rel="noopener"' : '' }}
-                       class="group relative flex-none w-[78vw] sm:w-[290px] md:w-[310px] lg:min-w-[260px] lg:flex-1 h-[410px] sm:h-[440px] rounded-3xl overflow-hidden shadow-[0_10px_25px_-5px_rgba(0,0,0,0.12)] snap-start block text-left bg-slate-900 transition-transform duration-300 hover:-translate-y-1.5 focus-visible:outline-hidden focus-visible:ring-2 focus-visible:ring-offset-2 focus-visible:ring-[#00519E]">
+                       class="know-card group block text-left bg-slate-900 focus-visible:outline-hidden focus-visible:ring-2 focus-visible:ring-offset-2 focus-visible:ring-[#00519E]">
                         
                         <!-- Full Cover Background Image -->
                         <img src="{{ $cardImg }}" 

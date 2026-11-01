@@ -855,6 +855,43 @@
             color: var(--wikrama-heading) !important;
         }
 
+        /* ── Mengenal Wikrama Destination Showcase Cards (Solid CSS Fallback) ── */
+        .know-card {
+            position: relative;
+            flex: 0 0 auto;
+            width: 78vw;
+            height: 410px;
+            border-radius: 1.5rem;
+            overflow: hidden;
+            scroll-snap-align: start;
+            display: block;
+            text-align: left;
+            background-color: #0f172a;
+            box-shadow: 0 10px 25px -5px rgba(0, 0, 0, 0.12);
+            transition: transform 0.3s cubic-bezier(0.16, 1, 0.3, 1), box-shadow 0.3s ease;
+        }
+        @media (min-width: 640px) {
+            .know-card {
+                width: 290px;
+                height: 440px;
+            }
+        }
+        @media (min-width: 768px) {
+            .know-card {
+                width: 310px;
+            }
+        }
+        @media (min-width: 1024px) {
+            .know-card {
+                min-width: 260px;
+                flex: 1 1 0%;
+            }
+        }
+        .know-card:hover {
+            transform: translateY(-6px);
+            box-shadow: 0 20px 30px -10px rgba(0, 0, 0, 0.22);
+        }
+
         /* ── Reduced Motion Fallback (Hallmark Floor Rule 7) ── */
         @media (prefers-reduced-motion: reduce) {
             *, *::before, *::after {
