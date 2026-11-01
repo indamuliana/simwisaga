@@ -171,46 +171,52 @@
                 @endforeach
             </div>
 
-            <!-- ── Left & Right Side Navigation Buttons (JIS Navy Hover Glass - Desktop Only) ── -->
-            <button type="button" 
-                    @click.prevent.stop="prevSlide()" 
-                    class="hidden lg:flex absolute left-6 lg:left-8 top-1/2 -translate-y-1/2 z-30 w-12 h-12 lg:w-14 lg:h-14 rounded-full border border-white/30 bg-slate-950/50 hover:bg-[#00519E] hover:text-white hover:border-[#00519E] hover:scale-105 active:scale-95 text-white backdrop-blur-md items-center justify-center transition-all duration-300 shadow-2xl group cursor-pointer"
-                    aria-label="Slide Sebelumnya"
-                    title="Slide Sebelumnya"
-                    data-cursor="PREV">
-                <svg class="w-6 h-6 transition-transform duration-300 group-hover:-translate-x-0.5" fill="none" viewBox="0 0 24 24" stroke="currentColor">
-                    <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2.5" d="M15 19l-7-7 7-7" />
-                </svg>
-            </button>
-
-            <button type="button" 
-                    @click.prevent.stop="nextSlide()" 
-                    class="hidden lg:flex absolute right-6 lg:right-8 top-1/2 -translate-y-1/2 z-30 w-12 h-12 lg:w-14 lg:h-14 rounded-full border border-white/30 bg-slate-950/50 hover:bg-[#00519E] hover:text-white hover:border-[#00519E] hover:scale-105 active:scale-95 text-white backdrop-blur-md items-center justify-center transition-all duration-300 shadow-2xl group cursor-pointer"
-                    aria-label="Slide Berikutnya"
-                    title="Slide Berikutnya"
-                    data-cursor="NEXT">
-                <svg class="w-6 h-6 transition-transform duration-300 group-hover:translate-x-0.5" fill="none" viewBox="0 0 24 24" stroke="currentColor">
-                    <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2.5" d="M9 5l7 7-7 7" />
-                </svg>
-            </button>
-
             <!-- ── Bottom Content Area: JIS Reference Layout (Floating Position & Silky Smooth Slide) ── -->
             <div class="relative z-20 w-full pb-14 sm:pb-24 lg:pb-28 mb-2 sm:mb-8 lg:mb-12 pt-4 sm:pt-6">
                 <div class="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
                     
-                    <!-- Slide Counter & Progress Track (JIS Signature) -->
-                    <div class="flex items-center justify-between pb-3 text-xs font-mono-code font-bold tracking-wider text-white/70">
-                        <div class="flex items-center gap-2">
-                            <span class="text-[#F5D84A]" x-text="String(activeIdx + 1).padStart(2, '0')">01</span>
-                            <span class="text-white/40">/</span>
-                            <span class="text-white/80" x-text="String(slidesCount).padStart(2, '0')">{{ sprintf('%02d', count($activeSlides)) }}</span>
+                    <!-- Navigation Arrows (Both on the Left) & Slide Counter & Progress Track -->
+                    <div class="flex items-center justify-between pb-3.5 sm:pb-4 text-xs font-mono-code font-bold tracking-wider text-white/70">
+                        <div class="flex items-center gap-2.5 sm:gap-3.5">
+                            <!-- Nav Arrows Group (Left & Right Together on the Left) -->
+                            <div class="flex items-center gap-1.5 sm:gap-2">
+                                <button type="button" 
+                                        @click.prevent.stop="prevSlide()" 
+                                        class="w-8 h-8 sm:w-10 sm:h-10 rounded-full border border-white/30 bg-slate-950/60 hover:bg-[#00519E] hover:text-white hover:border-[#00519E] active:scale-95 text-white backdrop-blur-md flex items-center justify-center transition-all duration-200 shadow-md group cursor-pointer"
+                                        aria-label="Slide Sebelumnya"
+                                        title="Slide Sebelumnya"
+                                        data-cursor="PREV">
+                                    <svg class="w-4 h-4 sm:w-5 sm:h-5 transition-transform duration-200 group-hover:-translate-x-0.5" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                                        <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2.5" d="M15 19l-7-7 7-7" />
+                                    </svg>
+                                </button>
+                                <button type="button" 
+                                        @click.prevent.stop="nextSlide()" 
+                                        class="w-8 h-8 sm:w-10 sm:h-10 rounded-full border border-white/30 bg-slate-950/60 hover:bg-[#00519E] hover:text-white hover:border-[#00519E] active:scale-95 text-white backdrop-blur-md flex items-center justify-center transition-all duration-200 shadow-md group cursor-pointer"
+                                        aria-label="Slide Berikutnya"
+                                        title="Slide Berikutnya"
+                                        data-cursor="NEXT">
+                                    <svg class="w-4 h-4 sm:w-5 sm:h-5 transition-transform duration-200 group-hover:translate-x-0.5" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                                        <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2.5" d="M9 5l7 7-7 7" />
+                                    </svg>
+                                </button>
+                            </div>
+
+                            <!-- Slide Number Counter (e.g. 01 / 05) -->
+                            <div class="flex items-center gap-1.5 pl-0.5 sm:pl-1">
+                                <span class="text-[#F5D84A] font-extrabold" x-text="String(activeIdx + 1).padStart(2, '0')">01</span>
+                                <span class="text-white/40">/</span>
+                                <span class="text-white/80" x-text="String(slidesCount).padStart(2, '0')">{{ sprintf('%02d', count($activeSlides)) }}</span>
+                            </div>
                         </div>
+
+                        <!-- Progress Track Dots -->
                         <div class="flex items-center gap-1.5">
                             @foreach($activeSlides as $sIdx => $sItem)
                             <button type="button" 
                                     @click="goToSlide({{ $sIdx }})"
                                     class="h-1 rounded-full transition-all duration-300 cursor-pointer"
-                                    :class="activeIdx === {{ $sIdx }} ? 'w-8 bg-[#F5D84A]' : 'w-2 bg-white/30 hover:bg-white/60'"
+                                    :class="activeIdx === {{ $sIdx }} ? 'w-7 sm:w-8 bg-[#F5D84A]' : 'w-2 bg-white/30 hover:bg-white/60'"
                                     title="Slide {{ $sIdx + 1 }}"></button>
                             @endforeach
                         </div>
