@@ -144,36 +144,32 @@
             font-family: var(--font-mono);
         }
 
-        /* ── Uniform Minimalist Partner Logos (BMW Link & Match) ── */
+        /* ── Full-Color Minimalist Partner Logos (BMW Link & Match) ── */
         .partner-logo-slot {
-            width: 76px;
-            height: 32px;
+            height: 28px;
             display: inline-flex;
             align-items: center;
             justify-content: center;
             flex-shrink: 0;
-            padding: 2px 4px;
+            width: auto;
         }
         @media (min-width: 640px) {
             .partner-logo-slot {
-                width: 88px;
-                height: 36px;
+                height: 32px;
             }
         }
         .partner-logo-img {
-            max-height: 22px;
-            max-width: 70px;
+            max-height: 24px;
+            max-width: 60px;
             width: auto;
             height: auto;
             object-fit: contain;
-            filter: grayscale(100%);
-            opacity: 0.72;
-            transition: filter 0.25s, opacity 0.25s, transform 0.25s;
+            filter: none !important;
+            opacity: 1 !important;
+            transition: transform 0.25s var(--ease-editorial);
         }
         .partner-logo-img:hover {
-            filter: grayscale(0%);
-            opacity: 1;
-            transform: scale(1.05);
+            transform: scale(1.06);
         }
 
         /* ── Institutional Tags & Badges (Refined, Untracked Body Face) ── */
