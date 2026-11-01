@@ -11,7 +11,7 @@
         @endphp
 
         <!-- ── 1. Hero Section: Cinematic JIS-Style Full-Bleed Slider ── -->
-        <section class="relative flex flex-col justify-end overflow-hidden bg-slate-950 text-white w-full select-none min-h-screen lg:h-screen lg:max-h-[960px]" 
+        <section class="relative flex flex-col justify-end overflow-hidden bg-slate-950 text-white w-full select-none min-h-[100svh] lg:h-screen lg:max-h-[960px]" 
                  id="beranda" 
                  style="background-color: #020617;"
                  x-data="{
@@ -103,8 +103,12 @@
                          : 'opacity-0 z-0 pointer-events-none'">
                     
                     @php
-                        $isVid = in_array($slide['media_type'] ?? 'image', ['video_upload', 'video_url']);
-                        $videoSrc = !empty($slide['video_url']) ? (str_starts_with($slide['video_url'], 'http') || str_starts_with($slide['video_url'], '/') ? $slide['video_url'] : asset('storage/' . $slide['video_url'])) : '';
+                        $isVid = in_array($slide['media_type'] ?? 'image', ['video_upload', 'video_url']) && !empty($slide['video_url']);
+                        $videoSrc = !empty($slide['video_url']) 
+                            ? (class_exists(\App\Modules\AdministrasiWeb\Models\WebSetting::class) 
+                                ? \App\Modules\AdministrasiWeb\Models\WebSetting::resolveImageUrl($slide['video_url']) 
+                                : (str_starts_with($slide['video_url'], 'http') || str_starts_with($slide['video_url'], '/') ? $slide['video_url'] : asset('storage/' . $slide['video_url']))) 
+                            : '';
                         $posterPath = $slide['poster'] ?? ($slide['image'] ?? 'images/web/campus-environment.jpg');
                         $posterUrl = class_exists(\App\Modules\AdministrasiWeb\Models\WebSetting::class)
                             ? \App\Modules\AdministrasiWeb\Models\WebSetting::resolveImageUrl($posterPath, 'images/web/campus-environment.jpg')

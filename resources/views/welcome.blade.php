@@ -26,10 +26,10 @@
     <link rel="icon" href="{{ $faviconUrl }}">
     <link rel="shortcut icon" href="{{ $faviconUrl }}">
 
-    <!-- Google Fonts: Plus Jakarta Sans (Institutional Clarity) & Roboto Mono (Technical Accents) -->
+    <!-- Google Fonts: Plus Jakarta Sans (Institutional Clarity), Playfair Display (Manifesto Elegance), & Roboto Mono (Technical Accents) -->
     <link rel="preconnect" href="https://fonts.googleapis.com">
     <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
-    <link href="https://fonts.googleapis.com/css2?family=Plus+Jakarta+Sans:wght@300;400;500;600;700;800&family=Roboto+Mono:wght@400;500;600;700&display=swap" rel="stylesheet">
+    <link href="https://fonts.googleapis.com/css2?family=Playfair+Display:ital,wght@0,600;0,700;0,800;1,600;1,700&family=Plus+Jakarta+Sans:wght@300;400;500;600;700;800&family=Roboto+Mono:wght@400;500;600;700&display=swap" rel="stylesheet">
 
     @vite(['resources/css/app.css', 'resources/js/app.js'])
 
@@ -68,6 +68,7 @@
 
             /* ── Fonts & Motion Timing ── */
             --font-editorial: 'Plus Jakarta Sans', system-ui, -apple-system, sans-serif;
+            --font-manifesto: 'Playfair Display', Georgia, serif;
             --font-mono: 'Roboto Mono', ui-monospace, monospace;
             --ease-editorial: cubic-bezier(0.16, 1, 0.3, 1);
             --ease-out-quart: cubic-bezier(0.165, 0.84, 0.44, 1);
@@ -135,8 +136,44 @@
             font-style: italic;
         }
 
+        .font-manifesto {
+            font-family: var(--font-manifesto);
+        }
+
         .font-mono-code {
             font-family: var(--font-mono);
+        }
+
+        /* ── Uniform Minimalist Partner Logos (BMW Link & Match) ── */
+        .partner-logo-slot {
+            width: 76px;
+            height: 32px;
+            display: inline-flex;
+            align-items: center;
+            justify-content: center;
+            flex-shrink: 0;
+            padding: 2px 4px;
+        }
+        @media (min-width: 640px) {
+            .partner-logo-slot {
+                width: 88px;
+                height: 36px;
+            }
+        }
+        .partner-logo-img {
+            max-height: 22px;
+            max-width: 70px;
+            width: auto;
+            height: auto;
+            object-fit: contain;
+            filter: grayscale(100%);
+            opacity: 0.72;
+            transition: filter 0.25s, opacity 0.25s, transform 0.25s;
+        }
+        .partner-logo-img:hover {
+            filter: grayscale(0%);
+            opacity: 1;
+            transform: scale(1.05);
         }
 
         /* ── Institutional Tags & Badges (Refined, Untracked Body Face) ── */

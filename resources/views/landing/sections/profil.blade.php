@@ -9,37 +9,48 @@
             <div class="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 relative z-10">
                 <div class="grid grid-cols-1 lg:grid-cols-12 gap-8 lg:gap-14 items-center">
                     
-                    <!-- Principal Card (Executive Crest Card) -->
+                    <!-- Left: Principal Vertical Portrait (Executive Hallmark Portrait) -->
                     <div class="lg:col-span-5" data-animate="slide-right">
-                        <div class="card-bento p-6 sm:p-8 bg-white border border-slate-200/90 shadow-[0_10px_30px_-5px_rgba(0,48,95,0.06)]">
-                            <div class="flex flex-col sm:flex-row items-center sm:items-start text-center sm:text-left gap-5">
-                                <div class="shrink-0 relative">
-                                    <div class="w-28 sm:w-32 h-36 sm:h-40 rounded-2xl overflow-hidden border-2 border-blue-200 shadow-md bg-white mx-auto">
-                                        <img src="{{ class_exists(\App\Modules\AdministrasiWeb\Models\WebSetting::class) ? \App\Modules\AdministrasiWeb\Models\WebSetting::resolveImageUrl($cfg['principal']['image'] ?? null, 'images/web/principal-kunedi.jpg') : asset($cfg['principal']['image'] ?? 'images/web/principal-kunedi.jpg') }}" 
-                                             alt="{{ $cfg['principal']['name'] ?? 'Kepala Sekolah' }}" 
-                                             class="w-full h-full object-cover object-top"
-                                             loading="lazy"
-                                             decoding="async">
-                                    </div>
-                                    <span class="absolute -bottom-2 -right-2 bg-[#00519E] text-white font-bold text-[10px] px-3 py-0.5 rounded-full shadow-md border border-white/40">
-                                        {{ $cfg['principal']['role'] ?? 'Kepala Sekolah' }}
+                        <div class="relative bg-white rounded-3xl p-3 sm:p-4 border border-slate-200/80 shadow-[0_12px_36px_-6px_rgba(0,48,95,0.08)] overflow-hidden group">
+                            <!-- Vertical Photo Container (Aspect 4:5) -->
+                            <div class="relative aspect-[4/5] w-full rounded-2xl overflow-hidden bg-slate-100 shadow-inner">
+                                <img src="{{ class_exists(\App\Modules\AdministrasiWeb\Models\WebSetting::class) ? \App\Modules\AdministrasiWeb\Models\WebSetting::resolveImageUrl($cfg['principal']['image'] ?? null, 'images/web/principal-kunedi.jpg') : asset($cfg['principal']['image'] ?? 'images/web/principal-kunedi.jpg') }}" 
+                                     alt="{{ $cfg['principal']['name'] ?? 'Kepala Sekolah' }}" 
+                                     class="w-full h-full object-cover object-top group-hover:scale-102 transition-transform duration-500 ease-out"
+                                     loading="lazy"
+                                     decoding="async">
+                                <!-- Subtle gradient vignette at bottom for text legibility -->
+                                <div class="absolute inset-0 bg-gradient-to-t from-slate-950/85 via-slate-950/20 to-transparent"></div>
+                                
+                                <!-- Executive Floating Tag on Top -->
+                                <div class="absolute top-3 left-3">
+                                    <span class="inline-flex items-center gap-1.5 px-3 py-1 rounded-full bg-white/95 backdrop-blur-md text-[#00519E] font-bold text-[11px] shadow-sm border border-slate-200">
+                                        <span class="w-1.5 h-1.5 rounded-full bg-[#00519E]"></span>
+                                        <span>{{ $cfg['principal']['role'] ?? 'Kepala Sekolah' }}</span>
                                     </span>
                                 </div>
-                                <div class="min-w-0">
-                                    <span class="text-xs font-bold text-[#00519E] uppercase tracking-wider block">Pimpinan Lembaga</span>
-                                    <h3 class="text-lg sm:text-xl font-extrabold text-slate-900 mt-0.5">
+
+                                <!-- Name & School Badge at bottom inside photo -->
+                                <div class="absolute bottom-3 inset-x-3 text-white">
+                                    <h3 class="text-base sm:text-lg font-extrabold tracking-tight drop-shadow-sm leading-tight text-white">
                                         {{ !empty($cfg['principal']['name']) ? $cfg['principal']['name'] : ($sekolah->kepala_sekolah_nama ?? 'Kunedi, S.Si.') }}
                                     </h3>
-                                    <span class="text-xs text-slate-500 font-semibold block mt-0.5">{{ $schoolName }}</span>
-                                    <p class="text-xs sm:text-sm text-slate-700 mt-3 font-editorial italic leading-relaxed font-medium">
-                                        &ldquo;{{ $cfg['principal']['quote'] ?? 'Sekolah kejuruan teladan nasional yang berbudaya lingkungan, berkarakter sesuai profil pelajar Pancasila, berbasis teknologi informasi.' }}&rdquo;
-                                    </p>
+                                    <span class="text-xs text-white/80 font-medium block mt-0.5">
+                                        Pimpinan Lembaga &bull; {{ $schoolName }}
+                                    </span>
                                 </div>
+                            </div>
+
+                            <!-- Quote strip below photo -->
+                            <div class="p-3 sm:p-4 bg-slate-50/90 rounded-2xl mt-3 border border-slate-100">
+                                <p class="text-xs sm:text-sm text-slate-700 font-manifesto italic leading-relaxed text-center">
+                                    &ldquo;{{ $cfg['principal']['quote'] ?? 'Sekolah kejuruan teladan nasional yang berbudaya lingkungan, berkarakter sesuai profil pelajar Pancasila, berbasis teknologi informasi.' }}&rdquo;
+                                </p>
                             </div>
                         </div>
                     </div>
 
-                    <!-- Vision & 4 Pillars (Pillar Brick Cards) -->
+                    <!-- Right: Vision & 4 Pillars (Minimalist Compact Grid) -->
                     <div class="lg:col-span-7" data-animate="slide-left" data-animate-delay="1">
                         <div>
                             <span class="google-tag google-tag-blue shadow-xs">
@@ -54,20 +65,26 @@
                             </p>
                         </div>
 
-                        <div class="mt-8">
-                            <span class="text-xs font-bold uppercase tracking-wider text-[#00519E] block mb-3">
+                        <div class="mt-7 sm:mt-8">
+                            <span class="text-xs font-bold uppercase tracking-wider text-[#00519E] block mb-3.5">
                                 4 Pilar Misi Wikrama
                             </span>
-                            <div class="grid grid-cols-1 sm:grid-cols-2 gap-4">
+                            <div class="grid grid-cols-1 sm:grid-cols-2 gap-3 sm:gap-3.5">
                                 @foreach($cfg['principal']['pillars'] ?? [] as $pil)
-                                <div class="card-pillar-brick group">
-                                    <div class="flex items-center gap-2.5 mb-1.5">
-                                        <span class="w-7 h-7 rounded-xl bg-[#EBF4FC] text-[#00519E] border border-blue-200 font-bold text-xs flex items-center justify-center shrink-0 group-hover:bg-[#00519E] group-hover:text-white transition-colors duration-200">
+                                <div class="group p-3.5 sm:p-4 rounded-2xl bg-white border border-slate-200/90 shadow-xs hover:shadow-md hover:border-slate-400 transition-all duration-200">
+                                    <div class="flex items-start gap-3">
+                                        <span class="w-7 h-7 rounded-full bg-slate-100 text-slate-800 border border-slate-300/90 font-mono-code font-bold text-xs flex items-center justify-center shrink-0 group-hover:bg-black group-hover:text-white group-hover:border-black transition-all duration-200 shadow-2xs">
                                             {{ $pil['num'] }}
                                         </span>
-                                        <h4 class="font-bold text-slate-900 text-xs sm:text-sm group-hover:text-[#00519E] transition-colors duration-200">{{ $pil['title'] }}</h4>
+                                        <div class="min-w-0 flex-1">
+                                            <h4 class="font-bold text-slate-900 text-xs sm:text-sm leading-snug group-hover:text-[#00519E] transition-colors duration-200">
+                                                {{ $pil['title'] }}
+                                            </h4>
+                                            <p class="text-[11px] sm:text-xs text-slate-600 leading-relaxed mt-1 font-normal">
+                                                {{ $pil['desc'] }}
+                                            </p>
+                                        </div>
                                     </div>
-                                    <p class="text-[11px] sm:text-xs text-slate-600 leading-normal pl-9 font-normal">{{ $pil['desc'] }}</p>
                                 </div>
                                 @endforeach
                             </div>

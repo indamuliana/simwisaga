@@ -54,7 +54,7 @@
                     </div>
 
                     <!-- Core Quote Text -->
-                    <blockquote class="font-sans text-xl sm:text-2xl md:text-3xl lg:text-4xl text-[#232327] leading-snug sm:leading-relaxed font-extrabold tracking-tight max-w-4xl mx-auto">
+                    <blockquote class="font-manifesto italic text-xl sm:text-2xl md:text-3xl lg:text-4xl text-[#00305F] leading-snug sm:leading-relaxed font-bold tracking-tight max-w-4xl mx-auto">
                         &ldquo;{{ $cfg['welcome']['quote'] ?? 'Di SMK Wikrama 1 Garut, kami mempersiapkan anak bangsa dari berbagai daerah untuk menjadi yang terbaik dalam keahlian yang mereka tekuni, sekaligus menjadi pribadi yang membawa kemaslahatan terbaik bagi keluarga, masyarakat, dan masa depan peradaban.' }}&rdquo;
                     </blockquote>
 
