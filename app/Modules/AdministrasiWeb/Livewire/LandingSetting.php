@@ -78,7 +78,6 @@ class LandingSetting extends Component
     public ?int $mitraIndexEditing = null;
     public array $mitraForm = [
         'name' => '',
-        'text' => '', // Teks bebas samping kiri logo, bisa dibuat 2 baris (Enter)
         'image' => '',
         'url' => '',
         'is_active' => true,
@@ -847,7 +846,6 @@ class LandingSetting extends Component
         $this->mitraImageFile = null;
         $this->mitraForm = [
             'name' => '',
-            'text' => '',
             'image' => '',
             'url' => '',
             'is_active' => true,
@@ -865,7 +863,6 @@ class LandingSetting extends Component
             $item = $this->mitra['items'][$index];
             $this->mitraForm = [
                 'name' => $item['name'] ?? '',
-                'text' => $item['text'] ?? ($item['name'] ?? ''),
                 'image' => $item['image'] ?? '',
                 'url' => $item['url'] ?? '',
                 'is_active' => isset($item['is_active']) ? (bool)$item['is_active'] : true,
