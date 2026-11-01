@@ -171,7 +171,7 @@
             <!-- ── Left & Right Side Navigation Buttons (JIS Navy Hover Glass) ── -->
             <button type="button" 
                     @click="prevSlide()" 
-                    class="absolute left-3 sm:left-6 lg:left-8 top-1/2 -translate-y-1/2 z-30 w-11 h-11 sm:w-14 sm:h-14 rounded-full border border-white/25 bg-slate-950/40 hover:bg-[#00519E] hover:text-white hover:border-[#00519E] hover:scale-105 active:scale-95 text-white backdrop-blur-md flex items-center justify-center transition-all duration-300 shadow-2xl group cursor-pointer"
+                    class="hidden sm:flex absolute left-3 sm:left-6 lg:left-8 top-1/2 -translate-y-1/2 z-30 w-11 h-11 sm:w-14 sm:h-14 rounded-full border border-white/25 bg-slate-950/40 hover:bg-[#00519E] hover:text-white hover:border-[#00519E] hover:scale-105 active:scale-95 text-white backdrop-blur-md items-center justify-center transition-all duration-300 shadow-2xl group cursor-pointer"
                     aria-label="Slide Sebelumnya"
                     title="Slide Sebelumnya"
                     data-cursor="PREV">
@@ -182,7 +182,7 @@
 
             <button type="button" 
                     @click="nextSlide()" 
-                    class="absolute right-3 sm:right-6 lg:right-8 top-1/2 -translate-y-1/2 z-30 w-11 h-11 sm:w-14 sm:h-14 rounded-full border border-white/25 bg-slate-950/40 hover:bg-[#00519E] hover:text-white hover:border-[#00519E] hover:scale-105 active:scale-95 text-white backdrop-blur-md flex items-center justify-center transition-all duration-300 shadow-2xl group cursor-pointer"
+                    class="hidden sm:flex absolute right-3 sm:right-6 lg:right-8 top-1/2 -translate-y-1/2 z-30 w-11 h-11 sm:w-14 sm:h-14 rounded-full border border-white/25 bg-slate-950/40 hover:bg-[#00519E] hover:text-white hover:border-[#00519E] hover:scale-105 active:scale-95 text-white backdrop-blur-md items-center justify-center transition-all duration-300 shadow-2xl group cursor-pointer"
                     aria-label="Slide Berikutnya"
                     title="Slide Berikutnya"
                     data-cursor="NEXT">
@@ -192,7 +192,7 @@
             </button>
 
             <!-- ── Bottom Content Area: JIS Reference Layout (Floating Position & Silky Smooth Slide) ── -->
-            <div class="relative z-20 w-full pb-16 sm:pb-24 lg:pb-28 mb-4 sm:mb-8 lg:mb-12 pt-4 sm:pt-6">
+            <div class="relative z-20 w-full pb-12 sm:pb-24 lg:pb-28 mb-2 sm:mb-8 lg:mb-12 pt-4 sm:pt-6">
                 <div class="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
                     
                     <!-- Slide Counter & Progress Track (JIS Signature) -->
@@ -214,7 +214,7 @@
                     </div>
 
                     <!-- Hairline Divider -->
-                    <div class="border-t border-white/20 w-full pt-6 sm:pt-8">
+                    <div class="border-t border-white/20 w-full pt-5 sm:pt-8">
                         <div class="grid grid-cols-1 items-center [&>*]:col-start-1 [&>*]:row-start-1 relative w-full">
                             @foreach($activeSlides as $idx => $slide)
                             <div class="w-full transition-all duration-500"
@@ -225,11 +225,11 @@
                                  x-transition:enter-end="opacity-100 translate-y-0"
                                  {{ $idx !== 0 ? 'x-cloak' : '' }}>
                                  
-                                <div class="grid grid-cols-1 lg:grid-cols-12 gap-6 lg:gap-8 items-center">
+                                <div class="grid grid-cols-1 lg:grid-cols-12 gap-5 lg:gap-8 items-center text-center lg:text-left">
                                     <!-- Col 1: Main Title (Left) - Silky Smooth Rise -->
                                     <div class="lg:col-span-5 transition-all duration-600 ease-out"
                                          :class="activeIdx === {{ $idx }} ? 'opacity-100 translate-y-0' : 'opacity-0 translate-y-4'">
-                                        <div class="inline-flex items-center gap-2 px-3 py-1 rounded-full bg-white/15 border border-white/25 text-[#F5D84A] text-[10px] sm:text-xs font-bold uppercase tracking-wider mb-2.5 backdrop-blur-xs">
+                                        <div class="inline-flex items-center gap-2 px-3 py-1 rounded-full bg-white/15 border border-white/25 text-[#F5D84A] text-[10px] sm:text-xs font-bold uppercase tracking-wider mb-2.5 backdrop-blur-xs mx-auto lg:mx-0">
                                             <span class="w-1.5 h-1.5 rounded-full bg-[#F5D84A] animate-pulse"></span>
                                             <span>{{ !empty($slide['badge']) ? $slide['badge'] : 'Learning in Indonesia to be Best for the World' }}</span>
                                         </div>
@@ -241,18 +241,18 @@
                                     <!-- Col 2: Description (Middle) - Staggered Silky Smooth Rise -->
                                     <div class="lg:col-span-4 transition-all duration-600 ease-out delay-75"
                                          :class="activeIdx === {{ $idx }} ? 'opacity-100 translate-y-0' : 'opacity-0 translate-y-4'">
-                                        <p class="text-slate-200 text-xs sm:text-sm lg:text-base leading-relaxed font-normal drop-shadow-[0_1px_4px_rgba(0,0,0,0.6)]">
+                                        <p class="text-slate-200 text-xs sm:text-sm lg:text-base leading-relaxed font-normal drop-shadow-[0_1px_4px_rgba(0,0,0,0.6)] max-w-lg mx-auto lg:mx-0">
                                             {{ $slide['desc'] }}
                                         </p>
                                     </div>
 
                                     <!-- Col 3: CTA Button (Right) - JIS Sun Gold Action -->
-                                    <div class="lg:col-span-3 flex lg:justify-end items-center transition-all duration-500 ease-out delay-150"
+                                    <div class="lg:col-span-3 flex justify-center lg:justify-end items-center transition-all duration-500 ease-out delay-150 pt-1 lg:pt-0"
                                          :class="activeIdx === {{ $idx }} ? 'opacity-100 translate-y-0 scale-100' : 'opacity-0 translate-y-3 scale-95'">
                                         <a href="{{ $slide['cta_url'] ?? '#' }}" 
                                            target="{{ $slide['cta_target'] ?? '_self' }}" 
                                            rel="{{ ($slide['cta_target'] ?? '_self') === '_blank' ? 'noopener noreferrer' : '' }}"
-                                           class="btn-jis-pill-gold !py-3.5 !px-8 text-xs sm:text-sm font-bold shadow-2xl hover:scale-105 active:scale-95 transition-all duration-300 inline-flex items-center gap-2 cursor-pointer group/btn"
+                                           class="btn-jis-pill-gold !py-3 sm:!py-3.5 !px-6 sm:!px-8 text-xs sm:text-sm font-bold shadow-2xl hover:scale-105 active:scale-95 transition-all duration-300 inline-flex items-center gap-2 cursor-pointer group/btn"
                                            data-cursor="EXPLORE">
                                             <span>{{ $slide['cta_text'] ?? 'Pelajari Selengkapnya' }}</span>
                                             <span class="text-base font-bold group-hover/btn:translate-x-1.5 transition-transform">&rarr;</span>

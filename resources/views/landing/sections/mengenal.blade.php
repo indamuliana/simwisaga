@@ -79,6 +79,7 @@
                      x-transition:enter-end="opacity-100 translate-y-0"
                      class="flex items-stretch gap-5 sm:gap-6 overflow-x-auto no-scrollbar scroll-smooth snap-x snap-mandatory py-2 -mx-4 px-4 sm:mx-0 sm:px-0">
                     @foreach($tabData['cards'] ?? [] as $idx => $c)
+                    @if(!isset($c['is_active']) || (bool)$c['is_active'])
                     @php
                         $cardImg = \App\Modules\AdministrasiWeb\Models\WebSetting::resolveImageUrl($c['image'] ?? null, 'images/web/campus-environment.jpg');
                         $cardUrl = !empty($c['url']) ? $c['url'] : '#';
@@ -139,6 +140,7 @@
                             </div>
                         </div>
                     </a>
+                    @endif
                     @endforeach
                 </div>
                 @endforeach

@@ -61,6 +61,11 @@
                 class="py-2.5 px-4 text-xs sm:text-sm font-bold rounded-t-xl transition-all border-b-2 {{ $activeTab === 'mitra' ? 'border-primary text-primary bg-surface' : 'border-transparent text-text-secondary hover:text-text-main' }}">
             🤝 Mitra Link &amp; Match (BMW)
         </button>
+        <button type="button" 
+                wire:click="$set('activeTab', 'get_to_know')" 
+                class="py-2.5 px-4 text-xs sm:text-sm font-bold rounded-t-xl transition-all border-b-2 {{ $activeTab === 'get_to_know' ? 'border-primary text-primary bg-surface' : 'border-transparent text-text-secondary hover:text-text-main' }}">
+            🌟 Mengenal Lebih Dekat
+        </button>
     </div>
 
     <form wire:submit="save" class="space-y-6">
@@ -1053,6 +1058,174 @@
         </div>
         @endif
 
+        {{-- ── TAB 7: MENGENAL LEBIH DEKAT ── --}}
+        @if ($activeTab === 'get_to_know')
+        <div class="space-y-6">
+            <!-- Header Section Settings -->
+            <div class="card space-y-4">
+                <div class="flex items-center justify-between border-b border-border pb-3">
+                    <div>
+                        <h2 class="text-base font-bold text-text-main">Pengaturan Judul Section Mengenal Lebih Dekat</h2>
+                        <p class="text-xs text-text-secondary">
+                            Badge tag, judul utama, dan subjudul pengantar section program unggulan sekolah.
+                        </p>
+                    </div>
+                    <button type="button" 
+                            wire:click="saveGetToKnowHeadings" 
+                            class="btn btn-xs btn-primary inline-flex items-center gap-1.5 cursor-pointer">
+                        <svg class="w-3.5 h-3.5" fill="none" viewBox="0 0 24 24" stroke="currentColor"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M5 13l4 4L19 7"/></svg>
+                        <span>Simpan Judul &amp; Tag</span>
+                    </button>
+                </div>
+                <div class="grid gap-4 sm:grid-cols-2">
+                    <div>
+                        <label class="label">Badge Tag (Kapsul Atas)</label>
+                        <input type="text" wire:model="get_to_know.tag" class="input text-xs" placeholder="Mengenal Lebih Dekat">
+                    </div>
+                    <div>
+                        <label class="label">Judul Utama Section</label>
+                        <input type="text" wire:model="get_to_know.title" class="input text-xs" placeholder="Menemukan Potensi Sejati di Wikrama">
+                    </div>
+                </div>
+                <div>
+                    <label class="label">Subjudul / Paragraf Pengantar</label>
+                    <textarea wire:model="get_to_know.subtitle" rows="2" class="input text-xs" placeholder="Deskripsi ringkas section..."></textarea>
+                </div>
+            </div>
+
+            <!-- Categories & Cards Management -->
+            <div class="card space-y-5">
+                <div class="flex flex-col sm:flex-row sm:items-center sm:justify-between gap-3 border-b border-border pb-4">
+                    <div>
+                        <h2 class="text-base font-bold text-text-main">Daftar Kartu Program per Kategori</h2>
+                        <p class="text-xs text-text-secondary">
+                            Pilih kategori untuk melihat dan mengelola kartu program yang tampil di carousel landing page.
+                        </p>
+                    </div>
+                    <button type="button" 
+                            wire:click="openCreateKnowModal('{{ $activeKnowSubTab }}')" 
+                            class="btn btn-sm btn-primary inline-flex items-center gap-1.5 self-start sm:self-auto cursor-pointer">
+                        <svg class="w-4 h-4" fill="none" viewBox="0 0 24 24" stroke="currentColor"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 4v16m8-8H4"/></svg>
+                        <span>+ Tambah Kartu Baru</span>
+                    </button>
+                </div>
+
+                <!-- Sub-tab Category Selector -->
+                <div class="flex items-center gap-2 border-b border-border pb-3 overflow-x-auto">
+                    @foreach(['admissions' => 'Penerimaan Siswa', 'academics' => 'Kompetensi Keahlian', 'boarding' => 'Boarding & Karakter'] as $catKey => $catLabel)
+                    <button type="button" 
+                            wire:click="$set('activeKnowSubTab', '{{ $catKey }}')"
+                            class="px-4 py-2 rounded-xl text-xs sm:text-sm font-bold transition-all cursor-pointer {{ $activeKnowSubTab === $catKey ? 'bg-primary text-white shadow-xs' : 'bg-surface-raised text-text-secondary hover:text-text-main' }}">
+                        {{ $get_to_know['tabs'][$catKey]['name'] ?? $catLabel }}
+                        ({{ count($get_to_know['tabs'][$catKey]['cards'] ?? []) }})
+                    </button>
+                    @endforeach
+                </div>
+
+                @php
+                    $currentCards = $get_to_know['tabs'][$activeKnowSubTab]['cards'] ?? [];
+                @endphp
+
+                @if (empty($currentCards))
+                <div class="text-center py-10 text-text-muted">
+                    <p class="text-sm font-medium">Belum ada kartu program pada kategori ini.</p>
+                    <button type="button" 
+                            wire:click="openCreateKnowModal('{{ $activeKnowSubTab }}')" 
+                            class="btn btn-sm btn-outline mt-3 inline-flex items-center gap-1">
+                        <span>+ Tambah Kartu Pertama</span>
+                    </button>
+                </div>
+                @else
+                <div class="space-y-3">
+                    @foreach ($currentCards as $cIdx => $card)
+                    <div class="p-3.5 sm:p-4 rounded-2xl border border-border bg-surface hover:border-primary/40 transition-all flex flex-col md:flex-row md:items-center justify-between gap-4 shadow-2xs {{ !($card['is_active'] ?? true) ? 'opacity-60 bg-surface-raised/40' : '' }}">
+                        <div class="flex items-center gap-4 min-w-0">
+                            <!-- Reorder Handles -->
+                            <div class="flex flex-col items-center gap-1 shrink-0">
+                                <button type="button" 
+                                        wire:click="moveKnowCardUp('{{ $activeKnowSubTab }}', {{ $cIdx }})" 
+                                        @if($cIdx === 0) disabled @endif
+                                        class="p-1 rounded hover:bg-surface-raised text-text-muted hover:text-text-main disabled:opacity-30 disabled:cursor-not-allowed"
+                                        title="Pindah ke Atas">
+                                    <svg class="w-4 h-4" fill="none" viewBox="0 0 24 24" stroke="currentColor"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M5 15l7-7 7 7"/></svg>
+                                </button>
+                                <span class="text-[11px] font-bold text-text-muted select-none">
+                                    #{{ $cIdx + 1 }}
+                                </span>
+                                <button type="button" 
+                                        wire:click="moveKnowCardDown('{{ $activeKnowSubTab }}', {{ $cIdx }})" 
+                                        @if($cIdx === count($currentCards) - 1) disabled @endif
+                                        class="p-1 rounded hover:bg-surface-raised text-text-muted hover:text-text-main disabled:opacity-30 disabled:cursor-not-allowed"
+                                        title="Pindah ke Bawah">
+                                    <svg class="w-4 h-4" fill="none" viewBox="0 0 24 24" stroke="currentColor"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M19 9l-7 7-7-7"/></svg>
+                                </button>
+                            </div>
+
+                            <!-- Image Thumbnail Preview -->
+                            <div class="h-16 w-24 sm:w-28 rounded-xl overflow-hidden bg-slate-100 border border-slate-200 shrink-0 relative">
+                                <img src="{{ \App\Modules\AdministrasiWeb\Models\WebSetting::resolveImageUrl($card['image'] ?? null, 'images/web/campus-environment.jpg') }}" 
+                                     alt="{{ $card['title'] ?? 'Card' }}" 
+                                     class="w-full h-full object-cover">
+                                @if(!empty($card['badge']))
+                                <span class="absolute top-1 left-1 bg-black/70 text-white text-[9px] font-bold px-1.5 py-0.5 rounded">
+                                    {{ $card['badge'] }}
+                                </span>
+                                @endif
+                            </div>
+
+                            <!-- Text Details -->
+                            <div class="min-w-0">
+                                <div class="flex items-center gap-2 flex-wrap">
+                                    <h3 class="text-sm font-bold text-text-main truncate">
+                                        {{ $card['title'] ?: 'Kartu Tanpa Judul' }}
+                                    </h3>
+                                    @if(!($card['is_active'] ?? true))
+                                    <span class="badge badge-neutral text-[10px]">Nonaktif</span>
+                                    @endif
+                                </div>
+                                <p class="text-xs text-text-secondary line-clamp-1 mt-0.5">
+                                    {{ $card['desc'] ?? '-' }}
+                                </p>
+                                <div class="flex items-center gap-3 mt-1.5 text-[11px] text-text-muted font-medium flex-wrap">
+                                    <span>Teks Tombol: <strong class="text-text-main">{{ $card['cta'] ?? 'Pelajari Selengkapnya' }}</strong></span>
+                                    @if(!empty($card['url']))
+                                    <span>&bull; URL: <code class="text-primary">{{ $card['url'] }}</code></span>
+                                    @endif
+                                </div>
+                            </div>
+                        </div>
+
+                        <!-- Action Buttons -->
+                        <div class="flex items-center gap-2 shrink-0 self-end md:self-center">
+                            <button type="button" 
+                                    wire:click="toggleKnowCardActive('{{ $activeKnowSubTab }}', {{ $cIdx }})" 
+                                    class="btn btn-xs {{ !($card['is_active'] ?? true) ? 'btn-success' : 'btn-outline' }}">
+                                {{ !($card['is_active'] ?? true) ? 'Aktifkan' : 'Nonaktifkan' }}
+                            </button>
+                            <button type="button" 
+                                    wire:click="openEditKnowModal('{{ $activeKnowSubTab }}', {{ $cIdx }})" 
+                                    class="btn btn-xs btn-outline inline-flex items-center gap-1"
+                                    title="Edit Kartu">
+                                <svg class="w-3.5 h-3.5" fill="none" viewBox="0 0 24 24" stroke="currentColor"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M11 5H6a2 2 0 00-2 2v11a2 2 0 002 2h11a2 2 0 002-2v-5m-1.414-9.414a2 2 0 112.828 2.828L11.828 15H9v-2.828l8.586-8.586z"/></svg>
+                                <span>Edit</span>
+                            </button>
+                            <button type="button" 
+                                    wire:click="deleteKnowCard('{{ $activeKnowSubTab }}', {{ $cIdx }})" 
+                                    wire:confirm="Yakin ingin menghapus kartu program ini?" 
+                                    class="btn btn-xs btn-danger inline-flex items-center gap-1"
+                                    title="Hapus Kartu">
+                                <svg class="w-3.5 h-3.5" fill="none" viewBox="0 0 24 24" stroke="currentColor"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M19 7l-.867 12.142A2 2 0 0116.138 21H7.862a2 2 0 01-1.995-1.858L5 7m5 4v6m4-6v6m1-10V4a1 1 0 00-1-1h-4a1 1 0 00-1 1v3M4 7h16"/></svg>
+                                <span>Hapus</span>
+                            </button>
+                        </div>
+                    </div>
+                    @endforeach
+                </div>
+                @endif
+            </div>
+        </div>
+        @endif
+
         <!-- Floating/Sticky Save Button Bar -->
         <div class="sticky bottom-4 z-20 flex items-center justify-between p-4 rounded-2xl bg-surface/90 backdrop-blur-md border border-border shadow-xl">
             <span class="text-xs text-text-secondary hidden sm:inline">
@@ -1240,6 +1413,99 @@
                 </button>
                 <button type="button" wire:click="saveMitra" class="btn btn-primary text-xs px-5 cursor-pointer">
                     Simpan Mitra
+                </button>
+            </div>
+        </div>
+    </div>
+    @endif
+
+    {{-- ── MODAL FORM TAMBAH / EDIT KARTU MENGENAL LEBIH DEKAT ── --}}
+    @if ($showKnowModal)
+    <div class="fixed inset-0 z-50 flex items-center justify-center p-4 bg-black/60 backdrop-blur-xs overflow-y-auto">
+        <div class="bg-surface border border-border rounded-3xl p-6 sm:p-8 max-w-xl w-full shadow-2xl space-y-5 my-8">
+            <div class="flex items-center justify-between border-b border-border pb-3">
+                <div>
+                    <h3 class="text-lg font-bold text-text-main">
+                        {{ $knowIndexEditing !== null ? 'Edit Kartu Program' : 'Tambah Kartu Program Baru' }}
+                    </h3>
+                    <p class="text-xs text-text-secondary">
+                        Kategori: <strong class="text-primary">{{ $get_to_know['tabs'][$knowCategoryEditing]['name'] ?? ucfirst($knowCategoryEditing) }}</strong>
+                    </p>
+                </div>
+                <button type="button" wire:click="closeKnowModal" class="p-1 rounded-lg text-text-muted hover:text-text-main hover:bg-surface-raised cursor-pointer">
+                    <svg class="w-5 h-5" fill="none" viewBox="0 0 24 24" stroke="currentColor"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M6 18L18 6M6 6l12 12"/></svg>
+                </button>
+            </div>
+
+            <div class="space-y-4">
+                <!-- Foto Kartu & Preview -->
+                <div>
+                    <label class="label">Upload Foto Kartu</label>
+                    <div class="flex items-center gap-4">
+                        <div class="w-24 h-24 rounded-2xl overflow-hidden bg-slate-100 border border-slate-200 shrink-0">
+                            <img src="{{ $this->knowCardImagePreview }}" alt="Preview" class="w-full h-full object-cover">
+                        </div>
+                        <div class="flex-1 space-y-1.5">
+                            <input type="file" wire:model="knowCardImageFile" accept="image/*" class="input text-xs py-1.5">
+                            <p class="text-[11px] text-text-muted">
+                                Format JPG/PNG/WebP, disarankan orientasi lanskap/vertikal tajam. Maksimal 5MB.
+                            </p>
+                            @error('knowCardImageFile') <span class="error">{{ $message }}</span> @enderror
+                        </div>
+                    </div>
+                </div>
+
+                <!-- Judul & Badge -->
+                <div class="grid gap-3 sm:grid-cols-2">
+                    <div>
+                        <label class="label">Judul Kartu</label>
+                        <input type="text" wire:model="knowCardForm.title" class="input text-xs" placeholder="Contoh: Jadwalkan Tur Kampus">
+                        @error('knowCardForm.title') <span class="error">{{ $message }}</span> @enderror
+                    </div>
+                    <div>
+                        <label class="label">Badge / Sub-Kategori</label>
+                        <input type="text" wire:model="knowCardForm.badge" class="input text-xs" placeholder="Contoh: Kunjungan Langsung">
+                        @error('knowCardForm.badge') <span class="error">{{ $message }}</span> @enderror
+                    </div>
+                </div>
+
+                <!-- Deskripsi Singkat -->
+                <div>
+                    <label class="label">Deskripsi Singkat</label>
+                    <textarea wire:model="knowCardForm.desc" rows="2" class="input text-xs" placeholder="Ringkasan singkat program..."></textarea>
+                    @error('knowCardForm.desc') <span class="error">{{ $message }}</span> @enderror
+                </div>
+
+                <!-- Teks CTA & Tautan URL -->
+                <div class="grid gap-3 sm:grid-cols-2">
+                    <div>
+                        <label class="label">Teks Tombol CTA</label>
+                        <input type="text" wire:model="knowCardForm.cta" class="input text-xs" placeholder="Contoh: Pelajari Selengkapnya">
+                        @error('knowCardForm.cta') <span class="error">{{ $message }}</span> @enderror
+                    </div>
+                    <div>
+                        <label class="label">Tautan URL</label>
+                        <input type="text" wire:model="knowCardForm.url" class="input text-xs" placeholder="Contoh: #jurusan atau https://...">
+                        @error('knowCardForm.url') <span class="error">{{ $message }}</span> @enderror
+                    </div>
+                </div>
+
+                <!-- Checkbox Aktif -->
+                <div class="flex items-center gap-2 pt-2">
+                    <input type="checkbox" id="know_card_is_active" wire:model="knowCardForm.is_active" class="rounded border-border text-primary focus:ring-primary w-4 h-4">
+                    <label for="know_card_is_active" class="text-sm font-semibold text-text-main cursor-pointer">
+                        Aktifkan &amp; tampilkan kartu ini pada landing page
+                    </label>
+                </div>
+            </div>
+
+            <!-- Modal Action Buttons -->
+            <div class="flex items-center justify-end gap-3 pt-4 border-t border-border">
+                <button type="button" wire:click="closeKnowModal" class="btn btn-outline text-xs cursor-pointer">
+                    Batal
+                </button>
+                <button type="button" wire:click="saveKnowCard" class="btn btn-primary text-xs px-5 cursor-pointer">
+                    Simpan Kartu
                 </button>
             </div>
         </div>

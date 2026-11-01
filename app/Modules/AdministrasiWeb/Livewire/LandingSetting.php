@@ -84,6 +84,23 @@ class LandingSetting extends Component
     ];
     public $mitraImageFile = null;
 
+    // Mengenal Lebih Dekat settings & modal management
+    public array $get_to_know = [];
+    public string $activeKnowSubTab = 'admissions';
+    public bool $showKnowModal = false;
+    public ?int $knowIndexEditing = null;
+    public ?string $knowCategoryEditing = null;
+    public array $knowCardForm = [
+        'title' => '',
+        'badge' => '',
+        'desc' => '',
+        'image' => '',
+        'cta' => 'Pelajari Selengkapnya',
+        'url' => '',
+        'is_active' => true,
+    ];
+    public $knowCardImageFile = null;
+
     public function mount(): void
     {
         $this->loadData();
@@ -99,6 +116,7 @@ class LandingSetting extends Component
         $this->principal = WebSetting::getGroup('principal');
         $this->student_moments = WebSetting::getGroup('student_moments');
         $this->mitra = WebSetting::getGroup('mitra');
+        $this->get_to_know = WebSetting::getGroup('get_to_know');
 
         if (empty($this->fast_facts)) {
             $this->fast_facts = config('landing.fast_facts', []);
@@ -461,6 +479,7 @@ class LandingSetting extends Component
         WebSetting::setGroup('principal', $this->principal);
         WebSetting::setGroup('student_moments', $this->student_moments);
         WebSetting::setGroup('mitra', $this->mitra);
+        WebSetting::setGroup('get_to_know', $this->get_to_know);
 
         session()->flash('message', 'Pengaturan landing page berhasil disimpan dan langsung aktif di halaman depan!');
     }
@@ -957,11 +976,167 @@ class LandingSetting extends Component
         }
     }
 
+    public function getKnowCardImagePreviewProperty(): string
+    {
+        if ($this->knowCardImageFile) {
+            try {
+                return $this->knowCardImageFile->temporaryUrl();
+            } catch (\Throwable $e) {
+                // Ignore temporaryUrl errors
+            }
+        }
+
+        return WebSetting::resolveImageUrl(
+            $this->knowCardForm['image'] ?? null,
+            'images/web/campus-environment.jpg'
+        );
+    }
+
+    public function saveGetToKnowHeadings(): void
+    {
+        abort_unless(auth()->user()->can('web.landing.edit'), 403, 'Anda tidak memiliki hak akses.');
+
+        WebSetting::setGroup('get_to_know', $this->get_to_know);
+        session()->flash('message', 'Judul & Tag section Mengenal Lebih Dekat berhasil disimpan!');
+    }
+
+    public function openCreateKnowModal(string $category): void
+    {
+        $this->resetErrorBag();
+        $this->knowCategoryEditing = $category;
+        $this->knowIndexEditing = null;
+        $this->knowCardImageFile = null;
+        $this->knowCardForm = [
+            'title' => '',
+            'badge' => '',
+            'desc' => '',
+            'image' => '',
+            'cta' => 'Pelajari Selengkapnya',
+            'url' => '#',
+            'is_active' => true,
+        ];
+        $this->showKnowModal = true;
+    }
+
+    public function openEditKnowModal(string $category, int $index): void
+    {
+        $this->resetErrorBag();
+        $this->knowCategoryEditing = $category;
+        $this->knowIndexEditing = $index;
+        $this->knowCardImageFile = null;
+
+        if (isset($this->get_to_know['tabs'][$category]['cards'][$index])) {
+            $item = $this->get_to_know['tabs'][$category]['cards'][$index];
+            $this->knowCardForm = [
+                'title' => $item['title'] ?? '',
+                'badge' => $item['badge'] ?? '',
+                'desc' => $item['desc'] ?? '',
+                'image' => $item['image'] ?? '',
+                'cta' => $item['cta'] ?? 'Pelajari Selengkapnya',
+                'url' => $item['url'] ?? '#',
+                'is_active' => isset($item['is_active']) ? (bool)$item['is_active'] : true,
+            ];
+            $this->showKnowModal = true;
+        }
+    }
+
+    public function closeKnowModal(): void
+    {
+        $this->showKnowModal = false;
+        $this->knowCategoryEditing = null;
+        $this->knowIndexEditing = null;
+        $this->knowCardImageFile = null;
+    }
+
+    public function saveKnowCard(): void
+    {
+        abort_unless(auth()->user()->can('web.landing.edit'), 403, 'Anda tidak memiliki hak akses.');
+
+        $this->validate([
+            'knowCardForm.title' => 'required|string|max:255',
+            'knowCardForm.badge' => 'nullable|string|max:100',
+            'knowCardForm.desc' => 'nullable|string|max:500',
+            'knowCardForm.cta' => 'nullable|string|max:100',
+            'knowCardForm.url' => 'nullable|string|max:500',
+            'knowCardImageFile' => 'nullable|image|max:5120',
+        ]);
+
+        $category = $this->knowCategoryEditing ?: 'admissions';
+
+        if ($this->knowCardImageFile) {
+            $path = $this->knowCardImageFile->store('web/get_to_know', 'public');
+            $this->knowCardForm['image'] = $path;
+            $this->knowCardImageFile = null;
+        }
+
+        if (!isset($this->get_to_know['tabs'][$category]['cards'])) {
+            $this->get_to_know['tabs'][$category]['cards'] = [];
+        }
+
+        if ($this->knowIndexEditing !== null && isset($this->get_to_know['tabs'][$category]['cards'][$this->knowIndexEditing])) {
+            $this->get_to_know['tabs'][$category]['cards'][$this->knowIndexEditing] = $this->knowCardForm;
+        } else {
+            $this->get_to_know['tabs'][$category]['cards'][] = $this->knowCardForm;
+        }
+
+        // Auto save to database
+        WebSetting::setGroup('get_to_know', $this->get_to_know);
+
+        $this->closeKnowModal();
+        session()->flash('message', 'Kartu program Mengenal Lebih Dekat berhasil disimpan!');
+    }
+
+    public function deleteKnowCard(string $category, int $index): void
+    {
+        abort_unless(auth()->user()->can('web.landing.edit'), 403, 'Anda tidak memiliki hak akses.');
+
+        if (isset($this->get_to_know['tabs'][$category]['cards'][$index])) {
+            array_splice($this->get_to_know['tabs'][$category]['cards'], $index, 1);
+            WebSetting::setGroup('get_to_know', $this->get_to_know);
+            session()->flash('message', 'Kartu program berhasil dihapus.');
+        }
+    }
+
+    public function moveKnowCardUp(string $category, int $index): void
+    {
+        abort_unless(auth()->user()->can('web.landing.edit'), 403, 'Anda tidak memiliki hak akses.');
+
+        if ($index > 0 && isset($this->get_to_know['tabs'][$category]['cards'][$index])) {
+            $temp = $this->get_to_know['tabs'][$category]['cards'][$index - 1];
+            $this->get_to_know['tabs'][$category]['cards'][$index - 1] = $this->get_to_know['tabs'][$category]['cards'][$index];
+            $this->get_to_know['tabs'][$category]['cards'][$index] = $temp;
+            WebSetting::setGroup('get_to_know', $this->get_to_know);
+        }
+    }
+
+    public function moveKnowCardDown(string $category, int $index): void
+    {
+        abort_unless(auth()->user()->can('web.landing.edit'), 403, 'Anda tidak memiliki hak akses.');
+
+        $count = count($this->get_to_know['tabs'][$category]['cards'] ?? []);
+        if ($index < $count - 1 && isset($this->get_to_know['tabs'][$category]['cards'][$index])) {
+            $temp = $this->get_to_know['tabs'][$category]['cards'][$index + 1];
+            $this->get_to_know['tabs'][$category]['cards'][$index + 1] = $this->get_to_know['tabs'][$category]['cards'][$index];
+            $this->get_to_know['tabs'][$category]['cards'][$index] = $temp;
+            WebSetting::setGroup('get_to_know', $this->get_to_know);
+        }
+    }
+
+    public function toggleKnowCardActive(string $category, int $index): void
+    {
+        abort_unless(auth()->user()->can('web.landing.edit'), 403, 'Anda tidak memiliki hak akses.');
+
+        if (isset($this->get_to_know['tabs'][$category]['cards'][$index])) {
+            $this->get_to_know['tabs'][$category]['cards'][$index]['is_active'] = !($this->get_to_know['tabs'][$category]['cards'][$index]['is_active'] ?? true);
+            WebSetting::setGroup('get_to_know', $this->get_to_know);
+        }
+    }
+
     public function resetToDefault(): void
     {
         abort_unless(auth()->user()->can('web.landing.edit'), 403, 'Anda tidak memiliki hak akses untuk mereset pengaturan landing page.');
 
-        WebSetting::whereIn('group', ['announcement', 'branding', 'hero', 'welcome', 'student_moments', 'mitra'])->delete();
+        WebSetting::whereIn('group', ['announcement', 'branding', 'hero', 'welcome', 'student_moments', 'mitra', 'get_to_know'])->delete();
         $this->loadData();
         session()->flash('message', 'Pengaturan berhasil direset ke konfigurasi awal file landing.php!');
     }
