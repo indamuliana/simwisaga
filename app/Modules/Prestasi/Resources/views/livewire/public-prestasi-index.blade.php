@@ -304,7 +304,8 @@
             <div class="flex items-center gap-2.5 overflow-x-auto pb-2 sm:pb-0 scrollbar-none border-b border-slate-100">
                 <!-- Tab Semua -->
                 <a href="{{ url('/prestasi') }}" wire:click.prevent="setTab('semua')"
-                   class="px-5 py-2.5 rounded-2xl text-xs sm:text-sm font-bold transition-all shrink-0 flex items-center gap-2 {{ $tab === 'semua' ? 'bg-[#00519E] text-white border border-[#00305F] shadow-sm shadow-blue-900/20' : 'bg-white text-slate-700 border border-slate-200/90 hover:bg-slate-50 hover:border-slate-300' }}">
+                   style="{{ $tab === 'semua' ? 'background-color: #059669 !important; color: #FFFFFF !important; border-color: #047857 !important;' : '' }}"
+                   class="px-5 py-2.5 rounded-2xl text-xs sm:text-sm font-bold transition-all shrink-0 flex items-center gap-2 {{ $tab === 'semua' ? 'bg-[#059669] text-white border border-[#047857] shadow-sm shadow-emerald-900/20' : 'bg-white text-slate-700 border border-slate-200/90 hover:bg-slate-50 hover:border-slate-300' }}">
                     <span>✨ Semua Capaian</span>
                     <span class="px-2 py-0.5 rounded-full text-[10px] font-extrabold {{ $tab === 'semua' ? 'bg-white/20 text-white' : 'bg-slate-100 text-slate-700 border border-slate-200/60' }}">
                         {{ $stats['total'] }}
@@ -313,7 +314,8 @@
 
                 <!-- Tab Sekolah -->
                 <a href="{{ url('/prestasi/sekolah') }}" wire:click.prevent="setTab('sekolah')"
-                   class="px-5 py-2.5 rounded-2xl text-xs sm:text-sm font-bold transition-all shrink-0 flex items-center gap-2 {{ $tab === 'sekolah' ? 'bg-[#7C3AED] text-white border border-[#6D28D9] shadow-sm shadow-purple-900/20' : 'bg-white text-slate-700 border border-slate-200/90 hover:bg-slate-50 hover:border-slate-300' }}">
+                   style="{{ $tab === 'sekolah' ? 'background-color: #059669 !important; color: #FFFFFF !important; border-color: #047857 !important;' : '' }}"
+                   class="px-5 py-2.5 rounded-2xl text-xs sm:text-sm font-bold transition-all shrink-0 flex items-center gap-2 {{ $tab === 'sekolah' ? 'bg-[#059669] text-white border border-[#047857] shadow-sm shadow-emerald-900/20' : 'bg-white text-slate-700 border border-slate-200/90 hover:bg-slate-50 hover:border-slate-300' }}">
                     <span>🏛️ Prestasi Sekolah</span>
                     <span class="px-2 py-0.5 rounded-full text-[10px] font-extrabold {{ $tab === 'sekolah' ? 'bg-white/20 text-white' : 'bg-slate-100 text-slate-700 border border-slate-200/60' }}">
                         {{ $stats['sekolah'] }}
@@ -322,7 +324,8 @@
 
                 <!-- Tab Guru -->
                 <a href="{{ url('/prestasi/guru') }}" wire:click.prevent="setTab('guru')"
-                   class="px-5 py-2.5 rounded-2xl text-xs sm:text-sm font-bold transition-all shrink-0 flex items-center gap-2 {{ $tab === 'guru' ? 'bg-[#0284C7] text-white border border-[#0369A1] shadow-sm shadow-sky-900/20' : 'bg-white text-slate-700 border border-slate-200/90 hover:bg-slate-50 hover:border-slate-300' }}">
+                   style="{{ $tab === 'guru' ? 'background-color: #059669 !important; color: #FFFFFF !important; border-color: #047857 !important;' : '' }}"
+                   class="px-5 py-2.5 rounded-2xl text-xs sm:text-sm font-bold transition-all shrink-0 flex items-center gap-2 {{ $tab === 'guru' ? 'bg-[#059669] text-white border border-[#047857] shadow-sm shadow-emerald-900/20' : 'bg-white text-slate-700 border border-slate-200/90 hover:bg-slate-50 hover:border-slate-300' }}">
                     <span>👨‍🏫 Guru &amp; Tendik</span>
                     <span class="px-2 py-0.5 rounded-full text-[10px] font-extrabold {{ $tab === 'guru' ? 'bg-white/20 text-white' : 'bg-slate-100 text-slate-700 border border-slate-200/60' }}">
                         {{ $stats['guru'] }}
@@ -331,6 +334,7 @@
 
                 <!-- Tab Siswa -->
                 <a href="{{ url('/prestasi/siswa') }}" wire:click.prevent="setTab('siswa')"
+                   style="{{ $tab === 'siswa' ? 'background-color: #059669 !important; color: #FFFFFF !important; border-color: #047857 !important;' : '' }}"
                    class="px-5 py-2.5 rounded-2xl text-xs sm:text-sm font-bold transition-all shrink-0 flex items-center gap-2 {{ $tab === 'siswa' ? 'bg-[#059669] text-white border border-[#047857] shadow-sm shadow-emerald-900/20' : 'bg-white text-slate-700 border border-slate-200/90 hover:bg-slate-50 hover:border-slate-300' }}">
                     <span>🎓 Siswa &amp; Santri</span>
                     <span class="px-2 py-0.5 rounded-full text-[10px] font-extrabold {{ $tab === 'siswa' ? 'bg-white/20 text-white' : 'bg-slate-100 text-slate-700 border border-slate-200/60' }}">
