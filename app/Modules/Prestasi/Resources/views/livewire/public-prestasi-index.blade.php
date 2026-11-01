@@ -38,7 +38,7 @@
         <div class="absolute inset-0 pointer-events-none z-0 opacity-10"
              style="background-image: radial-gradient(#FFFFFF 1.2px, transparent 1.2px); background-size: 28px 28px;"></div>
 
-        <div class="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 relative z-10 pt-8 sm:pt-12 pb-14 sm:pb-16">
+        <div class="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 relative z-10 pt-8 sm:pt-14 pb-16 sm:pb-20 min-h-[460px] sm:min-h-[500px] flex flex-col justify-center">
             <!-- Breadcrumbs -->
             <nav class="flex items-center gap-2 text-xs font-semibold text-blue-200/80 mb-6 sm:mb-8" aria-label="Breadcrumb">
                 <a href="{{ url('/') }}" class="hover:text-white transition-colors duration-200">Beranda</a>
@@ -74,17 +74,6 @@
                     <p class="text-sm sm:text-base text-blue-100/90 leading-relaxed font-normal max-w-xl">
                         {{ $currentTabInfo['subtitle'] }}
                     </p>
-
-                    <!-- Total Live Metric Badge -->
-                    <div class="pt-2 flex items-center gap-3">
-                        <div class="inline-flex items-center gap-2 px-3.5 py-1.5 rounded-xl bg-white/10 border border-white/15 text-xs text-blue-100">
-                            <svg class="w-4 h-4 text-amber-400" fill="none" stroke="currentColor" stroke-width="2" viewBox="0 0 24 24">
-                                <path stroke-linecap="round" stroke-linejoin="round" d="M16.5 18.75h-9m9 0a3 3 0 013 3h-15a3 3 0 013-3m9 0v-3.375c0-.621-.504-1.125-1.125-1.125h-.871M7.5 18.75v-3.375c0-.621.504-1.125 1.125-1.125h.872m5.004-4.5H8.496m8.008 0a6 6 0 00-4.004-5.659 6 6 0 00-4.004 5.66M16.5 10.875A3.375 3.375 0 0019.875 7.5v-1.5A2.25 2.25 0 0017.625 3.75h-1.125m-9 7.125A3.375 3.375 0 014.125 7.5v-1.5A2.25 2.25 0 016.375 3.75h1.125"/>
-                            </svg>
-                            <span class="font-extrabold text-white">{{ $stats['total'] }}</span>
-                            <span class="text-blue-200/80">Total Penghargaan Terdata</span>
-                        </div>
-                    </div>
                 </div>
 
                 <!-- Right Column: High-Craft Framed Visual Emblem / Photo (lg:col-span-5) -->
