@@ -406,23 +406,28 @@
                         </div>
 
                         <!-- Toggle Jadikan Highlight -->
-                        <div class="p-3.5 rounded-xl bg-amber-50/70 border border-amber-200/90 flex items-center justify-between gap-3">
+                        <label for="guru_toggle_highlight" 
+                               class="p-3.5 rounded-xl border flex items-center justify-between gap-3 cursor-pointer select-none transition-all {{ $isHighlight ? 'bg-amber-50 border-amber-300 ring-1 ring-amber-400' : 'bg-slate-50/80 border-slate-200 hover:bg-slate-100/80' }}">
                             <div class="flex items-center gap-2.5">
-                                <span class="text-xl">⭐</span>
+                                <span class="text-2xl">{{ $isHighlight ? '⭐' : '☆' }}</span>
                                 <div>
-                                    <label for="guru_toggle_highlight" class="text-xs font-bold text-slate-800 block cursor-pointer">
+                                    <span class="text-xs font-bold text-slate-800 block">
                                         Jadikan Prestasi Highlight
-                                    </label>
+                                    </span>
                                     <span class="text-[11px] text-slate-500 block">
                                         Tampilkan prestasi ini pada carousel highlight di halaman publik /prestasi
                                     </span>
                                 </div>
                             </div>
-                            <label class="relative inline-flex items-center cursor-pointer shrink-0">
-                                <input type="checkbox" id="guru_toggle_highlight" wire:model="isHighlight" class="sr-only peer">
-                                <div class="w-11 h-6 bg-slate-200 peer-focus:outline-none rounded-full peer peer-checked:after:translate-x-full peer-checked:after:border-white after:content-[''] after:absolute after:top-[2px] after:left-[2px] after:bg-white after:border-slate-300 after:border after:rounded-full after:h-5 after:w-5 after:transition-all peer-checked:bg-amber-500"></div>
-                            </label>
-                        </div>
+                            <div class="flex items-center gap-2 shrink-0">
+                                <span class="text-[11px] font-extrabold {{ $isHighlight ? 'text-amber-700' : 'text-slate-400' }}">
+                                    {{ $isHighlight ? 'AKTIF' : 'NONAKTIF' }}
+                                </span>
+                                <input type="checkbox" id="guru_toggle_highlight" wire:model.live="isHighlight" 
+                                       class="rounded border-slate-300 text-amber-600 focus:ring-amber-500 cursor-pointer"
+                                       style="accent-color: #d97706; width: 22px; height: 22px;">
+                            </div>
+                        </label>
                     </div>
 
                 </div>
