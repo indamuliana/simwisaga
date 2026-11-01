@@ -42,7 +42,7 @@
                      },
 
                      goToSlide(idx) {
-                         this.activeIdx = (idx + this.slidesCount) % this.slidesCount;
+                         this.activeIdx = ((idx % this.slidesCount) + this.slidesCount) % this.slidesCount;
                          this.handleSlideChange();
                      },
 
@@ -171,25 +171,25 @@
                 @endforeach
             </div>
 
-            <!-- ── Left & Right Side Navigation Buttons (JIS Navy Hover Glass) ── -->
+            <!-- ── Left & Right Side Navigation Buttons (JIS Navy Hover Glass - Desktop Only) ── -->
             <button type="button" 
-                    @click="prevSlide()" 
-                    class="hidden sm:flex absolute left-3 sm:left-6 lg:left-8 top-1/2 -translate-y-1/2 z-30 w-11 h-11 sm:w-14 sm:h-14 rounded-full border border-white/25 bg-slate-950/40 hover:bg-[#00519E] hover:text-white hover:border-[#00519E] hover:scale-105 active:scale-95 text-white backdrop-blur-md items-center justify-center transition-all duration-300 shadow-2xl group cursor-pointer"
+                    @click.prevent.stop="prevSlide()" 
+                    class="hidden lg:flex absolute left-6 lg:left-8 top-1/2 -translate-y-1/2 z-30 w-12 h-12 lg:w-14 lg:h-14 rounded-full border border-white/30 bg-slate-950/50 hover:bg-[#00519E] hover:text-white hover:border-[#00519E] hover:scale-105 active:scale-95 text-white backdrop-blur-md items-center justify-center transition-all duration-300 shadow-2xl group cursor-pointer"
                     aria-label="Slide Sebelumnya"
                     title="Slide Sebelumnya"
                     data-cursor="PREV">
-                <svg class="w-5 h-5 sm:w-6 sm:h-6 transition-transform duration-300 group-hover:-translate-x-0.5" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                <svg class="w-6 h-6 transition-transform duration-300 group-hover:-translate-x-0.5" fill="none" viewBox="0 0 24 24" stroke="currentColor">
                     <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2.5" d="M15 19l-7-7 7-7" />
                 </svg>
             </button>
 
             <button type="button" 
-                    @click="nextSlide()" 
-                    class="hidden sm:flex absolute right-3 sm:right-6 lg:right-8 top-1/2 -translate-y-1/2 z-30 w-11 h-11 sm:w-14 sm:h-14 rounded-full border border-white/25 bg-slate-950/40 hover:bg-[#00519E] hover:text-white hover:border-[#00519E] hover:scale-105 active:scale-95 text-white backdrop-blur-md items-center justify-center transition-all duration-300 shadow-2xl group cursor-pointer"
+                    @click.prevent.stop="nextSlide()" 
+                    class="hidden lg:flex absolute right-6 lg:right-8 top-1/2 -translate-y-1/2 z-30 w-12 h-12 lg:w-14 lg:h-14 rounded-full border border-white/30 bg-slate-950/50 hover:bg-[#00519E] hover:text-white hover:border-[#00519E] hover:scale-105 active:scale-95 text-white backdrop-blur-md items-center justify-center transition-all duration-300 shadow-2xl group cursor-pointer"
                     aria-label="Slide Berikutnya"
                     title="Slide Berikutnya"
                     data-cursor="NEXT">
-                <svg class="w-5 h-5 sm:w-6 sm:h-6 transition-transform duration-300 group-hover:translate-x-0.5" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                <svg class="w-6 h-6 transition-transform duration-300 group-hover:translate-x-0.5" fill="none" viewBox="0 0 24 24" stroke="currentColor">
                     <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2.5" d="M9 5l7 7-7 7" />
                 </svg>
             </button>
