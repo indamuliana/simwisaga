@@ -103,8 +103,8 @@
                         <div class="absolute right-0 inset-y-0 w-12 sm:w-20 bg-gradient-to-l from-white to-transparent z-20 pointer-events-none"></div>
 
                         <div class="partner-marquee-track flex items-center hover:[animation-play-state:paused]">
-                            <!-- First Loop (Clean Strip: Full Color, Logo Left + Text Right Mepet, Jarak Antar Mitra Lega) -->
-                            <div class="flex items-center gap-8 sm:gap-11 lg:gap-14 shrink-0 pr-8 sm:pr-11 lg:pr-14">
+                            <!-- First Loop (Uniform Distance Strip: Setiap Logo Berjarak Seragam & Presisi) -->
+                            <div class="flex items-center gap-8 sm:gap-10 lg:gap-12 shrink-0 pr-8 sm:pr-10 lg:pr-12">
                                 @foreach($activeMitra as $m)
                                 @php
                                     $mUrl = !empty($m['url']) && $m['url'] !== '#' ? $m['url'] : null;
@@ -113,9 +113,9 @@
                                     $mImg = \App\Modules\AdministrasiWeb\Models\WebSetting::resolveImageUrl($m['image'] ?? null, 'images/landing/mitra-huawei.png');
                                 @endphp
                                 <{{ $mUrl ? 'a href=' . e($mUrl) . ' target=_blank rel=noopener' : 'div' }} 
-                                    class="partner-logo-item inline-flex items-center gap-2 sm:gap-2.5 shrink-0 transition-all duration-200 group/mitra relative cursor-pointer"
+                                    class="partner-logo-item inline-flex items-center gap-2.5 shrink-0 group/mitra relative cursor-pointer"
                                     title="{{ $mName }}">
-                                    <div class="partner-logo-slot shrink-0 flex items-center justify-center self-center">
+                                    <div class="partner-logo-slot shrink-0 flex items-center justify-center">
                                         <img src="{{ $mImg }}" 
                                              alt="{{ $mName }}" 
                                              class="partner-logo-img block my-auto"
@@ -123,7 +123,7 @@
                                              decoding="async">
                                     </div>
                                     @if(!empty(trim($mText)))
-                                    <span class="partner-logo-text text-xs sm:text-[13px] font-semibold text-slate-800 group-hover/mitra:text-[#00519E] transition-colors text-left leading-tight line-clamp-2 max-w-[130px] sm:max-w-[160px] select-none self-center my-auto">
+                                    <span class="partner-logo-text flex-1 min-w-0 text-xs sm:text-[13px] font-semibold text-slate-800 group-hover/mitra:text-[#00519E] transition-colors text-left leading-tight line-clamp-2 select-none">
                                         {{ $mText }}
                                     </span>
                                     @endif
@@ -138,7 +138,7 @@
                             </div>
 
                             <!-- Second Loop for 100% Seamless Infinite Animation -->
-                            <div class="flex items-center gap-8 sm:gap-11 lg:gap-14 shrink-0 pr-8 sm:pr-11 lg:pr-14" aria-hidden="true">
+                            <div class="flex items-center gap-8 sm:gap-10 lg:gap-12 shrink-0 pr-8 sm:pr-10 lg:pr-12" aria-hidden="true">
                                 @foreach($activeMitra as $m)
                                 @php
                                     $mUrl = !empty($m['url']) && $m['url'] !== '#' ? $m['url'] : null;
@@ -147,9 +147,9 @@
                                     $mImg = \App\Modules\AdministrasiWeb\Models\WebSetting::resolveImageUrl($m['image'] ?? null, 'images/landing/mitra-huawei.png');
                                 @endphp
                                 <{{ $mUrl ? 'a href=' . e($mUrl) . ' target=_blank rel=noopener' : 'div' }} 
-                                    class="partner-logo-item inline-flex items-center gap-2 sm:gap-2.5 shrink-0 transition-all duration-200 group/mitra relative cursor-pointer"
+                                    class="partner-logo-item inline-flex items-center gap-2.5 shrink-0 group/mitra relative cursor-pointer"
                                     title="{{ $mName }}">
-                                    <div class="partner-logo-slot shrink-0 flex items-center justify-center self-center">
+                                    <div class="partner-logo-slot shrink-0 flex items-center justify-center">
                                         <img src="{{ $mImg }}" 
                                              alt="{{ $mName }}" 
                                              class="partner-logo-img block my-auto"
@@ -157,7 +157,7 @@
                                              decoding="async">
                                     </div>
                                     @if(!empty(trim($mText)))
-                                    <span class="partner-logo-text text-xs sm:text-[13px] font-semibold text-slate-800 group-hover/mitra:text-[#00519E] transition-colors text-left leading-tight line-clamp-2 max-w-[130px] sm:max-w-[160px] select-none self-center my-auto">
+                                    <span class="partner-logo-text flex-1 min-w-0 text-xs sm:text-[13px] font-semibold text-slate-800 group-hover/mitra:text-[#00519E] transition-colors text-left leading-tight line-clamp-2 select-none">
                                         {{ $mText }}
                                     </span>
                                     @endif
