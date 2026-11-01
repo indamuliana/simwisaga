@@ -40,7 +40,7 @@
         <div class="absolute inset-0 pointer-events-none z-0 opacity-15"
              style="background-image: radial-gradient(#FFFFFF 1.2px, transparent 1.2px); background-size: 28px 28px;"></div>
 
-        <div class="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 relative z-10 pt-8 sm:pt-12 pb-20 sm:pb-24">
+        <div class="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 relative z-10 pt-8 sm:pt-12 pb-14 sm:pb-18">
             <!-- Breadcrumbs -->
             <nav class="flex items-center gap-2 text-xs font-semibold text-blue-200/80 mb-6 sm:mb-8">
                 <a href="{{ url('/') }}" class="hover:text-white transition-colors">Beranda</a>
@@ -169,75 +169,135 @@
                 </div>
             </div>
         </div>
+
+        <!-- Bottom Edge Ambient Divider -->
+        <div class="absolute bottom-0 inset-x-0 h-px bg-gradient-to-r from-transparent via-amber-400/30 to-transparent pointer-events-none"></div>
     </header>
 
-    <!-- ── 2. SUMMARY METRIC PASTEL CARDS: FLOATING DOCK BRIDGING HERO & CONTENT ── -->
-    <section class="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 relative z-30 -mt-10 sm:-mt-12">
-        <div class="grid grid-cols-2 lg:grid-cols-4 gap-4 sm:gap-6">
+    <!-- ── 2. SUMMARY METRIC CARDS: CRISP INSTITUTIONAL FINISH WITH AMPLE MARGIN ── -->
+    <section class="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 relative z-20 mt-10 sm:mt-14 mb-10 sm:mb-12">
+        <!-- Section Header Bar -->
+        <div class="flex flex-col sm:flex-row sm:items-center justify-between gap-2 mb-4 sm:mb-6">
+            <div class="flex items-center gap-2.5">
+                <span class="w-3 h-3 rounded-full bg-[#F5D84A] shadow-[0_0_10px_rgba(245,216,74,0.6)] animate-pulse"></span>
+                <h2 class="text-xs sm:text-sm font-extrabold uppercase tracking-wider text-slate-700">
+                    Ikhtisar Rekam Jejak Prestasi &amp; Kejuaraan
+                </h2>
+            </div>
+            <span class="text-[11px] sm:text-xs text-slate-500 font-medium">
+                Klik kartu untuk memfilter kategori &bull; Data Terverifikasi
+            </span>
+        </div>
+
+        <div class="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-4 sm:gap-6">
             <!-- 1. Total Prestasi (Warm Amber Gold) -->
-            <div class="p-5 sm:p-6 rounded-3xl shadow-xl hover:shadow-2xl transition-all duration-300 hover:-translate-y-1.5 group"
-                 style="background-color: #FFFBEB; border: 2px solid #FCD34D;">
-                <div class="flex items-center justify-between mb-3">
-                    <span class="w-11 h-11 rounded-2xl flex items-center justify-center text-2xl shadow-xs group-hover:scale-110 transition-transform"
-                          style="background-color: #FEF08A; color: #78350F;">
-                        🏆
-                    </span>
-                    <span class="text-[10px] font-black px-2.5 py-0.5 rounded-full"
-                          style="background-color: #FEF08A; color: #78350F; border: 1px solid #FDE047;">TOTAL</span>
+            <div wire:click="setTab('semua')"
+                 class="p-6 rounded-3xl bg-white border border-slate-200/90 border-t-4 border-t-amber-500 shadow-sm hover:shadow-xl transition-all duration-300 hover:-translate-y-1.5 cursor-pointer group flex flex-col justify-between relative overflow-hidden {{ $tab === 'semua' ? 'ring-2 ring-amber-400 bg-amber-50/15' : '' }}">
+                <div class="space-y-4">
+                    <div class="flex items-center justify-between">
+                        <span class="w-12 h-12 rounded-2xl flex items-center justify-center text-2xl bg-amber-50 text-amber-600 border border-amber-200/80 shadow-xs group-hover:scale-110 transition-transform">
+                            🏆
+                        </span>
+                        <span class="text-[10px] font-black px-3 py-1 rounded-full bg-amber-100/70 text-amber-900 border border-amber-200/80 tracking-wider">
+                            TOTAL CAPAIAN
+                        </span>
+                    </div>
+                    <div>
+                        <div class="text-3xl sm:text-4xl md:text-5xl font-black text-slate-900 tracking-tight">
+                            {{ $stats['total'] }}
+                        </div>
+                        <h3 class="text-sm font-extrabold text-slate-800 mt-1">Seluruh Capaian Juara</h3>
+                        <p class="text-xs text-slate-500 mt-0.5 leading-relaxed">Rekam jejak resmi prestasi institusi, guru, dan santri.</p>
+                    </div>
                 </div>
-                <div class="text-3xl sm:text-4xl font-black tracking-tight" style="color: #78350F;">{{ $stats['total'] }}</div>
-                <div class="text-xs font-bold mt-1" style="color: #92400E;">Seluruh Capaian Juara</div>
+                <div class="pt-4 mt-4 border-t border-slate-100 flex items-center justify-between text-xs font-bold text-amber-600 group-hover:text-amber-700">
+                    <span>Lihat Semua Capaian</span>
+                    <span class="text-sm group-hover:translate-x-1 transition-transform">&rarr;</span>
+                </div>
             </div>
 
             <!-- 2. Prestasi Sekolah (Royal Purple) -->
-            <div class="p-5 sm:p-6 rounded-3xl shadow-xl hover:shadow-2xl transition-all duration-300 hover:-translate-y-1.5 group"
-                 style="background-color: #FAF5FF; border: 2px solid #C4B5FD;">
-                <div class="flex items-center justify-between mb-3">
-                    <span class="w-11 h-11 rounded-2xl flex items-center justify-center text-2xl shadow-xs group-hover:scale-110 transition-transform"
-                          style="background-color: #DDD6FE; color: #581C87;">
-                        🏛️
-                    </span>
-                    <span class="text-[10px] font-black px-2.5 py-0.5 rounded-full"
-                          style="background-color: #DDD6FE; color: #581C87; border: 1px solid #C4B5FD;">INSTITUSI</span>
+            <div wire:click="setTab('sekolah')"
+                 class="p-6 rounded-3xl bg-white border border-slate-200/90 border-t-4 border-t-purple-600 shadow-sm hover:shadow-xl transition-all duration-300 hover:-translate-y-1.5 cursor-pointer group flex flex-col justify-between relative overflow-hidden {{ $tab === 'sekolah' ? 'ring-2 ring-purple-400 bg-purple-50/15' : '' }}">
+                <div class="space-y-4">
+                    <div class="flex items-center justify-between">
+                        <span class="w-12 h-12 rounded-2xl flex items-center justify-center text-2xl bg-purple-50 text-purple-600 border border-purple-200/80 shadow-xs group-hover:scale-110 transition-transform">
+                            🏛️
+                        </span>
+                        <span class="text-[10px] font-black px-3 py-1 rounded-full bg-purple-100/70 text-purple-900 border border-purple-200/80 tracking-wider">
+                            INSTITUSI
+                        </span>
+                    </div>
+                    <div>
+                        <div class="text-3xl sm:text-4xl md:text-5xl font-black text-slate-900 tracking-tight">
+                            {{ $stats['sekolah'] }}
+                        </div>
+                        <h3 class="text-sm font-extrabold text-slate-800 mt-1">Prestasi Sekolah &amp; Lembaga</h3>
+                        <p class="text-xs text-slate-500 mt-0.5 leading-relaxed">Akreditasi A Unggul, SMK PK, dan penghargaan kementerian.</p>
+                    </div>
                 </div>
-                <div class="text-3xl sm:text-4xl font-black tracking-tight" style="color: #581C87;">{{ $stats['sekolah'] }}</div>
-                <div class="text-xs font-bold mt-1" style="color: #6B21A8;">Prestasi Sekolah &amp; Akreditasi</div>
+                <div class="pt-4 mt-4 border-t border-slate-100 flex items-center justify-between text-xs font-bold text-purple-600 group-hover:text-purple-700">
+                    <span>Filter Institusi</span>
+                    <span class="text-sm group-hover:translate-x-1 transition-transform">&rarr;</span>
+                </div>
             </div>
 
-            <!-- 3. Prestasi Guru (Sky Blue) -->
-            <div class="p-5 sm:p-6 rounded-3xl shadow-xl hover:shadow-2xl transition-all duration-300 hover:-translate-y-1.5 group"
-                 style="background-color: #F0F9FF; border: 2px solid #7DD3FC;">
-                <div class="flex items-center justify-between mb-3">
-                    <span class="w-11 h-11 rounded-2xl flex items-center justify-center text-2xl shadow-xs group-hover:scale-110 transition-transform"
-                          style="background-color: #BAE6FD; color: #0C4A6E;">
-                        👨‍🏫
-                    </span>
-                    <span class="text-[10px] font-black px-2.5 py-0.5 rounded-full"
-                          style="background-color: #BAE6FD; color: #0C4A6E; border: 1px solid #7DD3FC;">PENDIDIK</span>
+            <!-- 3. Prestasi Guru (Sky Blue / JIS Navy) -->
+            <div wire:click="setTab('guru')"
+                 class="p-6 rounded-3xl bg-white border border-slate-200/90 border-t-4 border-t-sky-500 shadow-sm hover:shadow-xl transition-all duration-300 hover:-translate-y-1.5 cursor-pointer group flex flex-col justify-between relative overflow-hidden {{ $tab === 'guru' ? 'ring-2 ring-sky-400 bg-sky-50/15' : '' }}">
+                <div class="space-y-4">
+                    <div class="flex items-center justify-between">
+                        <span class="w-12 h-12 rounded-2xl flex items-center justify-center text-2xl bg-sky-50 text-sky-600 border border-sky-200/80 shadow-xs group-hover:scale-110 transition-transform">
+                            👨‍🏫
+                        </span>
+                        <span class="text-[10px] font-black px-3 py-1 rounded-full bg-sky-100/70 text-sky-900 border border-sky-200/80 tracking-wider">
+                            PENDIDIK
+                        </span>
+                    </div>
+                    <div>
+                        <div class="text-3xl sm:text-4xl md:text-5xl font-black text-slate-900 tracking-tight">
+                            {{ $stats['guru'] }}
+                        </div>
+                        <h3 class="text-sm font-extrabold text-slate-800 mt-1">Prestasi Guru &amp; Tendik</h3>
+                        <p class="text-xs text-slate-500 mt-0.5 leading-relaxed">Inovasi pembelajaran, karya ilmiah, dan lomba vokasi guru.</p>
+                    </div>
                 </div>
-                <div class="text-3xl sm:text-4xl font-black tracking-tight" style="color: #0C4A6E;">{{ $stats['guru'] }}</div>
-                <div class="text-xs font-bold mt-1" style="color: #0369A1;">Prestasi Guru &amp; Tendik</div>
+                <div class="pt-4 mt-4 border-t border-slate-100 flex items-center justify-between text-xs font-bold text-sky-600 group-hover:text-sky-700">
+                    <span>Filter Guru</span>
+                    <span class="text-sm group-hover:translate-x-1 transition-transform">&rarr;</span>
+                </div>
             </div>
 
-            <!-- 4. Prestasi Siswa (Mint Emerald) -->
-            <div class="p-5 sm:p-6 rounded-3xl shadow-xl hover:shadow-2xl transition-all duration-300 hover:-translate-y-1.5 group"
-                 style="background-color: #ECFDF5; border: 2px solid #6EE7B7;">
-                <div class="flex items-center justify-between mb-3">
-                    <span class="w-11 h-11 rounded-2xl flex items-center justify-center text-2xl shadow-xs group-hover:scale-110 transition-transform"
-                          style="background-color: #A7F3D0; color: #064E3B;">
-                        🎓
-                    </span>
-                    <span class="text-[10px] font-black px-2.5 py-0.5 rounded-full"
-                          style="background-color: #A7F3D0; color: #064E3B; border: 1px solid #6EE7B7;">SANTRI</span>
+            <!-- 4. Prestasi Siswa (Emerald Forest) -->
+            <div wire:click="setTab('siswa')"
+                 class="p-6 rounded-3xl bg-white border border-slate-200/90 border-t-4 border-t-emerald-500 shadow-sm hover:shadow-xl transition-all duration-300 hover:-translate-y-1.5 cursor-pointer group flex flex-col justify-between relative overflow-hidden {{ $tab === 'siswa' ? 'ring-2 ring-emerald-400 bg-emerald-50/15' : '' }}">
+                <div class="space-y-4">
+                    <div class="flex items-center justify-between">
+                        <span class="w-12 h-12 rounded-2xl flex items-center justify-center text-2xl bg-emerald-50 text-emerald-600 border border-emerald-200/80 shadow-xs group-hover:scale-110 transition-transform">
+                            🎓
+                        </span>
+                        <span class="text-[10px] font-black px-3 py-1 rounded-full bg-emerald-100/70 text-emerald-900 border border-emerald-200/80 tracking-wider">
+                            SANTRI &bull; SISWA
+                        </span>
+                    </div>
+                    <div>
+                        <div class="text-3xl sm:text-4xl md:text-5xl font-black text-slate-900 tracking-tight">
+                            {{ $stats['siswa'] }}
+                        </div>
+                        <h3 class="text-sm font-extrabold text-slate-800 mt-1">Prestasi Siswa Terverifikasi</h3>
+                        <p class="text-xs text-slate-500 mt-0.5 leading-relaxed">Medali olimpiade, kejuaraan LKS, olahraga, dan seni vokasi.</p>
+                    </div>
                 </div>
-                <div class="text-3xl sm:text-4xl font-black tracking-tight" style="color: #064E3B;">{{ $stats['siswa'] }}</div>
-                <div class="text-xs font-bold mt-1" style="color: #047857;">Prestasi Siswa Terverifikasi</div>
+                <div class="pt-4 mt-4 border-t border-slate-100 flex items-center justify-between text-xs font-bold text-emerald-600 group-hover:text-emerald-700">
+                    <span>Filter Siswa</span>
+                    <span class="text-sm group-hover:translate-x-1 transition-transform">&rarr;</span>
+                </div>
             </div>
         </div>
     </section>
 
     <!-- ── 3. INTERACTIVE TAB NAVIGATION & FILTER BAR ── -->
-    <section id="daftar-prestasi" class="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 relative z-20 mt-8 mb-10">
+    <section id="daftar-prestasi" class="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 relative z-20 mt-2 mb-10">
         <div class="bg-white/95 backdrop-blur-md rounded-3xl p-4 sm:p-6 border border-slate-200/80 shadow-md space-y-4">
             
             <!-- Category Tabs (Semua, Sekolah, Guru, Siswa) -->
