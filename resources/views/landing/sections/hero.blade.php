@@ -145,8 +145,11 @@
                                style="filter: brightness({{ $sDim }}) contrast(1.12);">
                             @if(str_ends_with(strtolower($videoSrc), '.webm'))
                                 <source src="{{ $videoSrc }}" type="video/webm">
+                            @elseif(str_ends_with(strtolower($videoSrc), '.mov'))
+                                <source src="{{ $videoSrc }}" type="video/quicktime">
+                            @else
+                                <source src="{{ $videoSrc }}" type="video/mp4">
                             @endif
-                            <source src="{{ $videoSrc }}" type="video/mp4">
                         </video>
                     @else
                         <img src="{{ $imgUrl }}" 

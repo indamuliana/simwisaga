@@ -292,17 +292,19 @@ class LandingSetting extends Component
         }
 
         $this->validate([
-            "slideUploadFiles.{$index}" => 'required|file|mimes:jpg,jpeg,png,webp,mp4,webm|max:25600',
+            "slideUploadFiles.{$index}" => 'required|file|mimes:jpg,jpeg,png,webp,mp4,webm,mov,m4v,qt|max:51200',
         ], [
-            "slideUploadFiles.{$index}.mimes" => 'File harus berupa gambar (JPG, PNG, WEBP) atau video (MP4, WebM).',
-            "slideUploadFiles.{$index}.max" => 'Ukuran file maksimal adalah 25 MB.',
+            "slideUploadFiles.{$index}.mimes" => 'File harus berupa gambar (JPG, PNG, WEBP) atau video (MP4, WebM, MOV).',
+            "slideUploadFiles.{$index}.max" => 'Ukuran file maksimal adalah 50 MB.',
         ]);
 
         $file = $this->slideUploadFiles[$index];
         $mime = $file->getMimeType() ?? '';
+        $ext = strtolower($file->getClientOriginalExtension());
+        $isVideo = str_starts_with($mime, 'video/') || in_array($ext, ['mp4', 'webm', 'mov', 'm4v']);
         $path = $file->store('web/hero', 'public');
 
-        if (str_starts_with($mime, 'video/')) {
+        if ($isVideo) {
             $this->hero['slides'][$index]['media_type'] = 'video_upload';
             $this->hero['slides'][$index]['video_url'] = $path;
             if (empty($this->hero['slides'][$index]['poster'])) {

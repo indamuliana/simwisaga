@@ -485,22 +485,40 @@
 
                                 {{-- Upload Input --}}
                                 <div class="md:col-span-7 space-y-2">
-                                    <div>
+                                    <div x-data="{ uploading: false, progress: 0, uploadError: null }"
+                                         x-on:livewire-upload-start="uploading = true; uploadError = null"
+                                         x-on:livewire-upload-finish="uploading = false; progress = 0"
+                                         x-on:livewire-upload-error="uploading = false; uploadError = 'Upload gagal. Pastikan file tidak melebihi 50 MB dan koneksi stabil.'"
+                                         x-on:livewire-upload-progress="progress = $event.detail.progress">
                                         <label class="text-[11px] font-bold text-text-secondary block mb-1">
-                                            Pilih File Media Baru (Maks. 25 MB)
+                                            Pilih File Media Baru (Maks. 50 MB)
                                         </label>
                                         <input type="file" 
                                                wire:model="slideUploadFiles.{{ $s }}" 
-                                               accept="image/png,image/jpeg,image/webp,image/jpg,video/mp4,video/webm" 
+                                               accept="image/png,image/jpeg,image/webp,image/jpg,video/mp4,video/webm,video/quicktime,video/x-m4v" 
                                                class="file:mr-3 file:py-1.5 file:px-3 file:rounded-lg file:border-0 file:text-xs file:font-semibold file:bg-primary file:text-white hover:file:bg-primary-hover text-xs text-text-secondary cursor-pointer border border-border rounded-xl p-1.5 w-full bg-surface">
                                         
-                                        <div wire:loading wire:target="slideUploadFiles.{{ $s }}" class="text-xs text-primary font-semibold mt-1 flex items-center gap-1.5">
-                                            <svg class="animate-spin h-3.5 w-3.5 text-primary" fill="none" viewBox="0 0 24 24">
-                                                <circle class="opacity-25" cx="12" cy="12" r="10" stroke="currentColor" stroke-width="4"></circle>
-                                                <path class="opacity-75" fill="currentColor" d="M4 12a8 8 0 018-8v8H4z"></path>
-                                            </svg>
-                                            <span>Mengunggah media slide #{{ $s + 1 }}...</span>
+                                        <!-- Progress Bar saat Upload Berlangsung -->
+                                        <div x-show="uploading" class="mt-2 space-y-1" style="display: none;">
+                                            <div class="flex items-center justify-between text-[11px] text-primary font-semibold">
+                                                <span class="flex items-center gap-1.5">
+                                                    <svg class="animate-spin h-3.5 w-3.5" fill="none" viewBox="0 0 24 24">
+                                                        <circle class="opacity-25" cx="12" cy="12" r="10" stroke="currentColor" stroke-width="4"></circle>
+                                                        <path class="opacity-75" fill="currentColor" d="M4 12a8 8 0 018-8v8H4z"></path>
+                                                    </svg>
+                                                    <span>Mengunggah media slide #{{ $s + 1 }}...</span>
+                                                </span>
+                                                <span x-text="`${progress}%`"></span>
+                                            </div>
+                                            <div class="w-full bg-slate-200 dark:bg-slate-700 h-1.5 rounded-full overflow-hidden">
+                                                <div class="bg-primary h-full transition-all duration-150" :style="`width: ${progress}%`"></div>
+                                            </div>
                                         </div>
+
+                                        <template x-if="uploadError">
+                                            <span class="text-xs text-danger mt-1 block" x-text="uploadError"></span>
+                                        </template>
+
                                         @error('slideUploadFiles.' . $s) 
                                             <span class="text-xs text-danger mt-1 block">{{ $message }}</span> 
                                         @enderror
@@ -508,8 +526,8 @@
                                     
                                     <div class="p-2 rounded-lg bg-surface-hover/80 border border-border/60 text-[11px] text-text-muted leading-relaxed space-y-1">
                                         <div><strong class="text-text-secondary">&bull; Gambar:</strong> JPG, JPEG, PNG, WEBP.</div>
-                                        <div><strong class="text-text-secondary">&bull; Video:</strong> WebM (.webm) atau MP4 (.mp4).</div>
-                                        <div class="text-[10px] text-primary font-semibold">&bull; Rekomendasi: Gunakan video <strong>.webm</strong> untuk ukuran sangat ringan. Di landing page, durasi slide otomatis mengikuti panjang video ini sampai selesai.</div>
+                                        <div><strong class="text-text-secondary">&bull; Video:</strong> MP4 (.mp4), WebM (.webm), MOV (.mov) maks. 50 MB.</div>
+                                        <div class="text-[10px] text-primary font-semibold">&bull; Rekomendasi: Gunakan video <strong>.webm</strong> atau <strong>.mp4</strong> berkualitas 720p/1080p. Di landing page, durasi slide otomatis mengikuti panjang video ini sampai selesai.</div>
                                     </div>
                                 </div>
                             </div>
