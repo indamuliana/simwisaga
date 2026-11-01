@@ -106,7 +106,7 @@
 
                         <div class="partner-marquee-track flex items-center hover:[animation-play-state:paused]">
                             <!-- First Loop (Hanya Gambar, Tinggi Seragam, Jarak Antar Logo Konsisten) -->
-                            <div class="flex items-center gap-10 sm:gap-14 lg:gap-16 shrink-0 pr-10 sm:pr-14 lg:pr-16">
+                            <div class="partner-loop-list">
                                 @foreach($activeMitra as $m)
                                 @php
                                     $mUrl = !empty($m['url']) && $m['url'] !== '#' ? $m['url'] : null;
@@ -132,7 +132,7 @@
                             </div>
 
                             <!-- Second Loop for 100% Seamless Infinite Animation -->
-                            <div class="flex items-center gap-10 sm:gap-14 lg:gap-16 shrink-0 pr-10 sm:pr-14 lg:pr-16" aria-hidden="true">
+                            <div class="partner-loop-list" aria-hidden="true">
                                 @foreach($activeMitra as $m)
                                 @php
                                     $mUrl = !empty($m['url']) && $m['url'] !== '#' ? $m['url'] : null;

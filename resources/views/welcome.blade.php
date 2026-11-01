@@ -145,6 +145,25 @@
         }
 
         /* ── Full-Color Minimalist Institutional Logo Strip (BMW Link & Match) ── */
+        .partner-loop-list {
+            display: flex !important;
+            align-items: center !important;
+            flex-shrink: 0 !important;
+            gap: 40px !important;
+            padding-right: 40px !important;
+        }
+        @media (min-width: 640px) {
+            .partner-loop-list {
+                gap: 56px !important;
+                padding-right: 56px !important;
+            }
+        }
+        @media (min-width: 1024px) {
+            .partner-loop-list {
+                gap: 64px !important;
+                padding-right: 64px !important;
+            }
+        }
         .partner-logo-item {
             display: inline-flex;
             align-items: center;
