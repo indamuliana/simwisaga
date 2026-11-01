@@ -144,9 +144,23 @@
             font-family: var(--font-mono);
         }
 
-        /* ── Full-Color Minimalist Partner Logos (BMW Link & Match) ── */
+        /* ── Full-Color Minimalist Institutional Logo Strip (BMW Link & Match) ── */
+        .partner-logo-item {
+            display: inline-flex;
+            align-items: center;
+            text-decoration: none;
+            background: transparent !important;
+            border: none !important;
+            box-shadow: none !important;
+            padding: 0 !important;
+            transition: opacity 0.25s var(--ease-editorial), transform 0.25s var(--ease-editorial);
+        }
+        .partner-logo-item:hover {
+            opacity: 0.82;
+            transform: translateY(-1px);
+        }
         .partner-logo-slot {
-            height: 28px;
+            height: 30px;
             display: inline-flex;
             align-items: center;
             justify-content: center;
@@ -155,21 +169,18 @@
         }
         @media (min-width: 640px) {
             .partner-logo-slot {
-                height: 32px;
+                height: 34px;
             }
         }
         .partner-logo-img {
-            max-height: 24px;
-            max-width: 60px;
+            max-height: 28px;
+            max-width: 72px;
             width: auto;
             height: auto;
             object-fit: contain;
             filter: none !important;
             opacity: 1 !important;
-            transition: transform 0.25s var(--ease-editorial);
-        }
-        .partner-logo-img:hover {
-            transform: scale(1.06);
+            display: block;
         }
 
         /* ── Institutional Tags & Badges (Refined, Untracked Body Face) ── */
