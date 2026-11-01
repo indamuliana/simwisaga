@@ -98,39 +98,31 @@
                             ->values();
                     @endphp
 
-                    <!-- Marquee Ticker: Berwarna, Tanpa Card, Tinggi Seragam -->
-                    <div class="partner-marquee-container relative w-full overflow-hidden py-1.5 sm:py-2">
+                    <!-- Marquee Ticker: Clean Logo Strip (Hanya Gambar, Tinggi Seragam, Lebar Menyesuaikan, Jarak Seragam) -->
+                    <div class="partner-marquee-container relative w-full overflow-hidden py-3 sm:py-4">
                         <!-- Fade Edges on Canvas -->
                         <div class="absolute left-0 inset-y-0 w-12 sm:w-20 bg-gradient-to-r from-white to-transparent z-20 pointer-events-none"></div>
                         <div class="absolute right-0 inset-y-0 w-12 sm:w-20 bg-gradient-to-l from-white to-transparent z-20 pointer-events-none"></div>
 
                         <div class="partner-marquee-track flex items-center hover:[animation-play-state:paused]">
-                            <!-- First Loop (Persempit Mengikuti Batas Akhir Teks Mitra Sebelumnya: gap-6 sm:gap-8) -->
-                            <div class="flex items-center gap-6 sm:gap-8 shrink-0 pr-6 sm:pr-8">
+                            <!-- First Loop (Hanya Gambar, Tinggi Seragam, Jarak Antar Logo Konsisten) -->
+                            <div class="flex items-center gap-10 sm:gap-14 lg:gap-16 shrink-0 pr-10 sm:pr-14 lg:pr-16">
                                 @foreach($activeMitra as $m)
                                 @php
                                     $mUrl = !empty($m['url']) && $m['url'] !== '#' ? $m['url'] : null;
                                     $mName = $m['name'] ?? 'Mitra Industri';
-                                    $mText = $m['text'] ?? $mName;
                                     $mImg = \App\Modules\AdministrasiWeb\Models\WebSetting::resolveImageUrl($m['image'] ?? null, 'images/landing/mitra-huawei.png');
                                 @endphp
                                 <{{ $mUrl ? 'a href=' . e($mUrl) . ' target=_blank rel=noopener' : 'div' }} 
-                                    class="partner-logo-item inline-flex items-center gap-2 sm:gap-2.5 shrink-0 group/mitra relative cursor-pointer"
+                                    class="partner-logo-item inline-flex items-center justify-center shrink-0 group/mitra relative cursor-pointer"
                                     title="{{ $mName }}">
-                                    <div class="partner-logo-slot shrink-0 flex items-center justify-center">
-                                        <img src="{{ $mImg }}" 
-                                             alt="{{ $mName }}" 
-                                             class="partner-logo-img block my-auto"
-                                             loading="lazy"
-                                             decoding="async">
-                                    </div>
-                                    @if(!empty(trim($mText)))
-                                    <span class="partner-logo-text text-xs sm:text-[13px] font-semibold text-slate-800 group-hover/mitra:text-[#00519E] transition-colors text-left leading-tight line-clamp-2 max-w-[130px] sm:max-w-[155px] select-none">
-                                        {{ $mText }}
-                                    </span>
-                                    @endif
+                                    <img src="{{ $mImg }}" 
+                                         alt="{{ $mName }}" 
+                                         class="partner-logo-img"
+                                         loading="lazy"
+                                         decoding="async">
                                     <!-- Tooltip Hover -->
-                                    <div class="absolute -top-8 left-1/2 -translate-x-1/2 pointer-events-none opacity-0 group-hover/mitra:opacity-100 transition-all duration-200 translate-y-1 group-hover/mitra:translate-y-0 z-40 whitespace-nowrap">
+                                    <div class="absolute -top-9 left-1/2 -translate-x-1/2 pointer-events-none opacity-0 group-hover/mitra:opacity-100 transition-all duration-200 translate-y-1 group-hover/mitra:translate-y-0 z-40 whitespace-nowrap">
                                         <span class="text-[10px] font-bold py-1 px-2.5 rounded-lg bg-slate-900 text-white shadow-xl">
                                             {{ $mName }}
                                         </span>
@@ -140,31 +132,23 @@
                             </div>
 
                             <!-- Second Loop for 100% Seamless Infinite Animation -->
-                            <div class="flex items-center gap-6 sm:gap-8 shrink-0 pr-6 sm:pr-8" aria-hidden="true">
+                            <div class="flex items-center gap-10 sm:gap-14 lg:gap-16 shrink-0 pr-10 sm:pr-14 lg:pr-16" aria-hidden="true">
                                 @foreach($activeMitra as $m)
                                 @php
                                     $mUrl = !empty($m['url']) && $m['url'] !== '#' ? $m['url'] : null;
                                     $mName = $m['name'] ?? 'Mitra Industri';
-                                    $mText = $m['text'] ?? $mName;
                                     $mImg = \App\Modules\AdministrasiWeb\Models\WebSetting::resolveImageUrl($m['image'] ?? null, 'images/landing/mitra-huawei.png');
                                 @endphp
                                 <{{ $mUrl ? 'a href=' . e($mUrl) . ' target=_blank rel=noopener' : 'div' }} 
-                                    class="partner-logo-item inline-flex items-center gap-2 sm:gap-2.5 shrink-0 group/mitra relative cursor-pointer"
+                                    class="partner-logo-item inline-flex items-center justify-center shrink-0 group/mitra relative cursor-pointer"
                                     title="{{ $mName }}">
-                                    <div class="partner-logo-slot shrink-0 flex items-center justify-center">
-                                        <img src="{{ $mImg }}" 
-                                             alt="{{ $mName }}" 
-                                             class="partner-logo-img block my-auto"
-                                             loading="lazy"
-                                             decoding="async">
-                                    </div>
-                                    @if(!empty(trim($mText)))
-                                    <span class="partner-logo-text text-xs sm:text-[13px] font-semibold text-slate-800 group-hover/mitra:text-[#00519E] transition-colors text-left leading-tight line-clamp-2 max-w-[130px] sm:max-w-[155px] select-none">
-                                        {{ $mText }}
-                                    </span>
-                                    @endif
+                                    <img src="{{ $mImg }}" 
+                                         alt="{{ $mName }}" 
+                                         class="partner-logo-img"
+                                         loading="lazy"
+                                         decoding="async">
                                     <!-- Tooltip Hover -->
-                                    <div class="absolute -top-8 left-1/2 -translate-x-1/2 pointer-events-none opacity-0 group-hover/mitra:opacity-100 transition-all duration-200 translate-y-1 group-hover/mitra:translate-y-0 z-40 whitespace-nowrap">
+                                    <div class="absolute -top-9 left-1/2 -translate-x-1/2 pointer-events-none opacity-0 group-hover/mitra:opacity-100 transition-all duration-200 translate-y-1 group-hover/mitra:translate-y-0 z-40 whitespace-nowrap">
                                         <span class="text-[10px] font-bold py-1 px-2.5 rounded-lg bg-slate-900 text-white shadow-xl">
                                             {{ $mName }}
                                         </span>
