@@ -940,8 +940,11 @@
                     </p>
                 </div>
                 <div>
-                    <label class="label">Badge Tag / Judul Section</label>
-                    <input type="text" wire:model="mitra.tag" class="input" placeholder="Link &amp; Match Industri &bull; BMW (Bekerja, Melanjutkan, Wirausaha)">
+                    <label class="label">Badge Tag / Judul Section (Opsional)</label>
+                    <input type="text" wire:model="mitra.tag" class="input" placeholder="Kosongkan jika tidak ingin menampilkan badge judul di atas logo">
+                    <p class="text-[11px] text-text-muted mt-1.5">
+                        💡 <strong>Catatan:</strong> Kosongkan kolom ini untuk menghilangkan badge tag/judul section di atas deretan logo pada halaman publik (deretan logo tampil bersih).
+                    </p>
                 </div>
             </div>
 
@@ -951,7 +954,7 @@
                     <div>
                         <h2 class="text-base font-bold text-text-main">Daftar Mitra &amp; Logo Industri (Running Marquee)</h2>
                         <p class="text-xs text-text-secondary">
-                            Logo dan teks pendamping di sebelah kiri (dapat dibuat 2 baris) yang berjalan otomatis pada halaman depan.
+                            Logo dan teks pendamping di sebelah kanan yang berjalan otomatis pada halaman depan.
                         </p>
                     </div>
                     <button type="button" 

@@ -156,7 +156,7 @@ class LandingSetting extends Component
                 ];
             }
             $this->mitra = [
-                'tag' => 'Link & Match Industri • BMW (Bekerja, Melanjutkan, Wirausaha)',
+                'tag' => '',
                 'items' => $mitraItems,
             ];
         }

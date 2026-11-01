@@ -82,12 +82,14 @@
 
                 <!-- ── Link & Match Industri • BMW (Bekerja, Melanjutkan, Wirausaha) ── -->
                 <div class="mt-8 sm:mt-10 pt-6 border-t border-slate-200/80 w-full" data-animate>
+                    @if(!empty(trim($cfg['mitra']['tag'] ?? '')))
                     <div class="text-center mb-3 sm:mb-4">
                         <span class="google-tag google-tag-blue mb-1 shadow-xs">
                             <span class="w-2 h-2 rounded-full bg-[#00519E]"></span>
-                            <span>{{ $cfg['mitra']['tag'] ?? 'Link & Match Industri • BMW (Bekerja, Melanjutkan, Wirausaha)' }}</span>
+                            <span>{{ $cfg['mitra']['tag'] }}</span>
                         </span>
                     </div>
+                    @endif
 
                     @php
                         $rawMitra = $cfg['mitra']['items'] ?? $cfg['mitra'] ?? [];
