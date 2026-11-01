@@ -185,22 +185,22 @@
                 <div class="pointer-events-none absolute inset-y-0 left-0 w-8 sm:w-16 bg-gradient-to-r from-[#F8FAFC] to-transparent z-10"></div>
                 <div class="pointer-events-none absolute inset-y-0 right-0 w-8 sm:w-16 bg-gradient-to-l from-[#F8FAFC] to-transparent z-10"></div>
 
-                <div class="animate-prestasi-marquee gap-5">
+                <div class="animate-prestasi-marquee gap-4 sm:gap-5">
                     <!-- Set Asli -->
                     @foreach($highlights as $item)
-                        @include('prestasi::partials.highlight-card', ['item' => $item, 'isGrid' => false])
+                        @include('prestasi::partials.highlight-card', ['item' => $item])
                     @endforeach
                     <!-- Set Kloning untuk Efek Infinite Loop yang Mulus -->
                     @foreach($highlights as $item)
-                        @include('prestasi::partials.highlight-card', ['item' => $item, 'isGrid' => false])
+                        @include('prestasi::partials.highlight-card', ['item' => $item])
                     @endforeach
                 </div>
             </div>
         @else
-            <!-- Grid Layout (<= 4 Item) -->
-            <div class="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-{{ min($highlights->count(), 4) }} gap-4 sm:gap-6">
+            <!-- Container Proporsional (<= 4 Item) -->
+            <div class="flex flex-wrap items-stretch gap-4 sm:gap-5">
                 @foreach($highlights as $item)
-                    @include('prestasi::partials.highlight-card', ['item' => $item, 'isGrid' => true])
+                    @include('prestasi::partials.highlight-card', ['item' => $item])
                 @endforeach
             </div>
         @endif

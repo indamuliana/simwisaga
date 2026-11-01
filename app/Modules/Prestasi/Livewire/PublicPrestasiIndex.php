@@ -117,7 +117,7 @@ class PublicPrestasiIndex extends Component
             $item = Prestasi::with('siswas')->where('status_verifikasi', 'approved')->find($id);
             if (!$item) return;
             $namaSiswa = $item->siswas->isNotEmpty()
-                ? $item->siswas->pluck('nama_lengkap')->implode(', ')
+                ? $item->siswas->pluck('nama')->filter()->implode(', ')
                 : ($item->nama_tim ?: 'Siswa Wikrama');
 
             $this->modalData = [
@@ -247,7 +247,7 @@ class PublicPrestasiIndex extends Component
         $siswas = Prestasi::with('siswas')->where('status_verifikasi', 'approved')->where('is_highlight', true)->get();
         foreach ($siswas as $item) {
             $namaSiswa = $item->siswas->isNotEmpty()
-                ? $item->siswas->pluck('nama_lengkap')->implode(', ')
+                ? $item->siswas->pluck('nama')->filter()->implode(', ')
                 : ($item->nama_tim ?: 'Siswa Wikrama');
 
             $highlights->push([
@@ -352,7 +352,7 @@ class PublicPrestasiIndex extends Component
             }
             foreach ($q->get() as $item) {
                 $namaSiswa = $item->siswas->isNotEmpty()
-                    ? $item->siswas->pluck('nama_lengkap')->implode(', ')
+                    ? $item->siswas->pluck('nama')->filter()->implode(', ')
                     : ($item->nama_tim ?: 'Siswa Wikrama');
 
                 $collection->push([
