@@ -20,7 +20,7 @@
             })->values()->all();
         @endphp
 
-        <section class="w-full relative min-h-[480px] sm:min-h-[520px] lg:min-h-[540px] flex flex-col justify-between overflow-hidden bg-slate-950 text-white select-none"
+        <section class="facility-showcase-section scroll-mt-20 sm:scroll-mt-24 flex flex-col justify-between select-none"
                  id="fasilitas"
                  x-data="{
                      facilities: {{ Js::from($facilitiesData) }},
@@ -114,7 +114,7 @@
                         </div>
 
                         <!-- Display Title (Lebih Ringkas & Proporsional) -->
-                        <h2 class="text-2xl sm:text-4xl lg:text-[2.6rem] font-black uppercase tracking-tight text-white leading-tight mb-3 drop-shadow-md"
+                        <h2 class="text-2xl sm:text-3xl lg:text-4xl xl:text-5xl font-black uppercase tracking-tight text-white leading-tight mb-3 drop-shadow-md"
                             x-text="activeItem.title">
                         </h2>
 
@@ -160,10 +160,10 @@
                         <div class="flex items-center gap-3.5 sm:gap-4 overflow-x-auto no-scrollbar scroll-smooth snap-x snap-mandatory py-2 px-1">
                             <template x-for="(item, idx) in facilities" :key="item.id">
                                 <div @click="setIndex(idx)"
-                                     class="relative flex-none w-[150px] sm:w-[170px] md:w-[185px] h-[220px] sm:h-[250px] rounded-2xl overflow-hidden cursor-pointer snap-start transition-all duration-300 group border"
+                                     class="facility-thumb-card snap-start group border"
                                      :class="currentIndex === idx 
-                                        ? 'ring-2 ring-amber-400 border-amber-400 scale-102 shadow-2xl z-10' 
-                                        : 'border-white/20 opacity-80 hover:opacity-100 hover:scale-102 shadow-md'">
+                                        ? 'ring-2 ring-amber-400 border-amber-400 shadow-2xl z-10' 
+                                        : 'border-white/20 opacity-80 hover:opacity-100 shadow-md'">
                                     
                                     <!-- Card Image -->
                                     <img :src="item.image" 

@@ -206,6 +206,69 @@
             }
         }
 
+        /* ── Infrastructure & Facility Showcase Slider ── */
+        .facility-showcase-section {
+            width: 100%;
+            position: relative;
+            min-height: 460px;
+            overflow: hidden;
+            background-color: #020617;
+            color: #FFFFFF;
+            scroll-margin-top: 5rem;
+        }
+        @media (min-width: 640px) {
+            .facility-showcase-section {
+                min-height: 500px;
+            }
+        }
+        @media (min-width: 1024px) {
+            .facility-showcase-section {
+                min-height: 520px;
+            }
+        }
+
+        .facility-thumb-card {
+            position: relative;
+            flex-shrink: 0 !important;
+            width: 135px !important;
+            min-width: 135px !important;
+            max-width: 135px !important;
+            height: 185px !important;
+            min-height: 185px !important;
+            max-height: 185px !important;
+            border-radius: 1rem !important;
+            overflow: hidden !important;
+            cursor: pointer;
+            box-sizing: border-box !important;
+            transition: transform 0.25s ease, opacity 0.25s ease, box-shadow 0.25s ease;
+        }
+        @media (min-width: 640px) {
+            .facility-thumb-card {
+                width: 160px !important;
+                min-width: 160px !important;
+                max-width: 160px !important;
+                height: 220px !important;
+                min-height: 220px !important;
+                max-height: 220px !important;
+            }
+        }
+        @media (min-width: 1024px) {
+            .facility-thumb-card {
+                width: 180px !important;
+                min-width: 180px !important;
+                max-width: 180px !important;
+                height: 240px !important;
+                min-height: 240px !important;
+                max-height: 240px !important;
+            }
+        }
+        .facility-thumb-card img {
+            width: 100% !important;
+            height: 100% !important;
+            object-fit: cover !important;
+            display: block !important;
+        }
+
         /* ── Institutional Tags & Badges (Refined, Untracked Body Face) ── */
         .google-tag {
             font-family: var(--font-editorial);
