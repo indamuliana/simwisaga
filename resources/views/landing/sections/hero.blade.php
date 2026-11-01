@@ -149,6 +149,7 @@
                              alt="{{ $slide['title'] ?? 'SMK Wikrama 1 Garut' }}" 
                              class="w-full h-full object-cover object-center hero-media-scale"
                              :class="activeIdx === {{ $idx }} ? 'scale-110' : 'scale-100'"
+                             @if($idx === 0) fetchpriority="high" @else loading="lazy" decoding="async" @endif
                              style="filter: brightness({{ $sDim }}) contrast(1.12);">
                     @endif
 
@@ -156,9 +157,9 @@
                     <div class="absolute inset-0"
                          style="background: linear-gradient(to top, rgba(15, 23, 42, 0.95) 0%, rgba(15, 23, 42, {{ $sOver }}) 40%, rgba(15, 23, 42, {{ max(0.15, (float)$sOver - 0.35) }}) 100%), linear-gradient(to right, rgba(15, 23, 42, 0.80) 0%, transparent 60%);"></div>
 
-                    <!-- Ambient Glow Effect per slide (Warm Coral & Royal Blue) -->
-                    <div class="absolute -top-32 -right-20 w-[600px] h-[600px] bg-gradient-to-br from-orange-500/15 via-rose-500/10 to-transparent rounded-full blur-3xl pointer-events-none"></div>
-                    <div class="absolute top-1/2 -left-28 w-[500px] h-[500px] bg-gradient-to-tr from-blue-500/15 via-amber-500/10 to-transparent rounded-full blur-3xl pointer-events-none"></div>
+                    <!-- Ambient Glow Effect per slide (Royal Navy & Luminous Gold) -->
+                    <div class="absolute -top-32 -right-20 w-[600px] h-[600px] bg-gradient-to-br from-[#00519E]/20 via-[#00305F]/15 to-transparent rounded-full blur-3xl pointer-events-none"></div>
+                    <div class="absolute top-1/2 -left-28 w-[500px] h-[500px] bg-gradient-to-tr from-[#00519E]/20 via-[#F5D84A]/10 to-transparent rounded-full blur-3xl pointer-events-none"></div>
                 </div>
                 @endforeach
             </div>

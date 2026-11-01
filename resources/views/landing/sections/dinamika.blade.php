@@ -80,8 +80,8 @@
             <div class="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 relative z-10">
                 <!-- Section Header -->
                 <div class="text-center max-w-3xl mx-auto mb-10 sm:mb-14" data-animate="fade-up">
-                    <span class="google-tag mb-3 shadow-xs">
-                        <span class="w-2 h-2 rounded-full bg-[#FF6B4A] animate-pulse"></span>
+                    <span class="google-tag google-tag-blue mb-3 shadow-xs">
+                        <span class="w-2 h-2 rounded-full bg-[#00519E] animate-pulse"></span>
                         <span>{{ $studentMomentsData['tag'] ?? 'Dinamika Kehidupan Siswa' }}</span>
                     </span>
                     <h2 class="text-2xl sm:text-4xl md:text-5xl font-extrabold tracking-tight text-slate-900 mt-2">
@@ -137,7 +137,8 @@
                                      alt="{{ $card['title'] ?? 'Dinamika Siswa' }}" 
                                      class="w-full h-full object-cover group-hover:scale-105 transition-transform duration-700 ease-out" 
                                      style="width: 100%; height: 100%; object-fit: cover;"
-                                     loading="lazy">
+                                     loading="lazy"
+                                     decoding="async">
 
                                 <!-- Card Ornaments: Top Accent Line & Corner Ambient Glow -->
                                 <div class="absolute top-0 left-0 right-0 h-1.5 z-20 pointer-events-none" style="background-color: {{ $accent }};"></div>

@@ -62,7 +62,10 @@
                     <div class="mt-8 sm:mt-10 pt-6 border-t border-slate-100 flex flex-col sm:flex-row items-start sm:items-center justify-between gap-4 max-w-4xl mx-auto">
                         <div class="flex items-center gap-3.5">
                             <div class="w-11 h-11 rounded-full bg-[#EBF4FC] border border-blue-200 flex items-center justify-center text-[#00519E] font-bold text-base shrink-0 shadow-xs">
-                                🎓
+                                <svg class="w-5 h-5 text-[#00519E]" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                                    <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 14l9-5-9-5-9 5 9 5z" />
+                                    <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 14l6.16-3.422a12.083 12.083 0 01.665 6.479A11.952 11.952 0 0012 20.055a11.952 11.952 0 00-6.824-2.998 12.078 12.078 0 01.665-6.479L12 14z" />
+                                </svg>
                             </div>
                             <div class="text-left">
                                 <span class="text-slate-900 font-bold text-sm sm:text-base tracking-wide block leading-tight">
@@ -115,7 +118,9 @@
                                     <div class="partner-logo-slot shrink-0 flex items-center justify-center self-center">
                                         <img src="{{ $mImg }}" 
                                              alt="{{ $mName }}" 
-                                             class="partner-logo-img block my-auto">
+                                             class="partner-logo-img block my-auto"
+                                             loading="lazy"
+                                             decoding="async">
                                     </div>
                                     @if(!empty(trim($mText)))
                                     <span class="partner-logo-text text-xs sm:text-[13px] font-semibold text-slate-700 group-hover/mitra:text-[#00519E] transition-colors text-left leading-snug whitespace-pre-line max-w-[130px] sm:max-w-[150px] select-none self-center my-auto">
@@ -147,7 +152,9 @@
                                     <div class="partner-logo-slot shrink-0 flex items-center justify-center self-center">
                                         <img src="{{ $mImg }}" 
                                              alt="{{ $mName }}" 
-                                             class="partner-logo-img block my-auto">
+                                             class="partner-logo-img block my-auto"
+                                             loading="lazy"
+                                             decoding="async">
                                     </div>
                                     @if(!empty(trim($mText)))
                                     <span class="partner-logo-text text-xs sm:text-[13px] font-semibold text-slate-700 group-hover/mitra:text-[#00519E] transition-colors text-left leading-snug whitespace-pre-line max-w-[130px] sm:max-w-[150px] select-none self-center my-auto">
