@@ -108,6 +108,18 @@
             color: var(--wikrama-body);
         }
 
+        #beranda {
+            min-height: 100vh;
+            min-height: 100dvh;
+            min-height: 100svh;
+        }
+        @media (min-width: 1024px) {
+            #beranda {
+                height: 100vh;
+                max-height: 960px;
+            }
+        }
+
         /* ── Accessible Focus-Visible ── */
         a:focus-visible, 
         button:focus-visible, 

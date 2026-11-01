@@ -84,18 +84,18 @@
         
         <!-- Tier 1: JIS Midnight Navy Top Utility Bar (#00305F) -->
         @if($cfg['announcement']['enabled'] ?? true)
-        <div x-show="!scrolled && !{{ $isSubpage ? 'true' : 'false' }}" x-transition.opacity.duration.200ms class="text-white text-xs py-2 px-4 border-b border-white/10 bg-[#00305F] shadow-sm">
-            <div class="max-w-7xl mx-auto flex flex-col sm:flex-row items-center justify-between gap-2">
-                <div class="flex items-center gap-2.5 text-center sm:text-left">
-                    <span class="bg-[#F5D84A] text-[#00305F] px-2.5 py-0.5 rounded-full text-[10px] font-extrabold tracking-wider shrink-0 shadow-xs">
+        <div x-show="!scrolled && !{{ $isSubpage ? 'true' : 'false' }}" x-transition.opacity.duration.200ms class="text-white text-xs py-1.5 sm:py-2 px-3 sm:px-4 border-b border-white/10 bg-[#00305F] shadow-sm">
+            <div class="max-w-7xl mx-auto flex items-center justify-between gap-2">
+                <div class="flex items-center gap-2 text-center sm:text-left min-w-0">
+                    <span class="bg-[#F5D84A] text-[#00305F] px-2 py-0.5 rounded-full text-[9px] sm:text-[10px] font-extrabold tracking-wider shrink-0 shadow-xs">
                         {{ $cfg['announcement']['badge'] ?? 'SPMB 2026/2027' }}
                     </span>
-                    <span class="text-white/95 font-semibold text-[11px] sm:text-xs drop-shadow-xs">
+                    <span class="text-white/95 font-semibold text-[10px] sm:text-xs drop-shadow-xs truncate">
                         {{ $cfg['announcement']['text'] ?? 'Penerimaan Peserta Didik Baru Resmi Dibuka!' }}
                     </span>
                 </div>
 
-                <div class="flex items-center gap-4 text-[11px] font-semibold text-white/90">
+                <div class="hidden sm:flex items-center gap-4 text-[11px] font-semibold text-white/90 shrink-0">
                     <a href="{{ $cfg['announcement']['phone_url'] ?? 'tel:081323314430' }}" class="hidden md:flex items-center gap-1.5 text-white/90 hover:text-[#F5D84A] transition-colors drop-shadow-xs">
                         <svg class="w-3.5 h-3.5 text-[#F5D84A]" fill="none" viewBox="0 0 24 24" stroke="currentColor"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2.2" d="M3 5a2 2 0 012-2h3.28a1 1 0 01.948.684l1.498 4.493a1 1 0 01-.502 1.21l-2.257 1.13a11.042 11.042 0 005.516 5.516l1.13-2.257a1 1 0 011.21-.502l4.493 1.498a1 1 0 01.684.949V19a2 2 0 01-2 2h-1C9.716 21 3 14.284 3 6V5z"/></svg>
                         <span>{{ $cfg['announcement']['phone_display'] ?? '0813-2331-4430' }}</span>
@@ -116,7 +116,7 @@
             <!-- School Brand Crest (Unboxed Logo & Crisp School Name) -->
             <a href="{{ url('/') }}" class="flex items-center space-x-2.5 sm:space-x-3.5 group shrink-0 min-w-0" data-cursor="BERANDA">
                 <img src="{{ $logoUrl }}" alt="Logo {{ $schoolName }}" class="h-9 sm:h-12 w-auto object-contain group-hover:scale-105 transition-transform drop-shadow-md shrink-0">
-                <div class="min-w-0 max-w-[180px] sm:max-w-none">
+                <div class="hidden sm:block min-w-0 max-w-[180px] sm:max-w-none">
                     <span class="text-sm sm:text-lg lg:text-xl font-extrabold tracking-tight block leading-tight group-hover:text-[#00519E] transition-colors truncate nav-brand-title"
                           :class="(scrolled || {{ $isSubpage ? 'true' : 'false' }}) ? 'text-slate-900 drop-shadow-none' : 'text-white drop-shadow-[0_1px_3px_rgba(0,0,0,0.9)]'">
                         {{ $schoolName }}
@@ -193,7 +193,7 @@
             <div class="flex items-center space-x-2 sm:space-x-3 shrink-0">
                 @auth
                     <a href="{{ route('dashboard') }}" 
-                       class="btn-jis-pill-navy text-xs sm:text-sm !py-1.5 !px-3 sm:!py-2.5 sm:!px-4 inline-flex items-center gap-1.5 shadow-xs group"
+                       class="hidden sm:inline-flex btn-jis-pill-navy text-xs sm:text-sm !py-1.5 !px-3 sm:!py-2.5 sm:!px-4 items-center gap-1.5 shadow-xs group"
                        title="Akses Sistem Informasi SIRAGA"
                        data-cursor="PORTAL">
                         <svg class="w-4 h-4 text-white shrink-0" fill="none" viewBox="0 0 24 24" stroke="currentColor">
@@ -203,7 +203,7 @@
                     </a>
                 @else
                     <a href="{{ route('login') }}" 
-                       class="px-3 sm:px-4 py-1.5 sm:py-2.5 rounded-full border text-xs sm:text-sm font-semibold transition-all inline-flex items-center gap-1.5 backdrop-blur-xs"
+                       class="hidden sm:inline-flex px-3 sm:px-4 py-1.5 sm:py-2.5 rounded-full border text-xs sm:text-sm font-semibold transition-all items-center gap-1.5 backdrop-blur-xs"
                        :class="(scrolled || {{ $isSubpage ? 'true' : 'false' }}) ? 'border-slate-300 text-slate-800 hover:bg-[#EBF4FC] hover:border-[#00519E] hover:text-[#00519E]' : 'border-white/30 text-white hover:bg-white/15'"
                        data-cursor="MASUK">
                         <svg class="w-3.5 h-3.5 shrink-0" :class="(scrolled || {{ $isSubpage ? 'true' : 'false' }}) ? 'text-slate-600' : 'text-white/80'" fill="none" viewBox="0 0 24 24" stroke="currentColor">
@@ -219,7 +219,7 @@
                    rel="noopener" 
                    class="btn-jis-pill-gold text-xs sm:text-sm !py-1.5 !px-3 sm:!py-2.5 sm:!px-5 inline-flex items-center gap-1 sm:gap-1.5 shadow-md group"
                    data-cursor="DAFTAR">
-                    <span>Daftar SPMB</span>
+                    <span>Daftar</span>
                     <span class="text-xs group-hover:translate-x-1 transition-transform">&rarr;</span>
                 </a>
 

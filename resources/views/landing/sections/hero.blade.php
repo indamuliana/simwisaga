@@ -11,9 +11,9 @@
         @endphp
 
         <!-- ── 1. Hero Section: Cinematic JIS-Style Full-Bleed Slider ── -->
-        <section class="relative flex flex-col justify-end overflow-hidden bg-slate-950 text-white w-full select-none min-h-[100svh] lg:h-screen lg:max-h-[960px]" 
+        <section class="relative flex flex-col justify-end overflow-hidden bg-slate-950 text-white w-full select-none min-h-screen pt-24 sm:pt-28 lg:pt-0" 
                  id="beranda" 
-                 style="background-color: #020617;"
+                 style="min-height: 100vh; min-height: 100dvh; min-height: 100svh; background-color: #020617;"
                  x-data="{
                      slidesCount: {{ count($activeSlides) }},
                      activeIdx: 0,
@@ -195,7 +195,7 @@
             </button>
 
             <!-- ── Bottom Content Area: JIS Reference Layout (Floating Position & Silky Smooth Slide) ── -->
-            <div class="relative z-20 w-full pb-12 sm:pb-24 lg:pb-28 mb-2 sm:mb-8 lg:mb-12 pt-4 sm:pt-6">
+            <div class="relative z-20 w-full pb-14 sm:pb-24 lg:pb-28 mb-2 sm:mb-8 lg:mb-12 pt-4 sm:pt-6">
                 <div class="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
                     
                     <!-- Slide Counter & Progress Track (JIS Signature) -->
@@ -236,7 +236,7 @@
                                             <span class="w-1.5 h-1.5 rounded-full bg-[#F5D84A] animate-pulse"></span>
                                             <span>{{ !empty($slide['badge']) ? $slide['badge'] : 'Learning in Indonesia to be Best for the World' }}</span>
                                         </div>
-                                        <h1 class="text-2xl sm:text-3xl lg:text-5xl font-extrabold text-white tracking-tight leading-[1.14] break-words drop-shadow-[0_2px_8px_rgba(0,0,0,0.6)]">
+                                        <h1 class="text-xl sm:text-3xl lg:text-5xl font-extrabold text-white tracking-tight leading-[1.18] break-words drop-shadow-[0_2px_8px_rgba(0,0,0,0.6)]">
                                             {{ $slide['title'] }}
                                         </h1>
                                     </div>
@@ -255,7 +255,7 @@
                                         <a href="{{ $slide['cta_url'] ?? '#' }}" 
                                            target="{{ $slide['cta_target'] ?? '_self' }}" 
                                            rel="{{ ($slide['cta_target'] ?? '_self') === '_blank' ? 'noopener noreferrer' : '' }}"
-                                           class="btn-jis-pill-gold !py-3 sm:!py-3.5 !px-6 sm:!px-8 text-xs sm:text-sm font-bold shadow-2xl hover:scale-105 active:scale-95 transition-all duration-300 inline-flex items-center gap-2 cursor-pointer group/btn"
+                                           class="btn-jis-pill-gold !py-2.5 sm:!py-3.5 !px-5 sm:!px-8 text-xs sm:text-sm font-bold shadow-2xl hover:scale-105 active:scale-95 transition-all duration-300 inline-flex items-center gap-2 cursor-pointer group/btn"
                                            data-cursor="EXPLORE">
                                             <span>{{ $slide['cta_text'] ?? 'Pelajari Selengkapnya' }}</span>
                                             <span class="text-base font-bold group-hover/btn:translate-x-1.5 transition-transform">&rarr;</span>
