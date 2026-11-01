@@ -41,27 +41,27 @@
 
             <div class="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 text-center relative z-10" data-animate>
                 <!-- ── Manifesto Pendidikan Wikrama (Floating Pure White Card + JIS Navy Accent) ── -->
-                <div class="relative p-6 sm:p-12 lg:p-14 rounded-3xl bg-white border border-slate-200/90 border-t-4 border-t-[#00519E] text-left sm:text-center w-full max-w-5xl mx-auto shadow-[0_15px_40px_-10px_rgba(0,48,95,0.06)] overflow-hidden group">
+                <div class="relative p-6 sm:p-9 lg:p-10 rounded-3xl bg-white border border-slate-200/90 border-t-4 border-t-[#00519E] text-left sm:text-center w-full max-w-4xl mx-auto shadow-[0_12px_36px_-8px_rgba(0,48,95,0.06)] overflow-hidden group">
                     <!-- Subtle Watermark Quote Icon Ornament -->
-                    <div class="absolute -top-6 -right-4 w-32 h-32 text-blue-900/5 pointer-events-none select-none font-serif text-9xl font-black">
+                    <div class="absolute -top-4 -right-2 w-24 h-24 text-blue-900/5 pointer-events-none select-none font-serif text-8xl font-black">
                         &rdquo;
                     </div>
 
                     <!-- Header Pill Badge -->
-                    <div class="inline-flex items-center gap-2 px-3.5 py-1.5 rounded-full bg-[#EBF4FC] border border-blue-200 text-[#00519E] text-[11px] sm:text-xs font-bold uppercase tracking-wider mb-6">
+                    <div class="inline-flex items-center gap-2 px-3.5 py-1.5 rounded-full bg-[#EBF4FC] border border-blue-200 text-[#00519E] text-[11px] sm:text-xs font-bold uppercase tracking-wider mb-5">
                         <span class="w-2 h-2 rounded-full bg-[#00519E] animate-ping"></span>
                         <span>{{ $cfg['welcome']['tag'] ?? 'Manifesto Pendidikan Wikrama' }}</span>
                     </div>
 
-                    <!-- Core Quote Text -->
-                    <blockquote class="font-manifesto italic text-xl sm:text-2xl md:text-3xl lg:text-4xl text-[#00305F] leading-snug sm:leading-relaxed font-bold tracking-tight max-w-4xl mx-auto">
+                    <!-- Core Quote Text (Sedang, Proporsional, Nyaman Dibaca) -->
+                    <blockquote class="font-manifesto italic text-lg sm:text-xl md:text-2xl lg:text-[1.65rem] text-[#00305F] leading-relaxed font-semibold tracking-tight max-w-3xl mx-auto">
                         &ldquo;{{ $cfg['welcome']['quote'] ?? 'Di SMK Wikrama 1 Garut, kami mempersiapkan anak bangsa dari berbagai daerah untuk menjadi yang terbaik dalam keahlian yang mereka tekuni, sekaligus menjadi pribadi yang membawa kemaslahatan terbaik bagi keluarga, masyarakat, dan masa depan peradaban.' }}&rdquo;
                     </blockquote>
 
                     <!-- Author & Institutional Signature -->
-                    <div class="mt-8 sm:mt-10 pt-6 border-t border-slate-100 flex flex-col sm:flex-row items-start sm:items-center justify-between gap-4 max-w-4xl mx-auto">
+                    <div class="mt-6 sm:mt-8 pt-5 border-t border-slate-100 flex flex-col sm:flex-row items-start sm:items-center justify-between gap-4 max-w-3xl mx-auto">
                         <div class="flex items-center gap-3.5">
-                            <div class="w-11 h-11 rounded-full bg-[#EBF4FC] border border-blue-200 flex items-center justify-center text-[#00519E] font-bold text-base shrink-0 shadow-xs">
+                            <div class="w-10 h-10 rounded-full bg-[#EBF4FC] border border-blue-200 flex items-center justify-center text-[#00519E] font-bold text-sm shrink-0 shadow-xs">
                                 <svg class="w-5 h-5 text-[#00519E]" fill="none" viewBox="0 0 24 24" stroke="currentColor">
                                     <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 14l9-5-9-5-9 5 9 5z" />
                                     <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 14l6.16-3.422a12.083 12.083 0 01.665 6.479A11.952 11.952 0 0012 20.055a11.952 11.952 0 00-6.824-2.998 12.078 12.078 0 01.665-6.479L12 14z" />
