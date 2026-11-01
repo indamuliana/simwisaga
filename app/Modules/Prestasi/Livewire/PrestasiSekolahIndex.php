@@ -46,6 +46,7 @@ class PrestasiSekolahIndex extends Component
     public ?string $existingSertifikatPath = null;
     public ?string $existingFotoPath = null;
     public ?string $deskripsi = null;
+    public bool $isHighlight = false;
 
     // Preview Modal
     public bool $showPreviewModal = false;
@@ -86,6 +87,7 @@ class PrestasiSekolahIndex extends Component
         $this->existingSertifikatPath = $item->sertifikat_file_path;
         $this->existingFotoPath = $item->foto_file_path;
         $this->deskripsi = $item->deskripsi;
+        $this->isHighlight = (bool) $item->is_highlight;
 
         $this->showFormModal = true;
     }
@@ -137,6 +139,7 @@ class PrestasiSekolahIndex extends Component
             'sertifikat_file_path' => $sertifikatPath,
             'foto_file_path' => $fotoPath,
             'deskripsi' => $this->deskripsi,
+            'is_highlight' => $this->isHighlight,
             'created_by' => auth()->id(),
         ];
 
@@ -206,6 +209,7 @@ class PrestasiSekolahIndex extends Component
         $this->existingSertifikatPath = null;
         $this->existingFotoPath = null;
         $this->deskripsi = null;
+        $this->isHighlight = false;
         $this->resetErrorBag();
     }
 

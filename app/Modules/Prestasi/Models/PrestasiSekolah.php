@@ -30,12 +30,14 @@ class PrestasiSekolah extends Model implements Auditable
         'sertifikat_file_path',
         'foto_file_path',
         'deskripsi',
+        'is_highlight',
         'created_by',
     ];
 
     protected $casts = [
         'tanggal_perolehan' => 'date',
         'masa_berlaku_sampai' => 'date',
+        'is_highlight' => 'boolean',
     ];
 
     public function tahunAjaran(): BelongsTo

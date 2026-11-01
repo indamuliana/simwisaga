@@ -45,6 +45,7 @@ class Prestasi extends Model implements Auditable
         'foto_file_path',
         'deskripsi',
         'status_verifikasi',
+        'is_highlight',
         'verified_by',
         'verified_at',
         'catatan_verifikasi',
@@ -55,6 +56,7 @@ class Prestasi extends Model implements Auditable
         'tanggal_perolehan' => 'date',
         'tanggal_selesai' => 'date',
         'verified_at' => 'datetime',
+        'is_highlight' => 'boolean',
     ];
 
     public function tahunAjaran(): BelongsTo

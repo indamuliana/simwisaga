@@ -57,6 +57,7 @@ class PrestasiGuruIndex extends Component
     public ?string $existingSertifikatPath = null;
     public ?string $existingFotoPath = null;
     public ?string $deskripsi = null;
+    public bool $isHighlight = false;
 
     public ?int $tahunAjaranId = null;
     public ?int $semesterId = null;
@@ -132,6 +133,7 @@ class PrestasiGuruIndex extends Component
         $this->existingSertifikatPath = $item->sertifikat_file_path;
         $this->existingFotoPath = $item->foto_file_path;
         $this->deskripsi = $item->deskripsi;
+        $this->isHighlight = (bool) $item->is_highlight;
 
         $this->showFormModal = true;
     }
@@ -235,6 +237,7 @@ class PrestasiGuruIndex extends Component
             'sertifikat_file_path' => $sertifikatPath,
             'foto_file_path' => $fotoPath,
             'deskripsi' => $this->deskripsi,
+            'is_highlight' => $this->isHighlight,
             'created_by' => auth()->id(),
         ];
 
@@ -322,6 +325,7 @@ class PrestasiGuruIndex extends Component
         $this->existingSertifikatPath = null;
         $this->existingFotoPath = null;
         $this->deskripsi = null;
+        $this->isHighlight = false;
         $this->resetErrorBag();
     }
 

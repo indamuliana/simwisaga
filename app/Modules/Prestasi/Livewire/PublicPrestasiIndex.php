@@ -174,6 +174,9 @@ class PublicPrestasiIndex extends Component
         // 3. Normalized Combined Query
         $items = $this->fetchNormalizedData();
 
+        // 4. Global Highlights
+        $highlights = $this->fetchHighlights();
+
         $pageTitle = match($this->tab) {
             'sekolah' => 'Prestasi Institusi & Akreditasi Unggul',
             'guru'    => 'Prestasi Guru & Tenaga Kependidikan',
@@ -185,10 +188,90 @@ class PublicPrestasiIndex extends Component
             'sekolah',
             'stats',
             'availableYears',
-            'items'
+            'items',
+            'highlights'
         ))->layout('components.layouts.blank', [
             'title' => $pageTitle
         ]);
+    }
+
+    protected function fetchHighlights(): Collection
+    {
+        $highlights = collect();
+
+        // Sekolah Highlights
+        $sekolahs = PrestasiSekolah::where('is_highlight', true)->get();
+        foreach ($sekolahs as $item) {
+            $highlights->push([
+                'type' => 'sekolah',
+                'id' => $item->id,
+                'title' => $item->nama_prestasi,
+                'rank' => $item->capaian,
+                'level' => $item->tingkat_label ?? ucfirst($item->tingkat),
+                'organizer' => $item->penyelenggara_nama,
+                'date' => $item->tanggal_perolehan,
+                'date_formatted' => $item->tanggal_perolehan ? $item->tanggal_perolehan->translatedFormat('d M Y') : '-',
+                'recipient' => School::current()->nama ?? 'SMK Wikrama 1 Garut',
+                'recipient_badge' => 'Sekolah',
+                'recipient_badge_color' => 'bg-purple-50 text-purple-700 border-purple-200',
+                'photo_url' => $item->foto_file_path ? Storage::url($item->foto_file_path) : null,
+                'cert_url' => $item->sertifikat_file_path ? Storage::url($item->sertifikat_file_path) : null,
+                'description' => $item->deskripsi,
+                'theme' => 'purple',
+            ]);
+        }
+
+        // Guru Highlights
+        $gurus = PrestasiGuru::with('pegawais')->where('is_highlight', true)->get();
+        foreach ($gurus as $item) {
+            $highlights->push([
+                'type' => 'guru',
+                'id' => $item->id,
+                'title' => $item->nama_prestasi,
+                'rank' => $item->peringkat,
+                'level' => $item->tingkat_label ?? ucfirst($item->tingkat),
+                'organizer' => $item->penyelenggara_nama,
+                'date' => $item->tanggal_perolehan,
+                'date_formatted' => $item->tanggal_perolehan ? $item->tanggal_perolehan->translatedFormat('d M Y') : '-',
+                'recipient' => $item->daftar_guru_nama ?: ($item->nama_tim ?: 'Pendidik Wikrama'),
+                'recipient_badge' => 'Guru & Tendik',
+                'recipient_badge_color' => 'bg-sky-50 text-sky-700 border-sky-200',
+                'photo_url' => $item->foto_file_path ? Storage::url($item->foto_file_path) : null,
+                'cert_url' => $item->sertifikat_file_path ? Storage::url($item->sertifikat_file_path) : null,
+                'description' => $item->deskripsi,
+                'theme' => 'sky',
+            ]);
+        }
+
+        // Siswa Highlights (Approved only)
+        $siswas = Prestasi::with('siswas')->where('status_verifikasi', 'approved')->where('is_highlight', true)->get();
+        foreach ($siswas as $item) {
+            $namaSiswa = $item->siswas->isNotEmpty()
+                ? $item->siswas->pluck('nama_lengkap')->implode(', ')
+                : ($item->nama_tim ?: 'Siswa Wikrama');
+
+            $highlights->push([
+                'type' => 'siswa',
+                'id' => $item->id,
+                'title' => $item->nama_prestasi,
+                'rank' => $item->peringkat,
+                'level' => ucfirst(str_replace('_', ' ', $item->tingkat ?? '-')),
+                'organizer' => $item->penyelenggara_nama,
+                'date' => $item->tanggal_perolehan,
+                'date_formatted' => $item->tanggal_perolehan ? $item->tanggal_perolehan->translatedFormat('d M Y') : '-',
+                'recipient' => $namaSiswa,
+                'recipient_badge' => 'Siswa & Santri',
+                'recipient_badge_color' => 'bg-emerald-50 text-emerald-700 border-emerald-200',
+                'photo_url' => $item->foto_file_path ? Storage::url($item->foto_file_path) : null,
+                'cert_url' => $item->sertifikat_file_path ? Storage::url($item->sertifikat_file_path) : null,
+                'description' => $item->deskripsi,
+                'theme' => 'emerald',
+            ]);
+        }
+
+        return $highlights->sortByDesc(function ($item) {
+            return $item['date'] ? $item['date']->timestamp : 0;
+        })->values();
     }
 
     protected function fetchNormalizedData(): LengthAwarePaginator

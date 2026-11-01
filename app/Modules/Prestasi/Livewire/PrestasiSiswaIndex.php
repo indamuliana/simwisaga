@@ -82,6 +82,7 @@ class PrestasiSiswaIndex extends Component
     public ?string $existingSertifikatPath = null;
     public ?string $existingFotoPath = null;
     public ?string $deskripsi = null;
+    public bool $isHighlight = false;
 
     public ?int $tahunAjaranId = null;
     public ?int $semesterId = null;
@@ -175,6 +176,7 @@ class PrestasiSiswaIndex extends Component
         $this->existingSertifikatPath = $item->sertifikat_file_path;
         $this->existingFotoPath = $item->foto_file_path;
         $this->deskripsi = $item->deskripsi;
+        $this->isHighlight = (bool) $item->is_highlight;
 
         $this->showFormModal = true;
     }
@@ -273,6 +275,7 @@ class PrestasiSiswaIndex extends Component
             'sertifikat_file_path' => $sertifikatPath,
             'foto_file_path' => $fotoPath,
             'deskripsi' => $this->deskripsi,
+            'is_highlight' => $this->isHighlight,
             'status_verifikasi' => 'approved', // Input admin/guru langsung approved
             'created_by' => auth()->id(),
         ];
@@ -369,6 +372,7 @@ class PrestasiSiswaIndex extends Component
         $this->existingSertifikatPath = null;
         $this->existingFotoPath = null;
         $this->deskripsi = null;
+        $this->isHighlight = false;
         $this->resetErrorBag();
     }
 
