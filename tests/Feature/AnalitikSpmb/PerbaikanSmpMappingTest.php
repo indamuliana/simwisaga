@@ -1,0 +1,295 @@
+<?php
+
+namespace Tests\Feature\AnalitikSpmb;
+
+use App\Models\User;
+use App\Modules\Akademik\Models\Jurusan;
+use App\Modules\Akademik\Models\Rombel;
+use App\Modules\AnalitikSpmb\Livewire\PerbaikanSmpIndex;
+use App\Modules\AnalitikSpmb\Models\SpmbSekolahAsal;
+use App\Modules\AnalitikSpmb\Models\SpmbSekolahAsalAlias;
+use App\Modules\AnalitikSpmb\Services\SpmbDataCleansingService;
+use App\Modules\Kesiswaan\Models\Siswa;
+use Database\Seeders\AkademikInitialSeeder;
+use Database\Seeders\ProgramInitialSeeder;
+use Database\Seeders\RolesSeeder;
+use Illuminate\Foundation\Testing\RefreshDatabase;
+use Livewire\Livewire;
+use Tests\TestCase;
+
+class PerbaikanSmpMappingTest extends TestCase
+{
+    use RefreshDatabase;
+
+    protected User $admin;
+    protected Rombel $rombel;
+
+    protected function setUp(): void
+    {
+        parent::setUp();
+        $this->seed(RolesSeeder::class);
+        $this->seed(\Database\Seeders\AnalitikSpmbPermissionSeeder::class);
+        $this->seed(AkademikInitialSeeder::class);
+        $this->seed(ProgramInitialSeeder::class);
+
+        $this->admin = User::factory()->create([
+            'username' => 'admin_analitik',
+            'is_active' => true,
+            'must_change_password' => false,
+        ]);
+        $this->admin->assignRole('Super Admin');
+
+        $this->rombel = Rombel::first() ?? Rombel::create([
+            'nama' => 'PPLG X-1',
+            'tingkat' => 'X',
+            'jurusan_id' => Jurusan::first()->id,
+            'tahun_ajaran_id' => \App\Modules\Akademik\Models\TahunAjaran::first()->id,
+            'nomor_urut' => 1,
+        ]);
+    }
+
+    public function test_merge_school_updates_siswa_and_preserves_raw(): void
+    {
+        $siswa = Siswa::create([
+            'nama' => 'Budi Santoso',
+            'nipd' => '12345',
+            'nisn' => '9876543210',
+            'jk' => 'L',
+            'rombel_id' => $this->rombel->id,
+            'status' => 'aktif',
+            'sekolah_asal' => 'SMP 1 Garut',
+        ]);
+
+        $this->assertEquals('SMP 1 Garut', $siswa->sekolah_asal_raw);
+
+        $cleansingService = app(SpmbDataCleansingService::class);
+        $result = $cleansingService->mergeSchoolStrings(
+            ['SMP 1 Garut'],
+            'SMPN 1 GARUT',
+            true,
+            true
+        );
+
+        $this->assertEquals(1, $result['affected_students']);
+        $this->assertEquals('SMPN 1 GARUT', $result['target_name']);
+
+        $siswa->refresh();
+        $this->assertEquals('SMPN 1 GARUT', $siswa->sekolah_asal);
+        $this->assertEquals('SMP 1 Garut', $siswa->sekolah_asal_raw);
+
+        $alias = SpmbSekolahAsalAlias::where('alias_raw', 'SMP 1 Garut')->first();
+        $this->assertNotNull($alias);
+        $this->assertEquals('SMPN 1 GARUT', $alias->sekolahAsal->nama_resmi);
+    }
+
+    public function test_unmap_school_reverts_siswa_and_deletes_alias(): void
+    {
+        $master = SpmbSekolahAsal::create([
+            'nama_resmi' => 'SMPN 1 GARUT',
+            'jenis' => 'SMP',
+            'status_sekolah' => 'Negeri',
+            'tier' => 'Utama',
+        ]);
+
+        SpmbSekolahAsalAlias::create([
+            'sekolah_asal_id' => $master->id,
+            'alias_raw' => 'SMP 1 Grt',
+        ]);
+
+        $siswa = Siswa::create([
+            'nama' => 'Ahmad Dani',
+            'nipd' => '22334',
+            'nisn' => '9988776655',
+            'jk' => 'L',
+            'rombel_id' => $this->rombel->id,
+            'status' => 'aktif',
+            'sekolah_asal' => 'SMPN 1 GARUT',
+            'sekolah_asal_raw' => 'SMP 1 Grt',
+        ]);
+
+        $cleansingService = app(SpmbDataCleansingService::class);
+        $result = $cleansingService->unmapSchoolString('SMP 1 Grt');
+
+        $this->assertEquals(1, $result['affected_students']);
+        $this->assertEquals('SMP 1 Grt', $result['raw_name']);
+
+        $siswa->refresh();
+        $this->assertEquals('SMP 1 Grt', $siswa->sekolah_asal);
+        $this->assertEquals('SMP 1 Grt', $siswa->sekolah_asal_raw);
+
+        $alias = SpmbSekolahAsalAlias::where('alias_raw', 'SMP 1 Grt')->first();
+        $this->assertNull($alias);
+    }
+
+    public function test_edit_mapping_updates_siswa_to_new_master(): void
+    {
+        $oldMaster = SpmbSekolahAsal::create([
+            'nama_resmi' => 'SMPN 1 GARUT',
+            'jenis' => 'SMP',
+            'status_sekolah' => 'Negeri',
+            'tier' => 'Utama',
+        ]);
+
+        $newMaster = SpmbSekolahAsal::create([
+            'nama_resmi' => 'SMPN 2 GARUT',
+            'jenis' => 'SMP',
+            'status_sekolah' => 'Negeri',
+            'tier' => 'Potensial',
+        ]);
+
+        SpmbSekolahAsalAlias::create([
+            'sekolah_asal_id' => $oldMaster->id,
+            'alias_raw' => 'SMP Satu Grt',
+        ]);
+
+        $siswa = Siswa::create([
+            'nama' => 'Siti Nurhaliza',
+            'nipd' => '55667',
+            'nisn' => '1122334455',
+            'jk' => 'P',
+            'rombel_id' => $this->rombel->id,
+            'status' => 'aktif',
+            'sekolah_asal' => 'SMPN 1 GARUT',
+            'sekolah_asal_raw' => 'SMP Satu Grt',
+        ]);
+
+        $cleansingService = app(SpmbDataCleansingService::class);
+        $result = $cleansingService->editMapping('SMP Satu Grt', $newMaster->id);
+
+        $this->assertEquals(1, $result['affected_students']);
+        $this->assertEquals('SMPN 2 GARUT', $result['target_name']);
+
+        $siswa->refresh();
+        $this->assertEquals('SMPN 2 GARUT', $siswa->sekolah_asal);
+        $this->assertEquals('SMP Satu Grt', $siswa->sekolah_asal_raw);
+
+        $alias = SpmbSekolahAsalAlias::where('alias_raw', 'SMP Satu Grt')->first();
+        $this->assertNotNull($alias);
+        $this->assertEquals($newMaster->id, $alias->sekolah_asal_id);
+    }
+
+    public function test_livewire_unmap_flow(): void
+    {
+        $master = SpmbSekolahAsal::create([
+            'nama_resmi' => 'SMPN 1 GARUT',
+            'jenis' => 'SMP',
+            'status_sekolah' => 'Negeri',
+            'tier' => 'Utama',
+        ]);
+
+        SpmbSekolahAsalAlias::create([
+            'sekolah_asal_id' => $master->id,
+            'alias_raw' => 'SMP 1 Garut Varian',
+        ]);
+
+        $siswa = Siswa::create([
+            'nama' => 'Dewi Lestari',
+            'nipd' => '99001',
+            'nisn' => '7788990011',
+            'jk' => 'P',
+            'rombel_id' => $this->rombel->id,
+            'status' => 'aktif',
+            'sekolah_asal' => 'SMPN 1 GARUT',
+            'sekolah_asal_raw' => 'SMP 1 Garut Varian',
+        ]);
+
+        Livewire::actingAs($this->admin)
+            ->test(PerbaikanSmpIndex::class)
+            ->call('openUnmapModal', 'SMP 1 Garut Varian', 'SMPN 1 GARUT')
+            ->assertSet('showUnmapModal', true)
+            ->assertSet('unmapRawName', 'SMP 1 Garut Varian')
+            ->assertSet('unmapAffectedCount', 1)
+            ->call('executeUnmap')
+            ->assertSet('showUnmapModal', false);
+
+        $siswa->refresh();
+        $this->assertEquals('SMP 1 Garut Varian', $siswa->sekolah_asal);
+        $this->assertDatabaseMissing('spmb_sekolah_asal_aliases', [
+            'alias_raw' => 'SMP 1 Garut Varian',
+        ]);
+    }
+
+    public function test_livewire_edit_mapping_flow(): void
+    {
+        $master1 = SpmbSekolahAsal::create([
+            'nama_resmi' => 'SMPN 1 KADUNGORA',
+            'jenis' => 'SMP',
+            'status_sekolah' => 'Negeri',
+            'tier' => 'Utama',
+        ]);
+
+        $master2 = SpmbSekolahAsal::create([
+            'nama_resmi' => 'SMPN 2 KADUNGORA',
+            'jenis' => 'SMP',
+            'status_sekolah' => 'Negeri',
+            'tier' => 'Potensial',
+        ]);
+
+        SpmbSekolahAsalAlias::create([
+            'sekolah_asal_id' => $master1->id,
+            'alias_raw' => 'SMP Kadungora Dua',
+        ]);
+
+        $siswa = Siswa::create([
+            'nama' => 'Rian Pratama',
+            'nipd' => '88112',
+            'nisn' => '5566778899',
+            'jk' => 'L',
+            'rombel_id' => $this->rombel->id,
+            'status' => 'aktif',
+            'sekolah_asal' => 'SMPN 1 KADUNGORA',
+            'sekolah_asal_raw' => 'SMP Kadungora Dua',
+        ]);
+
+        Livewire::actingAs($this->admin)
+            ->test(PerbaikanSmpIndex::class)
+            ->call('openEditMappingModal', 'SMP Kadungora Dua', $master1->id, 'SMPN 1 KADUNGORA')
+            ->assertSet('showEditMappingModal', true)
+            ->assertSet('editMappingRawName', 'SMP Kadungora Dua')
+            ->set('editMappingNewMasterId', $master2->id)
+            ->call('executeEditMapping')
+            ->assertSet('showEditMappingModal', false);
+
+        $siswa->refresh();
+        $this->assertEquals('SMPN 2 KADUNGORA', $siswa->sekolah_asal);
+        $this->assertDatabaseHas('spmb_sekolah_asal_aliases', [
+            'alias_raw' => 'SMP Kadungora Dua',
+            'sekolah_asal_id' => $master2->id,
+        ]);
+    }
+
+    public function test_sync_all_mapped_to_siswa(): void
+    {
+        $master = SpmbSekolahAsal::create([
+            'nama_resmi' => 'SMPN 3 GARUT',
+            'jenis' => 'SMP',
+            'status_sekolah' => 'Negeri',
+            'tier' => 'Utama',
+        ]);
+
+        SpmbSekolahAsalAlias::create([
+            'sekolah_asal_id' => $master->id,
+            'alias_raw' => 'SMP Tiga Garut',
+        ]);
+
+        // Siswa masih memiliki teks raw di sekolah_asal dan belum sinkron
+        $siswa = Siswa::create([
+            'nama' => 'Farhan Kamil',
+            'nipd' => '33441',
+            'nisn' => '4455667788',
+            'jk' => 'L',
+            'rombel_id' => $this->rombel->id,
+            'status' => 'aktif',
+            'sekolah_asal' => 'SMP Tiga Garut',
+            'sekolah_asal_raw' => 'SMP Tiga Garut',
+        ]);
+
+        Livewire::actingAs($this->admin)
+            ->test(PerbaikanSmpIndex::class)
+            ->call('syncAllMappedToSiswa');
+
+        $siswa->refresh();
+        $this->assertEquals('SMPN 3 GARUT', $siswa->sekolah_asal);
+        $this->assertEquals('SMP Tiga Garut', $siswa->sekolah_asal_raw);
+    }
+}

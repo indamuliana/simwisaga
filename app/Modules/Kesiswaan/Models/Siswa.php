@@ -52,6 +52,7 @@ class Siswa extends Model implements Auditable
         'no_akta_lahir',
         'no_kk',
         'sekolah_asal',
+        'sekolah_asal_raw',
         'penerima_kps',
         'no_kps',
         'penerima_kip',
@@ -85,6 +86,12 @@ class Siswa extends Model implements Auditable
 
     protected static function booted(): void
     {
+        static::creating(function (Siswa $siswa) {
+            if (! empty($siswa->sekolah_asal) && empty($siswa->sekolah_asal_raw)) {
+                $siswa->sekolah_asal_raw = $siswa->sekolah_asal;
+            }
+        });
+
         static::saving(function (Siswa $siswa) {
             if ($siswa->isDirty('status')) {
                 $siswa->is_active = ($siswa->status === 'aktif');

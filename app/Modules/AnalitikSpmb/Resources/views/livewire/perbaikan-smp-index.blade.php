@@ -45,6 +45,14 @@
             @endcan
 
             @can('analitik_spmb.perbaikan_smp.kelola')
+                <button type="button" wire:click="syncAllMappedToSiswa" wire:loading.attr="disabled" class="btn btn-secondary !py-2 !px-3 text-xs gap-1.5 text-primary hover:bg-primary/10 shadow-2xs" title="Terapkan nama master ke biodata seluruh siswa yang terpetakan">
+                    <svg xmlns="http://www.w3.org/2000/svg" class="h-4 w-4" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                        <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M4 4v5h.582m15.356 2A8.001 8.001 0 004.582 9m0 0H9m11 11v-5h-.581m0 0a8.003 8.003 0 01-15.357-2m15.357 2H15" />
+                    </svg>
+                    <span wire:loading.remove wire:target="syncAllMappedToSiswa">Sinkronkan ke Siswa</span>
+                    <span wire:loading wire:target="syncAllMappedToSiswa">Menyinkronkan...</span>
+                </button>
+
                 @if ($totalMasterSmp > 0 && $totalUnmapped > 0)
                     <button type="button" wire:click="autoMatchWithMasterSmp" wire:loading.attr="disabled" class="btn btn-secondary !py-2 !px-3 text-xs gap-1.5 text-emerald-600 hover:text-emerald-700 hover:bg-emerald-50 border-emerald-200 shadow-2xs" title="Cocokkan otomatis sekolah yang belum terpetakan ke database Master SMP resmi">
                         <svg xmlns="http://www.w3.org/2000/svg" class="h-4 w-4" fill="none" viewBox="0 0 24 24" stroke="currentColor">
@@ -280,11 +288,11 @@
                         </th>
                         <th class="py-3 px-2 text-center w-10">No</th>
                         <th class="py-3 px-3 text-center min-w-[110px]">NPSN</th>
-                        <th class="py-3 px-4 min-w-[240px]">Teks Sekolah Asal di Biodata Siswa</th>
+                        <th class="py-3 px-4 min-w-[240px]">Teks Asal (Mentah)</th>
                         <th class="py-3 px-4 min-w-[200px]">Terpetakan ke Master (Analitik)</th>
                         <th class="py-3 px-3 text-center w-28">Jumlah Siswa</th>
                         <th class="py-3 px-3 min-w-[130px]">Catatan Master</th>
-                        <th class="py-3 px-3 text-center w-36">Aksi</th>
+                        <th class="py-3 px-3 text-center w-40">Aksi</th>
                     </tr>
                 </thead>
                 <tbody class="divide-y divide-border text-text-main">
@@ -320,12 +328,18 @@
                             {{-- Teks Mentah --}}
                             <td class="py-3 px-4">
                                 <div class="font-bold text-text-main text-sm">{{ $item->raw_name }}</div>
+                                @if ($item->is_mapped && $item->current_siswa_name !== $item->raw_name)
+                                    <div class="text-[11px] text-text-muted flex items-center gap-1 mt-0.5" title="Nilai terkini di biodata siswa (/kesiswaan/siswa)">
+                                        <span>Di Siswa:</span>
+                                        <span class="text-primary font-medium truncate max-w-[200px]">{{ $item->current_siswa_name }}</span>
+                                    </div>
+                                @endif
                             </td>
 
                             {{-- Status Pemetaan Master --}}
                             <td class="py-3 px-4">
                                 @if ($item->is_mapped && $item->master_name)
-                                    <div class="flex items-center gap-1.5">
+                                    <div class="flex items-center gap-1.5 flex-wrap">
                                         <span class="text-xs font-semibold text-text-main">{{ $item->master_name }}</span>
                                         <span class="text-[10px] px-1.5 py-0.2 rounded-full border {{ match($item->master_tier) { 'Utama' => 'bg-amber-100 text-amber-800 border-amber-300', 'Potensial' => 'bg-blue-100 text-blue-800 border-blue-300', default => 'bg-slate-100 text-slate-700 border-slate-300'} }}">
                                             {{ $item->master_tier }}
@@ -362,7 +376,7 @@
                             <td class="py-3 px-3 text-center">
                                 <div class="inline-flex items-center gap-1">
                                     {{-- Lihat Siswa --}}
-                                    <button type="button" wire:click="openDrawer(@js($item->raw_name))" class="btn btn-secondary !p-1.5" title="Lihat Siswa">
+                                    <button type="button" wire:click="openDrawer(@js($item->raw_name))" class="btn btn-secondary !p-1.5" title="Lihat Siswa Terkait">
                                         <svg xmlns="http://www.w3.org/2000/svg" class="h-3.5 w-3.5 text-primary" fill="none" viewBox="0 0 24 24" stroke="currentColor">
                                             <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M15 12a3 3 0 11-6 0 3 3 0 016 0z" />
                                             <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M2.458 12C3.732 7.943 7.523 5 12 5c4.478 0 8.268 2.943 9.542 7-1.274 4.057-5.064 7-9.542 7-4.477 0-8.268-2.943-9.542-7z" />
@@ -370,28 +384,44 @@
                                     </button>
 
                                     @can('analitik_spmb.perbaikan_smp.kelola')
-                                        {{-- Edit Master (NPSN & Catatan) jika sudah terpetakan --}}
-                                        @if ($item->is_mapped && $item->master_id)
-                                            <button type="button" wire:click="openEditMasterModal({{ $item->master_id }})" class="btn btn-secondary !p-1.5 text-amber-600 hover:text-amber-700" title="Edit Master (NPSN & Catatan)">
+                                        @if ($item->is_mapped)
+                                            {{-- Ubah Pemetaan (Alihkan ke master lain) --}}
+                                            <button type="button" wire:click="openEditMappingModal(@js($item->raw_name), {{ $item->master_id ?? 'null' }}, @js($item->master_name ?? ''))" class="btn btn-secondary !p-1.5 text-blue-600 hover:text-blue-700 hover:bg-blue-50" title="Ubah Pemetaan Sekolah Ini">
                                                 <svg xmlns="http://www.w3.org/2000/svg" class="h-3.5 w-3.5" fill="none" viewBox="0 0 24 24" stroke="currentColor">
-                                                    <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M11 5H6a2 2 0 00-2 2v11a2 2 0 002 2h11a2 2 0 002-2v-5m-1.414-9.414a2 2 0 112.828 2.828L11.828 15H9v-2.828l8.586-8.586z" />
+                                                    <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M8 7h12m0 0l-4-4m4 4l-4 4m0 6H4m0 0l4 4m-4-4l4-4" />
+                                                </svg>
+                                            </button>
+
+                                            {{-- Lepaskan Pemetaan (Revert siswa ke nama asli & unmap) --}}
+                                            <button type="button" wire:click="openUnmapModal(@js($item->raw_name), @js($item->master_name ?? ''))" class="btn btn-secondary !p-1.5 text-rose-600 hover:text-rose-700 hover:bg-rose-50 border-rose-200" title="Lepaskan Pemetaan (Kembalikan data siswa ke teks asli)">
+                                                <svg xmlns="http://www.w3.org/2000/svg" class="h-3.5 w-3.5 text-rose-500" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                                                    <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M13.828 10.172a4 4 0 00-5.656 0l-4 4a4 4 0 105.656 5.656l1.102-1.101m-.758-4.899a4 4 0 005.656 0l4-4a4 4 0 00-5.656-5.656l-1.1 1.1" />
+                                                </svg>
+                                            </button>
+
+                                            {{-- Edit Master (NPSN & Catatan) jika master ada --}}
+                                            @if ($item->master_id)
+                                                <button type="button" wire:click="openEditMasterModal({{ $item->master_id }})" class="btn btn-secondary !p-1.5 text-amber-600 hover:text-amber-700" title="Edit Master (NPSN & Catatan)">
+                                                    <svg xmlns="http://www.w3.org/2000/svg" class="h-3.5 w-3.5" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                                                        <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M11 5H6a2 2 0 00-2 2v11a2 2 0 002 2h11a2 2 0 002-2v-5m-1.414-9.414a2 2 0 112.828 2.828L11.828 15H9v-2.828l8.586-8.586z" />
+                                                    </svg>
+                                                </button>
+                                            @endif
+                                        @else
+                                            {{-- Merge / Petakan Sekolah Ini --}}
+                                            <button type="button" wire:click="openMergeSingle(@js($item->raw_name))" class="btn btn-secondary !p-1.5 text-emerald-600 hover:text-emerald-700 hover:bg-emerald-50" title="Petakan / Gabungkan Sekolah Ini">
+                                                <svg xmlns="http://www.w3.org/2000/svg" class="h-3.5 w-3.5" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                                                    <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M8 7h12m0 0l-4-4m4 4l-4 4m0 6H4m0 0l4 4m-4-4l4-4" />
+                                                </svg>
+                                            </button>
+
+                                            {{-- Quick Rename Teks Mentah --}}
+                                            <button type="button" wire:click="openRenameModal(@js($item->raw_name))" class="btn btn-secondary !p-1.5 text-blue-600 hover:text-blue-700" title="Ganti Nama Mentah">
+                                                <svg xmlns="http://www.w3.org/2000/svg" class="h-3.5 w-3.5 text-blue-600" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                                                    <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M15.232 5.232l3.536 3.536m-2.036-5.036a2.5 2.5 0 113.536 3.536L6.5 21.036H3v-3.572L16.732 3.732z" />
                                                 </svg>
                                             </button>
                                         @endif
-
-                                        {{-- Quick Rename Teks Mentah --}}
-                                        <button type="button" wire:click="openRenameModal(@js($item->raw_name))" class="btn btn-secondary !p-1.5" title="Ganti Nama Mentah">
-                                            <svg xmlns="http://www.w3.org/2000/svg" class="h-3.5 w-3.5 text-blue-600" fill="none" viewBox="0 0 24 24" stroke="currentColor">
-                                                <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M15.232 5.232l3.536 3.536m-2.036-5.036a2.5 2.5 0 113.536 3.536L6.5 21.036H3v-3.572L16.732 3.732z" />
-                                            </svg>
-                                        </button>
-
-                                        {{-- Merge Single --}}
-                                        <button type="button" wire:click="openMergeSingle(@js($item->raw_name))" class="btn btn-secondary !p-1.5" title="Gabungkan Sekolah Ini">
-                                            <svg xmlns="http://www.w3.org/2000/svg" class="h-3.5 w-3.5 text-emerald-600" fill="none" viewBox="0 0 24 24" stroke="currentColor">
-                                                <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M8 7h12m0 0l-4-4m4 4l-4 4m0 6H4m0 0l4 4m-4-4l4-4" />
-                                            </svg>
-                                        </button>
                                     @endcan
                                 </div>
                             </td>
@@ -858,6 +888,155 @@
                     <div class="p-3.5 border-t border-border bg-surface-subtle flex items-center justify-end">
                         <button type="button" wire:click="$set('showIgnoredModal', false)" class="btn btn-secondary !py-1.5 !px-3 text-xs">
                             Tutup
+                        </button>
+                    </div>
+                </div>
+            </div>
+        </div>
+    @endif
+
+    {{-- MODAL KONFIRMASI LEPAS PEMETAAN --}}
+    @if ($showUnmapModal)
+        <div class="fixed inset-0 z-50 overflow-y-auto" aria-labelledby="modal-unmap-title" role="dialog" aria-modal="true">
+            <div class="fixed inset-0 bg-slate-900/60 backdrop-blur-xs transition-opacity z-10 cursor-pointer" wire:click="closeUnmapModal"></div>
+
+            <div class="flex min-h-full items-center justify-center p-4 text-center sm:p-0 relative z-20 pointer-events-none">
+                <div class="relative transform overflow-hidden rounded-2xl bg-surface border border-border text-left shadow-2xl transition-all sm:my-8 sm:w-full sm:max-w-md text-text-main pointer-events-auto" @click.stop>
+                    <div class="p-4 sm:p-5 border-b border-border bg-surface-subtle flex items-center justify-between">
+                        <div class="flex items-center gap-2">
+                            <span class="p-1.5 rounded-lg bg-rose-500/10 text-rose-600">
+                                <svg xmlns="http://www.w3.org/2000/svg" class="h-5 w-5" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                                    <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M13.828 10.172a4 4 0 00-5.656 0l-4 4a4 4 0 105.656 5.656l1.102-1.101m-.758-4.899a4 4 0 005.656 0l4-4a4 4 0 00-5.656-5.656l-1.1 1.1" />
+                                </svg>
+                            </span>
+                            <div>
+                                <h3 class="text-base font-bold text-text-main" id="modal-unmap-title">Lepaskan Pemetaan</h3>
+                                <p class="text-xs text-text-secondary">Batalkan pemetaan dan kembalikan data siswa.</p>
+                            </div>
+                        </div>
+                        <button type="button" wire:click="closeUnmapModal" class="text-text-muted hover:text-text-main text-lg">&times;</button>
+                    </div>
+
+                    <div class="p-5 space-y-4">
+                        <div class="p-3.5 rounded-xl bg-amber-50 dark:bg-amber-950/30 border border-amber-200 dark:border-amber-800 text-xs text-amber-900 dark:text-amber-200 space-y-2">
+                            <div class="font-bold flex items-center gap-1.5 text-amber-800 dark:text-amber-300">
+                                <svg xmlns="http://www.w3.org/2000/svg" class="h-4 w-4 shrink-0" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                                    <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 9v2m0 4h.01m-6.938 4h13.856c1.54 0 2.502-1.667 1.732-3L13.732 4c-.77-1.333-2.694-1.333-3.464 0L3.34 16c-.77 1.333.192 3 1.732 3z" />
+                                </svg>
+                                <span>Konfirmasi Pembatalan Pemetaan</span>
+                            </div>
+                            <p>
+                                Teks sekolah asal <strong class="underline">{{ $unmapRawName }}</strong> akan dilepaskan dari master <strong class="underline">{{ $unmapMasterName }}</strong>.
+                            </p>
+                            <p>
+                                Data <strong>{{ $unmapAffectedCount }} siswa</strong> di modul Kesiswaan (<code class="bg-amber-100 dark:bg-amber-900/50 px-1 rounded">/kesiswaan/siswa</code>) akan <strong>otomatis dikembalikan</strong> persis ke teks aslinya (<strong>{{ $unmapRawName }}</strong>).
+                            </p>
+                        </div>
+                    </div>
+
+                    <div class="p-4 border-t border-border bg-surface-subtle flex items-center justify-end gap-2">
+                        <button type="button" wire:click="closeUnmapModal" class="btn btn-secondary !py-2 !px-3.5 text-xs">
+                            Batal
+                        </button>
+                        <button type="button" wire:click="executeUnmap" wire:loading.attr="disabled" class="btn btn-danger !py-2 !px-4 text-xs gap-1.5">
+                            <span wire:loading.remove wire:target="executeUnmap">Ya, Lepaskan Pemetaan</span>
+                            <span wire:loading wire:target="executeUnmap">Memproses...</span>
+                        </button>
+                    </div>
+                </div>
+            </div>
+        </div>
+    @endif
+
+    {{-- MODAL UBAH PEMETAAN --}}
+    @if ($showEditMappingModal)
+        <div class="fixed inset-0 z-50 overflow-y-auto" aria-labelledby="modal-edit-map-title" role="dialog" aria-modal="true">
+            <div class="fixed inset-0 bg-slate-900/60 backdrop-blur-xs transition-opacity z-10 cursor-pointer" wire:click="closeEditMappingModal"></div>
+
+            <div class="flex min-h-full items-center justify-center p-4 text-center sm:p-0 relative z-20 pointer-events-none">
+                <div class="relative transform overflow-hidden rounded-2xl bg-surface border border-border text-left shadow-2xl transition-all sm:my-8 sm:w-full sm:max-w-lg text-text-main pointer-events-auto" @click.stop>
+                    <div class="p-4 sm:p-5 border-b border-border bg-surface-subtle flex items-center justify-between">
+                        <div class="flex items-center gap-2">
+                            <span class="p-1.5 rounded-lg bg-primary/10 text-primary">
+                                <svg xmlns="http://www.w3.org/2000/svg" class="h-5 w-5" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                                    <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M8 7h12m0 0l-4-4m4 4l-4 4m0 6H4m0 0l4 4m-4-4l4-4" />
+                                </svg>
+                            </span>
+                            <div>
+                                <h3 class="text-base font-bold text-text-main" id="modal-edit-map-title">Ubah Pemetaan Sekolah Asal</h3>
+                                <p class="text-xs text-text-secondary">Alihkan pemetaan teks asal ke sekolah master yang tepat.</p>
+                            </div>
+                        </div>
+                        <button type="button" wire:click="closeEditMappingModal" class="text-text-muted hover:text-text-main text-lg">&times;</button>
+                    </div>
+
+                    <div class="p-5 space-y-4">
+                        {{-- Info Asal Saat Ini --}}
+                        <div class="p-3 rounded-lg bg-surface-subtle border border-border text-xs space-y-1">
+                            <div class="text-text-muted">Teks Asal (Mentah):</div>
+                            <div class="font-bold text-text-main text-sm">{{ $editMappingRawName }}</div>
+                            <div class="text-text-muted mt-2">Master Saat Ini:</div>
+                            <div class="font-semibold text-rose-600 dark:text-rose-400">{{ $editMappingCurrentMasterName ?: '(Belum ada master)' }}</div>
+                        </div>
+
+                        {{-- Opsi 1: Cari dari Master SMP Resmi Kemdikbud --}}
+                        <div class="space-y-1.5">
+                            <label class="block text-xs font-semibold text-text-main">
+                                Cari Master SMP Resmi (Kemdikbud):
+                            </label>
+                            <div class="relative">
+                                <input type="text" wire:model.live.debounce.300ms="editMappingMasterSearch" placeholder="Ketik nama SMP atau NPSN..." class="input !py-1.5 !px-3 text-xs w-full pl-8">
+                                <svg xmlns="http://www.w3.org/2000/svg" class="h-4 w-4 text-text-muted absolute left-2.5 top-2.5" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                                    <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M21 21l-6-6m2-5a7 7 0 11-14 0 7 7 0 0114 0z" />
+                                </svg>
+                                @if ($editMappingMasterSearch)
+                                    <button type="button" wire:click="clearEditMappingMasterSmp" class="absolute right-2.5 top-2.5 text-text-muted hover:text-text-main text-xs">&times;</button>
+                                @endif
+                            </div>
+
+                            @if (!empty($editMappingMasterSmpResults) && $editMappingMasterSmpResults->count() > 0)
+                                <div class="border border-border rounded-lg max-h-40 overflow-y-auto divide-y divide-border bg-surface text-xs mt-1 shadow-sm">
+                                    @foreach ($editMappingMasterSmpResults as $smp)
+                                        <div wire:click="selectEditMappingMasterSmp({{ $smp->id }})" class="p-2 hover:bg-primary/5 cursor-pointer flex items-center justify-between">
+                                            <div>
+                                                <div class="font-semibold text-text-main">{{ $smp->nama }}</div>
+                                                <div class="text-[10px] text-text-muted font-mono">NPSN: {{ $smp->npsn }} &bull; {{ $smp->kecamatan }}, {{ $smp->kabupaten }}</div>
+                                            </div>
+                                            <span class="btn btn-secondary !py-0.5 !px-2 text-[10px]">Pilih</span>
+                                        </div>
+                                    @endforeach
+                                </div>
+                            @endif
+                        </div>
+
+                        {{-- Opsi 2: Pilih dari Master Sekolah Terdaftar --}}
+                        <div class="space-y-1.5">
+                            <label class="block text-xs font-semibold text-text-main">
+                                Atau Pilih Sekolah Master Analitik yang Sudah Ada:
+                            </label>
+                            <select wire:model.live="editMappingNewMasterId" class="input !py-2 !px-3 text-xs w-full">
+                                <option value="">-- Pilih Sekolah Master Tujuan --</option>
+                                @foreach ($masterSekolahs as $m)
+                                    <option value="{{ $m->id }}">{{ $m->nama_resmi }} ({{ $m->tier }})</option>
+                                @endforeach
+                            </select>
+                            @error('editMappingNewMasterId')
+                                <span class="text-rose-600 text-xs">{{ $message }}</span>
+                            @enderror
+                        </div>
+
+                        <div class="p-3 rounded-lg bg-blue-50/50 dark:bg-blue-950/20 border border-blue-200 dark:border-blue-900/50 text-[11px] text-blue-800 dark:text-blue-300">
+                            <strong>Otomatis:</strong> Menyimpan pemetaan ini akan langsung memperbarui nilai <code>sekolah_asal</code> pada seluruh data siswa di <strong>/kesiswaan/siswa</strong> yang berasal dari teks ini.
+                        </div>
+                    </div>
+
+                    <div class="p-4 border-t border-border bg-surface-subtle flex items-center justify-end gap-2">
+                        <button type="button" wire:click="closeEditMappingModal" class="btn btn-secondary !py-2 !px-3.5 text-xs">
+                            Batal
+                        </button>
+                        <button type="button" wire:click="executeEditMapping" wire:loading.attr="disabled" class="btn btn-primary !py-2 !px-4 text-xs gap-1.5">
+                            <span wire:loading.remove wire:target="executeEditMapping">Simpan Perubahan Pemetaan</span>
+                            <span wire:loading wire:target="executeEditMapping">Menyimpan...</span>
                         </button>
                     </div>
                 </div>

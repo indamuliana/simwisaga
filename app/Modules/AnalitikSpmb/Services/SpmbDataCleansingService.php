@@ -19,14 +19,20 @@ class SpmbDataCleansingService
     public function getUniqueSchoolStrings(?string $search = null, ?string $filterMapping = null): Collection
     {
         $rawSchools = Siswa::query()
-            ->whereNotNull('sekolah_asal')
-            ->where('sekolah_asal', '!=', '')
+            ->where(function ($q) {
+                $q->where(function ($q1) {
+                    $q1->whereNotNull('sekolah_asal')->where('sekolah_asal', '!=', '');
+                })->orWhere(function ($q2) {
+                    $q2->whereNotNull('sekolah_asal_raw')->where('sekolah_asal_raw', '!=', '');
+                });
+            })
             ->select(
-                'sekolah_asal',
+                DB::raw('COALESCE(NULLIF(sekolah_asal_raw, ""), sekolah_asal) as raw_name'),
+                DB::raw('MAX(sekolah_asal) as current_siswa_name'),
                 DB::raw('count(*) as total_siswa'),
                 DB::raw('sum(case when is_active = 1 then 1 else 0 end) as total_aktif')
             )
-            ->groupBy('sekolah_asal')
+            ->groupBy(DB::raw('COALESCE(NULLIF(sekolah_asal_raw, ""), sekolah_asal)'))
             ->orderByDesc('total_siswa')
             ->get();
 
@@ -36,15 +42,18 @@ class SpmbDataCleansingService
         });
 
         $result = $rawSchools->map(function ($item) use ($aliases) {
-            $key = strtolower(trim($item->sekolah_asal));
+            $key = strtolower(trim($item->raw_name));
             $mappedAlias = $aliases->get($key);
             $master = $mappedAlias?->sekolahAsal;
+            $isMasterItself = ($master && strcasecmp(trim($item->raw_name), trim($master->nama_resmi)) === 0);
 
             return (object) [
-                'raw_name' => $item->sekolah_asal,
+                'raw_name' => $item->raw_name,
+                'current_siswa_name' => $item->current_siswa_name ?? $item->raw_name,
                 'total_siswa' => (int) $item->total_siswa,
                 'total_aktif' => (int) $item->total_aktif,
                 'is_mapped' => (bool) $master,
+                'is_master_itself' => $isMasterItself,
                 'master_id' => $master?->id,
                 'master_name' => $master?->nama_resmi,
                 'master_npsn' => $master?->npsn,
@@ -59,6 +68,7 @@ class SpmbDataCleansingService
             $s = strtolower(trim($search));
             $result = $result->filter(function ($item) use ($s) {
                 return str_contains(strtolower($item->raw_name), $s)
+                    || str_contains(strtolower($item->current_siswa_name), $s)
                     || ($item->master_name && str_contains(strtolower($item->master_name), $s))
                     || ($item->master_npsn && str_contains(strtolower($item->master_npsn), $s))
                     || ($item->master_catatan && str_contains(strtolower($item->master_catatan), $s));
@@ -85,7 +95,10 @@ class SpmbDataCleansingService
         }
 
         return Siswa::with(['rombel.jurusan'])
-            ->whereIn('sekolah_asal', $schoolNames)
+            ->where(function ($q) use ($schoolNames) {
+                $q->whereIn('sekolah_asal', $schoolNames)
+                  ->orWhereIn('sekolah_asal_raw', $schoolNames);
+            })
             ->orderBy('is_active', 'desc')
             ->orderBy('nama', 'asc')
             ->get();
@@ -97,10 +110,18 @@ class SpmbDataCleansingService
     public function detectPotentialDuplicates(): array
     {
         $allUnique = Siswa::query()
-            ->whereNotNull('sekolah_asal')
-            ->where('sekolah_asal', '!=', '')
-            ->select('sekolah_asal', DB::raw('count(*) as total_siswa'))
-            ->groupBy('sekolah_asal')
+            ->where(function ($q) {
+                $q->where(function ($q1) {
+                    $q1->whereNotNull('sekolah_asal')->where('sekolah_asal', '!=', '');
+                })->orWhere(function ($q2) {
+                    $q2->whereNotNull('sekolah_asal_raw')->where('sekolah_asal_raw', '!=', '');
+                });
+            })
+            ->select(
+                DB::raw('COALESCE(NULLIF(sekolah_asal_raw, ""), sekolah_asal) as sekolah_asal'),
+                DB::raw('count(*) as total_siswa')
+            )
+            ->groupBy(DB::raw('COALESCE(NULLIF(sekolah_asal_raw, ""), sekolah_asal)'))
             ->get();
 
         if ($allUnique->count() < 2) {
@@ -370,11 +391,27 @@ class SpmbDataCleansingService
             );
 
             // 2. Hitung siswa yang terdampak
-            $affectedStudentsCount = Siswa::whereIn('sekolah_asal', $sourceNames)->count();
+            $affectedStudentsCount = Siswa::where(function ($q) use ($sourceNames) {
+                $q->whereIn('sekolah_asal', $sourceNames)
+                  ->orWhereIn('sekolah_asal_raw', $sourceNames);
+            })->count();
 
             // 3. Update data pada tabel siswas jika opsi updateSiswa diaktifkan
             if ($updateSiswa) {
-                Siswa::whereIn('sekolah_asal', $sourceNames)->update([
+                // Pastikan sekolah_asal_raw tersimpan sebelum diubah
+                Siswa::whereIn('sekolah_asal', $sourceNames)
+                    ->where(function ($q) {
+                        $q->whereNull('sekolah_asal_raw')->orWhere('sekolah_asal_raw', '');
+                    })
+                    ->update([
+                        'sekolah_asal_raw' => DB::raw('sekolah_asal'),
+                    ]);
+
+                // Update teks sekolah_asal ke nama master resmi
+                Siswa::where(function ($q) use ($sourceNames) {
+                    $q->whereIn('sekolah_asal', $sourceNames)
+                      ->orWhereIn('sekolah_asal_raw', $sourceNames);
+                })->update([
                     'sekolah_asal' => $targetMaster->nama_resmi,
                 ]);
             }
@@ -431,6 +468,183 @@ class SpmbDataCleansingService
         bool $createAlias = true
     ): array {
         return $this->mergeSchoolStrings([$oldName], $newName, $updateSiswa, $createAlias);
+    }
+
+    /**
+     * Melepaskan pemetaan suatu teks asal SMP dari master.
+     * Mengembalikan data sekolah_asal pada tabel siswa ke teks aslinya (sekolah_asal_raw)
+     * dan menghapus relasi alias dari master.
+     */
+    public function unmapSchoolString(string $rawName): array
+    {
+        $rawName = trim($rawName);
+        if (empty($rawName)) {
+            throw new \InvalidArgumentException('Nama sekolah yang ingin dilepaskan tidak boleh kosong.');
+        }
+
+        return DB::transaction(function () use ($rawName) {
+            $syncService = app(SpmbSekolahAsalSyncService::class);
+
+            // 1. Cari alias di database (case-insensitive)
+            $alias = SpmbSekolahAsalAlias::with('sekolahAsal')
+                ->whereRaw('LOWER(alias_raw) = ?', [strtolower($rawName)])
+                ->first();
+
+            $oldMasterId = $alias?->sekolah_asal_id;
+            $oldMaster = $alias?->sekolahAsal;
+            $oldMasterName = $oldMaster?->nama_resmi ?? '';
+
+            // 2. Kembalikan data siswa di tabel siswas ke teks aslinya
+            $affectedStudents = Siswa::where(function ($q) use ($rawName) {
+                $q->where('sekolah_asal_raw', $rawName)
+                  ->orWhere(function ($q2) use ($rawName) {
+                      $q2->whereNull('sekolah_asal_raw')
+                         ->where('sekolah_asal', $rawName);
+                  });
+            })->update([
+                'sekolah_asal' => $rawName,
+                'sekolah_asal_raw' => $rawName,
+            ]);
+
+            // 3. Hapus alias atau kelola master jika rawName adalah master itu sendiri
+            if ($alias) {
+                $isMasterItself = ($oldMaster && strcasecmp(trim($oldMaster->nama_resmi), trim($alias->alias_raw)) === 0);
+
+                if ($isMasterItself) {
+                    $otherAliasesCount = SpmbSekolahAsalAlias::where('sekolah_asal_id', $oldMaster->id)
+                        ->where('id', '!=', $alias->id)
+                        ->count();
+
+                    $alias->delete();
+
+                    // Jika tidak ada alias lain yang terhubung, hapus master tersebut
+                    if ($otherAliasesCount === 0) {
+                        $oldMaster->delete();
+                        $oldMasterId = null;
+                    }
+                } else {
+                    $alias->delete();
+                }
+            }
+
+            // 4. Update tier master lama jika masih ada
+            if ($oldMasterId) {
+                $remMaster = SpmbSekolahAsal::find($oldMasterId);
+                if ($remMaster) {
+                    $aliases = $remMaster->fresh()->all_names;
+                    $activeCount = Siswa::whereIn('sekolah_asal', $aliases)->where('is_active', true)->count();
+                    $remMaster->update(['tier' => $syncService->calculateTier($activeCount)]);
+                }
+            }
+
+            return [
+                'raw_name' => $rawName,
+                'old_master_name' => $oldMasterName,
+                'affected_students' => $affectedStudents,
+            ];
+        });
+    }
+
+    /**
+     * Mengubah pemetaan suatu teks sekolah asal ke master sekolah yang baru.
+     * Mengalihkan relasi alias dan memperbarui data sekolah_asal siswa di tabel siswas.
+     */
+    public function editMapping(string $rawName, int $newMasterId): array
+    {
+        $rawName = trim($rawName);
+        if (empty($rawName)) {
+            throw new \InvalidArgumentException('Nama sekolah tidak boleh kosong.');
+        }
+
+        return DB::transaction(function () use ($rawName, $newMasterId) {
+            $syncService = app(SpmbSekolahAsalSyncService::class);
+            $newMaster = SpmbSekolahAsal::findOrFail($newMasterId);
+
+            // 1. Cari alias yang ada
+            $alias = SpmbSekolahAsalAlias::whereRaw('LOWER(alias_raw) = ?', [strtolower($rawName)])->first();
+            $oldMasterId = $alias?->sekolah_asal_id;
+
+            if ($alias) {
+                $alias->update(['sekolah_asal_id' => $newMaster->id]);
+            } else {
+                SpmbSekolahAsalAlias::create([
+                    'alias_raw' => $rawName,
+                    'sekolah_asal_id' => $newMaster->id,
+                ]);
+            }
+
+            // 2. Pastikan sekolah_asal_raw tersimpan di siswa
+            Siswa::where('sekolah_asal', $rawName)
+                ->where(function ($q) {
+                    $q->whereNull('sekolah_asal_raw')->orWhere('sekolah_asal_raw', '');
+                })
+                ->update(['sekolah_asal_raw' => $rawName]);
+
+            // 3. Update sekolah_asal siswa ke master baru
+            $affectedStudents = Siswa::where(function ($q) use ($rawName) {
+                $q->where('sekolah_asal_raw', $rawName)
+                  ->orWhere('sekolah_asal', $rawName);
+            })->update([
+                'sekolah_asal' => $newMaster->nama_resmi,
+            ]);
+
+            // 4. Update tiering master lama dan baru
+            if ($oldMasterId && $oldMasterId !== $newMaster->id) {
+                $oldMaster = SpmbSekolahAsal::find($oldMasterId);
+                if ($oldMaster) {
+                    $oldAliases = $oldMaster->fresh()->all_names;
+                    $oldActiveCount = Siswa::whereIn('sekolah_asal', $oldAliases)->where('is_active', true)->count();
+                    $oldMaster->update(['tier' => $syncService->calculateTier($oldActiveCount)]);
+                }
+            }
+
+            $newAliases = $newMaster->fresh()->all_names;
+            $newActiveCount = Siswa::whereIn('sekolah_asal', $newAliases)->where('is_active', true)->count();
+            $newMaster->update(['tier' => $syncService->calculateTier($newActiveCount)]);
+
+            return [
+                'raw_name' => $rawName,
+                'target_master_id' => $newMaster->id,
+                'target_name' => $newMaster->nama_resmi,
+                'affected_students' => $affectedStudents,
+            ];
+        });
+    }
+
+    /**
+     * Sinkronisasikan seluruh siswa yang memiliki alias terpetakan agar teks sekolah_asal
+     * di tabel siswas mengikuti nama_resmi master sekolah asal.
+     */
+    public function syncAllMappedToSiswa(): int
+    {
+        $aliases = SpmbSekolahAsalAlias::with('sekolahAsal')->get();
+        $totalUpdated = 0;
+
+        foreach ($aliases as $alias) {
+            $master = $alias->sekolahAsal;
+            if (! $master || strcasecmp(trim($alias->alias_raw), trim($master->nama_resmi)) === 0) {
+                continue;
+            }
+
+            // Simpan sekolah_asal_raw jika belum ada
+            Siswa::where('sekolah_asal', $alias->alias_raw)
+                ->where(function ($q) {
+                    $q->whereNull('sekolah_asal_raw')->orWhere('sekolah_asal_raw', '');
+                })
+                ->update(['sekolah_asal_raw' => $alias->alias_raw]);
+
+            // Update ke nama resmi
+            $updated = Siswa::where(function ($q) use ($alias) {
+                $q->where('sekolah_asal_raw', $alias->alias_raw)
+                  ->orWhere('sekolah_asal', $alias->alias_raw);
+            })
+            ->where('sekolah_asal', '!=', $master->nama_resmi)
+            ->update(['sekolah_asal' => $master->nama_resmi]);
+
+            $totalUpdated += $updated;
+        }
+
+        return $totalUpdated;
     }
 
     /**

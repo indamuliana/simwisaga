@@ -59,6 +59,21 @@ class PerbaikanSmpIndex extends Component
     public string $editMasterJenis = 'SMP';
     public string $editMasterStatus = 'Negeri';
 
+    // Unmap Confirmation Modal State
+    public bool $showUnmapModal = false;
+    public string $unmapRawName = '';
+    public string $unmapMasterName = '';
+    public int $unmapAffectedCount = 0;
+
+    // Edit Mapping Modal State
+    public bool $showEditMappingModal = false;
+    public string $editMappingRawName = '';
+    public ?int $editMappingCurrentMasterId = null;
+    public string $editMappingCurrentMasterName = '';
+    public ?int $editMappingNewMasterId = null;
+    public string $editMappingMasterSearch = '';
+    public ?int $editMappingTargetMasterSmpId = null;
+
     // Modal Daftar Rekomendasi Diabaikan
     public bool $showIgnoredModal = false;
 
@@ -408,6 +423,118 @@ class PerbaikanSmpIndex extends Component
         session()->flash('success', 'Tanda sekolah berbeda berhasil dibatalkan.');
     }
 
+    public function openUnmapModal(string $rawName, string $masterName): void
+    {
+        $this->guard('analitik_spmb.perbaikan_smp.kelola');
+        $cleansingService = app(SpmbDataCleansingService::class);
+
+        $this->unmapRawName = $rawName;
+        $this->unmapMasterName = $masterName;
+        $this->unmapAffectedCount = $cleansingService->getAffectedStudents([$rawName])->count();
+        $this->showUnmapModal = true;
+    }
+
+    public function closeUnmapModal(): void
+    {
+        $this->showUnmapModal = false;
+        $this->unmapRawName = '';
+        $this->unmapMasterName = '';
+        $this->unmapAffectedCount = 0;
+    }
+
+    public function executeUnmap(): void
+    {
+        $this->guard('analitik_spmb.perbaikan_smp.kelola');
+
+        if (empty($this->unmapRawName)) {
+            return;
+        }
+
+        $cleansingService = app(SpmbDataCleansingService::class);
+        $result = $cleansingService->unmapSchoolString($this->unmapRawName);
+
+        $this->closeUnmapModal();
+        $this->refreshSuggestions();
+
+        session()->flash('success', "Pemetaan '{$result['raw_name']}' berhasil dilepaskan. {$result['affected_students']} data siswa dikembalikan ke teks aslinya.");
+    }
+
+    public function openEditMappingModal(string $rawName, ?int $currentMasterId, ?string $currentMasterName): void
+    {
+        $this->guard('analitik_spmb.perbaikan_smp.kelola');
+
+        $this->editMappingRawName = $rawName;
+        $this->editMappingCurrentMasterId = $currentMasterId;
+        $this->editMappingCurrentMasterName = $currentMasterName ?? '';
+        $this->editMappingNewMasterId = $currentMasterId;
+        $this->editMappingTargetMasterSmpId = null;
+        $this->editMappingMasterSearch = '';
+        $this->showEditMappingModal = true;
+    }
+
+    public function closeEditMappingModal(): void
+    {
+        $this->showEditMappingModal = false;
+        $this->editMappingRawName = '';
+        $this->editMappingCurrentMasterId = null;
+        $this->editMappingCurrentMasterName = '';
+        $this->editMappingNewMasterId = null;
+        $this->editMappingTargetMasterSmpId = null;
+        $this->editMappingMasterSearch = '';
+    }
+
+    public function selectEditMappingMasterSmp(int $id): void
+    {
+        $master = SpmbMasterSmp::find($id);
+        if ($master) {
+            $cleansingService = app(SpmbDataCleansingService::class);
+            $sekolahAsal = $cleansingService->linkMasterSmpToSekolahAsal($master->id);
+            $this->editMappingNewMasterId = $sekolahAsal->id;
+            $this->editMappingTargetMasterSmpId = $master->id;
+            $this->editMappingMasterSearch = "{$master->nama} (NPSN: {$master->npsn})";
+        }
+    }
+
+    public function clearEditMappingMasterSmp(): void
+    {
+        $this->editMappingTargetMasterSmpId = null;
+        $this->editMappingMasterSearch = '';
+    }
+
+    public function executeEditMapping(): void
+    {
+        $this->guard('analitik_spmb.perbaikan_smp.kelola');
+
+        $this->validate([
+            'editMappingNewMasterId' => 'required|exists:spmb_sekolah_asals,id',
+        ], [
+            'editMappingNewMasterId.required' => 'Pilih sekolah master tujuan yang baru.',
+        ]);
+
+        $cleansingService = app(SpmbDataCleansingService::class);
+        $result = $cleansingService->editMapping($this->editMappingRawName, $this->editMappingNewMasterId);
+
+        $this->closeEditMappingModal();
+        $this->refreshSuggestions();
+
+        session()->flash('success', "Pemetaan '{$result['raw_name']}' berhasil dialihkan ke '{$result['target_name']}'. {$result['affected_students']} data siswa diperbarui.");
+    }
+
+    public function syncAllMappedToSiswa(): void
+    {
+        $this->guard('analitik_spmb.perbaikan_smp.kelola');
+
+        $cleansingService = app(SpmbDataCleansingService::class);
+        $count = $cleansingService->syncAllMappedToSiswa();
+
+        $this->refreshSuggestions();
+        if ($count > 0) {
+            session()->flash('success', "Sinkronisasi selesai! {$count} data siswa berhasil diperbarui sesuai pemetaan master.");
+        } else {
+            session()->flash('info', 'Semua data siswa yang terpetakan sudah mutakhir.');
+        }
+    }
+
     public function render()
     {
         $cleansingService = app(SpmbDataCleansingService::class);
@@ -423,7 +550,7 @@ class PerbaikanSmpIndex extends Component
             ['path' => LengthAwarePaginator::resolveCurrentPath()]
         );
 
-        // Ambil daftar master sekolah untuk dropdown target merge
+        // Ambil daftar master sekolah untuk dropdown target merge & edit mapping
         $masterSekolahs = SpmbSekolahAsal::orderBy('nama_resmi')->get(['id', 'nama_resmi', 'tier']);
 
         // Data siswa untuk pratinjau modal merge
@@ -445,17 +572,25 @@ class PerbaikanSmpIndex extends Component
         $ignoredCount = SpmbIgnoredDuplicate::count();
         $ignoredPairs = $this->showIgnoredModal ? SpmbIgnoredDuplicate::latest()->get() : collect();
 
-        // Hasil pencarian Master SMP resmi
+        // Hasil pencarian Master SMP resmi untuk Modal Merge
         $masterSmpSearchResults = collect();
         if ($this->showMergeModal && strlen(trim($this->masterSmpSearch)) >= 2 && ! $this->mergeTargetMasterSmpId) {
             $masterSmpSearchResults = $cleansingService->searchMasterSmp($this->masterSmpSearch, null, 8);
         }
+
+        // Hasil pencarian Master SMP resmi untuk Modal Edit Mapping
+        $editMappingMasterSmpResults = collect();
+        if ($this->showEditMappingModal && strlen(trim($this->editMappingMasterSearch)) >= 2 && ! $this->editMappingTargetMasterSmpId) {
+            $editMappingMasterSmpResults = $cleansingService->searchMasterSmp($this->editMappingMasterSearch, null, 8);
+        }
+
         $totalMasterSmp = SpmbMasterSmp::count();
 
         return view('analitikspmb::livewire.perbaikan-smp-index', array_merge(get_object_vars($this), [
             'paginated' => $paginated,
             'masterSekolahs' => $masterSekolahs,
             'masterSmpSearchResults' => $masterSmpSearchResults,
+            'editMappingMasterSmpResults' => $editMappingMasterSmpResults,
             'totalMasterSmp' => $totalMasterSmp,
             'previewStudents' => $previewStudents,
             'drawerStudents' => $drawerStudents,
