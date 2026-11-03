@@ -18,21 +18,25 @@ class SpmbDataCleansingService
      */
     public function getUniqueSchoolStrings(?string $search = null, ?string $filterMapping = null): Collection
     {
-        $rawSchools = Siswa::query()
+        $subquery = Siswa::query()
+            ->selectRaw("COALESCE(NULLIF(sekolah_asal_raw, ''), sekolah_asal) as raw_name")
+            ->selectRaw('sekolah_asal as current_siswa_name')
+            ->selectRaw('CASE WHEN is_active = 1 THEN 1 ELSE 0 END as is_active')
             ->where(function ($q) {
                 $q->where(function ($q1) {
                     $q1->whereNotNull('sekolah_asal')->where('sekolah_asal', '!=', '');
                 })->orWhere(function ($q2) {
                     $q2->whereNotNull('sekolah_asal_raw')->where('sekolah_asal_raw', '!=', '');
                 });
-            })
-            ->select(
-                DB::raw('COALESCE(NULLIF(sekolah_asal_raw, ""), sekolah_asal) as raw_name'),
-                DB::raw('MAX(sekolah_asal) as current_siswa_name'),
-                DB::raw('count(*) as total_siswa'),
-                DB::raw('sum(case when is_active = 1 then 1 else 0 end) as total_aktif')
-            )
-            ->groupBy(DB::raw('COALESCE(NULLIF(sekolah_asal_raw, ""), sekolah_asal)'))
+            });
+
+        $rawSchools = DB::query()
+            ->fromSub($subquery, 't')
+            ->select('raw_name')
+            ->selectRaw('MAX(current_siswa_name) as current_siswa_name')
+            ->selectRaw('COUNT(*) as total_siswa')
+            ->selectRaw('SUM(is_active) as total_aktif')
+            ->groupBy('raw_name')
             ->orderByDesc('total_siswa')
             ->get();
 
@@ -109,19 +113,21 @@ class SpmbDataCleansingService
      */
     public function detectPotentialDuplicates(): array
     {
-        $allUnique = Siswa::query()
+        $subquery = Siswa::query()
+            ->selectRaw("COALESCE(NULLIF(sekolah_asal_raw, ''), sekolah_asal) as raw_name")
             ->where(function ($q) {
                 $q->where(function ($q1) {
                     $q1->whereNotNull('sekolah_asal')->where('sekolah_asal', '!=', '');
                 })->orWhere(function ($q2) {
                     $q2->whereNotNull('sekolah_asal_raw')->where('sekolah_asal_raw', '!=', '');
                 });
-            })
-            ->select(
-                DB::raw('COALESCE(NULLIF(sekolah_asal_raw, ""), sekolah_asal) as sekolah_asal'),
-                DB::raw('count(*) as total_siswa')
-            )
-            ->groupBy(DB::raw('COALESCE(NULLIF(sekolah_asal_raw, ""), sekolah_asal)'))
+            });
+
+        $allUnique = DB::query()
+            ->fromSub($subquery, 't')
+            ->select('raw_name as sekolah_asal')
+            ->selectRaw('COUNT(*) as total_siswa')
+            ->groupBy('raw_name')
             ->get();
 
         if ($allUnique->count() < 2) {
