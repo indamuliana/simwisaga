@@ -128,14 +128,27 @@ class SpmbDataCleansingService
             return [];
         }
 
+        // Ambil mapping alias saat ini untuk mengecek apakah sekolah sudah disatukan ke master yang sama
+        $aliases = SpmbSekolahAsalAlias::with('sekolahAsal')->get();
+        $aliasMap = [];
+        $masterNameMap = [];
+        foreach ($aliases as $alias) {
+            $key = strtolower(trim($alias->alias_raw));
+            $aliasMap[$key] = $alias->sekolah_asal_id;
+            $masterNameMap[$key] = $alias->sekolahAsal?->nama_resmi;
+        }
+
         // Siapkan struktur core name untuk pencocokan kemiripan
-        $items = $allUnique->map(function ($item) {
+        $items = $allUnique->map(function ($item) use ($aliasMap, $masterNameMap) {
             $cleanCore = $this->extractCoreName($item->sekolah_asal);
+            $rawLower = strtolower(trim($item->sekolah_asal));
 
             return [
                 'raw_name' => $item->sekolah_asal,
                 'core' => $cleanCore,
                 'total_siswa' => (int) $item->total_siswa,
+                'master_id' => $aliasMap[$rawLower] ?? null,
+                'master_name' => $masterNameMap[$rawLower] ?? null,
             ];
         })->values()->toArray();
 
@@ -151,6 +164,8 @@ class SpmbDataCleansingService
 
             $group = [$items[$i]];
             $coreA = $items[$i]['core'];
+            $rawA = $items[$i]['raw_name'];
+            $masterA = $items[$i]['master_id'];
 
             if (strlen($coreA) < 3) {
                 continue;
@@ -161,7 +176,15 @@ class SpmbDataCleansingService
                     continue;
                 }
 
-                $pairHash = SpmbIgnoredDuplicate::hashPair($items[$i]['raw_name'], $items[$j]['raw_name']);
+                $rawB = $items[$j]['raw_name'];
+                $masterB = $items[$j]['master_id'];
+
+                // Jika kedua nama sekolah SUDAH terpetakan ke master yang sama, mereka sudah disatukan!
+                if ($masterA !== null && $masterB !== null && $masterA === $masterB) {
+                    continue;
+                }
+
+                $pairHash = SpmbIgnoredDuplicate::hashPair($rawA, $rawB);
                 if (isset($ignoredHashes[$pairHash])) {
                     continue;
                 }
@@ -171,19 +194,26 @@ class SpmbDataCleansingService
                     continue;
                 }
 
-                if ($this->isSimilarSchool($coreA, $coreB, $items[$i]['raw_name'], $items[$j]['raw_name'])) {
+                if ($this->isSimilarSchool($coreA, $coreB, $rawA, $rawB)) {
                     $group[] = $items[$j];
                     $visited[$j] = true;
                 }
             }
 
-            if (count($group) > 1) {
+            // Pastikan di dalam kelompok ada minimal 2 item dan minimal ada 2 master berbeda (atau belum terpetakan)
+            $distinctMasterKeys = [];
+            foreach ($group as $gItem) {
+                $mKey = $gItem['master_id'] !== null ? 'master_' . $gItem['master_id'] : 'raw_' . $gItem['raw_name'];
+                $distinctMasterKeys[$mKey] = true;
+            }
+
+            if (count($group) > 1 && count($distinctMasterKeys) > 1) {
                 $visited[$i] = true;
 
                 // Urutkan anggota grup berdasarkan jumlah siswa terbanyak (sebagai kandidat target utama)
                 usort($group, fn ($a, $b) => $b['total_siswa'] <=> $a['total_siswa']);
 
-                $suggestedTarget = $group[0]['raw_name'];
+                $suggestedTarget = $group[0]['master_name'] ?? $group[0]['raw_name'];
                 $totalSiswaCluster = array_sum(array_column($group, 'total_siswa'));
 
                 $clusters[] = [

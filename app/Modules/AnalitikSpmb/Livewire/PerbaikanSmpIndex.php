@@ -216,6 +216,19 @@ class PerbaikanSmpIndex extends Component
         $this->mergeTargetName = $cluster['suggested_target'];
         $this->mergeTargetMasterId = null;
         $this->mergeTargetMasterSmpId = null;
+
+        // Jika salah satu item sudah memiliki master di database, prioritaskan master tersebut sebagai default target
+        foreach ($cluster['items'] as $item) {
+            if (! empty($item['master_id'])) {
+                $master = SpmbSekolahAsal::find($item['master_id']);
+                if ($master) {
+                    $this->mergeTargetMasterId = $master->id;
+                    $this->mergeTargetName = $master->nama_resmi;
+                    $this->mergeTargetMasterSmpId = $master->master_smp_id;
+                    break;
+                }
+            }
+        }
         $this->masterSmpSearch = '';
         $this->optUpdateSiswa = true;
         $this->optCreateAlias = true;

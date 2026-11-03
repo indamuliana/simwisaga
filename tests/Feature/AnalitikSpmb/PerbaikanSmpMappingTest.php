@@ -292,4 +292,48 @@ class PerbaikanSmpMappingTest extends TestCase
         $this->assertEquals('SMPN 3 GARUT', $siswa->sekolah_asal);
         $this->assertEquals('SMP Tiga Garut', $siswa->sekolah_asal_raw);
     }
+
+    public function test_card_rekomendasi_duplikat_menghilang_setelah_disatukan(): void
+    {
+        // Buat 2 variasi nama sekolah yang mirip dan belum disatukan
+        Siswa::create([
+            'nama' => 'Siswa A',
+            'nipd' => '10001',
+            'nisn' => '1000000001',
+            'jk' => 'L',
+            'rombel_id' => $this->rombel->id,
+            'status' => 'aktif',
+            'sekolah_asal' => 'SMP Baitul Hikmah',
+            'sekolah_asal_raw' => 'SMP Baitul Hikmah',
+        ]);
+
+        Siswa::create([
+            'nama' => 'Siswa B',
+            'nipd' => '10002',
+            'nisn' => '1000000002',
+            'jk' => 'P',
+            'rombel_id' => $this->rombel->id,
+            'status' => 'aktif',
+            'sekolah_asal' => 'SMP Baitul Hikmah Tarogong',
+            'sekolah_asal_raw' => 'SMP Baitul Hikmah Tarogong',
+        ]);
+
+        $cleansingService = app(SpmbDataCleansingService::class);
+
+        // Sebelum disatukan, harus terdeteksi sebagai rekomendasi duplikat
+        $suggestionsBefore = $cleansingService->detectPotentialDuplicates();
+        $this->assertNotEmpty($suggestionsBefore);
+
+        // Satukan kedua variasi nama tersebut ke master yang sama
+        Livewire::actingAs($this->admin)
+            ->test(PerbaikanSmpIndex::class)
+            ->call('openMergeFromSuggestion', 0)
+            ->set('mergeTargetName', 'SMP Baitul Hikmah Tarogong')
+            ->call('executeMerge')
+            ->assertSet('showMergeModal', false);
+
+        // Setelah disatukan, card rekomendasi untuk kelompok ini HARUS HILANG
+        $suggestionsAfter = $cleansingService->detectPotentialDuplicates();
+        $this->assertEmpty($suggestionsAfter);
+    }
 }
