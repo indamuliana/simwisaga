@@ -96,24 +96,24 @@
             <!-- Full-Width Carousel Area (Edge-to-Edge Single-Row Panorama Track) -->
             <div class="dinamika-fullwidth-wrapper">
                 <div class="flex flex-col lg:flex-row items-stretch gap-6 sm:gap-8">
-                    <!-- Left Navigation: JIS Diamond Action Buttons (Rotated 45-degree Squares) -->
+                    <!-- Left Navigation: Square Action Buttons -->
                     <div class="flex lg:flex-col items-center justify-center gap-3.5 sm:gap-4 shrink-0 py-2 lg:py-0 self-center z-20">
-                        <!-- Prev Diamond Button -->
+                        <!-- Prev Button -->
                         <button type="button" 
                                 @click="scrollPrev()" 
-                                class="w-10 h-10 rotate-45 border-2 border-[#00305F] bg-white text-[#00305F] hover:bg-[#00305F] hover:text-white flex items-center justify-center transition-all duration-300 shadow-sm cursor-pointer active:scale-95 group"
+                                class="w-10 h-10 rounded-xl border-2 border-[#00305F] bg-white text-[#00305F] hover:bg-[#00305F] hover:text-white flex items-center justify-center transition-all duration-300 shadow-sm cursor-pointer active:scale-95 group"
                                 title="Sebelumnya">
-                            <svg class="-rotate-45 w-4 h-4 group-hover:-translate-x-0.5 transition-transform" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                            <svg class="w-5 h-5 group-hover:-translate-x-0.5 transition-transform" fill="none" viewBox="0 0 24 24" stroke="currentColor">
                                 <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2.2" d="M15 19l-7-7 7-7" />
                             </svg>
                         </button>
 
-                        <!-- Next Diamond Button -->
+                        <!-- Next Button -->
                         <button type="button" 
                                 @click="scrollNext()" 
-                                class="w-10 h-10 rotate-45 border-2 border-[#00305F] bg-white text-[#00305F] hover:bg-[#00305F] hover:text-white flex items-center justify-center transition-all duration-300 shadow-sm cursor-pointer active:scale-95 group"
+                                class="w-10 h-10 rounded-xl border-2 border-[#00305F] bg-white text-[#00305F] hover:bg-[#00305F] hover:text-white flex items-center justify-center transition-all duration-300 shadow-sm cursor-pointer active:scale-95 group"
                                 title="Berikutnya">
-                            <svg class="-rotate-45 w-4 h-4 group-hover:translate-x-0.5 transition-transform" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                            <svg class="w-5 h-5 group-hover:translate-x-0.5 transition-transform" fill="none" viewBox="0 0 24 24" stroke="currentColor">
                                 <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2.2" d="M9 5l7 7-7 7" />
                             </svg>
                         </button>
