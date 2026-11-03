@@ -11,6 +11,7 @@ use App\Modules\Kesiswaan\Livewire\SiswaDetail;
 use App\Modules\Kesiswaan\Livewire\SiswaEdit;
 use App\Modules\Kesiswaan\Livewire\SiswaImport;
 use App\Modules\Kesiswaan\Livewire\SiswaIndex;
+use App\Modules\Kesiswaan\Livewire\VerifikasiPerbaikanData;
 use Illuminate\Support\Facades\Route;
 
 Route::prefix('kesiswaan')->name('kesiswaan.')->group(function () {
@@ -25,4 +26,5 @@ Route::prefix('kesiswaan')->name('kesiswaan.')->group(function () {
     Route::get('/kelulusan', KelulusanIndex::class)->name('kelulusan');
     Route::get('/plotting-program', PlottingProgramMassal::class)->name('plotting-program');
     Route::get('/plotting-rayon', PlottingRayonMassal::class)->name('plotting-rayon');
+    Route::get('/verifikasi-perbaikan', VerifikasiPerbaikanData::class)->name('verifikasi-perbaikan');
 });

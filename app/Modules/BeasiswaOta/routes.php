@@ -9,6 +9,7 @@ use App\Modules\BeasiswaOta\Livewire\OtaDashboard;
 use App\Modules\BeasiswaOta\Livewire\OtaSettingIndex;
 use App\Modules\BeasiswaOta\Livewire\PenerimaBeasiswaIndex;
 use App\Modules\BeasiswaOta\Livewire\PenyaluranIndex;
+use App\Modules\BeasiswaOta\Livewire\VerifikasiPengajuanBeasiswa;
 use Illuminate\Support\Facades\Route;
 
 // Livewire Pages
@@ -23,6 +24,7 @@ Route::middleware('can:beasiswa_ota.kelola')->group(function () {
     Route::get('/beasiswa-ota/donasi-masuk', DonasiMasukIndex::class)->name('beasiswa-ota.donasi-masuk');
     Route::get('/beasiswa-ota/donasi-masuk/create', DonasiMasukCreate::class)->name('beasiswa-ota.donasi-masuk.create');
     Route::get('/beasiswa-ota/penyaluran', PenyaluranIndex::class)->name('beasiswa-ota.penyaluran');
+    Route::get('/beasiswa-ota/verifikasi-pengajuan', VerifikasiPengajuanBeasiswa::class)->name('beasiswa-ota.verifikasi-pengajuan');
 });
 
 Route::get('/beasiswa-ota/setting', OtaSettingIndex::class)->middleware('can:beasiswa_ota.setting')->name('beasiswa-ota.setting');

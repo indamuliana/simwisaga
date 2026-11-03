@@ -220,5 +220,15 @@ class Siswa extends Model implements Auditable
     {
         return $this->hasMany(\App\Modules\Absensi\Models\AbsensiHarian::class, 'siswa_id');
     }
+
+    public function pengajuanPerbaikanDatas(): HasMany
+    {
+        return $this->hasMany(\App\Modules\PortalSiswa\Models\PengajuanPerbaikanDataSiswa::class, 'siswa_id');
+    }
+
+    public function pengajuanBeasiswas(): HasMany
+    {
+        return $this->hasMany(\App\Modules\PortalSiswa\Models\PengajuanBeasiswa::class, 'siswa_id');
+    }
 }
 

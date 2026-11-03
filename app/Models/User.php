@@ -147,11 +147,11 @@ class User extends Authenticatable implements Auditable
             }
         }
 
-        if ($this->hasRole('Siswa') && ($this->username === $siswa->nipd || $this->username === $siswa->nisn)) {
+        if ($this->hasRole('Siswa') && ($this->username === $siswa->nipd || $this->username === $siswa->nisn || $this->id === $siswa->user_id)) {
             return true;
         }
 
-        if ($this->hasRole('Orang Tua') && ($this->username === 'ortu_' . $siswa->nipd || $this->username === 'ortu_' . $siswa->nisn)) {
+        if ($this->hasRole('Orang Tua') && ($this->username === 'ortu_' . $siswa->nipd || $this->username === 'ortu_' . $siswa->nisn || $this->id === $siswa->user_id)) {
             return true;
         }
 

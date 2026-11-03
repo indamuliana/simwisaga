@@ -31,11 +31,6 @@ return [
             'route' => 'prestasi.verifikasi',
             'permission' => 'prestasi.verifikasi',
         ],
-        [
-            'label' => 'Prestasi Saya (Siswa)',
-            'route' => 'prestasi.mandiri',
-            'permission' => null, // Bebas diakses siswa
-        ],
     ],
     'permissions' => [
         'prestasi' => [

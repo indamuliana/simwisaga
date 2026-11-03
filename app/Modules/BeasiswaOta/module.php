@@ -32,6 +32,11 @@ return [
             'permission' => 'beasiswa_ota.kelola',
         ],
         [
+            'label' => 'Verifikasi Pengajuan Siswa',
+            'route' => 'beasiswa-ota.verifikasi-pengajuan',
+            'permission' => 'beasiswa_ota.kelola',
+        ],
+        [
             'label' => 'Laporan & Rekap',
             'route' => 'beasiswa-ota.laporan',
             'permission' => 'beasiswa_ota.lihat',
