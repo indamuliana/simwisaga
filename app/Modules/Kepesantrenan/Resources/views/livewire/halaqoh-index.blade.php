@@ -41,8 +41,8 @@
         </div>
     @endif
 
-    <!-- 2 Sub-Tab: Presensi Halaqoh vs Kelompok Halaqoh -->
-    <div class="flex items-center gap-2 border-b border-border pb-1">
+    <!-- 3 Sub-Tab: Presensi Halaqoh vs Kelompok Halaqoh vs Rekap Presensi -->
+    <div class="flex flex-wrap items-center gap-2 border-b border-border pb-1">
         <button type="button" wire:click="$set('activeTab', 'presensi')"
                 class="px-4 py-2 rounded-xl text-sm font-bold transition-all flex items-center gap-2
                 {{ $activeTab === 'presensi' ? 'bg-teal-600 text-white shadow-md' : 'text-text-secondary hover:text-text-main hover:bg-surface-hover' }}">
@@ -55,6 +55,13 @@
                 {{ $activeTab === 'kelompok' ? 'bg-teal-600 text-white shadow-md' : 'text-text-secondary hover:text-text-main hover:bg-surface-hover' }}">
             <span>👥</span>
             <span>2. Kelompok & Plotting Halaqoh</span>
+        </button>
+
+        <button type="button" wire:click="$set('activeTab', 'rekap')"
+                class="px-4 py-2 rounded-xl text-sm font-bold transition-all flex items-center gap-2
+                {{ $activeTab === 'rekap' ? 'bg-teal-600 text-white shadow-md' : 'text-text-secondary hover:text-text-main hover:bg-surface-hover' }}">
+            <span>📊</span>
+            <span>3. Rekap Presensi Halaqoh</span>
         </button>
     </div>
 
@@ -261,6 +268,336 @@
         </div>
     @endif
 
+    <!-- ==================== SUB-TAB 3: REKAP PRESENSI HALAQOH ==================== -->
+    @if($activeTab === 'rekap')
+        <div class="space-y-6">
+            <!-- Filter Bar Rentang Tanggal, Halaqoh, Sesi & Preset Cepat -->
+            <div class="bg-surface p-4 sm:p-5 rounded-2xl border border-border shadow-xs space-y-4">
+                <div class="flex flex-col sm:flex-row sm:items-center justify-between gap-3 pb-3 border-b border-border">
+                    <div>
+                        <h3 class="text-sm font-bold text-text-main flex items-center gap-2">
+                            <span>📊</span>
+                            <span>Filter Rekapitulasi Presensi Halaqoh</span>
+                        </h3>
+                        <p class="text-xs text-text-secondary">Pilih rentang tanggal mulai dan selesai untuk memfilter kehadiran santri.</p>
+                    </div>
+
+                    <!-- Quick Preset Tanggal -->
+                    <div class="flex flex-wrap items-center gap-1.5 text-xs">
+                        <span class="text-text-muted text-[11px] font-bold uppercase mr-1">Preset:</span>
+                        <button type="button" wire:click="setDatePreset('today')" class="px-2.5 py-1 rounded-lg bg-surface-hover hover:bg-teal-50 dark:hover:bg-teal-950/40 hover:text-teal-600 font-semibold border border-border">
+                            Hari Ini
+                        </button>
+                        <button type="button" wire:click="setDatePreset('week')" class="px-2.5 py-1 rounded-lg bg-surface-hover hover:bg-teal-50 dark:hover:bg-teal-950/40 hover:text-teal-600 font-semibold border border-border">
+                            7 Hari
+                        </button>
+                        <button type="button" wire:click="setDatePreset('month')" class="px-2.5 py-1 rounded-lg bg-surface-hover hover:bg-teal-50 dark:hover:bg-teal-950/40 hover:text-teal-600 font-semibold border border-border">
+                            Bulan Ini
+                        </button>
+                        <button type="button" wire:click="setDatePreset('last_month')" class="px-2.5 py-1 rounded-lg bg-surface-hover hover:bg-teal-50 dark:hover:bg-teal-950/40 hover:text-teal-600 font-semibold border border-border">
+                            Bulan Lalu
+                        </button>
+                    </div>
+                </div>
+
+                <div class="grid grid-cols-1 sm:grid-cols-2 md:grid-cols-4 gap-3">
+                    <div>
+                        <label class="block text-xs font-bold uppercase tracking-wider text-text-secondary mb-1">Tanggal Mulai</label>
+                        <input type="date" wire:model.live="rekapTanggalMulai" class="input w-full text-xs font-semibold">
+                    </div>
+                    <div>
+                        <label class="block text-xs font-bold uppercase tracking-wider text-text-secondary mb-1">Tanggal Selesai</label>
+                        <input type="date" wire:model.live="rekapTanggalSelesai" class="input w-full text-xs font-semibold">
+                    </div>
+                    <div>
+                        <label class="block text-xs font-bold uppercase tracking-wider text-text-secondary mb-1">Filter Kelompok Halaqoh</label>
+                        <select wire:model.live="rekapHalaqohId" class="select w-full text-xs font-semibold">
+                            <option value="">Semua Kelompok Halaqoh</option>
+                            @foreach($halaqohs as $h)
+                                <option value="{{ $h->id }}">{{ $h->nama_halaqoh }}</option>
+                            @endforeach
+                        </select>
+                    </div>
+                    <div>
+                        <label class="block text-xs font-bold uppercase tracking-wider text-text-secondary mb-1">Filter Waktu Sesi</label>
+                        <select wire:model.live="rekapWaktuSesi" class="select w-full text-xs font-semibold">
+                            <option value="">Semua Waktu Sesi</option>
+                            <option value="Subuh">Subuh</option>
+                            <option value="Ashar">Ashar</option>
+                            <option value="Maghrib">Maghrib</option>
+                            <option value="Isya">Isya</option>
+                        </select>
+                    </div>
+                </div>
+            </div>
+
+            <!-- KPI Ringkasan Global Kehadiran -->
+            <div class="grid grid-cols-2 sm:grid-cols-3 lg:grid-cols-6 gap-3">
+                <div class="bg-surface p-4 rounded-2xl border border-border shadow-xs">
+                    <div class="text-[11px] font-bold uppercase text-text-secondary">Pertemuan Sesi</div>
+                    <div class="text-2xl font-black text-text-main mt-1">{{ $globalStats->total_pertemuan ?? 0 }}</div>
+                    <div class="text-[11px] text-text-muted mt-0.5">Sesi terlaksana</div>
+                </div>
+                <div class="bg-surface p-4 rounded-2xl border border-border shadow-xs">
+                    <div class="text-[11px] font-bold uppercase text-text-secondary">Rata-rata Hadir</div>
+                    <div class="text-2xl font-black text-teal-600 mt-1">{{ $globalPersen }}%</div>
+                    <div class="text-[11px] text-text-muted mt-0.5">Persentase kehadiran</div>
+                </div>
+                <div class="bg-surface p-4 rounded-2xl border border-border shadow-xs">
+                    <div class="text-[11px] font-bold uppercase text-emerald-600">Total Hadir (H)</div>
+                    <div class="text-2xl font-black text-emerald-600 mt-1">{{ $globalStats->total_h ?? 0 }}</div>
+                    <div class="text-[11px] text-text-muted mt-0.5">Santri hadir</div>
+                </div>
+                <div class="bg-surface p-4 rounded-2xl border border-border shadow-xs">
+                    <div class="text-[11px] font-bold uppercase text-amber-600">Total Sakit (S)</div>
+                    <div class="text-2xl font-black text-amber-600 mt-1">{{ $globalStats->total_s ?? 0 }}</div>
+                    <div class="text-[11px] text-text-muted mt-0.5">Santri sakit</div>
+                </div>
+                <div class="bg-surface p-4 rounded-2xl border border-border shadow-xs">
+                    <div class="text-[11px] font-bold uppercase text-sky-600">Total Izin (I)</div>
+                    <div class="text-2xl font-black text-sky-600 mt-1">{{ $globalStats->total_i ?? 0 }}</div>
+                    <div class="text-[11px] text-text-muted mt-0.5">Santri izin</div>
+                </div>
+                <div class="bg-surface p-4 rounded-2xl border border-border shadow-xs">
+                    <div class="text-[11px] font-bold uppercase text-rose-600">Total Alfa (A)</div>
+                    <div class="text-2xl font-black text-rose-600 mt-1">{{ $globalStats->total_a ?? 0 }}</div>
+                    <div class="text-[11px] text-text-muted mt-0.5">Santri alfa / tanpa kabar</div>
+                </div>
+            </div>
+
+            <!-- Sub-Tab Navigasi Rekap: Per Siswa / Per Kamar / Per Rayon -->
+            <div class="flex items-center gap-2 border-b border-border pb-2">
+                <button type="button" wire:click="$set('rekapSubTab', 'siswa')"
+                        class="px-4 py-2 rounded-xl text-xs sm:text-sm font-bold transition-all flex items-center gap-2
+                        {{ $rekapSubTab === 'siswa' ? 'bg-teal-600 text-white shadow-xs' : 'text-text-secondary hover:text-text-main hover:bg-surface-hover' }}">
+                    <span>👤</span>
+                    <span>1. Rekap Per Santri</span>
+                </button>
+                <button type="button" wire:click="$set('rekapSubTab', 'kamar')"
+                        class="px-4 py-2 rounded-xl text-xs sm:text-sm font-bold transition-all flex items-center gap-2
+                        {{ $rekapSubTab === 'kamar' ? 'bg-teal-600 text-white shadow-xs' : 'text-text-secondary hover:text-text-main hover:bg-surface-hover' }}">
+                    <span>🛏️</span>
+                    <span>2. Rekap Per Kamar</span>
+                </button>
+                <button type="button" wire:click="$set('rekapSubTab', 'rayon')"
+                        class="px-4 py-2 rounded-xl text-xs sm:text-sm font-bold transition-all flex items-center gap-2
+                        {{ $rekapSubTab === 'rayon' ? 'bg-teal-600 text-white shadow-xs' : 'text-text-secondary hover:text-text-main hover:bg-surface-hover' }}">
+                    <span>📍</span>
+                    <span>3. Rekap Per Rayon</span>
+                </button>
+            </div>
+
+            <!-- TABEL 1: REKAP PER SANTRI -->
+            @if($rekapSubTab === 'siswa')
+                <div class="bg-surface rounded-2xl border border-border shadow-xs overflow-hidden">
+                    <div class="p-4 border-b border-border flex flex-col sm:flex-row justify-between items-start sm:items-center gap-3">
+                        <div>
+                            <h4 class="text-sm font-bold text-text-main">Tabel Kehadiran Santri Halaqoh</h4>
+                            <p class="text-xs text-text-secondary">Daftar santri program unggulan beserta statistik presensi pada periode terpilih.</p>
+                        </div>
+                        <div class="w-full sm:w-64">
+                            <input type="text" wire:model.live.debounce.300ms="rekapSearchSiswa" placeholder="Cari santri..." class="input w-full text-xs">
+                        </div>
+                    </div>
+
+                    <div class="overflow-x-auto">
+                        <table class="w-full text-left text-xs border-collapse">
+                            <thead>
+                                <tr class="bg-surface-hover/70 border-b border-border text-text-secondary uppercase text-[11px] tracking-wider">
+                                    <th class="p-3 w-10 text-center font-bold">No</th>
+                                    <th class="p-3 font-bold">Santri</th>
+                                    <th class="p-3 font-bold">Halaqoh</th>
+                                    <th class="p-3 font-bold">Kamar & Rayon</th>
+                                    <th class="p-3 text-center font-bold text-emerald-600">H</th>
+                                    <th class="p-3 text-center font-bold text-amber-600">S</th>
+                                    <th class="p-3 text-center font-bold text-sky-600">I</th>
+                                    <th class="p-3 text-center font-bold text-rose-600">A</th>
+                                    <th class="p-3 text-center font-bold">Total Sesi</th>
+                                    <th class="p-3 font-bold w-36">Kehadiran</th>
+                                    <th class="p-3 text-center font-bold w-20">Aksi</th>
+                                </tr>
+                            </thead>
+                            <tbody class="divide-y divide-border">
+                                @forelse($rekapSiswas as $idx => $s)
+                                    <tr class="hover:bg-surface-hover/40 transition-colors">
+                                        <td class="p-3 text-center text-text-muted font-medium">{{ $idx + 1 }}</td>
+                                        <td class="p-3">
+                                            <div class="font-bold text-text-main">{{ $s->nama }}</div>
+                                            <div class="text-[11px] text-text-muted">NISN: {{ $s->nisn ?? '-' }} &bull; {{ $s->rombel }}</div>
+                                        </td>
+                                        <td class="p-3">
+                                            <span class="inline-flex items-center px-2 py-0.5 rounded-md text-[11px] font-semibold bg-teal-50 dark:bg-teal-950/40 text-teal-600 border border-teal-200 dark:border-teal-800">
+                                                {{ $s->halaqoh }}
+                                            </span>
+                                        </td>
+                                        <td class="p-3">
+                                            <div class="text-text-main font-medium">🛏️ {{ $s->kamar }}</div>
+                                            <div class="text-[11px] text-text-muted">📍 {{ $s->rayon }}</div>
+                                        </td>
+                                        <td class="p-3 text-center font-bold text-emerald-600">{{ $s->h }}</td>
+                                        <td class="p-3 text-center font-bold text-amber-600">{{ $s->s }}</td>
+                                        <td class="p-3 text-center font-bold text-sky-600">{{ $s->i }}</td>
+                                        <td class="p-3 text-center font-bold text-rose-600">{{ $s->a }}</td>
+                                        <td class="p-3 text-center font-bold text-text-main">{{ $s->total_sesi }}</td>
+                                        <td class="p-3">
+                                            <div class="flex items-center justify-between text-[11px] font-bold mb-1">
+                                                <span class="{{ $s->persen >= 80 ? 'text-emerald-600' : ($s->persen >= 60 ? 'text-amber-600' : 'text-rose-600') }}">
+                                                    {{ $s->persen }}%
+                                                </span>
+                                            </div>
+                                            <div class="w-full bg-surface-hover h-2 rounded-full overflow-hidden border border-border/50">
+                                                <div class="h-full rounded-full {{ $s->persen >= 80 ? 'bg-emerald-500' : ($s->persen >= 60 ? 'bg-amber-500' : 'bg-rose-500') }}"
+                                                     style="width: {{ $s->persen }}%"></div>
+                                            </div>
+                                        </td>
+                                        <td class="p-3 text-center">
+                                            <button type="button" wire:click="openDetailSiswa({{ $s->id }})" class="btn btn-secondary text-xs px-2.5 py-1">
+                                                Detail
+                                            </button>
+                                        </td>
+                                    </tr>
+                                @empty
+                                    <tr>
+                                        <td colspan="11" class="py-8 text-center text-text-muted">
+                                            Tidak ada data santri yang cocok dengan filter.
+                                        </td>
+                                    </tr>
+                                @endforelse
+                            </tbody>
+                        </table>
+                    </div>
+                </div>
+            @endif
+
+            <!-- TABEL 2: REKAP PER KAMAR -->
+            @if($rekapSubTab === 'kamar')
+                <div class="bg-surface rounded-2xl border border-border shadow-xs overflow-hidden">
+                    <div class="p-4 border-b border-border">
+                        <h4 class="text-sm font-bold text-text-main">Tabel Rekapitulasi Presensi Halaqoh Per Kamar / Asrama</h4>
+                        <p class="text-xs text-text-secondary">Akumulasi kehadiran santri unggulan di masing-masing kamar.</p>
+                    </div>
+
+                    <div class="overflow-x-auto">
+                        <table class="w-full text-left text-xs border-collapse">
+                            <thead>
+                                <tr class="bg-surface-hover/70 border-b border-border text-text-secondary uppercase text-[11px] tracking-wider">
+                                    <th class="p-3 w-10 text-center font-bold">No</th>
+                                    <th class="p-3 font-bold">Kamar / Asrama</th>
+                                    <th class="p-3 font-bold">Musrif / PJ</th>
+                                    <th class="p-3 text-center font-bold">Santri Unggulan</th>
+                                    <th class="p-3 text-center font-bold text-emerald-600">Total H</th>
+                                    <th class="p-3 text-center font-bold text-amber-600">Total S</th>
+                                    <th class="p-3 text-center font-bold text-sky-600">Total I</th>
+                                    <th class="p-3 text-center font-bold text-rose-600">Total A</th>
+                                    <th class="p-3 text-center font-bold">Total Sesi Rekap</th>
+                                    <th class="p-3 font-bold w-40">Kehadiran Kamar</th>
+                                </tr>
+                            </thead>
+                            <tbody class="divide-y divide-border">
+                                @forelse($rekapKamars as $idx => $k)
+                                    <tr class="hover:bg-surface-hover/40 transition-colors">
+                                        <td class="p-3 text-center text-text-muted font-medium">{{ $idx + 1 }}</td>
+                                        <td class="p-3 font-bold text-text-main">
+                                            🛏️ {{ $k->nama_kamar }}
+                                            <div class="text-[11px] text-text-muted font-normal">Gedung: {{ $k->gedung }}</div>
+                                        </td>
+                                        <td class="p-3 text-text-secondary font-medium">{{ $k->musrif }}</td>
+                                        <td class="p-3 text-center font-bold text-text-main">{{ $k->total_santri }} santri</td>
+                                        <td class="p-3 text-center font-bold text-emerald-600">{{ $k->h }}</td>
+                                        <td class="p-3 text-center font-bold text-amber-600">{{ $k->s }}</td>
+                                        <td class="p-3 text-center font-bold text-sky-600">{{ $k->i }}</td>
+                                        <td class="p-3 text-center font-bold text-rose-600">{{ $k->a }}</td>
+                                        <td class="p-3 text-center font-bold text-text-main">{{ $k->total_sesi }}</td>
+                                        <td class="p-3">
+                                            <div class="flex items-center justify-between text-[11px] font-bold mb-1">
+                                                <span class="{{ $k->persen >= 80 ? 'text-emerald-600' : ($k->persen >= 60 ? 'text-amber-600' : 'text-rose-600') }}">
+                                                    {{ $k->persen }}%
+                                                </span>
+                                            </div>
+                                            <div class="w-full bg-surface-hover h-2 rounded-full overflow-hidden border border-border/50">
+                                                <div class="h-full rounded-full {{ $k->persen >= 80 ? 'bg-emerald-500' : ($k->persen >= 60 ? 'bg-amber-500' : 'bg-rose-500') }}"
+                                                     style="width: {{ $k->persen }}%"></div>
+                                            </div>
+                                        </td>
+                                    </tr>
+                                @empty
+                                    <tr>
+                                        <td colspan="10" class="py-8 text-center text-text-muted">
+                                            Belum ada data kamar asrama.
+                                        </td>
+                                    </tr>
+                                @endforelse
+                            </tbody>
+                        </table>
+                    </div>
+                </div>
+            @endif
+
+            <!-- TABEL 3: REKAP PER RAYON -->
+            @if($rekapSubTab === 'rayon')
+                <div class="bg-surface rounded-2xl border border-border shadow-xs overflow-hidden">
+                    <div class="p-4 border-b border-border">
+                        <h4 class="text-sm font-bold text-text-main">Tabel Rekapitulasi Presensi Halaqoh Per Rayon</h4>
+                        <p class="text-xs text-text-secondary">Akumulasi kehadiran santri unggulan di masing-masing rayon.</p>
+                    </div>
+
+                    <div class="overflow-x-auto">
+                        <table class="w-full text-left text-xs border-collapse">
+                            <thead>
+                                <tr class="bg-surface-hover/70 border-b border-border text-text-secondary uppercase text-[11px] tracking-wider">
+                                    <th class="p-3 w-10 text-center font-bold">No</th>
+                                    <th class="p-3 font-bold">Rayon</th>
+                                    <th class="p-3 font-bold">Pembimbing Rayon</th>
+                                    <th class="p-3 text-center font-bold">Santri Unggulan</th>
+                                    <th class="p-3 text-center font-bold text-emerald-600">Total H</th>
+                                    <th class="p-3 text-center font-bold text-amber-600">Total S</th>
+                                    <th class="p-3 text-center font-bold text-sky-600">Total I</th>
+                                    <th class="p-3 text-center font-bold text-rose-600">Total A</th>
+                                    <th class="p-3 text-center font-bold">Total Sesi Rekap</th>
+                                    <th class="p-3 font-bold w-40">Kehadiran Rayon</th>
+                                </tr>
+                            </thead>
+                            <tbody class="divide-y divide-border">
+                                @forelse($rekapRayons as $idx => $r)
+                                    <tr class="hover:bg-surface-hover/40 transition-colors">
+                                        <td class="p-3 text-center text-text-muted font-medium">{{ $idx + 1 }}</td>
+                                        <td class="p-3 font-bold text-text-main">
+                                            📍 {{ $r->nama }}
+                                        </td>
+                                        <td class="p-3 text-text-secondary font-medium">{{ $r->pembimbing }}</td>
+                                        <td class="p-3 text-center font-bold text-text-main">{{ $r->total_santri }} santri</td>
+                                        <td class="p-3 text-center font-bold text-emerald-600">{{ $r->h }}</td>
+                                        <td class="p-3 text-center font-bold text-amber-600">{{ $r->s }}</td>
+                                        <td class="p-3 text-center font-bold text-sky-600">{{ $r->i }}</td>
+                                        <td class="p-3 text-center font-bold text-rose-600">{{ $r->a }}</td>
+                                        <td class="p-3 text-center font-bold text-text-main">{{ $r->total_sesi }}</td>
+                                        <td class="p-3">
+                                            <div class="flex items-center justify-between text-[11px] font-bold mb-1">
+                                                <span class="{{ $r->persen >= 80 ? 'text-emerald-600' : ($r->persen >= 60 ? 'text-amber-600' : 'text-rose-600') }}">
+                                                    {{ $r->persen }}%
+                                                </span>
+                                            </div>
+                                            <div class="w-full bg-surface-hover h-2 rounded-full overflow-hidden border border-border/50">
+                                                <div class="h-full rounded-full {{ $r->persen >= 80 ? 'bg-emerald-500' : ($r->persen >= 60 ? 'bg-amber-500' : 'bg-rose-500') }}"
+                                                     style="width: {{ $r->persen }}%"></div>
+                                            </div>
+                                        </td>
+                                    </tr>
+                                @empty
+                                    <tr>
+                                        <td colspan="10" class="py-8 text-center text-text-muted">
+                                            Belum ada data rayon.
+                                        </td>
+                                    </tr>
+                                @endforelse
+                            </tbody>
+                        </table>
+                    </div>
+                </div>
+            @endif
+        </div>
+    @endif
+
     <!-- Modal Form Halaqoh -->
     @if($showHalaqohModal)
         <div class="fixed inset-0 z-50 overflow-y-auto bg-black/60 backdrop-blur-xs flex items-center justify-center p-4">
@@ -376,6 +713,107 @@
 
                 <div class="px-6 py-3.5 bg-surface-hover/50 border-t border-border flex justify-end">
                     <button wire:click="$set('showPlottingModal', false)" class="btn btn-secondary text-sm">Tutup</button>
+                </div>
+            </div>
+        </div>
+    @endif
+
+    <!-- Modal Detail Presensi Santri -->
+    @if($showDetailModal && $detailSiswa)
+        <div class="fixed inset-0 z-50 overflow-y-auto bg-black/60 backdrop-blur-xs flex items-center justify-center p-4">
+            <div class="bg-surface rounded-2xl border border-border shadow-2xl w-full max-w-2xl overflow-hidden animate-in fade-in zoom-in-95 duration-200">
+                <div class="px-6 py-4 border-b border-border flex items-center justify-between bg-surface-hover/40">
+                    <div>
+                        <h3 class="text-base font-bold text-text-main flex items-center gap-2">
+                            <span>👤</span>
+                            <span>Riwayat Detail Presensi Santri</span>
+                        </h3>
+                        <p class="text-xs text-text-secondary mt-0.5">
+                            {{ $detailSiswa->nama }} &bull; NISN: {{ $detailSiswa->nisn ?? '-' }} ({{ $detailSiswa->rombel?->nama ?? '-' }})
+                        </p>
+                    </div>
+                    <button wire:click="closeDetailSiswa" class="text-text-muted hover:text-text-main text-2xl font-bold">&times;</button>
+                </div>
+
+                <div class="p-6 space-y-4 max-h-[70vh] overflow-y-auto">
+                    <!-- Ringkasan Info Santri & Lokasi -->
+                    <div class="grid grid-cols-2 sm:grid-cols-4 gap-2 text-xs bg-surface-hover/50 p-3 rounded-xl border border-border">
+                        <div>
+                            <span class="text-text-muted block">Halaqoh:</span>
+                            <span class="font-bold text-teal-600">{{ $detailSiswa->pesantrenHalaqohs->first()?->nama_halaqoh ?? '-' }}</span>
+                        </div>
+                        <div>
+                            <span class="text-text-muted block">Kamar:</span>
+                            <span class="font-bold text-text-main">{{ $detailSiswa->pesantrenKamars->first()?->nama_kamar ?? '-' }}</span>
+                        </div>
+                        <div>
+                            <span class="text-text-muted block">Rayon:</span>
+                            <span class="font-bold text-text-main">{{ $detailSiswa->rayon?->nama ?? '-' }}</span>
+                        </div>
+                        <div>
+                            <span class="text-text-muted block">Periode Rekap:</span>
+                            <span class="font-semibold text-text-secondary">{{ $rekapTanggalMulai }} s/d {{ $rekapTanggalSelesai }}</span>
+                        </div>
+                    </div>
+
+                    <!-- Tabel Riwayat Kehadiran -->
+                    <div>
+                        <h4 class="text-xs font-bold uppercase tracking-wider text-text-secondary mb-2">Log Presensi Sesi</h4>
+                        <div class="border border-border rounded-xl overflow-hidden">
+                            <table class="w-full text-left text-xs border-collapse">
+                                <thead>
+                                    <tr class="bg-surface-hover text-text-secondary font-bold border-b border-border uppercase text-[11px]">
+                                        <th class="p-2.5">Tanggal</th>
+                                        <th class="p-2.5">Halaqoh</th>
+                                        <th class="p-2.5">Sesi</th>
+                                        <th class="p-2.5 text-center">Status</th>
+                                        <th class="p-2.5">Catatan / Alasan</th>
+                                    </tr>
+                                </thead>
+                                <tbody class="divide-y divide-border">
+                                    @forelse($detailPresensis as $dp)
+                                        <tr class="hover:bg-surface-hover/30">
+                                            <td class="p-2.5 font-semibold text-text-main whitespace-nowrap">
+                                                {{ \Carbon\Carbon::parse($dp->presensi?->tanggal)->translatedFormat('d M Y') }}
+                                            </td>
+                                            <td class="p-2.5 text-text-secondary whitespace-nowrap">
+                                                {{ $dp->presensi?->halaqoh?->nama_halaqoh ?? '-' }}
+                                            </td>
+                                            <td class="p-2.5 font-medium text-text-main whitespace-nowrap">
+                                                {{ $dp->presensi?->waktu_sesi }}
+                                            </td>
+                                            <td class="p-2.5 text-center">
+                                                @if($dp->status === 'H')
+                                                    <span class="px-2 py-0.5 rounded-full text-[11px] font-bold bg-emerald-500 text-white">Hadir</span>
+                                                @elseif($dp->status === 'S')
+                                                    <span class="px-2 py-0.5 rounded-full text-[11px] font-bold bg-amber-500 text-white">Sakit</span>
+                                                @elseif($dp->status === 'I')
+                                                    <span class="px-2 py-0.5 rounded-full text-[11px] font-bold bg-sky-500 text-white">Izin</span>
+                                                @elseif($dp->status === 'A')
+                                                    <span class="px-2 py-0.5 rounded-full text-[11px] font-bold bg-rose-500 text-white">Alfa</span>
+                                                @else
+                                                    <span class="px-2 py-0.5 rounded-full text-[11px] font-bold bg-gray-200 text-gray-700">-</span>
+                                                @endif
+                                            </td>
+                                            <td class="p-2.5 text-text-secondary">
+                                                {{ $dp->catatan ?: '-' }}
+                                            </td>
+                                        </tr>
+                                    @empty
+                                        <tr>
+                                            <td colspan="5" class="py-6 text-center text-text-muted">
+                                                Belum ada catatan presensi pada rentang tanggal ini.
+                                            </td>
+                                        </tr>
+                                    @endforelse
+                                </tbody>
+                            </table>
+                        </div>
+                    </div>
+                </div>
+
+                <div class="px-6 py-3.5 bg-surface-hover/50 border-t border-border flex justify-end">
+                    <button wire:click="closeDetailSiswa" class="btn btn-secondary text-sm">Tutup</button>
                 </div>
             </div>
         </div>

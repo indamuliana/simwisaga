@@ -16,12 +16,12 @@ use App\Modules\Kepegawaian\Models\Pegawai;
 use App\Modules\Kepegawaian\Models\PenugasanMengajar;
 use App\Modules\Kesiswaan\Models\Siswa;
 use App\Modules\Penilaian\Models\NilaiAkhir;
+use App\Modules\Penilaian\Models\NilaiAsesmenHarian;
 use App\Modules\Penilaian\Models\NilaiFormatif;
 use App\Modules\Penilaian\Models\NilaiSumatif;
 use App\Modules\Penilaian\Models\TujuanPembelajaran;
 use App\Modules\Rapor\Models\CatatanWaliKelas;
 use App\Modules\Sistem\Models\PeriodeRapor;
-use Carbon\Carbon;
 use Carbon\CarbonPeriod;
 use Illuminate\Database\Seeder;
 use Illuminate\Support\Facades\DB;
@@ -37,7 +37,7 @@ class PopulateXHTL1DummyDataSeeder extends Seeder
         $ta = TahunAjaran::where('nama', '2025/2026')->firstOrFail();
         $semGanjil = Semester::where('tahun_ajaran_id', $ta->id)->where('semester', 'ganjil')->firstOrFail();
         $semGenap = Semester::where('tahun_ajaran_id', $ta->id)->where('semester', 'genap')->firstOrFail();
-        
+
         $rombel = Rombel::where('tahun_ajaran_id', $ta->id)
             ->where('nama', 'X HTL 1')
             ->firstOrFail();
@@ -45,6 +45,7 @@ class PopulateXHTL1DummyDataSeeder extends Seeder
         $siswas = Siswa::inRombel($rombel->id)->orderBy('id')->get();
         if ($siswas->isEmpty()) {
             $this->command->error('Tidak ada siswa di rombel X HTL 1!');
+
             return;
         }
 
@@ -57,7 +58,7 @@ class PopulateXHTL1DummyDataSeeder extends Seeder
 
         // 2. Setup Wali Kelas: Dewi Anggraeni, S.Tr.Par. (guru Perhotelan)
         $dewiPegawai = Pegawai::where('nama_lengkap', 'like', '%Dewi Anggraeni%')->first();
-        if (!$dewiPegawai) {
+        if (! $dewiPegawai) {
             $dewiUser = User::firstOrCreate(
                 ['email' => 'guru.htl@wikrama.sch.id'],
                 [
@@ -329,7 +330,7 @@ class PopulateXHTL1DummyDataSeeder extends Seeder
         }
 
         // Ambil User Admin untuk authoring absen
-        $adminUser = User::whereHas('roles', fn($q) => $q->where('name', 'Super Admin'))->first() ?? User::first();
+        $adminUser = User::whereHas('roles', fn ($q) => $q->where('name', 'Super Admin'))->first() ?? User::first();
 
         // Profil Siswa (Variasi Kemampuan untuk nilai yang realistis)
         // Skor dasar dari 80 s.d. 95
@@ -354,7 +355,7 @@ class PopulateXHTL1DummyDataSeeder extends Seeder
 
         // 5. Looping Setiap Semester
         foreach ($semesters as $semKey => $sem) {
-            $this->command->info(PHP_EOL . ">>> Memproses Semester " . strtoupper($semKey) . " (ID: {$sem->id}) <<<");
+            $this->command->info(PHP_EOL.'>>> Memproses Semester '.strtoupper($semKey)." (ID: {$sem->id}) <<<");
 
             // Tanggal Pertemuan Mapel (12 pertemuan per semester)
             $meetingDates = $semKey === 'ganjil'
@@ -371,7 +372,7 @@ class PopulateXHTL1DummyDataSeeder extends Seeder
 
             foreach ($mapelGuruConfig as $cfg) {
                 $mapel = Mapel::where('nama', $cfg['nama_mapel'])->first();
-                if (!$mapel) {
+                if (! $mapel) {
                     continue;
                 }
 
@@ -396,7 +397,7 @@ class PopulateXHTL1DummyDataSeeder extends Seeder
                 $tpList = $semKey === 'ganjil' ? $cfg['tps_ganjil'] : $cfg['tps_genap'];
                 $createdTps = [];
                 foreach ($tpList as $idx => $tData) {
-                    $ahCode = $semKey === 'ganjil' ? 'AH ' . ($idx + 1) : 'AH ' . ($idx + 5);
+                    $ahCode = $semKey === 'ganjil' ? 'AH '.($idx + 1) : 'AH '.($idx + 5);
                     $tp = TujuanPembelajaran::updateOrCreate(
                         [
                             'penugasan_mengajar_id' => $pm->id,
@@ -435,7 +436,7 @@ class PopulateXHTL1DummyDataSeeder extends Seeder
                         );
 
                         if ($tp->alokasi_ah) {
-                            \App\Modules\Penilaian\Models\NilaiAsesmenHarian::updateOrCreate(
+                            NilaiAsesmenHarian::updateOrCreate(
                                 [
                                     'siswa_id' => $siswa->id,
                                     'penugasan_mengajar_id' => $pm->id,
@@ -475,11 +476,11 @@ class PopulateXHTL1DummyDataSeeder extends Seeder
                     $lowestTp = collect($createdTps)->firstWhere('id', $lowestTpId);
 
                     $descTinggi = $highestTp
-                        ? "Menunjukkan penguasaan yang sangat baik dalam " . lcfirst($highestTp->deskripsi) . "."
-                        : "";
+                        ? 'Menunjukkan penguasaan yang sangat baik dalam '.lcfirst($highestTp->deskripsi).'.'
+                        : '';
                     $descRendah = ($lowestTp && $lowestTpId !== $highestTpId && $tpScores[$lowestTpId] < 85)
-                        ? "Perlu bimbingan dan penguatan dalam " . lcfirst($lowestTp->deskripsi) . "."
-                        : "";
+                        ? 'Perlu bimbingan dan penguatan dalam '.lcfirst($lowestTp->deskripsi).'.'
+                        : '';
 
                     NilaiAkhir::updateOrCreate(
                         [
@@ -639,9 +640,9 @@ class PopulateXHTL1DummyDataSeeder extends Seeder
                 }
             }
 
-            $this->command->info("Selesai memproses Semester " . strtoupper($semKey) . ".");
+            $this->command->info('Selesai memproses Semester '.strtoupper($semKey).'.');
         }
 
-        $this->command->info(PHP_EOL . '✅ SELURUH DATA DUMMY NILAI & ABSENSI ROMBEL X HTL 1 (GANJIL & GENAP 2025/2026) BERHASIL DIISI!');
+        $this->command->info(PHP_EOL.'✅ SELURUH DATA DUMMY NILAI & ABSENSI ROMBEL X HTL 1 (GANJIL & GENAP 2025/2026) BERHASIL DIISI!');
     }
 }

@@ -2,6 +2,9 @@
 
 namespace App\Modules\Kepesantrenan\Services;
 
+use App\Modules\Kepesantrenan\Models\QuranSurah;
+use Illuminate\Support\Facades\Schema;
+
 class QuranHelper
 {
     /**
@@ -346,6 +349,35 @@ class QuranHelper
         }
 
         return $total;
+    }
+
+    /**
+     * Pastikan master data 114 Surat Al-Qur'an sudah terisi di database.
+     * Jika kosong (misal hosting baru migrate tanpa seed), otomatis lakukan seeding mandiri.
+     */
+    public static function ensureSurahsSeeded(): void
+    {
+        try {
+            if (Schema::hasTable('pesantren_quran_surahs') && QuranSurah::count() === 0) {
+                $surahs = self::getAllSurahs();
+                foreach ($surahs as $s) {
+                    QuranSurah::updateOrCreate(
+                        ['nomor_surah' => $s['nomor']],
+                        [
+                            'nama_latin' => $s['nama'],
+                            'nama_arab' => $s['arab'],
+                            'arti' => $s['arti'],
+                            'jumlah_ayat' => $s['ayat'],
+                            'juz_start' => $s['juz_start'],
+                            'juz_end' => $s['juz_end'],
+                            'tempat_turun' => $s['turun'],
+                        ]
+                    );
+                }
+            }
+        } catch (\Throwable $e) {
+            // Lewati jika tabel belum siap
+        }
     }
 
     /**

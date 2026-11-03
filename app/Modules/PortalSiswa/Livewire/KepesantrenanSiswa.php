@@ -102,6 +102,7 @@ class KepesantrenanSiswa extends Component
             }
 
             // Data Juz aktif
+            QuranHelper::ensureSurahsSeeded();
             $juzSections = QuranHelper::getJuzSections($this->selectedJuz);
             $surahIds = collect($juzSections)->pluck('surah')->unique();
             $surahs = QuranSurah::whereIn('nomor_surah', $surahIds)->get()->keyBy('nomor_surah');

@@ -40,14 +40,14 @@ class SeniBudayaPermissionSeeder extends Seeder
 
         foreach ($kelolaRoles as $roleName) {
             $role = Role::findByName($roleName, 'web');
-            if ($role && !$role->hasPermissionTo($kelolaPermission)) {
+            if ($role && ! $role->hasPermissionTo($kelolaPermission)) {
                 $role->givePermissionTo($kelolaPermission);
             }
         }
 
         foreach ($settingRoles as $roleName) {
             $role = Role::findByName($roleName, 'web');
-            if ($role && !$role->hasPermissionTo($settingPermission)) {
+            if ($role && ! $role->hasPermissionTo($settingPermission)) {
                 $role->givePermissionTo($settingPermission);
             }
         }

@@ -412,7 +412,7 @@
             @if($selectedSiswa && $siswaStats)
                 <!-- Kartu Identitas & Badge Rank Gamified ala Mobile Legends -->
                 <div class="rounded-3xl p-6 sm:p-8 shadow-2xl relative overflow-hidden border border-white/10"
-                     style="background: {{ $siswaStats['rank']['gradient_style'] }}; color: #ffffff;">
+                     style="background: {{ $siswaStats['rank']['gradient_style'] ?? 'linear-gradient(135deg, #1e293b 0%, #334155 50%, #0f172a 100%)' }}; color: #ffffff;">
                     <div class="absolute -right-10 -bottom-10 w-48 h-48 bg-white/5 rounded-full blur-2xl pointer-events-none"></div>
 
                     <div class="grid grid-cols-1 md:grid-cols-12 gap-6 items-center relative z-10">

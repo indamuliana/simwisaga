@@ -3,26 +3,14 @@
 namespace Database\Seeders;
 
 use App\Models\User;
-use App\Modules\Akademik\Models\Jurusan;
-use App\Modules\Akademik\Models\Mapel;
-use App\Modules\Akademik\Models\Program;
 use App\Modules\Akademik\Models\Rayon;
 use App\Modules\Akademik\Models\Rombel;
 use App\Modules\Akademik\Models\Semester;
-use App\Modules\Akademik\Models\StrukturKurikulum;
 use App\Modules\Akademik\Models\TahunAjaran;
-use App\Modules\Alumni\Models\Alumni;
-use App\Modules\Ekstrakurikuler\Models\Ekstrakurikuler;
-use App\Modules\Ekstrakurikuler\Models\EkstrakurikulerAnggota;
 use App\Modules\Kepegawaian\Models\Pegawai;
-use App\Modules\Kepegawaian\Models\PenugasanMengajar;
 use App\Modules\Kepegawaian\Models\PenugasanPembimbingRayon;
 use App\Modules\Kepegawaian\Models\PenugasanWaliKelas;
-use App\Modules\Kesiswaan\Models\RombelSiswa;
-use App\Modules\Kesiswaan\Models\Siswa;
-use App\Modules\Kesiswaan\Models\SiswaOrangTua;
 use Illuminate\Database\Seeder;
-use Illuminate\Support\Facades\DB;
 use Illuminate\Support\Facades\Hash;
 
 class DummyDataSeeder extends Seeder
@@ -67,9 +55,9 @@ class DummyDataSeeder extends Seeder
 
         $createdPegawais = [];
 
-        $findOrMakeUser = function($username, $name, $email, $role) {
+        $findOrMakeUser = function ($username, $name, $email, $role) {
             $user = User::where('username', $username)->first() ?? User::where('email', $email)->first();
-            if (!$user) {
+            if (! $user) {
                 $user = User::create([
                     'username' => $username,
                     'name' => $name,
@@ -88,6 +76,7 @@ class DummyDataSeeder extends Seeder
                 ]);
             }
             $user->syncRoles([$role]);
+
             return $user;
         };
 

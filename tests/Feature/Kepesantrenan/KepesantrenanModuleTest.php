@@ -13,6 +13,8 @@ use App\Modules\Kepesantrenan\Livewire\KamarIndex;
 use App\Modules\Kepesantrenan\Livewire\RekapHafalanIndex;
 use App\Modules\Kepesantrenan\Models\PesantrenHafalanSiswa;
 use App\Modules\Kepesantrenan\Models\PesantrenHalaqoh;
+use App\Modules\Kepesantrenan\Models\PesantrenHalaqohPresensi;
+use App\Modules\Kepesantrenan\Models\PesantrenHalaqohPresensiDetail;
 use App\Modules\Kepesantrenan\Models\PesantrenKamar;
 use App\Modules\Kepesantrenan\Services\HafalanRankService;
 use App\Modules\Kesiswaan\Models\Siswa;
@@ -204,10 +206,22 @@ class KepesantrenanModuleTest extends TestCase
         $this->actingAs($this->adminUser);
 
         Livewire::test(HafalanInput::class)
+            // Default awal santri kosong
+            ->assertSet('selectedSiswaId', null)
+            ->assertSee('Belum Ada Santri yang Dipilih')
+            // Ketik nama santri
             ->set('searchSiswa', 'Ahmad')
             ->assertSee('Ahmad Santri Unggulan')
+            // Pilih santri dari dropdown
+            ->call('selectSiswa', $this->siswaUnggulan->id)
+            ->assertSet('selectedSiswaId', $this->siswaUnggulan->id)
+            ->assertDontSee('Belum Ada Santri yang Dipilih')
             ->assertSee('grid-cols-5')
-            ->assertSee('md:grid-cols-20');
+            ->assertSee('md:grid-cols-20')
+            // Ganti / bersihkan santri
+            ->call('clearSiswaSelection')
+            ->assertSet('selectedSiswaId', null)
+            ->assertSee('Belum Ada Santri yang Dipilih');
     }
 
     public function test_halaqoh_and_presensi(): void
@@ -265,5 +279,57 @@ class KepesantrenanModuleTest extends TestCase
             ->assertSee('Ahmad Santri Unggulan')
             ->assertSee('PROGRAM UNGGULAN KEPESANTRENAN')
             ->assertSee('Lembar Kontrol Hafalan Saya');
+    }
+
+    public function test_rekap_presensi_halaqoh_per_siswa_kamar_rayon(): void
+    {
+        $this->actingAs($this->adminUser);
+
+        // Buat halaqoh & presensi
+        $halaqoh = PesantrenHalaqoh::create([
+            'nama_halaqoh' => 'Halaqoh Rekap Test',
+            'tahun_ajaran_id' => $this->tahunAjaran->id,
+            'jenis_kelamin' => 'L',
+        ]);
+
+        $presensi = PesantrenHalaqohPresensi::create([
+            'halaqoh_id' => $halaqoh->id,
+            'tanggal' => now()->toDateString(),
+            'waktu_sesi' => 'Subuh',
+            'created_by' => $this->adminUser->id,
+        ]);
+
+        PesantrenHalaqohPresensiDetail::create([
+            'presensi_id' => $presensi->id,
+            'siswa_id' => $this->siswaUnggulan->id,
+            'status' => 'H',
+            'catatan' => 'Hadir tepat waktu',
+        ]);
+
+        // Uji komponen HalaqohIndex pada tab rekap
+        Livewire::test(HalaqohIndex::class)
+            ->set('activeTab', 'rekap')
+            ->assertSee('Filter Rekapitulasi Presensi Halaqoh')
+            ->assertSee('1. Rekap Per Santri')
+            ->assertSee('2. Rekap Per Kamar')
+            ->assertSee('3. Rekap Per Rayon')
+            ->assertSee('Ahmad Santri Unggulan')
+            // Uji filter preset tanggal
+            ->call('setDatePreset', 'today')
+            ->assertSet('rekapTanggalMulai', now()->toDateString())
+            ->assertSet('rekapTanggalSelesai', now()->toDateString())
+            // Uji sub-tab kamar
+            ->set('rekapSubTab', 'kamar')
+            ->assertSee('Tabel Rekapitulasi Presensi Halaqoh Per Kamar / Asrama')
+            // Uji sub-tab rayon
+            ->set('rekapSubTab', 'rayon')
+            ->assertSee('Tabel Rekapitulasi Presensi Halaqoh Per Rayon')
+            // Uji modal detail siswa
+            ->call('openDetailSiswa', $this->siswaUnggulan->id)
+            ->assertSet('showDetailModal', true)
+            ->assertSee('Riwayat Detail Presensi Santri')
+            ->assertSee('Hadir tepat waktu')
+            ->call('closeDetailSiswa')
+            ->assertSet('showDetailModal', false);
     }
 }

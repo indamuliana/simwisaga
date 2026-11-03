@@ -82,15 +82,6 @@ class HafalanInput extends Component
         $user = auth()->user();
         $pegawai = Pegawai::where('user_id', $user?->id)->first();
         $this->setoranPegawaiId = $pegawai?->id;
-
-        // Pilih santri unggulan pertama secara otomatis jika ada
-        $firstSiswa = Siswa::whereHas('program', fn ($q) => $q->where('kode', 'UNG'))
-            ->where('is_active', true)
-            ->first();
-
-        if ($firstSiswa) {
-            $this->selectSiswa($firstSiswa->id);
-        }
     }
 
     public function updatedSearchSiswa(): void
@@ -153,6 +144,13 @@ class HafalanInput extends Component
     public function toggleAyat(int $surahId, int $ayatNumber): void
     {
         $this->guard('pesantren.hafalan.input');
+
+        if (! $this->selectedSiswaId) {
+            session()->flash('warning', 'Silakan cari dan pilih santri unggulan terlebih dahulu.');
+
+            return;
+        }
+
         $key = "{$surahId}_{$ayatNumber}";
 
         // Jika ayat SUDAH tersimpan di database:
@@ -193,6 +191,13 @@ class HafalanInput extends Component
     public function applyRange(): void
     {
         $this->guard('pesantren.hafalan.input');
+
+        if (! $this->selectedSiswaId) {
+            session()->flash('warning', 'Silakan cari dan pilih santri unggulan terlebih dahulu.');
+
+            return;
+        }
+
         if (! $this->rangeSurahId) {
             return;
         }
@@ -222,6 +227,13 @@ class HafalanInput extends Component
     public function openSaveModal(): void
     {
         $this->guard('pesantren.hafalan.input');
+
+        if (! $this->selectedSiswaId) {
+            session()->flash('warning', 'Silakan cari dan pilih santri unggulan terlebih dahulu.');
+
+            return;
+        }
+
         if (empty($this->tempSelectedMap)) {
             session()->flash('warning', 'Pilih minimal satu kotak ayat terlebih dahulu untuk disimpan.');
 
@@ -326,6 +338,7 @@ class HafalanInput extends Component
         $stats = $selectedSiswa ? $this->rankService->getSiswaStats($selectedSiswa->id) : null;
 
         // Data bagian surat & ayat untuk Juz yang sedang aktif
+        QuranHelper::ensureSurahsSeeded();
         $juzSections = QuranHelper::getJuzSections($this->selectedJuz);
         $surahIdsInJuz = collect($juzSections)->pluck('surah')->unique();
         $surahs = QuranSurah::whereIn('nomor_surah', $surahIdsInJuz)->get()->keyBy('nomor_surah');

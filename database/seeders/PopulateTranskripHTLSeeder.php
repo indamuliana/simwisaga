@@ -11,6 +11,7 @@ use App\Modules\Akademik\Models\StrukturKurikulum;
 use App\Modules\Akademik\Models\TahunAjaran;
 use App\Modules\Kepegawaian\Models\Pegawai;
 use App\Modules\Kepegawaian\Models\PenugasanMengajar;
+use App\Modules\Kesiswaan\Models\RombelSiswa;
 use App\Modules\Kesiswaan\Models\Siswa;
 use App\Modules\Penilaian\Models\NilaiAkhir;
 use App\Modules\Penilaian\Models\NilaiAsesmenHarian;
@@ -43,13 +44,13 @@ class PopulateTranskripHTLSeeder extends Seeder
 
         // 2. Semesters
         $sem2023Ganjil = Semester::where('tahun_ajaran_id', $ta2023->id)->where('semester', 'ganjil')->firstOrFail();
-        $sem2023Genap  = Semester::where('tahun_ajaran_id', $ta2023->id)->where('semester', 'genap')->firstOrFail();
+        $sem2023Genap = Semester::where('tahun_ajaran_id', $ta2023->id)->where('semester', 'genap')->firstOrFail();
 
         $sem2024Ganjil = Semester::where('tahun_ajaran_id', $ta2024->id)->where('semester', 'ganjil')->firstOrFail();
-        $sem2024Genap  = Semester::where('tahun_ajaran_id', $ta2024->id)->where('semester', 'genap')->firstOrFail();
+        $sem2024Genap = Semester::where('tahun_ajaran_id', $ta2024->id)->where('semester', 'genap')->firstOrFail();
 
         $sem2025Ganjil = Semester::where('tahun_ajaran_id', $ta2025->id)->where('semester', 'ganjil')->firstOrFail();
-        $sem2025Genap  = Semester::where('tahun_ajaran_id', $ta2025->id)->where('semester', 'genap')->firstOrFail();
+        $sem2025Genap = Semester::where('tahun_ajaran_id', $ta2025->id)->where('semester', 'genap')->firstOrFail();
 
         // 3. Mapping Guru Pengampu Mapel Perhotelan
         $guruMapping = $this->getGuruMapping();
@@ -64,7 +65,7 @@ class PopulateTranskripHTLSeeder extends Seeder
             // ==============================================================
             // A. ROMBEL X HTL 1 (TA 2025/2026) - Seluruh Mapel Ganjil & Genap
             // ==============================================================
-            $this->command->info(PHP_EOL . '=== 1. Memproses Rombel X HTL 1 (TA 2025/2026) ===');
+            $this->command->info(PHP_EOL.'=== 1. Memproses Rombel X HTL 1 (TA 2025/2026) ===');
             $rombelXHTL1 = Rombel::where('tahun_ajaran_id', $ta2025->id)->where('nama', 'X HTL 1')->firstOrFail();
             $siswasXHTL1 = Siswa::inRombel($rombelXHTL1->id)->get();
             $this->command->info("Ditemukan {$siswasXHTL1->count()} siswa di X HTL 1.");
@@ -73,12 +74,12 @@ class PopulateTranskripHTLSeeder extends Seeder
 
             // Isi nilai Ganjil & Genap untuk X HTL 1
             $this->populateNilaiSemester($rombelXHTL1, $sem2025Ganjil, $mapelsTingkatX, $siswasXHTL1, 'ganjil', $guruMapping, $ta2025->id);
-            $this->populateNilaiSemester($rombelXHTL1, $sem2025Genap,  $mapelsTingkatX, $siswasXHTL1, 'genap',  $guruMapping, $ta2025->id);
+            $this->populateNilaiSemester($rombelXHTL1, $sem2025Genap, $mapelsTingkatX, $siswasXHTL1, 'genap', $guruMapping, $ta2025->id);
 
             // ==============================================================
             // B. SETUP & POPULATE ROMBEL XII HTL 2 (TA 2025/2026)
             // ==============================================================
-            $this->command->info(PHP_EOL . '=== 2. Memproses Rombel XII HTL 2 (TA 2025/2026) ===');
+            $this->command->info(PHP_EOL.'=== 2. Memproses Rombel XII HTL 2 (TA 2025/2026) ===');
             $rombelXIIHTL2 = Rombel::firstOrCreate(
                 [
                     'tahun_ajaran_id' => $ta2025->id,
@@ -103,12 +104,12 @@ class PopulateTranskripHTLSeeder extends Seeder
             // Mapel Kelas XII: Ganjil = PKL (44 JP), Genap = Tatap Muka (48 JP)
             $this->populateNilaiSemester($rombelXIIHTL2, $sem2025Ganjil, ['PKL'], $siswasXIIHTL2, 'ganjil', $guruMapping, $ta2025->id, 5);
             $mapelsTatapMukaXII = ['PAIBP', 'PPKN', 'BINDO', 'MATE', 'BING', 'KK-HTL', 'PKK', 'MAPEL-PIL', 'BSUNDA'];
-            $this->populateNilaiSemester($rombelXIIHTL2, $sem2025Genap,  $mapelsTatapMukaXII, $siswasXIIHTL2, 'genap',  $guruMapping, $ta2025->id, 6);
+            $this->populateNilaiSemester($rombelXIIHTL2, $sem2025Genap, $mapelsTatapMukaXII, $siswasXIIHTL2, 'genap', $guruMapping, $ta2025->id, 6);
 
             // ==============================================================
             // C. POPULATE HISTORI NILAI 3 TAHUN UNTUK SISWA XII HTL 1
             // ==============================================================
-            $this->command->info(PHP_EOL . '=== 3. Memproses Histori Nilai 3 Tahun untuk Rombel XII HTL 1 ===');
+            $this->command->info(PHP_EOL.'=== 3. Memproses Histori Nilai 3 Tahun untuk Rombel XII HTL 1 ===');
             $rombelXIIHTL1 = Rombel::where('tahun_ajaran_id', $ta2025->id)->where('nama', 'XII HTL 1')->firstOrFail();
             $siswasXIIHTL1 = Siswa::inRombel($rombelXIIHTL1->id)->get();
             $this->command->info("Ditemukan {$siswasXIIHTL1->count()} siswa di XII HTL 1.");
@@ -119,7 +120,7 @@ class PopulateTranskripHTLSeeder extends Seeder
                 ['tingkat' => 'X', 'jurusan_id' => $jurusanHtl->id, 'nomor_urut' => 1]
             );
             $this->populateNilaiSemester($rombelX2023, $sem2023Ganjil, $mapelsTingkatX, $siswasXIIHTL1, 'ganjil', $guruMapping, $ta2023->id, 1);
-            $this->populateNilaiSemester($rombelX2023, $sem2023Genap,  $mapelsTingkatX, $siswasXIIHTL1, 'genap',  $guruMapping, $ta2023->id, 2);
+            $this->populateNilaiSemester($rombelX2023, $sem2023Genap, $mapelsTingkatX, $siswasXIIHTL1, 'genap', $guruMapping, $ta2023->id, 2);
 
             // 2. Tahun 2: Kelas XI di TA 2024/2025
             $rombelXI2024 = Rombel::firstOrCreate(
@@ -128,34 +129,34 @@ class PopulateTranskripHTLSeeder extends Seeder
             );
             $mapelsTingkatXI = ['PAIBP', 'PPKN', 'BINDO', 'PJOK', 'SEJA', 'MATE', 'BING', 'KK-HTL', 'PKK', 'MAPEL-PIL', 'BSUNDA'];
             $this->populateNilaiSemester($rombelXI2024, $sem2024Ganjil, $mapelsTingkatXI, $siswasXIIHTL1, 'ganjil', $guruMapping, $ta2024->id, 3);
-            $this->populateNilaiSemester($rombelXI2024, $sem2024Genap,  $mapelsTingkatXI, $siswasXIIHTL1, 'genap',  $guruMapping, $ta2024->id, 4);
+            $this->populateNilaiSemester($rombelXI2024, $sem2024Genap, $mapelsTingkatXI, $siswasXIIHTL1, 'genap', $guruMapping, $ta2024->id, 4);
 
             // 3. Tahun 3: Kelas XII di TA 2025/2026 (Tahun Berjalan)
             // Semester 5 (Ganjil): PKL (44 JP)
             $this->populateNilaiSemester($rombelXIIHTL1, $sem2025Ganjil, ['PKL'], $siswasXIIHTL1, 'ganjil', $guruMapping, $ta2025->id, 5);
             // Semester 6 (Genap): Tatap Muka Sekolah (48 JP)
-            $this->populateNilaiSemester($rombelXIIHTL1, $sem2025Genap,  $mapelsTatapMukaXII, $siswasXIIHTL1, 'genap',  $guruMapping, $ta2025->id, 6);
+            $this->populateNilaiSemester($rombelXIIHTL1, $sem2025Genap, $mapelsTatapMukaXII, $siswasXIIHTL1, 'genap', $guruMapping, $ta2025->id, 6);
 
             // Riwayat Rombel Siswa XII HTL 1 untuk kelengkapan audit
             foreach ($siswasXIIHTL1 as $s) {
-                \App\Modules\Kesiswaan\Models\RombelSiswa::firstOrCreate([
+                RombelSiswa::firstOrCreate([
                     'tahun_ajaran_id' => $ta2023->id,
                     'siswa_id' => $s->id,
                     'rombel_id' => $rombelX2023->id,
                 ]);
-                \App\Modules\Kesiswaan\Models\RombelSiswa::firstOrCreate([
+                RombelSiswa::firstOrCreate([
                     'tahun_ajaran_id' => $ta2024->id,
                     'siswa_id' => $s->id,
                     'rombel_id' => $rombelXI2024->id,
                 ]);
-                \App\Modules\Kesiswaan\Models\RombelSiswa::firstOrCreate([
+                RombelSiswa::firstOrCreate([
                     'tahun_ajaran_id' => $ta2025->id,
                     'siswa_id' => $s->id,
                     'rombel_id' => $rombelXIIHTL1->id,
                 ]);
             }
 
-            $this->command->info(PHP_EOL . '>>> SEEDING NILAI TRANSKRIP HTL SELESAI DENGAN SUKSES! <<<');
+            $this->command->info(PHP_EOL.'>>> SEEDING NILAI TRANSKRIP HTL SELESAI DENGAN SUKSES! <<<');
         });
     }
 
@@ -177,7 +178,7 @@ class PopulateTranskripHTLSeeder extends Seeder
 
         foreach ($mapelKodes as $mKode) {
             $mapel = Mapel::where('kode', $mKode)->first();
-            if (!$mapel) {
+            if (! $mapel) {
                 continue;
             }
 
@@ -215,7 +216,7 @@ class PopulateTranskripHTLSeeder extends Seeder
             if ($tps->isEmpty()) {
                 // Buat 4 TP sesuai AH
                 foreach ($ahCodes as $idx => $ah) {
-                    $tpKode = $isGenap ? 'TP ' . ($idx + 5) : 'TP ' . ($idx + 1);
+                    $tpKode = $isGenap ? 'TP '.($idx + 5) : 'TP '.($idx + 1);
                     $desc = $this->getDefaultTpDesc($mKode, $rombel->tingkat, $semKey, $idx);
                     $tps->push(TujuanPembelajaran::create([
                         'penugasan_mengajar_id' => $pm->id,
@@ -232,7 +233,7 @@ class PopulateTranskripHTLSeeder extends Seeder
                 // Basis nilai berdasarkan profil siswa (antara 76 s.d 95)
                 // Variasi dinamis per siswa, mapel, dan semester
                 $baseScore = 78 + (($siswa->id * 7 + $mapel->id * 5 + ($targetSemesterIdx ?? 1) * 3) % 18); // range 78 - 95
-                
+
                 // Tambah sedikit deviasi agar beberapa siswa memiliki skor A (90+), B (80-89), atau C (70-79)
                 $studentSkill = max(70, min(97, $baseScore));
 
@@ -285,15 +286,15 @@ class PopulateTranskripHTLSeeder extends Seeder
                 $finalScore = round(($avgFormatif * 0.5) + ($stsScore * 0.25) + ($sasScore * 0.25), 2);
 
                 $firstTp = $tps->first();
-                $lastTp  = $tps->last();
+                $lastTp = $tps->last();
 
                 $descTinggi = $firstTp
-                    ? "Menunjukkan penguasaan yang sangat baik dalam " . lcfirst($firstTp->deskripsi)
-                    : "Mencapai kompetensi pembelajaran secara optimal.";
+                    ? 'Menunjukkan penguasaan yang sangat baik dalam '.lcfirst($firstTp->deskripsi)
+                    : 'Mencapai kompetensi pembelajaran secara optimal.';
 
                 $descRendah = ($lastTp && $finalScore < 85)
-                    ? "Perlu penguatan dan bimbingan dalam " . lcfirst($lastTp->deskripsi)
-                    : "";
+                    ? 'Perlu penguatan dan bimbingan dalam '.lcfirst($lastTp->deskripsi)
+                    : '';
 
                 $block1Key = $isGenap ? '9M3' : '9M1';
                 $block2Key = $isGenap ? '9M4' : '9M2';
@@ -364,14 +365,14 @@ class PopulateTranskripHTLSeeder extends Seeder
         foreach ($names as $idx => $item) {
             $nama = $item[0];
             $jk = $item[1];
-            $nisn = '008' . str_pad((string)(2000000 + $idx), 7, '0', STR_PAD_LEFT);
-            $nipd = '123' . str_pad((string)(1050 + $idx), 5, '0', STR_PAD_LEFT);
+            $nisn = '008'.str_pad((string) (2000000 + $idx), 7, '0', STR_PAD_LEFT);
+            $nipd = '123'.str_pad((string) (1050 + $idx), 5, '0', STR_PAD_LEFT);
 
             // User login siswa
             $user = User::firstOrCreate(
                 ['email' => "siswa.htl2.{$idx}@wikrama.sch.id"],
                 [
-                    'username' => 'siswa_htl2_' . ($idx + 1),
+                    'username' => 'siswa_htl2_'.($idx + 1),
                     'name' => $nama,
                     'password' => Hash::make('password'),
                     'is_active' => true,
@@ -391,13 +392,13 @@ class PopulateTranskripHTLSeeder extends Seeder
                     'agama' => 'Islam',
                     'tempat_lahir' => 'Garut',
                     'tanggal_lahir' => '2007-05-15',
-                    'alamat' => 'Jl. Raya Garut No. ' . ($idx + 10),
+                    'alamat' => 'Jl. Raya Garut No. '.($idx + 10),
                     'status' => 'aktif',
                     'is_active' => true,
                 ]
             );
 
-            \App\Modules\Kesiswaan\Models\RombelSiswa::firstOrCreate([
+            RombelSiswa::firstOrCreate([
                 'tahun_ajaran_id' => $rombel->tahun_ajaran_id,
                 'siswa_id' => $siswa->id,
                 'rombel_id' => $rombel->id,
@@ -419,23 +420,23 @@ class PopulateTranskripHTLSeeder extends Seeder
         };
 
         return [
-            'PAIBP'     => $findId('M. Ridwan'),
-            'PPKN'      => $findId('Yanti Sumiati'),
-            'BINDO'     => $findId('Asep Gunawan'),
-            'PJOK'      => $findId('Budi Santoso'),
-            'SEJA'      => $findId('Fajar Nugraha'),
-            'SENI'      => $findId('Anita Rahayu'),
-            'MATE'      => $findId('Rina Marlina'),
-            'BING'      => $findId('Sarah Lestari'),
-            'INFO'      => $findId('Beni Iskandar'),
-            'IPAS'      => $findId('Wahyu Hidayat'),
-            'DDK-HTL'   => $findId('Dewi Anggraeni'),
-            'KK-HTL'    => $findId('Dewi Anggraeni'),
-            'PKK'       => $findId('Gina Gandina'),
-            'PKL'       => $findId('Dewi Anggraeni'),
+            'PAIBP' => $findId('M. Ridwan'),
+            'PPKN' => $findId('Yanti Sumiati'),
+            'BINDO' => $findId('Asep Gunawan'),
+            'PJOK' => $findId('Budi Santoso'),
+            'SEJA' => $findId('Fajar Nugraha'),
+            'SENI' => $findId('Anita Rahayu'),
+            'MATE' => $findId('Rina Marlina'),
+            'BING' => $findId('Sarah Lestari'),
+            'INFO' => $findId('Beni Iskandar'),
+            'IPAS' => $findId('Wahyu Hidayat'),
+            'DDK-HTL' => $findId('Dewi Anggraeni'),
+            'KK-HTL' => $findId('Dewi Anggraeni'),
+            'PKK' => $findId('Gina Gandina'),
+            'PKL' => $findId('Dewi Anggraeni'),
             'MAPEL-PIL' => $findId('Maya Sartika'),
-            'BSUNDA'    => $findId('Cecep Supriatna'),
-            'KKA'       => $findId('Ilham Maulana'),
+            'BSUNDA' => $findId('Cecep Supriatna'),
+            'KKA' => $findId('Ilham Maulana'),
         ];
     }
 
@@ -446,6 +447,7 @@ class PopulateTranskripHTLSeeder extends Seeder
     {
         $mapel = Mapel::where('kode', $mapelKode)->first();
         $nama = $mapel ? $mapel->nama : $mapelKode;
-        return "Menguasai kompetensi esensial {$nama} lingkup materi " . ($idx + 1) . " pada semester {$semKey}.";
+
+        return "Menguasai kompetensi esensial {$nama} lingkup materi ".($idx + 1)." pada semester {$semKey}.";
     }
 }

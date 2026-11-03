@@ -18,12 +18,13 @@ class DapodikSiswaSeeder extends Seeder
 
         $filePath = database_path('seeders/data/dapodik.xlsx');
 
-        if (!file_exists($filePath)) {
+        if (! file_exists($filePath)) {
             $fallback = base_path('DATABASE SISWA.xlsx');
             if (file_exists($fallback)) {
                 $filePath = $fallback;
             } else {
                 $this->command?->error("File {$filePath} tidak ditemukan.");
+
                 return;
             }
         }
@@ -45,14 +46,14 @@ class DapodikSiswaSeeder extends Seeder
 
         // 3. Tampilkan rangkuman
         $this->command?->info('---------------------------------------------');
-        $this->command?->info("✓ Selesai!");
+        $this->command?->info('✓ Selesai!');
         $this->command?->info("  Total Baris: {$result['total_baris']}");
         $this->command?->info("  Berhasil Diimpor (Baru): {$result['imported']}");
         $this->command?->info("  Diperbarui: {$result['updated']}");
-        $this->command?->info("  Error: " . count($result['errors']));
+        $this->command?->info('  Error: '.count($result['errors']));
         $this->command?->info('---------------------------------------------');
 
-        if (!empty($result['errors'])) {
+        if (! empty($result['errors'])) {
             $this->command?->warn('Beberapa baris mengalami kesalahan:');
             foreach (array_slice($result['errors'], 0, 10) as $err) {
                 $this->command?->line("  - Baris {$err['baris']} ({$err['nama']}): {$err['pesan']}");

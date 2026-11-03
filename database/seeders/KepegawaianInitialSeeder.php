@@ -111,7 +111,7 @@ class KepegawaianInitialSeeder extends Seeder
                 ]
             );
 
-            if (!$user->hasRole($data['role'])) {
+            if (! $user->hasRole($data['role'])) {
                 $user->assignRole($data['role']);
             }
 
@@ -134,7 +134,7 @@ class KepegawaianInitialSeeder extends Seeder
             );
 
             // Hubungkan jika wali kelas
-            if (!empty($data['is_wali_kelas_rombel']) && $ta) {
+            if (! empty($data['is_wali_kelas_rombel']) && $ta) {
                 $rombel = Rombel::where('nama', $data['is_wali_kelas_rombel'])->first();
                 if ($rombel) {
                     $rombel->update(['wali_kelas_id' => $user->id]);
@@ -146,7 +146,7 @@ class KepegawaianInitialSeeder extends Seeder
             }
 
             // Hubungkan jika pembimbing rayon
-            if (!empty($data['is_pembimbing_rayon']) && $ta) {
+            if (! empty($data['is_pembimbing_rayon']) && $ta) {
                 $rayon = Rayon::where('nama', $data['is_pembimbing_rayon'])->first();
                 if ($rayon) {
                     $rayon->update(['pembimbing_id' => $user->id]);

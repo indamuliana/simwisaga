@@ -3,12 +3,14 @@
 namespace App\Modules\Kepesantrenan\Livewire;
 
 use App\Core\Concerns\GuardsPermission;
+use App\Modules\Akademik\Models\Rayon;
 use App\Modules\Akademik\Models\TahunAjaran;
 use App\Modules\Kepegawaian\Models\Pegawai;
 use App\Modules\Kepesantrenan\Models\PesantrenHalaqoh;
 use App\Modules\Kepesantrenan\Models\PesantrenHalaqohPresensi;
 use App\Modules\Kepesantrenan\Models\PesantrenHalaqohPresensiDetail;
 use App\Modules\Kepesantrenan\Models\PesantrenHalaqohSiswa;
+use App\Modules\Kepesantrenan\Models\PesantrenKamar;
 use App\Modules\Kesiswaan\Models\Siswa;
 use Livewire\Attributes\Layout;
 use Livewire\Attributes\Title;
@@ -58,11 +60,31 @@ class HalaqohIndex extends Component
 
     public $attendanceNotes = [];
 
+    // Tab 3: Rekap Presensi Halaqoh
+    public $rekapSubTab = 'siswa'; // 'siswa', 'kamar', 'rayon'
+
+    public $rekapTanggalMulai = '';
+
+    public $rekapTanggalSelesai = '';
+
+    public $rekapHalaqohId = '';
+
+    public $rekapWaktuSesi = '';
+
+    public $rekapSearchSiswa = '';
+
+    // Modal Detail Presensi Santri
+    public $showDetailModal = false;
+
+    public $selectedDetailSiswaId = null;
+
     public function mount(): void
     {
         $this->guard('pesantren.halaqoh.lihat');
 
         $this->presensiTanggal = now()->toDateString();
+        $this->rekapTanggalMulai = now()->startOfMonth()->toDateString();
+        $this->rekapTanggalSelesai = now()->toDateString();
 
         // Default pilih halaqoh pertama jika ada
         $firstHalaqoh = PesantrenHalaqoh::first();
@@ -70,6 +92,35 @@ class HalaqohIndex extends Component
             $this->selectedHalaqohId = $firstHalaqoh->id;
             $this->loadPresensiData();
         }
+    }
+
+    public function setDatePreset(string $preset): void
+    {
+        if ($preset === 'today') {
+            $this->rekapTanggalMulai = now()->toDateString();
+            $this->rekapTanggalSelesai = now()->toDateString();
+        } elseif ($preset === 'week') {
+            $this->rekapTanggalMulai = now()->subDays(6)->toDateString();
+            $this->rekapTanggalSelesai = now()->toDateString();
+        } elseif ($preset === 'month') {
+            $this->rekapTanggalMulai = now()->startOfMonth()->toDateString();
+            $this->rekapTanggalSelesai = now()->toDateString();
+        } elseif ($preset === 'last_month') {
+            $this->rekapTanggalMulai = now()->subMonth()->startOfMonth()->toDateString();
+            $this->rekapTanggalSelesai = now()->subMonth()->endOfMonth()->toDateString();
+        }
+    }
+
+    public function openDetailSiswa(int $siswaId): void
+    {
+        $this->selectedDetailSiswaId = $siswaId;
+        $this->showDetailModal = true;
+    }
+
+    public function closeDetailSiswa(): void
+    {
+        $this->showDetailModal = false;
+        $this->selectedDetailSiswaId = null;
     }
 
     public function updatedSelectedHalaqohId(): void
@@ -284,11 +335,222 @@ class HalaqohIndex extends Component
                 ->get();
         }
 
+        // Data Rekap Presensi Halaqoh (hanya dimuat jika tab 'rekap' aktif)
+        $rekapSiswas = collect();
+        $rekapKamars = collect();
+        $rekapRayons = collect();
+        $globalStats = null;
+        $globalPersen = 0;
+        $detailSiswa = null;
+        $detailPresensis = collect();
+
+        if ($this->activeTab === 'rekap') {
+            $startDate = $this->rekapTanggalMulai ?: now()->startOfMonth()->toDateString();
+            $endDate = $this->rekapTanggalSelesai ?: now()->toDateString();
+            if ($startDate > $endDate) {
+                [$startDate, $endDate] = [$endDate, $startDate];
+            }
+
+            $baseDetailQuery = PesantrenHalaqohPresensiDetail::query()
+                ->whereHas('presensi', function ($q) use ($startDate, $endDate) {
+                    $q->whereDate('tanggal', '>=', $startDate)
+                        ->whereDate('tanggal', '<=', $endDate);
+                    if ($this->rekapHalaqohId) {
+                        $q->where('halaqoh_id', $this->rekapHalaqohId);
+                    }
+                    if ($this->rekapWaktuSesi) {
+                        $q->where('waktu_sesi', $this->rekapWaktuSesi);
+                    }
+                });
+
+            // Global KPI
+            $globalStats = (clone $baseDetailQuery)
+                ->selectRaw("
+                    COUNT(*) as total_records,
+                    COUNT(DISTINCT presensi_id) as total_pertemuan,
+                    SUM(CASE WHEN status = 'H' THEN 1 ELSE 0 END) as total_h,
+                    SUM(CASE WHEN status = 'S' THEN 1 ELSE 0 END) as total_s,
+                    SUM(CASE WHEN status = 'I' THEN 1 ELSE 0 END) as total_i,
+                    SUM(CASE WHEN status = 'A' THEN 1 ELSE 0 END) as total_a
+                ")
+                ->first();
+
+            $globalPersen = ($globalStats && $globalStats->total_records > 0)
+                ? round(($globalStats->total_h / $globalStats->total_records) * 100, 1)
+                : 0;
+
+            // Stats per Santri (keyed by siswa_id)
+            $siswaStats = (clone $baseDetailQuery)
+                ->selectRaw("
+                    siswa_id,
+                    COUNT(*) as total_sesi,
+                    SUM(CASE WHEN status = 'H' THEN 1 ELSE 0 END) as total_h,
+                    SUM(CASE WHEN status = 'S' THEN 1 ELSE 0 END) as total_s,
+                    SUM(CASE WHEN status = 'I' THEN 1 ELSE 0 END) as total_i,
+                    SUM(CASE WHEN status = 'A' THEN 1 ELSE 0 END) as total_a
+                ")
+                ->groupBy('siswa_id')
+                ->get()
+                ->keyBy('siswa_id');
+
+            // 1. Rekap Per Siswa
+            $rekapSiswas = Siswa::whereHas('program', fn ($q) => $q->where('kode', 'UNG'))
+                ->where('is_active', true)
+                ->with(['rombel', 'rayon', 'pesantrenKamars', 'pesantrenHalaqohs'])
+                ->when($this->rekapSearchSiswa, function ($q) {
+                    $q->where(function ($sub) {
+                        $sub->where('nama', 'like', "%{$this->rekapSearchSiswa}%")
+                            ->orWhere('nisn', 'like', "%{$this->rekapSearchSiswa}%");
+                    });
+                })
+                ->when($this->rekapHalaqohId, function ($q) {
+                    $q->whereHas('pesantrenHalaqohs', fn ($h) => $h->where('pesantren_halaqohs.id', $this->rekapHalaqohId));
+                })
+                ->orderBy('nama')
+                ->get()
+                ->map(function ($s) use ($siswaStats) {
+                    $st = $siswaStats[$s->id] ?? null;
+                    $totalSesi = $st ? (int) $st->total_sesi : 0;
+                    $h = $st ? (int) $st->total_h : 0;
+                    $s_count = $st ? (int) $st->total_s : 0;
+                    $i = $st ? (int) $st->total_i : 0;
+                    $a = $st ? (int) $st->total_a : 0;
+                    $persen = $totalSesi > 0 ? round(($h / $totalSesi) * 100, 1) : 0;
+
+                    return (object) [
+                        'id' => $s->id,
+                        'nama' => $s->nama,
+                        'nisn' => $s->nisn,
+                        'rombel' => $s->rombel?->nama ?? '-',
+                        'rayon' => $s->rayon?->nama ?? '-',
+                        'kamar' => $s->pesantrenKamars->first()?->nama_kamar ?? '-',
+                        'halaqoh' => $s->pesantrenHalaqohs->first()?->nama_halaqoh ?? '-',
+                        'total_sesi' => $totalSesi,
+                        'h' => $h,
+                        's' => $s_count,
+                        'i' => $i,
+                        'a' => $a,
+                        'persen' => $persen,
+                    ];
+                });
+
+            // 2. Rekap Per Kamar
+            $rekapKamars = PesantrenKamar::with(['musrif', 'siswas' => function ($q) {
+                $q->where('is_active', true)->whereHas('program', fn ($p) => $p->where('kode', 'UNG'));
+            }])
+                ->orderBy('nama_kamar')
+                ->get()
+                ->map(function ($k) use ($siswaStats) {
+                    $siswaIds = $k->siswas->pluck('id');
+                    $totalSantri = $siswaIds->count();
+                    $totalSesi = 0;
+                    $h = 0;
+                    $s_count = 0;
+                    $i = 0;
+                    $a = 0;
+
+                    foreach ($siswaIds as $sid) {
+                        if (isset($siswaStats[$sid])) {
+                            $st = $siswaStats[$sid];
+                            $totalSesi += (int) $st->total_sesi;
+                            $h += (int) $st->total_h;
+                            $s_count += (int) $st->total_s;
+                            $i += (int) $st->total_i;
+                            $a += (int) $st->total_a;
+                        }
+                    }
+
+                    $persen = $totalSesi > 0 ? round(($h / $totalSesi) * 100, 1) : 0;
+
+                    return (object) [
+                        'id' => $k->id,
+                        'nama_kamar' => $k->nama_kamar,
+                        'gedung' => $k->gedung ?? '-',
+                        'musrif' => $k->musrif?->nama_lengkap ?? '-',
+                        'total_santri' => $totalSantri,
+                        'total_sesi' => $totalSesi,
+                        'h' => $h,
+                        's' => $s_count,
+                        'i' => $i,
+                        'a' => $a,
+                        'persen' => $persen,
+                    ];
+                });
+
+            // 3. Rekap Per Rayon
+            $rekapRayons = Rayon::with(['pembimbing', 'siswas' => function ($q) {
+                $q->where('is_active', true)->whereHas('program', fn ($p) => $p->where('kode', 'UNG'));
+            }])
+                ->orderBy('nama')
+                ->get()
+                ->map(function ($r) use ($siswaStats) {
+                    $siswaIds = $r->siswas->pluck('id');
+                    $totalSantri = $siswaIds->count();
+                    $totalSesi = 0;
+                    $h = 0;
+                    $s_count = 0;
+                    $i = 0;
+                    $a = 0;
+
+                    foreach ($siswaIds as $sid) {
+                        if (isset($siswaStats[$sid])) {
+                            $st = $siswaStats[$sid];
+                            $totalSesi += (int) $st->total_sesi;
+                            $h += (int) $st->total_h;
+                            $s_count += (int) $st->total_s;
+                            $i += (int) $st->total_i;
+                            $a += (int) $st->total_a;
+                        }
+                    }
+
+                    $persen = $totalSesi > 0 ? round(($h / $totalSesi) * 100, 1) : 0;
+
+                    return (object) [
+                        'id' => $r->id,
+                        'nama' => $r->nama,
+                        'pembimbing' => $r->pembimbing?->name ?? ($r->pembimbing?->nama_lengkap ?? '-'),
+                        'total_santri' => $totalSantri,
+                        'total_sesi' => $totalSesi,
+                        'h' => $h,
+                        's' => $s_count,
+                        'i' => $i,
+                        'a' => $a,
+                        'persen' => $persen,
+                    ];
+                });
+
+            // Detail Siswa jika modal aktif
+            if ($this->showDetailModal && $this->selectedDetailSiswaId) {
+                $detailSiswa = Siswa::with(['rombel', 'rayon', 'pesantrenKamars', 'pesantrenHalaqohs'])->find($this->selectedDetailSiswaId);
+                $detailPresensis = PesantrenHalaqohPresensiDetail::where('siswa_id', $this->selectedDetailSiswaId)
+                    ->whereHas('presensi', function ($q) use ($startDate, $endDate) {
+                        $q->whereDate('tanggal', '>=', $startDate)
+                            ->whereDate('tanggal', '<=', $endDate);
+                        if ($this->rekapHalaqohId) {
+                            $q->where('halaqoh_id', $this->rekapHalaqohId);
+                        }
+                        if ($this->rekapWaktuSesi) {
+                            $q->where('waktu_sesi', $this->rekapWaktuSesi);
+                        }
+                    })
+                    ->with(['presensi.halaqoh'])
+                    ->get()
+                    ->sortByDesc(fn ($d) => $d->presensi?->tanggal?->timestamp);
+            }
+        }
+
         return view('kepesantrenan::livewire.halaqoh-index', [
             'halaqohs' => $halaqohs,
             'selectedHalaqoh' => $selectedHalaqoh,
             'pengajars' => $pengajars,
             'availableSiswas' => $availableSiswas,
+            'rekapSiswas' => $rekapSiswas,
+            'rekapKamars' => $rekapKamars,
+            'rekapRayons' => $rekapRayons,
+            'globalStats' => $globalStats,
+            'globalPersen' => $globalPersen,
+            'detailSiswa' => $detailSiswa,
+            'detailPresensis' => $detailPresensis,
         ]);
     }
 }

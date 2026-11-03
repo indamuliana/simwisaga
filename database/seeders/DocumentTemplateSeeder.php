@@ -2,7 +2,6 @@
 
 namespace Database\Seeders;
 
-use App\Modules\Sistem\Models\DocumentSigner;
 use App\Modules\Sistem\Models\DocumentTemplate;
 use Illuminate\Database\Seeder;
 

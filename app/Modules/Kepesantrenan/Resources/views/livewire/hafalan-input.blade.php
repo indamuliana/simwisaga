@@ -80,7 +80,7 @@
     <div class="bg-surface rounded-2xl border border-border p-4 sm:p-5 shadow-xs space-y-4">
         <div class="grid grid-cols-1 md:grid-cols-12 gap-4 items-center">
             <!-- Autocomplete Pencarian Santri -->
-            <div class="md:col-span-6 space-y-2 relative">
+            <div class="{{ $selectedSiswa ? 'md:col-span-6' : 'col-span-full' }} space-y-2 relative">
                 <label class="block text-xs font-bold uppercase tracking-wider text-text-secondary">
                     Cari & Pilih Santri Program Unggulan
                 </label>
@@ -189,46 +189,65 @@
             @endif
         </div>
 
-        <!-- Tab Mode Tampilan & Saklar Mode Koreksi -->
-        <div class="flex flex-col sm:flex-row sm:items-center justify-between gap-3 border-t border-border pt-3">
-            <div class="flex items-center gap-2">
-                <button type="button" wire:click="$set('activeTab', 'lembar')" class="px-3 py-1.5 rounded-lg text-xs font-bold transition-all {{ $activeTab === 'lembar' ? 'bg-emerald-600 text-white shadow-xs' : 'text-text-secondary hover:text-text-main bg-surface-hover' }}">
-                    Lembar Kontrol Qur'an
-                </button>
-                <button type="button" wire:click="$set('activeTab', 'riwayat')" class="px-3 py-1.5 rounded-lg text-xs font-bold transition-all {{ $activeTab === 'riwayat' ? 'bg-emerald-600 text-white shadow-xs' : 'text-text-secondary hover:text-text-main bg-surface-hover' }}">
-                    Riwayat Catatan Setoran
-                </button>
-            </div>
-
-            @if($activeTab === 'lembar')
-                <div class="flex items-center gap-3">
-                    <!-- Saklar Mode Koreksi / Pengaman Anti-Batal Tidak Sengaja -->
-                    <button type="button"
-                            wire:click="toggleModeKoreksi"
-                            class="inline-flex items-center gap-2 px-3 py-1.5 rounded-xl text-xs font-bold transition-all border
-                            {{ $modeKoreksi 
-                                ? 'bg-rose-500 text-white border-rose-600 shadow-sm animate-pulse' 
-                                : 'bg-surface hover:bg-surface-hover text-text-secondary border-border' }}"
-                            title="Aktifkan saklar ini hanya jika ingin menghapus/membatalkan ayat yang sudah hijau">
-                        <span class="w-2 h-2 rounded-full {{ $modeKoreksi ? 'bg-white' : 'bg-emerald-500' }}"></span>
-                        <span>Mode Koreksi: {{ $modeKoreksi ? 'AKTIF (Hati-hati)' : 'Nonaktif (Aman)' }}</span>
+        @if($selectedSiswa)
+            <!-- Tab Mode Tampilan & Saklar Mode Koreksi -->
+            <div class="flex flex-col sm:flex-row sm:items-center justify-between gap-3 border-t border-border pt-3">
+                <div class="flex items-center gap-2">
+                    <button type="button" wire:click="$set('activeTab', 'lembar')" class="px-3 py-1.5 rounded-lg text-xs font-bold transition-all {{ $activeTab === 'lembar' ? 'bg-emerald-600 text-white shadow-xs' : 'text-text-secondary hover:text-text-main bg-surface-hover' }}">
+                        Lembar Kontrol Qur'an
                     </button>
-
-                    <button type="button" wire:click="$toggle('showRangeTool')" class="text-xs font-semibold text-emerald-600 dark:text-emerald-400 hover:underline flex items-center gap-1">
-                        <svg class="w-3.5 h-3.5" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M8 7h12m0 0l-4-4m4 4l-4 4m0 6H4m0 0l4 4m-4-4l4-4"/></svg>
-                        <span>{{ $showRangeTool ? 'Tutup Rentang' : 'Tandai Rentang Cepat' }}</span>
+                    <button type="button" wire:click="$set('activeTab', 'riwayat')" class="px-3 py-1.5 rounded-lg text-xs font-bold transition-all {{ $activeTab === 'riwayat' ? 'bg-emerald-600 text-white shadow-xs' : 'text-text-secondary hover:text-text-main bg-surface-hover' }}">
+                        Riwayat Catatan Setoran
                     </button>
                 </div>
-            @endif
-        </div>
 
-        @if($modeKoreksi)
-            <div class="p-2.5 rounded-xl bg-rose-50 dark:bg-rose-950/40 border border-rose-300 dark:border-rose-800 text-rose-800 dark:text-rose-200 text-xs flex items-center gap-2">
-                <span>⚠️</span>
-                <span><strong>Mode Koreksi Aktif:</strong> Mengetuk kotak ayat hijau sekarang akan <strong>membatalkan/menghapus</strong> hafalan ayat tersebut dari database. Nonaktifkan saklar jika sudah selesai.</span>
+                @if($activeTab === 'lembar')
+                    <div class="flex items-center gap-3">
+                        <!-- Saklar Mode Koreksi / Pengaman Anti-Batal Tidak Sengaja -->
+                        <button type="button"
+                                wire:click="toggleModeKoreksi"
+                                class="inline-flex items-center gap-2 px-3 py-1.5 rounded-xl text-xs font-bold transition-all border
+                                {{ $modeKoreksi 
+                                    ? 'bg-rose-500 text-white border-rose-600 shadow-sm animate-pulse' 
+                                    : 'bg-surface hover:bg-surface-hover text-text-secondary border-border' }}"
+                                title="Aktifkan saklar ini hanya jika ingin menghapus/membatalkan ayat yang sudah hijau">
+                            <span class="w-2 h-2 rounded-full {{ $modeKoreksi ? 'bg-white' : 'bg-emerald-500' }}"></span>
+                            <span>Mode Koreksi: {{ $modeKoreksi ? 'AKTIF (Hati-hati)' : 'Nonaktif (Aman)' }}</span>
+                        </button>
+
+                        <button type="button" wire:click="$toggle('showRangeTool')" class="text-xs font-semibold text-emerald-600 dark:text-emerald-400 hover:underline flex items-center gap-1">
+                            <svg class="w-3.5 h-3.5" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M8 7h12m0 0l-4-4m4 4l-4 4m0 6H4m0 0l4 4m-4-4l4-4"/></svg>
+                            <span>{{ $showRangeTool ? 'Tutup Rentang' : 'Tandai Rentang Cepat' }}</span>
+                        </button>
+                    </div>
+                @endif
             </div>
+
+            @if($modeKoreksi)
+                <div class="p-2.5 rounded-xl bg-rose-50 dark:bg-rose-950/40 border border-rose-300 dark:border-rose-800 text-rose-800 dark:text-rose-200 text-xs flex items-center gap-2">
+                    <span>⚠️</span>
+                    <span><strong>Mode Koreksi Aktif:</strong> Mengetuk kotak ayat hijau sekarang akan <strong>membatalkan/menghapus</strong> hafalan ayat tersebut dari database. Nonaktifkan saklar jika sudah selesai.</span>
+                </div>
+            @endif
         @endif
     </div>
+
+    @if(! $selectedSiswa)
+        <!-- Empty State ketika Santri Belum Dipilih -->
+        <div class="bg-surface rounded-2xl border-2 border-dashed border-border p-10 sm:p-14 text-center space-y-4 shadow-xs">
+            <div class="w-16 h-16 rounded-2xl bg-emerald-50 dark:bg-emerald-950/40 text-emerald-600 flex items-center justify-center mx-auto text-3xl shadow-xs">
+                📖
+            </div>
+            <div class="max-w-md mx-auto space-y-2">
+                <h3 class="text-base sm:text-lg font-bold text-text-main">
+                    Belum Ada Santri yang Dipilih
+                </h3>
+                <p class="text-xs sm:text-sm text-text-secondary leading-relaxed">
+                    Silakan ketik nama, NISN, atau NIPD santri program unggulan pada kolom pencarian di atas untuk membuka lembar kontrol Qur'an dan mulai mencatat progres hafalan.
+                </p>
+            </div>
+        </div>
+    @else
 
     @if($activeTab === 'lembar')
         <!-- Tool Rentang Ayat Cepat (Collapsible) -->
@@ -569,5 +588,6 @@
                 </form>
             </div>
         </div>
+    @endif
     @endif
 </div>
