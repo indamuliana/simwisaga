@@ -336,4 +336,96 @@ class PerbaikanSmpMappingTest extends TestCase
         $suggestionsAfter = $cleansingService->detectPotentialDuplicates();
         $this->assertEmpty($suggestionsAfter);
     }
+
+    public function test_filter_npsn_pada_perbaikan_smp(): void
+    {
+        $masterA = SpmbSekolahAsal::create([
+            'nama_resmi' => 'SMPN 1 Garut',
+            'npsn' => '20209001',
+            'tier' => 'Utama',
+        ]);
+        SpmbSekolahAsalAlias::firstOrCreate([
+            'alias_raw' => 'SMP 1 Garut',
+        ], [
+            'sekolah_asal_id' => $masterA->id,
+        ]);
+
+        $masterB = SpmbSekolahAsal::create([
+            'nama_resmi' => 'SMP Swasta B',
+            'npsn' => null,
+            'tier' => 'Lainnya',
+        ]);
+        SpmbSekolahAsalAlias::firstOrCreate([
+            'alias_raw' => 'SMP Swasta B Alt',
+        ], [
+            'sekolah_asal_id' => $masterB->id,
+        ]);
+
+        Siswa::create([
+            'nama' => 'Siswa 1',
+            'nipd' => '20001',
+            'nisn' => '2000000001',
+            'jk' => 'L',
+            'rombel_id' => $this->rombel->id,
+            'status' => 'aktif',
+            'sekolah_asal' => 'SMPN 1 Garut',
+            'sekolah_asal_raw' => 'SMP 1 Garut',
+            'sekolah_asal_id' => $masterA->id,
+        ]);
+
+        Siswa::create([
+            'nama' => 'Siswa 2',
+            'nipd' => '20002',
+            'nisn' => '2000000002',
+            'jk' => 'P',
+            'rombel_id' => $this->rombel->id,
+            'status' => 'aktif',
+            'sekolah_asal' => 'SMP Swasta B',
+            'sekolah_asal_raw' => 'SMP Swasta B Alt',
+            'sekolah_asal_id' => $masterB->id,
+        ]);
+
+        Siswa::create([
+            'nama' => 'Siswa 3',
+            'nipd' => '20003',
+            'nisn' => '2000000003',
+            'jk' => 'L',
+            'rombel_id' => $this->rombel->id,
+            'status' => 'aktif',
+            'sekolah_asal' => 'SMP Belum Petakan',
+            'sekolah_asal_raw' => 'SMP Belum Petakan',
+        ]);
+
+        $cleansingService = app(SpmbDataCleansingService::class);
+
+        // 1. Tanpa filter: 3 variasi
+        $all = $cleansingService->getUniqueSchoolStrings();
+        $this->assertCount(3, $all);
+
+        // 2. Filter NPSN filled: hanya Siswa 1 (masterA memiliki NPSN)
+        $filled = $cleansingService->getUniqueSchoolStrings(null, null, 'filled');
+        $this->assertCount(1, $filled);
+        $this->assertEquals('SMP 1 Garut', $filled->first()->raw_name);
+
+        // 3. Filter NPSN mapped_unfilled: hanya Siswa 2 (masterB belum ada NPSN)
+        $mappedUnfilled = $cleansingService->getUniqueSchoolStrings(null, null, 'mapped_unfilled');
+        $this->assertCount(1, $mappedUnfilled);
+        $this->assertEquals('SMP Swasta B Alt', $mappedUnfilled->first()->raw_name);
+
+        // 4. Filter NPSN unfilled (semua yang NPSN-nya kosong: Siswa 2 & Siswa 3)
+        $unfilled = $cleansingService->getUniqueSchoolStrings(null, null, 'unfilled');
+        $this->assertCount(2, $unfilled);
+        $this->assertTrue($unfilled->pluck('raw_name')->contains('SMP Swasta B Alt'));
+        $this->assertTrue($unfilled->pluck('raw_name')->contains('SMP Belum Petakan'));
+
+        // 5. Test Livewire integration
+        Livewire::actingAs($this->admin)
+            ->test(PerbaikanSmpIndex::class)
+            ->set('filterNpsn', 'mapped_unfilled')
+            ->assertSee('SMP Swasta B Alt')
+            ->assertDontSee('SMP 1 Garut')
+            ->set('filterNpsn', 'filled')
+            ->assertSee('SMP 1 Garut')
+            ->assertDontSee('SMP Swasta B Alt');
+    }
 }

@@ -16,7 +16,7 @@ class SpmbDataCleansingService
     /**
      * Mengambil daftar teks unik sekolah asal dari tabel siswa beserta statistik pemetaan.
      */
-    public function getUniqueSchoolStrings(?string $search = null, ?string $filterMapping = null): Collection
+    public function getUniqueSchoolStrings(?string $search = null, ?string $filterMapping = null, ?string $filterNpsn = null): Collection
     {
         $subquery = Siswa::query()
             ->selectRaw("COALESCE(NULLIF(sekolah_asal_raw, ''), sekolah_asal) as raw_name")
@@ -84,6 +84,15 @@ class SpmbDataCleansingService
             $result = $result->filter(fn ($item) => $item->is_mapped);
         } elseif ($filterMapping === 'unmapped') {
             $result = $result->filter(fn ($item) => ! $item->is_mapped);
+        }
+
+        // Filter status NPSN jika ada
+        if ($filterNpsn === 'unfilled') {
+            $result = $result->filter(fn ($item) => empty($item->master_npsn));
+        } elseif ($filterNpsn === 'mapped_unfilled') {
+            $result = $result->filter(fn ($item) => $item->is_mapped && empty($item->master_npsn));
+        } elseif ($filterNpsn === 'filled') {
+            $result = $result->filter(fn ($item) => ! empty($item->master_npsn));
         }
 
         return $result->values();

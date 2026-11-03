@@ -23,6 +23,7 @@ class PerbaikanSmpIndex extends Component
     // Filter & Search
     public string $search = '';
     public string $filterMapping = ''; // '', 'mapped', 'unmapped'
+    public string $filterNpsn = ''; // '', 'unfilled', 'mapped_unfilled', 'filled'
     public int $perPage = 20;
 
     // Selection for Multi-Merge
@@ -84,6 +85,7 @@ class PerbaikanSmpIndex extends Component
     protected $queryString = [
         'search' => ['except' => ''],
         'filterMapping' => ['except' => ''],
+        'filterNpsn' => ['except' => ''],
     ];
 
     public function mount(): void
@@ -106,6 +108,13 @@ class PerbaikanSmpIndex extends Component
         $this->selectAll = false;
     }
 
+    public function updatingFilterNpsn(): void
+    {
+        $this->resetPage();
+        $this->selectedSchools = [];
+        $this->selectAll = false;
+    }
+
     public function refreshSuggestions(): void
     {
         $this->suggestions = app(SpmbDataCleansingService::class)->detectPotentialDuplicates();
@@ -115,7 +124,7 @@ class PerbaikanSmpIndex extends Component
     {
         if ($value) {
             $cleansingService = app(SpmbDataCleansingService::class);
-            $items = $cleansingService->getUniqueSchoolStrings($this->search, $this->filterMapping);
+            $items = $cleansingService->getUniqueSchoolStrings($this->search, $this->filterMapping, $this->filterNpsn);
             $this->selectedSchools = $items->pluck('raw_name')->toArray();
         } else {
             $this->selectedSchools = [];
@@ -551,7 +560,7 @@ class PerbaikanSmpIndex extends Component
     public function render()
     {
         $cleansingService = app(SpmbDataCleansingService::class);
-        $allUnique = $cleansingService->getUniqueSchoolStrings($this->search, $this->filterMapping);
+        $allUnique = $cleansingService->getUniqueSchoolStrings($this->search, $this->filterMapping, $this->filterNpsn);
 
         // Manual pagination untuk collection
         $page = LengthAwarePaginator::resolveCurrentPage();

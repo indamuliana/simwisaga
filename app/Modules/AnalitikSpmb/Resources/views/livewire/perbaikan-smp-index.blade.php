@@ -248,6 +248,13 @@
                     <option value="mapped">Sudah Terpetakan Master</option>
                 </select>
 
+                <select wire:model.live="filterNpsn" class="input !py-1.5 !px-2.5 text-xs">
+                    <option value="">Semua Status NPSN</option>
+                    <option value="unfilled">NPSN Belum Diisi</option>
+                    <option value="mapped_unfilled">Master Belum Diisi NPSN</option>
+                    <option value="filled">NPSN Sudah Terisi</option>
+                </select>
+
                 <select wire:model.live="perPage" class="input !py-1.5 !px-2.5 text-xs">
                     <option value="20">20 per hal</option>
                     <option value="50">50 per hal</option>
