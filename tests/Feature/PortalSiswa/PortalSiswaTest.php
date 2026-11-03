@@ -120,7 +120,7 @@ class PortalSiswaTest extends TestCase
         $this->actingAs($this->studentUser);
 
         $this->get(route('portal-siswa.beranda'))->assertOk()->assertSee('Budi Santoso');
-        $this->get(route('portal-siswa.profil'))->assertOk()->assertSee('Identitas Pribadi');
+        $this->get(route('portal-siswa.profil'))->assertOk()->assertSee('Identitas Diri');
         $this->get(route('portal-siswa.nilai-rapor'))->assertOk()->assertSee('Nilai Akademik');
         $this->get(route('portal-siswa.kehadiran'))->assertOk()->assertSee('Rekap Kehadiran Siswa');
         $this->get(route('portal-siswa.upd-seni'))->assertOk()->assertSee('UPD & Seni Budaya', false);

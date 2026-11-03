@@ -47,18 +47,45 @@ class VerifikasiPerbaikanData extends Component
             return;
         }
 
-        // Terapkan perubahan ke data siswa
+        // Terapkan perubahan ke data siswa / orang tua
         if (is_array($pengajuan->rincian_perubahan)) {
             foreach ($pengajuan->rincian_perubahan as $field => $data) {
                 $baru = $data['baru'] ?? null;
                 if ($baru !== null) {
-                    if (in_array($field, ['nama_ayah', 'nama_ibu', 'pekerjaan_ayah', 'pekerjaan_ibu'])) {
-                        $ortu = $siswa->orangTuas()->first();
+                    if (str_ends_with($field, '_ayah')) {
+                        $col = str_replace('_ayah', '', $field);
+                        if ($col === 'pendidikan') {
+                            $col = 'jenjang_pendidikan';
+                        }
+                        $ortu = $siswa->orangTuas()->whereIn('hubungan', ['ayah', 'Ayah'])->first();
                         if ($ortu) {
-                            $ortu->update([$field => $baru]);
+                            $ortu->update([$col => $baru]);
+                        } else {
+                            $siswa->orangTuas()->create(['hubungan' => 'ayah', $col => $baru]);
+                        }
+                    } elseif (str_ends_with($field, '_ibu')) {
+                        $col = str_replace('_ibu', '', $field);
+                        if ($col === 'pendidikan') {
+                            $col = 'jenjang_pendidikan';
+                        }
+                        $ortu = $siswa->orangTuas()->whereIn('hubungan', ['ibu', 'Ibu'])->first();
+                        if ($ortu) {
+                            $ortu->update([$col => $baru]);
+                        } else {
+                            $siswa->orangTuas()->create(['hubungan' => 'ibu', $col => $baru]);
+                        }
+                    } elseif (str_ends_with($field, '_wali')) {
+                        $col = str_replace('_wali', '', $field);
+                        if ($col === 'pendidikan') {
+                            $col = 'jenjang_pendidikan';
+                        }
+                        $ortu = $siswa->orangTuas()->whereIn('hubungan', ['wali', 'Wali'])->first();
+                        if ($ortu) {
+                            $ortu->update([$col => $baru]);
+                        } else {
+                            $siswa->orangTuas()->create(['hubungan' => 'wali', $col => $baru]);
                         }
                     } else {
-                        // Pastikan field ada di fillable siswa
                         $siswa->update([$field => $baru]);
                     }
                 }
