@@ -266,9 +266,9 @@
                                     </div>
                                 </div>
 
- <button wire:click="showDetail({{ $s->id }})" class="text-blue-500 hover:text-blue-700" title="Profil">
- <svg class="w-5 h-5 inline" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M15 12a3 3 0 11-6 0 3 3 0 016 0z"></path><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M2.458 12C3.732 7.943 7.523 5 12 5c4.478 0 8.268 2.943 9.542 7-1.274 4.057-5.064 7-9.542 7-4.477 0-8.268-2.943-9.542-7z"></path></svg>
- </button>
+                                <a href="{{ route('kesiswaan.siswa.show', $s->id) }}" class="text-blue-500 hover:text-blue-700 inline-flex" title="Lihat Profil Lengkap Siswa">
+                                    <svg class="w-5 h-5 inline" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M15 12a3 3 0 11-6 0 3 3 0 016 0z"></path><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M2.458 12C3.732 7.943 7.523 5 12 5c4.478 0 8.268 2.943 9.542 7-1.274 4.057-5.064 7-9.542 7-4.477 0-8.268-2.943-9.542-7z"></path></svg>
+                                </a>
  @can('kesiswaan.siswa.edit')
  <a href="{{ route('kesiswaan.siswa.edit', $s->id) }}" class="text-indigo-500 hover:text-indigo-700 inline-flex" title="Edit Lengkap">
  <svg class="w-5 h-5 inline" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M11 5H6a2 2 0 00-2 2v11a2 2 0 002 2h11a2 2 0 002-2v-5m-1.414-9.414a2 2 0 112.828 2.828L11.828 15H9v-2.828l8.586-8.586z"></path></svg>
@@ -296,123 +296,7 @@
  </div>
  </div>
 
- <!-- Modal Detail Profil Siswa -->
- @if($showDetailModal && $selectedSiswa)
- <div class="fixed inset-0 z-50 flex items-center justify-center p-4 bg-slate-900/60 backdrop-blur-xs overflow-y-auto">
- <div class="w-full max-w-3xl bg-surface rounded-2xl shadow-xl border border-border overflow-hidden my-8">
- <div class="px-6 py-4 border-b border-border flex justify-between items-center bg-surface-hover/50 bg-surface/40">
- <div class="flex items-center gap-3">
- @if($selectedSiswa->foto_path && file_exists(public_path('storage/' . $selectedSiswa->foto_path)))
- <img src="{{ asset('storage/' . $selectedSiswa->foto_path) }}" class="w-12 h-12 rounded-full object-cover border border-border">
- @endif
- <div>
- <h2 class="text-lg font-bold text-text-main">{{ $selectedSiswa->nama }}</h2>
- <p class="text-xs text-text-secondary font-mono">NIS: {{ $selectedSiswa->nipd ?? $selectedSiswa->nisn }} | NISN: {{ \App\Core\Support\DataMasker::maskNisn($selectedSiswa->nisn) }}</p>
- </div>
- </div>
- <button wire:click="$set('showDetailModal', false)" class="text-slate-400 hover:text-text-secondary dark:hover:text-slate-200 text-xl font-bold">&times;</button>
- </div>
- <div class="p-6 space-y-6 max-h-[75vh] overflow-y-auto text-sm">
- <!-- Tab Identitas & Rombel -->
- <div class="grid grid-cols-2 sm:grid-cols-4 gap-4 pb-4 border-b border-slate-100 border-border">
- <div>
- <span class="text-xs text-slate-400 block">Rombel:</span>
- <span class="font-bold text-primary dark:text-indigo-400">{{ $selectedSiswa->rombel?->nama ?? 'Belum ditentukan' }}</span>
- </div>
- <div>
- <span class="text-xs text-slate-400 block">Rayon:</span>
- <span class="font-bold text-emerald-600 dark:text-emerald-400">{{ $selectedSiswa->rayon?->nama ?? 'Belum di-plot' }}</span>
- </div>
- <div>
- <span class="text-xs text-slate-400 block">Program:</span>
- <span class="font-bold text-amber-600 dark:text-amber-400">{{ $selectedSiswa->program?->nama ?? 'Reguler' }}</span>
- </div>
- <div>
- <span class="text-xs text-slate-400 block">Status:</span>
- <span class="font-bold text-text-main uppercase">{{ $selectedSiswa->status }}</span>
- </div>
- </div>
 
- <!-- Domisili & Alamat -->
- <div class="space-y-2 pb-4 border-b border-slate-100 border-border">
- <h4 class="text-xs font-bold uppercase tracking-wider text-slate-400">Alamat & Domisili</h4>
- <p class="text-text-main text-text-secondary">
- {{ $selectedSiswa->alamat ?? '-' }} 
- @if($selectedSiswa->rt || $selectedSiswa->rw) (RT {{ $selectedSiswa->rt }}/RW {{ $selectedSiswa->rw }}) @endif
- , Kel. {{ $selectedSiswa->kelurahan ?? '-' }}, Kec. {{ $selectedSiswa->kecamatan ?? '-' }}, Kode Pos: {{ $selectedSiswa->kode_pos ?? '-' }}
- </p>
- <div class="text-xs text-text-secondary">
- Transportasi: {{ $selectedSiswa->alat_transportasi ?? '-' }} | Jarak ke Sekolah: {{ $selectedSiswa->jarak_ke_sekolah_km ?? '-' }} KM
- </div>
- </div>
-
- <!-- Data Orang Tua -->
- <div class="space-y-3 pb-4 border-b border-slate-100 border-border">
- <h4 class="text-xs font-bold uppercase tracking-wider text-slate-400">Data Orang Tua / Wali</h4>
- <div class="grid grid-cols-1 sm:grid-cols-3 gap-4">
- <div class="p-3 bg-surface-hover bg-surface/40 rounded-md">
- <span class="text-xs font-bold text-primary dark:text-indigo-400 block">Data Ayah Kandung</span>
- <div class="font-semibold text-text-main">{{ $selectedSiswa->ayah?->nama ?? '-' }}</div>
- <div class="text-xs text-text-secondary mt-1">Status: {{ $selectedSiswa->ayah?->status_hidup ?? 'Hidup' }}</div>
- <div class="text-xs text-text-secondary">Kontak: {{ $selectedSiswa->ayah?->no_hp ?? '-' }}</div>
- <div class="text-xs text-text-secondary">Pekerjaan: {{ $selectedSiswa->ayah?->pekerjaan ?? '-' }}</div>
- <div class="text-xs text-text-secondary">Penghasilan: {{ $selectedSiswa->ayah?->penghasilan ?? '-' }}</div>
- </div>
- <div class="p-3 bg-surface-hover bg-surface/40 rounded-md">
- <span class="text-xs font-bold text-pink-600 dark:text-pink-400 block">Data Ibu Kandung</span>
- <div class="font-semibold text-text-main">{{ $selectedSiswa->ibu?->nama ?? '-' }}</div>
- <div class="text-xs text-text-secondary mt-1">Status: {{ $selectedSiswa->ibu?->status_hidup ?? 'Hidup' }}</div>
- <div class="text-xs text-text-secondary">Kontak: {{ $selectedSiswa->ibu?->no_hp ?? '-' }}</div>
- <div class="text-xs text-text-secondary">Pekerjaan: {{ $selectedSiswa->ibu?->pekerjaan ?? '-' }}</div>
- <div class="text-xs text-text-secondary">Penghasilan: {{ $selectedSiswa->ibu?->penghasilan ?? '-' }}</div>
- </div>
- <div class="p-3 bg-surface-hover bg-surface/40 rounded-md">
- <span class="text-xs font-bold text-emerald-600 dark:text-emerald-400 block">Data Wali</span>
- <div class="font-semibold text-text-main">{{ $selectedSiswa->wali?->nama ?? '-' }}</div>
- <div class="text-xs text-text-secondary mt-1">Kontak: {{ $selectedSiswa->wali?->no_hp ?? '-' }}</div>
- <div class="text-xs text-text-secondary">Pekerjaan: {{ $selectedSiswa->wali?->pekerjaan ?? '-' }}</div>
- <div class="text-xs text-text-secondary">Penghasilan: {{ $selectedSiswa->wali?->penghasilan ?? '-' }}</div>
- </div>
- </div>
- </div>
-
- <!-- Akun Login & Bantuan -->
- <div class="grid grid-cols-2 gap-4 text-xs">
- <div>
- <span class="text-slate-400 block mb-1 font-semibold">Username Login Siswa (NIS):</span>
- <span class="font-mono bg-slate-100 bg-surface px-2 py-1 rounded-md font-bold">{{ $selectedSiswa->nipd ?: $selectedSiswa->nisn }}</span>
- </div>
- <div>
- <span class="text-slate-400 block mb-1 font-semibold">Username Login Orang Tua:</span>
- <span class="font-mono bg-slate-100 bg-surface px-2 py-1 rounded-md font-bold">ortu_{{ $selectedSiswa->nipd ?: $selectedSiswa->nisn }}</span>
- </div>
- </div>
- </div>
- <div class="px-6 py-3 bg-surface-hover bg-surface/40 border-t border-border flex flex-wrap justify-between items-center gap-2">
- <div class="flex items-center gap-1.5">
- <span class="text-xs text-text-secondary font-medium mr-1">Download Biodata:</span>
- <button type="button" wire:click="downloadDetailSiswa({{ $selectedSiswa->id }}, 'pdf')" class="px-2.5 py-1 text-xs font-semibold rounded bg-rose-50 text-rose-700 hover:bg-rose-100 dark:bg-rose-950/60 dark:text-rose-300 border border-rose-200 dark:border-rose-800 transition">
- PDF
- </button>
- <button type="button" wire:click="downloadDetailSiswa({{ $selectedSiswa->id }}, 'word')" class="px-2.5 py-1 text-xs font-semibold rounded bg-blue-50 text-blue-700 hover:bg-blue-100 dark:bg-blue-950/60 dark:text-blue-300 border border-blue-200 dark:border-blue-800 transition">
- Word (.doc)
- </button>
- <button type="button" wire:click="downloadDetailSiswa({{ $selectedSiswa->id }}, 'excel')" class="px-2.5 py-1 text-xs font-semibold rounded bg-success-soft text-emerald-700 hover:bg-emerald-100 dark:bg-emerald-950/60 text-success border border-success transition">
- Excel (.xlsx)
- </button>
- </div>
- <div class="flex items-center gap-3">
- @can('kesiswaan.siswa.edit')
- <a href="{{ route('kesiswaan.siswa.edit', $selectedSiswa->id) }}" class="text-xs font-semibold text-primary dark:text-indigo-400 hover:underline">
- Buka Form Edit 66 Kolom Lengkap &rarr;
- </a>
- @endcan
- <button wire:click="$set('showDetailModal', false)" class="px-4 py-2 text-sm text-text-secondary hover:bg-slate-100 dark:hover:bg-slate-800 rounded-md">Tutup</button>
- </div>
- </div>
- </div>
- </div>
- @endif
 
  <!-- Delete Confirmation Modal (Alpine) -->
  <div x-data="{ open: false, id: null, name: '', typed: '' }" 

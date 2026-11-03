@@ -195,5 +195,30 @@ class Siswa extends Model implements Auditable
             ->withPivot('peran', 'keterangan')
             ->withTimestamps();
     }
+
+    public function seniBudayaAnggotas(): HasMany
+    {
+        return $this->hasMany(\App\Modules\SeniBudaya\Models\SeniBudayaAnggota::class, 'siswa_id');
+    }
+
+    public function ekstrakurikulerAnggotas(): HasMany
+    {
+        return $this->hasMany(\App\Modules\Ekstrakurikuler\Models\EkstrakurikulerAnggota::class, 'siswa_id');
+    }
+
+    public function mapelPilihanAnggotas(): HasMany
+    {
+        return $this->hasMany(\App\Modules\Akademik\Models\MapelPilihanAnggota::class, 'siswa_id');
+    }
+
+    public function otaPenerimas(): HasMany
+    {
+        return $this->hasMany(\App\Modules\BeasiswaOta\Models\SiswaPenerima::class, 'siswa_id');
+    }
+
+    public function absensiHarians(): HasMany
+    {
+        return $this->hasMany(\App\Modules\Absensi\Models\AbsensiHarian::class, 'siswa_id');
+    }
 }
 

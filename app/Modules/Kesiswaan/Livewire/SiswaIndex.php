@@ -36,10 +36,6 @@ class SiswaIndex extends Component
     public ?int $filterProgram = null;
     public string $filterStatus = '';
 
-    // Detail Modal
-    public bool $showDetailModal = false;
-    public ?Siswa $selectedSiswa = null;
-
     public function updatedSearch(): void
     {
         $this->resetPage();
@@ -63,12 +59,6 @@ class SiswaIndex extends Component
     public function updatedFilterStatus(): void
     {
         $this->resetPage();
-    }
-
-    public function showDetail(int $id): void
-    {
-        $this->selectedSiswa = Siswa::with(['rombel', 'rayon', 'program', 'orangTuas'])->findOrFail($id);
-        $this->showDetailModal = true;
     }
 
     public function delete(int $id): void
