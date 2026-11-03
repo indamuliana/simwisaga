@@ -23,15 +23,22 @@ class ProfilSiswa extends Component
 
     // State Pengajuan Perbaikan Data
     public bool $showPengajuanModal = false;
+
     public string $kategori = 'biodata';
+
     public string $namaField = 'nama';
+
     public string $nilaiBaru = '';
+
     public string $alasan = '';
+
     public $lampiranFile = null;
 
     // State Ganti Password
     public string $current_password = '';
+
     public string $new_password = '';
+
     public string $new_password_confirmation = '';
 
     public function mount(): void
@@ -64,7 +71,7 @@ class ProfilSiswa extends Component
             return;
         }
 
-        $exporter = new SingleSiswaDocumentExporter();
+        $exporter = new SingleSiswaDocumentExporter;
 
         return match ($format) {
             'word' => $exporter->downloadWord($siswa),
@@ -107,6 +114,7 @@ class ProfilSiswa extends Component
         $siswa = $this->getSiswa();
         if (! $siswa) {
             session()->flash('error', 'Data siswa tidak ditemukan.');
+
             return;
         }
 
@@ -153,6 +161,7 @@ class ProfilSiswa extends Component
                 $col = 'jenjang_pendidikan';
             }
             $ayah = $siswa->orangTuas->firstWhere('hubungan', 'ayah') ?? $siswa->orangTuas->firstWhere('hubungan', 'Ayah');
+
             return (string) ($ayah?->{$col} ?? '-');
         }
 
@@ -162,6 +171,7 @@ class ProfilSiswa extends Component
                 $col = 'jenjang_pendidikan';
             }
             $ibu = $siswa->orangTuas->firstWhere('hubungan', 'ibu') ?? $siswa->orangTuas->firstWhere('hubungan', 'Ibu');
+
             return (string) ($ibu?->{$col} ?? '-');
         }
 
@@ -171,6 +181,7 @@ class ProfilSiswa extends Component
                 $col = 'jenjang_pendidikan';
             }
             $wali = $siswa->orangTuas->firstWhere('hubungan', 'wali') ?? $siswa->orangTuas->firstWhere('hubungan', 'Wali');
+
             return (string) ($wali?->{$col} ?? '-');
         }
 
@@ -192,6 +203,7 @@ class ProfilSiswa extends Component
 
         if (! Hash::check($this->current_password, $user->password)) {
             $this->addError('current_password', 'Password saat ini salah.');
+
             return;
         }
 

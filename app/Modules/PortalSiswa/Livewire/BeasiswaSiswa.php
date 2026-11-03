@@ -21,11 +21,17 @@ class BeasiswaSiswa extends Component
 
     // Form State Pengajuan Beasiswa
     public bool $showFormModal = false;
+
     public string $jenisBeasiswa = 'ota';
+
     public ?string $nominalPengajuan = null;
+
     public string $alasan = '';
+
     public ?string $penghasilanOrangTua = null;
+
     public ?int $jumlahTanggungan = null;
+
     public $lampiranDokumen = null;
 
     public function mount(): void
@@ -85,6 +91,7 @@ class BeasiswaSiswa extends Component
         $siswa = $this->getSiswa();
         if (! $siswa) {
             session()->flash('error', 'Data siswa tidak ditemukan.');
+
             return;
         }
 

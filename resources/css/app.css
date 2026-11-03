@@ -6,6 +6,7 @@
 @source '../../storage/framework/views/*.php';
 @source "../**/*.blade.php";
 @source "../../app/**/*.blade.php";
+@source "../../app/**/*.php";
 @source "../**/*.js";
 
 :root {
@@ -216,5 +217,26 @@ input[type="number"].no-spinner,
 .table-nilai input[type="number"] {
     -moz-appearance: textfield !important;
     appearance: textfield !important;
+}
+
+/* Lembar Mutaba'ah Quran: 5 Kolom Mobile, 10 Kolom Tablet, 20 Kolom Desktop */
+.mutabaah-ayat-grid {
+    display: grid !important;
+    grid-template-columns: repeat(5, minmax(0, 1fr)) !important;
+    gap: 0.5rem;
+}
+
+@media (min-width: 640px) {
+    .mutabaah-ayat-grid {
+        grid-template-columns: repeat(10, minmax(0, 1fr)) !important;
+        gap: 0.375rem;
+    }
+}
+
+@media (min-width: 1024px) {
+    .mutabaah-ayat-grid {
+        grid-template-columns: repeat(20, minmax(0, 1fr)) !important;
+        gap: 0.375rem;
+    }
 }
 

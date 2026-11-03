@@ -71,6 +71,34 @@
         </div>
     @endif
 
+    <!-- Card Khusus Santri Program Unggulan: Rank MLBB & Hafalan -->
+    @if($pesantrenStats)
+        <div class="rounded-2xl border border-white/10 p-5 sm:p-6 shadow-lg relative overflow-hidden flex flex-col sm:flex-row items-start sm:items-center justify-between gap-4"
+             style="background: {{ $pesantrenStats['rank']['gradient_style'] }}; color: #ffffff;">
+            <div class="space-y-1 z-10">
+                <div class="inline-flex items-center gap-1.5 px-2.5 py-0.5 rounded-full text-[10px] font-black tracking-wider uppercase"
+                     style="background: rgba(255, 255, 255, 0.15); border: 1px solid rgba(255, 255, 255, 0.25); color: #ffffff;">
+                    <span>PROGRAM UNGGULAN &bull; TAHFIZ</span>
+                </div>
+                <h3 class="text-xl font-black" style="color: #ffffff; text-shadow: 0 1px 3px rgba(0,0,0,0.4);">
+                    Capaian Rank Hafalan: <span style="color: {{ $pesantrenStats['rank']['color'] }};">{{ $pesantrenStats['rank']['tier'] }}</span>
+                </h3>
+                <p class="text-xs" style="color: #e2e8f0;">
+                    Akumulasi hafalan: <strong style="color: #ffffff;">{{ $pesantrenStats['total_ayat'] }} Ayat</strong> (~{{ $pesantrenStats['juz'] }} Juz). Target 3 Juz (Mythic): <strong style="color: #fde047;">{{ $pesantrenStats['target_persen'] }}%</strong>
+                </p>
+                <div class="w-48 h-2 rounded-full overflow-hidden mt-2 p-0.5"
+                     style="background: rgba(0, 0, 0, 0.45); border: 1px solid rgba(255, 255, 255, 0.2);">
+                    <div class="h-full rounded-full transition-all duration-500" 
+                         style="background: linear-gradient(90deg, #f59e0b, #10b981); width: {{ $pesantrenStats['target_persen'] }}%"></div>
+                </div>
+            </div>
+
+            <a href="{{ route('portal-siswa.kepesantrenan') }}" class="btn bg-white text-slate-900 hover:bg-slate-100 font-bold text-xs py-2.5 px-4 rounded-xl shadow-md z-10 whitespace-nowrap">
+                Buka Lembar Mutaba'ah &rarr;
+            </a>
+        </div>
+    @endif
+
     <!-- Menu Akses Cepat (Quick Access Grid) -->
     <div class="grid grid-cols-2 sm:grid-cols-3 lg:grid-cols-6 gap-3">
         <a href="{{ route('portal-siswa.profil') }}" class="card p-4 hover:border-primary/40 hover:shadow-xs transition-all group flex flex-col items-center text-center">

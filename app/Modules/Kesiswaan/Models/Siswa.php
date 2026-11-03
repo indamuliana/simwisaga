@@ -237,5 +237,45 @@ class Siswa extends Model implements Auditable
     {
         return $this->hasMany(\App\Modules\PortalSiswa\Models\PengajuanBeasiswa::class, 'siswa_id');
     }
+
+    public function pesantrenKamarSiswas(): HasMany
+    {
+        return $this->hasMany(\App\Modules\Kepesantrenan\Models\PesantrenKamarSiswa::class, 'siswa_id');
+    }
+
+    public function pesantrenKamars(): \Illuminate\Database\Eloquent\Relations\BelongsToMany
+    {
+        return $this->belongsToMany(
+            \App\Modules\Kepesantrenan\Models\PesantrenKamar::class,
+            'pesantren_kamar_siswas',
+            'siswa_id',
+            'kamar_id'
+        )->withPivot('peran', 'nomor_ranjang')->withTimestamps();
+    }
+
+    public function pesantrenHalaqohSiswas(): HasMany
+    {
+        return $this->hasMany(\App\Modules\Kepesantrenan\Models\PesantrenHalaqohSiswa::class, 'siswa_id');
+    }
+
+    public function pesantrenHalaqohs(): \Illuminate\Database\Eloquent\Relations\BelongsToMany
+    {
+        return $this->belongsToMany(
+            \App\Modules\Kepesantrenan\Models\PesantrenHalaqoh::class,
+            'pesantren_halaqoh_siswas',
+            'siswa_id',
+            'halaqoh_id'
+        )->withTimestamps();
+    }
+
+    public function pesantrenHafalans(): HasMany
+    {
+        return $this->hasMany(\App\Modules\Kepesantrenan\Models\PesantrenHafalanSiswa::class, 'siswa_id');
+    }
+
+    public function pesantrenSetorans(): HasMany
+    {
+        return $this->hasMany(\App\Modules\Kepesantrenan\Models\PesantrenSetoranHafalan::class, 'siswa_id');
+    }
 }
 

@@ -41,6 +41,11 @@ return [
             'route' => 'portal-siswa.beasiswa',
             'permission' => 'portal_siswa.beasiswa.lihat',
         ],
+        [
+            'label' => 'Kepesantrenan & Hafalan',
+            'route' => 'portal-siswa.kepesantrenan',
+            'permission' => 'portal_siswa.agenda.lihat',
+        ],
     ],
     'permissions' => [
         'portal_siswa.agenda' => [

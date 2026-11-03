@@ -18,6 +18,7 @@ class KehadiranSiswa extends Component
     use GuardsPermission, WithPagination;
 
     public string $filterTingkat = 'semua'; // 'semua', 'X', 'XI', 'XII'
+
     public string $filterSemester = 'semua'; // 'semua' atau semester_id
 
     public function mount(): void

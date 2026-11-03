@@ -5,6 +5,7 @@ namespace App\Modules\PortalSiswa\Livewire;
 use App\Core\Concerns\GuardsPermission;
 use App\Modules\Absensi\Models\AbsensiHarian;
 use App\Modules\KalenderPendidikan\Models\KalenderAgenda;
+use App\Modules\Kepesantrenan\Services\HafalanRankService;
 use App\Modules\Kesiswaan\Models\Siswa;
 use App\Modules\PortalSiswa\Models\PengajuanBeasiswa;
 use App\Modules\PortalSiswa\Models\PengajuanPerbaikanDataSiswa;
@@ -77,12 +78,18 @@ class BerandaSiswa extends Component
                 ->count();
         }
 
+        $pesantrenStats = null;
+        if ($siswa && ($siswa->program?->kode === 'UNG')) {
+            $pesantrenStats = app(HafalanRankService::class)->getSiswaStats($siswa->id);
+        }
+
         return view('portalsiswa::livewire.beranda-siswa', [
             'siswa' => $siswa,
             'agendas' => $agendas,
             'absensiStats' => $absensiStats,
             'pendingPerbaikan' => $pendingPerbaikan,
             'pendingBeasiswa' => $pendingBeasiswa,
+            'pesantrenStats' => $pesantrenStats,
         ]);
     }
 }

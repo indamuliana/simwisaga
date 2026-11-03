@@ -19,6 +19,7 @@ class NilaiRaporSiswa extends Component
     use GuardsPermission;
 
     public string $viewMode = 'semester'; // 'semester' atau 'transkrip'
+
     public ?int $selectedSemesterId = null;
 
     public function mount(): void

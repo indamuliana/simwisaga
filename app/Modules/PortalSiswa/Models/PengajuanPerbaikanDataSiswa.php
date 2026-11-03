@@ -29,7 +29,9 @@ class PengajuanPerbaikanDataSiswa extends Model
     ];
 
     public const STATUS_MENUNGGU = 'menunggu';
+
     public const STATUS_DISETUJUI = 'disetujui';
+
     public const STATUS_DITOLAK = 'ditolak';
 
     public function siswa(): BelongsTo
