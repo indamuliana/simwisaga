@@ -2,12 +2,13 @@
 
 namespace App\Modules\Absensi\Livewire;
 
-use Livewire\Component;
-use App\Modules\Absensi\Models\AbsensiHarian;
 use App\Enums\StatusAbsensi;
-use App\Modules\Kepegawaian\Models\PenugasanWaliKelas;
+use App\Modules\Absensi\Models\AbsensiHarian;
+use App\Modules\Akademik\Models\Rombel;
 use App\Modules\Akademik\Support\AcademicContext;
+use App\Modules\Kepegawaian\Models\PenugasanWaliKelas;
 use Illuminate\Support\Facades\DB;
+use Livewire\Component;
 
 class WidgetPeringatanAlpa extends Component
 {
@@ -16,24 +17,40 @@ class WidgetPeringatanAlpa extends Component
     public function mount()
     {
         $user = auth()->user();
-        if (!$user->can('absensi.harian.lihat') && !$user->hasRole(['Wali Kelas', 'Kesiswaan', 'Super Admin'])) {
+        if (!$user || (!$user->can('absensi.harian.lihat') && !$user->hasRole(['Wali Kelas', 'Kesiswaan', 'Super Admin']))) {
             return;
         }
 
-        $semesterId = AcademicContext::currentSemester()?->id;
+        $semester = AcademicContext::currentSemester();
+        $semesterId = $semester?->id;
+        $tahunAjaranId = $semester?->tahun_ajaran_id ?? AcademicContext::currentTahunAjaran()?->id;
+
         if (!$semesterId) {
             return;
         }
 
         $rombelIds = [];
         
-        // Jika Wali Kelas, ambil rombel yang dibinanya
+        // Jika Wali Kelas, ambil rombel yang dibinanya berdasarkan tahun ajaran aktif
         if ($user->pegawai) {
-            $rombelIds = PenugasanWaliKelas::where('pegawai_id', $user->pegawai->id)
-                ->where('semester_id', $semesterId)
-                ->pluck('rombel_id')
-                ->toArray();
+            $penugasanQuery = PenugasanWaliKelas::where('pegawai_id', $user->pegawai->id);
+            if ($tahunAjaranId) {
+                $penugasanQuery->where('tahun_ajaran_id', $tahunAjaranId);
+            }
+            $rombelIds = $penugasanQuery->pluck('rombel_id')->toArray();
         }
+
+        // Juga cek jika wali kelas ditugaskan langsung pada model Rombel (wali_kelas_id)
+        $rombelDirectQuery = Rombel::where('wali_kelas_id', $user->id);
+        if ($user->pegawai) {
+            $rombelDirectQuery->orWhere('wali_kelas_id', $user->pegawai->id);
+        }
+        if ($tahunAjaranId) {
+            $rombelDirectQuery->where('tahun_ajaran_id', $tahunAjaranId);
+        }
+        $rombelDirectIds = $rombelDirectQuery->pluck('id')->toArray();
+
+        $rombelIds = array_values(array_unique(array_merge($rombelIds, $rombelDirectIds)));
 
         // Jika kesiswaan / admin, tampilkan semua (jangan difilter rombel)
         $isKesiswaan = $user->hasRole(['Kesiswaan', 'Super Admin', 'Operator']);
@@ -66,9 +83,9 @@ class WidgetPeringatanAlpa extends Component
             }
 
             return [
-                'nama' => $row->siswa->nama,
-                'nis' => $row->siswa->nipd ?: $row->siswa->nisn,
-                'rombel' => $row->rombel->nama,
+                'nama' => $row->siswa?->nama ?? '-',
+                'nis' => $row->siswa ? ($row->siswa->nipd ?: $row->siswa->nisn) : '-',
+                'rombel' => $row->rombel?->nama ?? '-',
                 'total_alpa' => $row->total_alpa,
                 'sp_level' => $spLevel,
                 'bg_color' => $bgColor,

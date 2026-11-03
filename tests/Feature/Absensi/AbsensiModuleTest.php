@@ -99,4 +99,51 @@ class AbsensiModuleTest extends TestCase
         $this->assertInstanceOf(StatusAbsensi::class, $absensi->status);
         $this->assertFalse($absensi->status->isHadirStatistik());
     }
+
+    public function test_widget_peringatan_alpa_dapat_dimuat_oleh_wali_kelas_tanpa_error_semester_id(): void
+    {
+        $tahunAjaran = \App\Modules\Akademik\Models\TahunAjaran::create([
+            'nama' => '2026/2027',
+            'is_active' => true,
+        ]);
+        $semester = Semester::create([
+            'tahun_ajaran_id' => $tahunAjaran->id,
+            'semester' => 'ganjil',
+            'is_active' => true,
+        ]);
+
+        $waliRole = \Spatie\Permission\Models\Role::findOrCreate('Wali Kelas', 'web');
+        $waliUser = User::factory()->create([
+            'is_active' => true,
+            'must_change_password' => false,
+        ]);
+        $waliUser->assignRole($waliRole);
+
+        $pegawai = \App\Modules\Kepegawaian\Models\Pegawai::create([
+            'user_id' => $waliUser->id,
+            'nama_lengkap' => 'Guru Wali',
+            'is_active' => true,
+        ]);
+
+        $jurusan = \App\Modules\Akademik\Models\Jurusan::create([
+            'kode' => 'TJKT', 'nama' => 'TJKT',
+        ]);
+        $rombel = Rombel::create([
+            'nama' => 'X TJKT 1',
+            'tingkat' => 'X',
+            'jurusan_id' => $jurusan->id,
+            'tahun_ajaran_id' => $tahunAjaran->id,
+            'wali_kelas_id' => $pegawai->id,
+        ]);
+
+        \App\Modules\Kepegawaian\Models\PenugasanWaliKelas::create([
+            'tahun_ajaran_id' => $tahunAjaran->id,
+            'rombel_id' => $rombel->id,
+            'pegawai_id' => $pegawai->id,
+        ]);
+
+        \Livewire\Livewire::actingAs($waliUser)
+            ->test(\App\Modules\Absensi\Livewire\WidgetPeringatanAlpa::class)
+            ->assertOk();
+    }
 }
