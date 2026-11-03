@@ -2,6 +2,7 @@
 
 namespace App\Modules\Ekstrakurikuler\Livewire;
 
+use App\Core\Concerns\GuardsPermission;
 use Livewire\Component;
 use Livewire\Attributes\Layout;
 use App\Modules\Ekstrakurikuler\Models\Ekstrakurikuler;
@@ -14,6 +15,7 @@ use Carbon\Carbon;
 
 class EkstrakurikulerPresensi extends Component
 {
+    use GuardsPermission;
     public $ekskul_id;
     public $ekskul;
     public $semester_id;
@@ -156,6 +158,8 @@ class EkstrakurikulerPresensi extends Component
 
     public function savePresensi()
     {
+        $this->guard('ekskul.kelola');
+
         $this->validate([
             'pertemuan_ke' => 'required|integer|min:1',
             'tanggal' => 'required|date',
@@ -206,6 +210,8 @@ class EkstrakurikulerPresensi extends Component
 
     public function deleteSesi($sesiId)
     {
+        $this->guard('ekskul.kelola');
+
         $sesi = EkskulPresensi::findOrFail($sesiId);
         $ke = $sesi->pertemuan_ke;
         $sesi->delete();

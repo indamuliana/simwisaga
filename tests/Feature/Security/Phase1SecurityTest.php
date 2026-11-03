@@ -254,4 +254,19 @@ class Phase1SecurityTest extends TestCase
             'nilai_akhir' => 90,
         ]);
     }
+
+    public function test_livewire_mutation_checks_guard_permission_and_aborts_on_unauthorized(): void
+    {
+        // 1. Guru polos tanpa hak beasiswa_ota.kelola ditolak saat mutasi kelompok
+        \Livewire\Livewire::actingAs($this->guruPolos)
+            ->test(\App\Modules\BeasiswaOta\Livewire\DonaturKelompokIndex::class)
+            ->call('deleteKelompok', 1)
+            ->assertForbidden();
+
+        // 2. Guru polos tanpa hak kalender.kategori.kelola ditolak saat mutasi kategori
+        \Livewire\Livewire::actingAs($this->guruPolos)
+            ->test(\App\Modules\KalenderPendidikan\Livewire\KategoriManager::class)
+            ->call('deleteKategori', 1)
+            ->assertForbidden();
+    }
 }

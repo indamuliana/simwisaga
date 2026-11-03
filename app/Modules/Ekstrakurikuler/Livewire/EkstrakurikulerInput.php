@@ -2,6 +2,7 @@
 
 namespace App\Modules\Ekstrakurikuler\Livewire;
 
+use App\Core\Concerns\GuardsPermission;
 use Livewire\Component;
 use App\Modules\Ekstrakurikuler\Models\Ekstrakurikuler;
 use App\Modules\Ekstrakurikuler\Models\EkstrakurikulerAnggota;
@@ -11,6 +12,7 @@ use Livewire\Attributes\Layout;
 
 class EkstrakurikulerInput extends Component
 {
+    use GuardsPermission;
     public $ekskul_id;
     public $ekskul;
     public $semester_id;
@@ -67,6 +69,8 @@ class EkstrakurikulerInput extends Component
 
     public function addAnggota($siswa_id)
     {
+        $this->guard('ekskul.kelola');
+
         EkstrakurikulerAnggota::firstOrCreate([
             'ekstrakurikuler_id' => $this->ekskul_id,
             'siswa_id' => $siswa_id,
@@ -80,6 +84,8 @@ class EkstrakurikulerInput extends Component
 
     public function removeAnggota($siswa_id)
     {
+        $this->guard('ekskul.kelola');
+
         EkstrakurikulerAnggota::where('ekstrakurikuler_id', $this->ekskul_id)
             ->where('siswa_id', $siswa_id)
             ->where('semester_id', $this->semester_id)
@@ -90,6 +96,8 @@ class EkstrakurikulerInput extends Component
 
     public function saveNilai()
     {
+        $this->guard('ekskul.kelola');
+
         foreach ($this->anggotaData as $siswaId => $data) {
             $angka = $data['nilai_angka'];
             

@@ -77,7 +77,7 @@ class LiburManager extends Component
 
     public function save(): void
     {
-        $this->guard($this->isEditing ? 'kalender.libur.edit' : 'kalender.libur.tambah');
+        $this->guard('kalender.libur.kelola');
 
         $this->validate();
         $activeTa = TahunAjaran::active()->first();
@@ -111,7 +111,7 @@ class LiburManager extends Component
 
     public function syncNational(KalenderService $service): void
     {
-        $this->guard('kalender.libur.tambah');
+        $this->guard('kalender.libur.kelola');
 
         $year = (int) ($this->filterTahun ?: date('Y'));
         $count = $service->syncHariLiburNasional($year);
@@ -121,7 +121,7 @@ class LiburManager extends Component
 
     public function deleteLibur(int $id): void
     {
-        $this->guard('kalender.libur.hapus');
+        $this->guard('kalender.libur.kelola');
 
         KalenderLibur::findOrFail($id)->delete();
         session()->flash('status', 'Hari libur berhasil dihapus.');

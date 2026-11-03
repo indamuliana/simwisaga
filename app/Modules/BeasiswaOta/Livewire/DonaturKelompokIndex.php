@@ -106,6 +106,8 @@ class DonaturKelompokIndex extends Component
 
     public function saveKelompok()
     {
+        $this->guard('beasiswa_ota.kelola');
+
         $this->validate([
             'kodeKelompok' => 'required|string|max:50|unique:ota_kelompoks,kode_kelompok,' . $this->kelompokId,
             'namaKelompok' => 'required|string|max:255',
@@ -129,6 +131,8 @@ class DonaturKelompokIndex extends Component
 
     public function deleteKelompok(int $id)
     {
+        $this->guard('beasiswa_ota.kelola');
+
         $kelompok = Kelompok::findOrFail($id);
         if ($kelompok->donasiMasuks()->exists() || $kelompok->alokasis()->exists()) {
             session()->flash('error', 'Kelompok tidak dapat dihapus karena sudah memiliki riwayat donasi atau alokasi.');
@@ -202,6 +206,8 @@ class DonaturKelompokIndex extends Component
 
     public function addAnggotaToKelompok()
     {
+        $this->guard('beasiswa_ota.kelola');
+
         $this->validate([
             'selectedKelompokId' => 'required|exists:ota_kelompoks,id',
             'selectedDonaturModalIds' => 'required|array|min:1',
@@ -249,6 +255,8 @@ class DonaturKelompokIndex extends Component
 
     public function removeAnggota(int $anggotaId)
     {
+        $this->guard('beasiswa_ota.kelola');
+
         KelompokAnggota::where('id', $anggotaId)->delete();
         session()->flash('message_anggota', 'Donatur dikeluarkan dari kelompok.');
     }
@@ -275,6 +283,8 @@ class DonaturKelompokIndex extends Component
 
     public function saveDonatur()
     {
+        $this->guard('beasiswa_ota.kelola');
+
         $this->validate([
             'namaDonatur' => 'required|string|max:255',
             'tipeDonatur' => 'required|in:rutin,insidental',
@@ -302,6 +312,8 @@ class DonaturKelompokIndex extends Component
 
     public function deleteDonatur(int $id)
     {
+        $this->guard('beasiswa_ota.kelola');
+
         $donatur = Donatur::findOrFail($id);
         if ($donatur->donasiMasuks()->exists()) {
             session()->flash('error', 'Donatur tidak dapat dihapus karena sudah memiliki riwayat transaksi donasi.');
@@ -353,6 +365,8 @@ class DonaturKelompokIndex extends Component
 
     public function importDonaturExcel()
     {
+        $this->guard('beasiswa_ota.kelola');
+
         $this->validate([
             'fileImportDonatur' => 'required|file|mimes:xlsx,xls|max:10240',
         ]);
@@ -395,6 +409,8 @@ class DonaturKelompokIndex extends Component
 
     public function importKelompokExcel()
     {
+        $this->guard('beasiswa_ota.kelola');
+
         $this->validate([
             'fileImportKelompok' => 'required|file|mimes:xlsx,xls|max:10240',
         ]);
@@ -419,6 +435,8 @@ class DonaturKelompokIndex extends Component
 
     public function bulkDeleteKelompok()
     {
+        $this->guard('beasiswa_ota.kelola');
+
         if (empty($this->selectedKelompokIds)) {
             return;
         }
@@ -433,6 +451,8 @@ class DonaturKelompokIndex extends Component
 
     public function deleteAllKelompok()
     {
+        $this->guard('beasiswa_ota.kelola');
+
         $count = Kelompok::count();
         Kelompok::query()->delete();
         $this->selectedKelompokIds = [];
@@ -455,6 +475,8 @@ class DonaturKelompokIndex extends Component
 
     public function bulkDeleteDonatur()
     {
+        $this->guard('beasiswa_ota.kelola');
+
         if (empty($this->selectedDonaturIds)) {
             return;
         }
@@ -475,6 +497,8 @@ class DonaturKelompokIndex extends Component
 
     public function deleteAllDonatur()
     {
+        $this->guard('beasiswa_ota.kelola');
+
         $count = Donatur::count();
 
         // Hapus donasi dan mutasi kas terkait

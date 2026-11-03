@@ -62,7 +62,7 @@ class KategoriManager extends Component
 
     public function save(): void
     {
-        $this->guard($this->isEditing ? 'kalender.kategori.edit' : 'kalender.kategori.tambah');
+        $this->guard('kalender.kategori.kelola');
 
         $this->validate();
 
@@ -92,7 +92,7 @@ class KategoriManager extends Component
 
     public function toggleActive(int $id): void
     {
-        $this->guard('kalender.kategori.edit');
+        $this->guard('kalender.kategori.kelola');
 
         $kategori = KalenderKategori::findOrFail($id);
         $kategori->update(['is_active' => ! $kategori->is_active]);
@@ -101,6 +101,8 @@ class KategoriManager extends Component
 
     public function deleteKategori(int $id): void
     {
+        $this->guard('kalender.kategori.kelola');
+
         $kategori = KalenderKategori::findOrFail($id);
         if ($kategori->agendas()->exists()) {
             session()->flash('error', 'Kategori tidak dapat dihapus karena masih digunakan pada agenda kegiatan.');

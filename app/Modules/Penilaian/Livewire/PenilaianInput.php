@@ -2,6 +2,7 @@
 
 namespace App\Modules\Penilaian\Livewire;
 
+use App\Core\Concerns\GuardsPermission;
 use App\Modules\Akademik\Models\Semester;
 use App\Modules\Kepegawaian\Models\PenugasanMengajar;
 use App\Modules\Kesiswaan\Models\Siswa;
@@ -23,7 +24,7 @@ use Livewire\WithFileUploads;
 
 class PenilaianInput extends Component
 {
-    use WithFileUploads;
+    use WithFileUploads, GuardsPermission;
 
     public $penugasan_id;
     public $penugasan;
@@ -112,10 +113,30 @@ class PenilaianInput extends Component
     public string $tempDeskripsiManual9M = '';
     public string $autoDeskripsiInfo9M = '';
 
+    protected function authorizePenugasanAccess(): void
+    {
+        $user = auth()->user();
+        if (!$user) {
+            abort(403, 'Akses tidak sah.');
+        }
+
+        if ($user->isSuperAdmin() || $user->hasRole('Super Admin') || $user->hasRole('Kurikulum') || $user->hasRole('Admin') || $user->hasRole('Kepala Sekolah') || $user->hasRole('Operator') || $user->can('penilaian.edit')) {
+            return;
+        }
+
+        $pegawaiId = $user->pegawai?->id;
+        if ($pegawaiId && $this->penugasan && (int) $this->penugasan->pegawai_id === (int) $pegawaiId) {
+            return;
+        }
+
+        abort(403, 'Anda tidak memiliki hak akses untuk mengelola nilai pada penugasan ini.');
+    }
+
     public function mount($penugasan_id)
     {
         $this->penugasan_id = $penugasan_id;
         $this->penugasan = PenugasanMengajar::with(['mapel', 'rombel', 'semester.tahunAjaran'])->findOrFail($penugasan_id);
+        $this->authorizePenugasanAccess();
 
         $sessionKey = 'penilaian_active_tab_' . $penugasan_id;
         if (request()->has('tab') && in_array(request()->query('tab'), ['tp', 'formatif', 'rekap'])) {
@@ -592,6 +613,8 @@ class PenilaianInput extends Component
 
     public function saveTP()
     {
+        $this->authorizePenugasanAccess();
+
         $this->validate([
             'tp_semester_id' => 'required',
             'tp_target_periode' => 'required|string|in:9M1,9M2,9M3,9M4',
@@ -675,6 +698,8 @@ class PenilaianInput extends Component
 
     public function hapusTP($tp_id)
     {
+        $this->authorizePenugasanAccess();
+
         $tp = TujuanPembelajaran::findOrFail($tp_id);
         NilaiFormatif::where('tujuan_pembelajaran_id', $tp->id)->delete();
         $tp->delete();
@@ -686,6 +711,8 @@ class PenilaianInput extends Component
 
     public function saveNilai()
     {
+        $this->authorizePenugasanAccess();
+
         $this->validate([
             'tpScores.*.*' => 'nullable|numeric|min:0|max:100',
             'formatifData.*.*' => 'nullable|numeric|min:0|max:100',
@@ -1088,6 +1115,8 @@ class PenilaianInput extends Component
 
     public function saveDeskripsi9M(): void
     {
+        $this->authorizePenugasanAccess();
+
         if (!$this->selectedSiswaId9M || !$this->selectedPeriodKey9M) {
             return;
         }
@@ -1136,6 +1165,8 @@ class PenilaianInput extends Component
 
     public function updateManualDeskripsi($siswaId, $text)
     {
+        $this->authorizePenugasanAccess();
+
         $na = NilaiAkhir::where('siswa_id', $siswaId)->where('penugasan_mengajar_id', $this->activeNilaiPenugasanId)->first();
         if ($na) {
             $na->deskripsi_manual = $text;
@@ -1237,6 +1268,8 @@ class PenilaianInput extends Component
 
     public function executeImport(): void
     {
+        $this->authorizePenugasanAccess();
+
         if (empty($this->importPreviewData['valid_rows'])) {
             $this->addError('importFile', 'Tidak ada baris data nilai yang valid untuk disimpan.');
             return;
@@ -1294,6 +1327,8 @@ class PenilaianInput extends Component
 
     public function executeCopyTp(): void
     {
+        $this->authorizePenugasanAccess();
+
         if (empty($this->selectedTargetRombelIds)) {
             session()->flash('message_copy_tp_error', 'Pilih minimal satu rombel tujuan untuk disalin.');
             return;

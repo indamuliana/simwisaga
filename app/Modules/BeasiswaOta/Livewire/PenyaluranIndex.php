@@ -156,6 +156,8 @@ class PenyaluranIndex extends Component
 
     public function saveAlokasiRutin()
     {
+        $this->guard('beasiswa_ota.kelola');
+
         $this->validate([
             'rutinKelompokId' => 'required|exists:ota_kelompoks,id',
             'rutinTanggal' => 'required|date',
@@ -261,6 +263,8 @@ class PenyaluranIndex extends Component
 
     public function saveAlokasiInsidental()
     {
+        $this->guard('beasiswa_ota.kelola');
+
         $this->validate([
             'insidentalSiswaId' => 'required|exists:siswas,id',
             'insidentalTanggal' => 'required|date',
@@ -298,6 +302,8 @@ class PenyaluranIndex extends Component
 
     public function deleteAlokasi(int $id)
     {
+        $this->guard('beasiswa_ota.kelola');
+
         $alokasi = Alokasi::findOrFail($id);
 
         if ($alokasi->surplus_dialihkan > 0 && OtaKasService::getSaldoInsidental() < (float) $alokasi->surplus_dialihkan) {

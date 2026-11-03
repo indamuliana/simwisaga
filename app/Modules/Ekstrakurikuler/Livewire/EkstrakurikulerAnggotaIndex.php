@@ -2,6 +2,7 @@
 
 namespace App\Modules\Ekstrakurikuler\Livewire;
 
+use App\Core\Concerns\GuardsPermission;
 use Livewire\Component;
 use Livewire\WithPagination;
 use Livewire\WithFileUploads;
@@ -19,7 +20,7 @@ use PhpOffice\PhpSpreadsheet\Writer\Xlsx;
 
 class EkstrakurikulerAnggotaIndex extends Component
 {
-    use WithPagination, WithFileUploads;
+    use WithPagination, WithFileUploads, GuardsPermission;
 
     public $activeTab = 'anggota'; // anggota, kepatuhan, import
 
@@ -108,6 +109,8 @@ class EkstrakurikulerAnggotaIndex extends Component
 
     public function autoEnrollPramuka()
     {
+        $this->guard('ekskul.kelola');
+
         $result = $this->service->autoEnrollPramukaKelasX($this->semester_id);
         if ($result['success']) {
             session()->flash('message', $result['message']);
@@ -142,6 +145,8 @@ class EkstrakurikulerAnggotaIndex extends Component
 
     public function saveAddAnggota()
     {
+        $this->guard('ekskul.kelola');
+
         $this->validate([
             'selectedEkskulId' => 'required|exists:ekstrakurikulers,id',
             'selectedSiswaIds' => 'required|array|min:1',
@@ -190,6 +195,8 @@ class EkstrakurikulerAnggotaIndex extends Component
 
     public function quickEnrollPramuka()
     {
+        $this->guard('ekskul.kelola');
+
         if (!$this->enrollingSiswaId || !$this->pramukaEkskulId) {
             return;
         }
@@ -220,6 +227,8 @@ class EkstrakurikulerAnggotaIndex extends Component
 
     public function saveEnrollSiswa()
     {
+        $this->guard('ekskul.kelola');
+
         $this->validate([
             'enrollingTargetEkskulId' => 'required|exists:ekstrakurikulers,id',
         ]);
@@ -275,6 +284,8 @@ class EkstrakurikulerAnggotaIndex extends Component
 
     public function executeTransfer()
     {
+        $this->guard('ekskul.kelola');
+
         $this->validate([
             'targetEkskulId' => 'required|exists:ekstrakurikulers,id',
         ]);
@@ -350,6 +361,8 @@ class EkstrakurikulerAnggotaIndex extends Component
 
     public function removeAnggota($anggotaId)
     {
+        $this->guard('ekskul.kelola');
+
         $anggota = EkstrakurikulerAnggota::with('siswa', 'ekstrakurikuler')->findOrFail($anggotaId);
         $namaSiswa = $anggota->siswa->nama ?? 'Siswa';
         $namaEkskul = $anggota->ekstrakurikuler->nama ?? 'UPD';
@@ -420,6 +433,8 @@ class EkstrakurikulerAnggotaIndex extends Component
 
     public function commitImport()
     {
+        $this->guard('ekskul.kelola');
+
         if (!$this->importPreviewData || empty($this->importPreviewData['rows'])) {
             session()->flash('error', 'Tidak ada data valid untuk diimpor.');
             return;

@@ -54,6 +54,8 @@ class DonasiMasukIndex extends Component
 
     public function deleteBatch(string $batchKode)
     {
+        $this->guard('ota.donasi.hapus');
+
         $donasis = DonasiMasuk::where('batch_kode', $batchKode)->get();
         if ($donasis->isEmpty()) {
             return;

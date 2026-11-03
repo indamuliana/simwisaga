@@ -2,6 +2,7 @@
 
 namespace App\Modules\SeniBudaya\Livewire;
 
+use App\Core\Concerns\GuardsPermission;
 use Livewire\Component;
 use Livewire\Attributes\Layout;
 use Livewire\Attributes\Title;
@@ -15,6 +16,7 @@ use App\Modules\Akademik\Models\Semester;
 #[Title('Penilaian Seni Budaya')]
 class SeniBudayaPenilaian extends Component
 {
+    use GuardsPermission;
     public int $seni_budaya_id;
     public $cabang;
     public $semester;
@@ -218,6 +220,8 @@ class SeniBudayaPenilaian extends Component
 
     public function saveTpSelection()
     {
+        $this->guard('seni_budaya.kelola');
+
         if (!$this->tpActiveSiswaId) {
             return;
         }
@@ -301,6 +305,8 @@ class SeniBudayaPenilaian extends Component
 
     public function saveAll()
     {
+        $this->guard('seni_budaya.kelola');
+
         foreach ($this->nilaiData as $siswaId => $row) {
             $anggota = SeniBudayaAnggota::find($row['anggota_id']);
             if (!$anggota) {

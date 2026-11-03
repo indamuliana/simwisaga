@@ -2,6 +2,7 @@
 
 namespace App\Modules\SeniBudaya\Livewire;
 
+use App\Core\Concerns\GuardsPermission;
 use Livewire\Component;
 use Livewire\Attributes\Layout;
 use Livewire\Attributes\Title;
@@ -16,6 +17,7 @@ use App\Modules\Akademik\Models\Semester;
 #[Title('Presensi Seni Budaya')]
 class SeniBudayaPresensi extends Component
 {
+    use GuardsPermission;
     public int $seni_budaya_id;
     public $cabang;
     public $semester;
@@ -132,6 +134,8 @@ class SeniBudayaPresensi extends Component
 
     public function createSession()
     {
+        $this->guard('seni_budaya.kelola');
+
         $this->validate([
             'pertemuan_ke' => 'required|integer|min:1',
             'tanggal' => 'required|date',
@@ -184,6 +188,8 @@ class SeniBudayaPresensi extends Component
 
     public function saveAttendance()
     {
+        $this->guard('seni_budaya.kelola');
+
         if (!$this->selectedPresensiId) {
             return;
         }
@@ -209,6 +215,8 @@ class SeniBudayaPresensi extends Component
 
     public function deleteSession(int $sessionId)
     {
+        $this->guard('seni_budaya.kelola');
+
         $session = PresensiModel::findOrFail($sessionId);
         $pertemuan = $session->pertemuan_ke;
         $session->delete();

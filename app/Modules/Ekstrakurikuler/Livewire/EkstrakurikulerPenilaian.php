@@ -2,6 +2,7 @@
 
 namespace App\Modules\Ekstrakurikuler\Livewire;
 
+use App\Core\Concerns\GuardsPermission;
 use Livewire\Component;
 use Livewire\Attributes\Layout;
 use App\Modules\Ekstrakurikuler\Models\Ekstrakurikuler;
@@ -13,6 +14,7 @@ use PhpOffice\PhpSpreadsheet\Writer\Xlsx;
 
 class EkstrakurikulerPenilaian extends Component
 {
+    use GuardsPermission;
     public $ekskul_id;
     public $ekskul;
     public $semester_id;
@@ -196,6 +198,8 @@ class EkstrakurikulerPenilaian extends Component
 
     public function generateDeskripsiSemua()
     {
+        $this->guard('ekskul.kelola');
+
         foreach ($this->nilaiData as $siswaId => $row) {
             if ($row['nilai_asesmen'] !== null && $row['nilai_asesmen'] !== '') {
                 $calc = $this->calculateGrade((float)$row['nilai_presensi'], (float)$row['nilai_asesmen']);
@@ -208,6 +212,8 @@ class EkstrakurikulerPenilaian extends Component
 
     public function saveNilai()
     {
+        $this->guard('ekskul.kelola');
+
         $savedCount = 0;
 
         foreach ($this->nilaiData as $siswaId => $row) {

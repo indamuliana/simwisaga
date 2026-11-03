@@ -2,6 +2,7 @@
 
 namespace App\Modules\KalenderPendidikan\Livewire;
 
+use App\Core\Concerns\GuardsPermission;
 use App\Models\User;
 use App\Modules\Akademik\Models\Semester;
 use App\Modules\Akademik\Models\TahunAjaran;
@@ -18,6 +19,8 @@ use Livewire\Component;
 #[Title('Kalender Pendidikan & Agenda Sekolah')]
 class KalenderIndex extends Component
 {
+    use GuardsPermission;
+
     // Filter properties
     public $filterKategori = '';
     public $filterStatus = '';
@@ -153,6 +156,8 @@ class KalenderIndex extends Component
 
     public function saveAgenda(KalenderService $service): void
     {
+        $this->guard($this->isEditing ? 'kalender.edit' : 'kalender.tambah');
+
         $this->validate();
 
         $activeTa = TahunAjaran::active()->first();
@@ -243,6 +248,8 @@ class KalenderIndex extends Component
 
     public function toggleFlagFinal(int $id): void
     {
+        $this->guard('kalender.flag_final');
+
         $user = Auth::user();
         if (! KalenderAgenda::canManageFinalFlag($user)) {
             session()->flash('error', 'Anda tidak memiliki hak akses untuk mengubah flag Final.');
@@ -274,6 +281,8 @@ class KalenderIndex extends Component
 
     public function deleteAgenda(int $id, bool $deleteSeries = false): void
     {
+        $this->guard('kalender.hapus');
+
         $agenda = KalenderAgenda::findOrFail($id);
         $user = Auth::user();
 
