@@ -20,16 +20,20 @@ use PhpOffice\PhpSpreadsheet\Writer\Xlsx;
 #[Title('Plotting Program Siswa (Unggulan / Reguler)')]
 class PlottingProgramMassal extends Component
 {
-    use GuardsPermission, WithPagination, WithFileUploads;
+    use GuardsPermission, WithFileUploads, WithPagination;
 
     // Filters
     public ?int $filterCurrentProgram = null;
+
     public ?int $filterRombel = null;
+
     public ?int $filterRayon = null;
+
     public string $search = '';
 
     // Selection
     public array $selectedSiswaIds = [];
+
     public bool $selectAll = false;
 
     // Target Program Manual
@@ -37,8 +41,11 @@ class PlottingProgramMassal extends Component
 
     // Import Excel Modal
     public bool $showImportModal = false;
+
     public ?int $importTargetProgramId = null;
+
     public $fileExcel = null;
+
     public ?array $importResult = null;
 
     public function updatedFilterCurrentProgram(): void
@@ -107,11 +114,13 @@ class PlottingProgramMassal extends Component
 
         if (empty($this->selectedSiswaIds)) {
             session()->flash('error', 'Pilih minimal satu siswa untuk di-plot ke program.');
+
             return;
         }
 
-        if (!$this->targetProgramId) {
+        if (! $this->targetProgramId) {
             session()->flash('error', 'Silakan pilih Program tujuan.');
+
             return;
         }
 
@@ -143,12 +152,12 @@ class PlottingProgramMassal extends Component
     public function downloadTemplate(string $type = 'kosong')
     {
         $this->guard('kesiswaan.siswa.lihat');
-        $service = new PlottingProgramExcelService();
+        $service = new PlottingProgramExcelService;
 
         if ($type === 'prefill') {
             $siswas = $this->getQuery()->with(['rombel', 'rayon', 'program'])->orderBy('rombel_id')->orderBy('nama')->get();
             $spreadsheet = $service->generateTemplatePrefill($siswas);
-            $filename = 'Template_Plotting_Siswa_Filtered_' . date('Ymd_His') . '.xlsx';
+            $filename = 'Template_Plotting_Siswa_Filtered_'.date('Ymd_His').'.xlsx';
         } else {
             $spreadsheet = $service->generateTemplateKosong();
             $filename = 'Template_Plotting_Program_Kosong.xlsx';
@@ -177,7 +186,7 @@ class PlottingProgramMassal extends Component
             'fileExcel.mimes' => 'Berkas harus berformat .xlsx, .xls, atau .csv.',
         ]);
 
-        $service = new PlottingProgramExcelService();
+        $service = new PlottingProgramExcelService;
         $path = $this->fileExcel->getRealPath();
 
         $result = $service->importAndPlot($path, (int) $this->importTargetProgramId);

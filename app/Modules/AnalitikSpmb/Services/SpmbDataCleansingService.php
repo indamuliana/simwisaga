@@ -9,7 +9,6 @@ use App\Modules\AnalitikSpmb\Models\SpmbSekolahAsalAlias;
 use App\Modules\Kesiswaan\Models\Siswa;
 use Illuminate\Support\Collection;
 use Illuminate\Support\Facades\DB;
-use Illuminate\Support\Str;
 
 class SpmbDataCleansingService
 {
@@ -110,7 +109,7 @@ class SpmbDataCleansingService
         return Siswa::with(['rombel.jurusan'])
             ->where(function ($q) use ($schoolNames) {
                 $q->whereIn('sekolah_asal', $schoolNames)
-                  ->orWhereIn('sekolah_asal_raw', $schoolNames);
+                    ->orWhereIn('sekolah_asal_raw', $schoolNames);
             })
             ->orderBy('is_active', 'desc')
             ->orderBy('nama', 'asc')
@@ -218,7 +217,7 @@ class SpmbDataCleansingService
             // Pastikan di dalam kelompok ada minimal 2 item dan minimal ada 2 master berbeda (atau belum terpetakan)
             $distinctMasterKeys = [];
             foreach ($group as $gItem) {
-                $mKey = $gItem['master_id'] !== null ? 'master_' . $gItem['master_id'] : 'raw_' . $gItem['raw_name'];
+                $mKey = $gItem['master_id'] !== null ? 'master_'.$gItem['master_id'] : 'raw_'.$gItem['raw_name'];
                 $distinctMasterKeys[$mKey] = true;
             }
 
@@ -438,7 +437,7 @@ class SpmbDataCleansingService
             // 2. Hitung siswa yang terdampak
             $affectedStudentsCount = Siswa::where(function ($q) use ($sourceNames) {
                 $q->whereIn('sekolah_asal', $sourceNames)
-                  ->orWhereIn('sekolah_asal_raw', $sourceNames);
+                    ->orWhereIn('sekolah_asal_raw', $sourceNames);
             })->count();
 
             // 3. Update data pada tabel siswas jika opsi updateSiswa diaktifkan
@@ -455,7 +454,7 @@ class SpmbDataCleansingService
                 // Update teks sekolah_asal ke nama master resmi
                 Siswa::where(function ($q) use ($sourceNames) {
                     $q->whereIn('sekolah_asal', $sourceNames)
-                      ->orWhereIn('sekolah_asal_raw', $sourceNames);
+                        ->orWhereIn('sekolah_asal_raw', $sourceNames);
                 })->update([
                     'sekolah_asal' => $targetMaster->nama_resmi,
                 ]);
@@ -542,10 +541,10 @@ class SpmbDataCleansingService
             // 2. Kembalikan data siswa di tabel siswas ke teks aslinya
             $affectedStudents = Siswa::where(function ($q) use ($rawName) {
                 $q->where('sekolah_asal_raw', $rawName)
-                  ->orWhere(function ($q2) use ($rawName) {
-                      $q2->whereNull('sekolah_asal_raw')
-                         ->where('sekolah_asal', $rawName);
-                  });
+                    ->orWhere(function ($q2) use ($rawName) {
+                        $q2->whereNull('sekolah_asal_raw')
+                            ->where('sekolah_asal', $rawName);
+                    });
             })->update([
                 'sekolah_asal' => $rawName,
                 'sekolah_asal_raw' => $rawName,
@@ -628,7 +627,7 @@ class SpmbDataCleansingService
             // 3. Update sekolah_asal siswa ke master baru
             $affectedStudents = Siswa::where(function ($q) use ($rawName) {
                 $q->where('sekolah_asal_raw', $rawName)
-                  ->orWhere('sekolah_asal', $rawName);
+                    ->orWhere('sekolah_asal', $rawName);
             })->update([
                 'sekolah_asal' => $newMaster->nama_resmi,
             ]);
@@ -681,10 +680,10 @@ class SpmbDataCleansingService
             // Update ke nama resmi
             $updated = Siswa::where(function ($q) use ($alias) {
                 $q->where('sekolah_asal_raw', $alias->alias_raw)
-                  ->orWhere('sekolah_asal', $alias->alias_raw);
+                    ->orWhere('sekolah_asal', $alias->alias_raw);
             })
-            ->where('sekolah_asal', '!=', $master->nama_resmi)
-            ->update(['sekolah_asal' => $master->nama_resmi]);
+                ->where('sekolah_asal', '!=', $master->nama_resmi)
+                ->update(['sekolah_asal' => $master->nama_resmi]);
 
             $totalUpdated += $updated;
         }
@@ -708,10 +707,10 @@ class SpmbDataCleansingService
             $query->where('kabupaten', $kabupaten);
         }
 
-        $s = '%' . $term . '%';
+        $s = '%'.$term.'%';
         $query->where(function ($q) use ($s, $term) {
             $q->where('nama', 'like', $s)
-                ->orWhere('npsn', 'like', $term . '%');
+                ->orWhere('npsn', 'like', $term.'%');
         });
 
         return $query->orderBy('nama')->take($limit)->get();

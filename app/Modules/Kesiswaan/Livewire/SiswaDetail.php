@@ -31,7 +31,7 @@ class SiswaDetail extends Component
         // Validasi keberadaan siswa
         Siswa::findOrFail($id);
 
-        if (!in_array($this->activeTab, ['biodata', 'pilihan', 'prestasi', 'riwayat'])) {
+        if (! in_array($this->activeTab, ['biodata', 'pilihan', 'prestasi', 'riwayat'])) {
             $this->activeTab = 'biodata';
         }
     }
@@ -47,7 +47,7 @@ class SiswaDetail extends Component
     {
         $this->guard('kesiswaan.siswa.lihat');
         $siswa = Siswa::findOrFail($this->siswaId);
-        $exporter = new SingleSiswaDocumentExporter();
+        $exporter = new SingleSiswaDocumentExporter;
 
         return match ($format) {
             'word' => $exporter->downloadWord($siswa),

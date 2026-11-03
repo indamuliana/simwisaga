@@ -3,12 +3,14 @@
 namespace App\Modules\AnalitikSpmb\Services;
 
 use App\Modules\Akademik\Models\Jurusan;
+use App\Modules\AnalitikSpmb\Models\MasterWilayah;
 use App\Modules\AnalitikSpmb\Models\SpmbMasterSmp;
 use App\Modules\AnalitikSpmb\Models\SpmbSekolahAsal;
 use App\Modules\AnalitikSpmb\Models\SpmbSekolahAsalAlias;
 use App\Modules\Kesiswaan\Models\Siswa;
 use Illuminate\Support\Collection;
 use Illuminate\Support\Facades\DB;
+use Illuminate\Support\Facades\Schema;
 use Illuminate\Support\Str;
 
 class SpmbWilayahService
@@ -114,6 +116,7 @@ class SpmbWilayahService
                 ]);
 
                 $updatedInternational++;
+
                 continue;
             }
 
@@ -246,6 +249,7 @@ class SpmbWilayahService
                 if ($baseName === 'Bandung' && (str_contains($lower, 'barat') || str_contains($lower, 'kbb'))) {
                     return 'Kab. Bandung Barat';
                 }
+
                 return "Kab. {$baseName}";
             }
 
@@ -270,7 +274,7 @@ class SpmbWilayahService
 
                 // Deduksi dari Sekolah Asal via Master SMP
                 if (! empty($sekolahAsal)) {
-                    $masterSchool = SpmbMasterSmp::where('nama', 'like', '%' . trim($sekolahAsal) . '%')
+                    $masterSchool = SpmbMasterSmp::where('nama', 'like', '%'.trim($sekolahAsal).'%')
                         ->where('provinsi', 'Jawa Barat')
                         ->first();
                     if ($masterSchool && in_array($masterSchool->kabupaten, $options)) {
@@ -285,7 +289,7 @@ class SpmbWilayahService
 
         // 4. Standarisasi awalan 'Kab ' atau 'Kabupaten ' menjadi 'Kab. '
         if (preg_match('/^kabupaten\s+(.+)$/i', $trimmed, $m) || preg_match('/^kab\s+([^\.].+)$/i', $trimmed, $m)) {
-            return 'Kab. ' . Str::title(trim($m[1]));
+            return 'Kab. '.Str::title(trim($m[1]));
         }
 
         return Str::title($trimmed);
@@ -331,7 +335,7 @@ class SpmbWilayahService
                 }
             } elseif ($masterMatches->count() > 1) {
                 $kabNames = $masterMatches->pluck('kabupaten')->unique()->values()->all();
-                $hint = "Kecamatan '{$cleanKec}' ditemukan di beberapa wilayah: " . implode(', ', $kabNames) . ". Silakan pilih yang tepat.";
+                $hint = "Kecamatan '{$cleanKec}' ditemukan di beberapa wilayah: ".implode(', ', $kabNames).'. Silakan pilih yang tepat.';
                 $pills = array_merge($pills, $kabNames);
             }
         }
@@ -485,7 +489,7 @@ class SpmbWilayahService
         }
 
         if (! empty($filters['search'])) {
-            $s = '%' . trim($filters['search']) . '%';
+            $s = '%'.trim($filters['search']).'%';
             $siswaQuery->where(function ($q) use ($s) {
                 $q->where('siswas.kecamatan', 'like', $s)
                     ->orWhere('siswas.kabupaten_kota', 'like', $s)
@@ -535,7 +539,7 @@ class SpmbWilayahService
             $dominantName = '-';
             $dominantCount = 0;
             foreach ($jurusans as $j) {
-                $cnt = (int) ($item->{'jurusan_' . $j->id} ?? 0);
+                $cnt = (int) ($item->{'jurusan_'.$j->id} ?? 0);
                 if ($cnt > $dominantCount) {
                     $dominantCount = $cnt;
                     $dominantName = $j->kode;
@@ -611,7 +615,7 @@ class SpmbWilayahService
             ->orderByDesc('total_siswa');
 
         if ($search) {
-            $s = '%' . trim($search) . '%';
+            $s = '%'.trim($search).'%';
             $query->where(function ($q) use ($s) {
                 $q->where('siswas.kecamatan', 'like', $s)
                     ->orWhere('siswas.kelurahan', 'like', $s)
@@ -627,9 +631,266 @@ class SpmbWilayahService
             $ids = array_filter(explode(',', (string) $g->siswa_ids));
             $g->sample_names = Siswa::whereIn('id', array_slice($ids, 0, 3))->pluck('nama')->toArray();
             $g->sample_school = Siswa::whereIn('id', array_slice($ids, 0, 2))->whereNotNull('sekolah_asal')->value('sekolah_asal') ?? '-';
+
             return $g;
         });
 
         return $groups;
+    }
+
+    /**
+     * Daftar 38 Provinsi Resmi di Indonesia
+     */
+    public const PROVINSI_INDONESIA = [
+        'Aceh', 'Sumatera Utara', 'Sumatera Barat', 'Riau', 'Kepulauan Riau', 'Jambi',
+        'Sumatera Selatan', 'Kepulauan Bangka Belitung', 'Bengkulu', 'Lampung',
+        'DKI Jakarta', 'Jawa Barat', 'Banten', 'Jawa Tengah', 'DI Yogyakarta', 'Jawa Timur',
+        'Bali', 'Nusa Tenggara Barat', 'Nusa Tenggara Timur',
+        'Kalimantan Barat', 'Kalimantan Tengah', 'Kalimantan Selatan', 'Kalimantan Timur', 'Kalimantan Utara',
+        'Sulawesi Utara', 'Gorontalo', 'Sulawesi Tengah', 'Sulawesi Barat', 'Sulawesi Selatan', 'Sulawesi Tenggara',
+        'Maluku', 'Maluku Utara', 'Papua', 'Papua Barat', 'Papua Selatan', 'Papua Tengah', 'Papua Pegunungan', 'Papua Barat Daya',
+    ];
+
+    /**
+     * Ambil daftar provinsi terdaftar
+     */
+    public function getProvincesList(): array
+    {
+        $fromMasterWilayah = [];
+        if (Schema::hasTable('master_wilayahs')) {
+            $fromMasterWilayah = MasterWilayah::where('level', 1)->pluck('nama')->toArray();
+        }
+
+        $fromDb = SpmbMasterSmp::distinct()->whereNotNull('provinsi')->where('provinsi', '!=', '')->pluck('provinsi')->toArray();
+        $fromSiswas = Siswa::distinct()->whereNotNull('provinsi')->where('provinsi', '!=', '')->pluck('provinsi')->toArray();
+
+        $merged = array_unique(array_merge(self::PROVINSI_INDONESIA, $fromMasterWilayah, $fromDb, $fromSiswas, ['Sabah', 'Sarawak']));
+        sort($merged);
+
+        return array_values($merged);
+    }
+
+    /**
+     * Ambil daftar Kabupaten/Kota berdasarkan Provinsi
+     */
+    public function getKabupatenList(?string $provinsi = null): array
+    {
+        $extra = [];
+        if ($provinsi === 'Sabah') {
+            $extra = ['Tawau', 'Sandakan', 'Kota Kinabalu', 'Beaufort', 'Lahad Datu', 'Keningau'];
+        }
+
+        if (Schema::hasTable('master_wilayahs')) {
+            $mwQuery = MasterWilayah::where('level', 2);
+            if ($provinsi && $provinsi !== 'Semua') {
+                $provRec = MasterWilayah::where('level', 1)->where('nama', $provinsi)->first();
+                if ($provRec) {
+                    $mwQuery->where('parent_kode', $provRec->kode);
+                } elseif (! empty($extra)) {
+                    return $extra;
+                }
+            }
+            $fromMw = $mwQuery->pluck('nama')->toArray();
+            if (! empty($fromMw)) {
+                $merged = array_filter(array_unique(array_merge($fromMw, $extra)), fn ($v) => ! empty($v) && $v !== '-');
+                sort($merged);
+
+                return array_values($merged);
+            }
+        }
+
+        $q = SpmbMasterSmp::query()->whereNotNull('kabupaten')->where('kabupaten', '!=', '');
+        if ($provinsi && $provinsi !== 'Semua') {
+            $q->where('provinsi', $provinsi);
+        }
+        $fromMaster = $q->distinct()->pluck('kabupaten')->toArray();
+
+        $sq = Siswa::query()->whereNotNull('kabupaten_kota')->where('kabupaten_kota', '!=', '');
+        if ($provinsi && $provinsi !== 'Semua') {
+            $sq->where('provinsi', $provinsi);
+        }
+        $fromSiswas = $sq->distinct()->pluck('kabupaten_kota')->toArray();
+
+        $merged = array_filter(array_unique(array_merge($fromMaster, $fromSiswas, $extra)), fn ($v) => ! empty($v) && $v !== '-');
+        sort($merged);
+
+        return array_values($merged);
+    }
+
+    /**
+     * Ambil daftar Kecamatan berdasarkan Kabupaten/Kota
+     */
+    public function getKecamatanList(?string $kabupaten = null, ?string $provinsi = null): array
+    {
+        if (Schema::hasTable('master_wilayahs')) {
+            if ($kabupaten) {
+                $kabRec = MasterWilayah::where('level', 2)->where('nama', $kabupaten)->first();
+                if ($kabRec) {
+                    $kecList = MasterWilayah::where('level', 3)
+                        ->where('parent_kode', $kabRec->kode)
+                        ->pluck('nama')
+                        ->toArray();
+                    if (! empty($kecList)) {
+                        sort($kecList);
+
+                        return array_values($kecList);
+                    }
+                }
+            } elseif ($provinsi && $provinsi !== 'Semua') {
+                $provRec = MasterWilayah::where('level', 1)->where('nama', $provinsi)->first();
+                if ($provRec) {
+                    $kabCodes = MasterWilayah::where('level', 2)->where('parent_kode', $provRec->kode)->pluck('kode');
+                    $kecList = MasterWilayah::where('level', 3)->whereIn('parent_kode', $kabCodes)->pluck('nama')->toArray();
+                    if (! empty($kecList)) {
+                        sort($kecList);
+
+                        return array_values($kecList);
+                    }
+                }
+            }
+        }
+
+        $q = SpmbMasterSmp::query()->whereNotNull('kecamatan')->where('kecamatan', '!=', '');
+        if ($kabupaten) {
+            $q->where('kabupaten', $kabupaten);
+        } elseif ($provinsi) {
+            $q->where('provinsi', $provinsi);
+        }
+        $fromMaster = $q->distinct()->pluck('kecamatan')->toArray();
+
+        // Jika master memiliki data kecamatan resmi untuk kabupaten/provinsi ini, utamakan master
+        if (! empty($fromMaster)) {
+            $cleanMaster = array_filter(array_unique($fromMaster), fn ($v) => ! empty($v) && $v !== '-');
+            sort($cleanMaster);
+
+            return array_values($cleanMaster);
+        }
+
+        $sq = Siswa::query()->whereNotNull('kecamatan')->where('kecamatan', '!=', '');
+        if ($kabupaten) {
+            $sq->where('kabupaten_kota', $kabupaten);
+        } elseif ($provinsi) {
+            $sq->where('provinsi', $provinsi);
+        }
+        $fromSiswas = $sq->distinct()->pluck('kecamatan')->map(fn ($v) => preg_replace('/^kec\.?\s+/i', '', trim($v)))->toArray();
+
+        $merged = array_filter(array_unique($fromSiswas), fn ($v) => ! empty($v) && $v !== '-');
+        sort($merged);
+
+        return array_values($merged);
+    }
+
+    /**
+     * Ambil daftar Desa/Kelurahan berdasarkan Kecamatan
+     */
+    public function getDesaList(?string $kecamatan = null, ?string $kabupaten = null): array
+    {
+        $cleanKec = $kecamatan ? preg_replace('/^kec\.?\s+/i', '', trim($kecamatan)) : null;
+
+        if (Schema::hasTable('master_wilayahs') && $cleanKec) {
+            $kecQuery = MasterWilayah::where('level', 3)->where('nama', $cleanKec);
+            if ($kabupaten) {
+                $kabRec = MasterWilayah::where('level', 2)->where('nama', $kabupaten)->first();
+                if ($kabRec) {
+                    $kecQuery->where('parent_kode', $kabRec->kode);
+                }
+            }
+            $kecRec = $kecQuery->first();
+            if ($kecRec) {
+                $desaList = MasterWilayah::where('level', 4)
+                    ->where('parent_kode', $kecRec->kode)
+                    ->pluck('nama')
+                    ->toArray();
+                if (! empty($desaList)) {
+                    sort($desaList);
+
+                    return array_values($desaList);
+                }
+            }
+        }
+
+        $q = SpmbMasterSmp::query()->whereNotNull('kelurahan')->where('kelurahan', '!=', '');
+        if ($cleanKec) {
+            $q->where('kecamatan', $cleanKec);
+        }
+        if ($kabupaten) {
+            $q->where('kabupaten', $kabupaten);
+        }
+        $fromMaster = $q->distinct()->pluck('kelurahan')->map(fn ($v) => preg_replace('/^(desa\/kel\.|desa|kelurahan|kel\.)\s+/i', '', trim($v)))->toArray();
+
+        if (! empty($fromMaster)) {
+            $cleanMaster = array_filter(array_unique($fromMaster), fn ($v) => ! empty($v) && $v !== '-');
+            sort($cleanMaster);
+
+            return array_values($cleanMaster);
+        }
+
+        $sq = Siswa::query()->whereNotNull('kelurahan')->where('kelurahan', '!=', '');
+        if ($cleanKec) {
+            $sq->where(function ($sub) use ($cleanKec) {
+                $sub->where('kecamatan', $cleanKec)
+                    ->orWhere('kecamatan', 'like', "%{$cleanKec}%");
+            });
+        }
+        if ($kabupaten) {
+            $sq->where('kabupaten_kota', $kabupaten);
+        }
+        $fromSiswas = $sq->distinct()->pluck('kelurahan')->map(fn ($v) => preg_replace('/^(desa\/kel\.|desa|kelurahan|kel\.)\s+/i', '', trim($v)))->toArray();
+
+        $merged = array_filter(array_unique($fromSiswas), fn ($v) => ! empty($v) && $v !== '-');
+        sort($merged);
+
+        return array_values($merged);
+    }
+
+    /**
+     * Cari Kabupaten dan Provinsi otomatis dari nama Kecamatan
+     */
+    public function resolveLocationFromKecamatan(string $kecamatan): ?array
+    {
+        $clean = preg_replace('/^kec\.?\s+/i', '', trim($kecamatan));
+        if (empty($clean)) {
+            return null;
+        }
+
+        if (Schema::hasTable('master_wilayahs')) {
+            $matchMw = MasterWilayah::where('level', 3)->where('nama', $clean)->first();
+            if ($matchMw) {
+                $kab = MasterWilayah::where('kode', $matchMw->parent_kode)->first();
+                $prov = $kab ? MasterWilayah::where('kode', $kab->parent_kode)->first() : null;
+
+                if ($kab && $prov) {
+                    return [
+                        'kabupaten' => $kab->nama,
+                        'provinsi' => $prov->nama,
+                        'negara' => 'Indonesia',
+                    ];
+                }
+            }
+        }
+
+        $match = SpmbMasterSmp::where('kecamatan', $clean)->whereNotNull('kabupaten')->first();
+        if ($match) {
+            return [
+                'kabupaten' => $match->kabupaten,
+                'provinsi' => $match->provinsi ?: 'Jawa Barat',
+                'negara' => 'Indonesia',
+            ];
+        }
+
+        $siswaMatch = Siswa::where(function ($q) use ($clean) {
+            $q->where('kecamatan', $clean)
+                ->orWhere('kecamatan', 'like', "%{$clean}%");
+        })->whereNotNull('kabupaten_kota')->where('kabupaten_kota', '!=', '')->first();
+
+        if ($siswaMatch) {
+            return [
+                'kabupaten' => $siswaMatch->kabupaten_kota,
+                'provinsi' => $siswaMatch->provinsi ?: 'Jawa Barat',
+                'negara' => $siswaMatch->negara ?: 'Indonesia',
+            ];
+        }
+
+        return null;
     }
 }

@@ -9,7 +9,9 @@ use App\Modules\AnalitikSpmb\Livewire\AsalSmpIndex;
 use App\Modules\AnalitikSpmb\Livewire\PerbaikanSmpIndex;
 use App\Modules\AnalitikSpmb\Models\SpmbSekolahAsal;
 use App\Modules\AnalitikSpmb\Models\SpmbSekolahAsalAlias;
+use App\Modules\AnalitikSpmb\Services\SpmbDataCleansingService;
 use App\Modules\AnalitikSpmb\Services\SpmbSekolahAsalExporter;
+use App\Modules\AnalitikSpmb\Services\SpmbSekolahAsalSyncService;
 use App\Modules\Kesiswaan\Models\Siswa;
 use Database\Seeders\AkademikInitialSeeder;
 use Database\Seeders\ProgramInitialSeeder;
@@ -151,7 +153,7 @@ class AnalitikSpmbNpsnCatatanTest extends TestCase
         ];
 
         $jurusans = Jurusan::all()->all();
-        $exporter = new SpmbSekolahAsalExporter();
+        $exporter = new SpmbSekolahAsalExporter;
         $spreadsheet = $exporter->exportRekapSekolah(collect([$sekolah]), [
             'totalSekolah' => 1,
             'totalSiswa' => 10,
@@ -284,7 +286,7 @@ class AnalitikSpmbNpsnCatatanTest extends TestCase
             'status' => 'aktif',
         ]);
 
-        $service = app(\App\Modules\AnalitikSpmb\Services\SpmbDataCleansingService::class);
+        $service = app(SpmbDataCleansingService::class);
         $suggestions = $service->detectPotentialDuplicates();
 
         $combinedClusterFound = false;
@@ -430,7 +432,7 @@ class AnalitikSpmbNpsnCatatanTest extends TestCase
             ]);
         }
 
-        app(\App\Modules\AnalitikSpmb\Services\SpmbSekolahAsalSyncService::class)->updateAllTiers();
+        app(SpmbSekolahAsalSyncService::class)->updateAllTiers();
 
         $this->assertEquals('Utama', $sekolahUtama->fresh()->tier);
         $this->assertEquals('Potensial', $sekolahPotensial->fresh()->tier);

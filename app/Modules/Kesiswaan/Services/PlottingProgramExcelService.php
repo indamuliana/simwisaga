@@ -20,7 +20,7 @@ class PlottingProgramExcelService
      */
     public function generateTemplateKosong(): Spreadsheet
     {
-        $spreadsheet = new Spreadsheet();
+        $spreadsheet = new Spreadsheet;
         $sheet = $spreadsheet->getActiveSheet();
         $sheet->setTitle('Template Plotting Program');
 
@@ -48,7 +48,7 @@ class PlottingProgramExcelService
      */
     public function generateTemplatePrefill(Collection $siswas): Spreadsheet
     {
-        $spreadsheet = new Spreadsheet();
+        $spreadsheet = new Spreadsheet;
         $sheet = $spreadsheet->getActiveSheet();
         $sheet->setTitle('Daftar Siswa Plotting');
 
@@ -64,11 +64,11 @@ class PlottingProgramExcelService
         $row = 2;
         foreach ($siswas as $s) {
             $nis = $s->nipd ?: $s->nisn;
-            $sheet->setCellValueExplicit('A' . $row, (string) $nis, DataType::TYPE_STRING);
-            $sheet->setCellValue('B' . $row, $s->nama);
-            $sheet->setCellValue('C' . $row, $s->rombel?->nama ?? '-');
-            $sheet->setCellValue('D' . $row, $s->rayon?->nama ?? '-');
-            $sheet->setCellValue('E' . $row, $s->program?->nama ?? 'Reguler');
+            $sheet->setCellValueExplicit('A'.$row, (string) $nis, DataType::TYPE_STRING);
+            $sheet->setCellValue('B'.$row, $s->nama);
+            $sheet->setCellValue('C'.$row, $s->rombel?->nama ?? '-');
+            $sheet->setCellValue('D'.$row, $s->rayon?->nama ?? '-');
+            $sheet->setCellValue('E'.$row, $s->program?->nama ?? 'Reguler');
             $row++;
         }
 
@@ -96,7 +96,7 @@ class PlottingProgramExcelService
 
         // Loop mulai dari baris 2 (melewati baris header)
         for ($r = 2; $r <= $highestRow; $r++) {
-            $rawNis = trim((string) $sheet->getCell('A' . $r)->getValue());
+            $rawNis = trim((string) $sheet->getCell('A'.$r)->getValue());
 
             if ($rawNis === '') {
                 continue;
@@ -105,7 +105,7 @@ class PlottingProgramExcelService
             // Sanitasi NIS: hilangkan tanda kutip tunggal jika ada format string Excel
             $cleanNis = ltrim($rawNis, "'");
 
-            if (!in_array($cleanNis, $nisList)) {
+            if (! in_array($cleanNis, $nisList)) {
                 $nisList[] = $cleanNis;
             }
         }
@@ -122,13 +122,13 @@ class PlottingProgramExcelService
         // Cari siswa berdasarkan NIS (NIPD sekolah secara ketat)
         $siswas = Siswa::whereIn('nipd', $nisList)->get();
         $foundIds = $siswas->pluck('id')->toArray();
-        $foundNipd = $siswas->pluck('nipd')->map(fn($v) => (string) $v)->toArray();
+        $foundNipd = $siswas->pluck('nipd')->map(fn ($v) => (string) $v)->toArray();
 
         // Cari NIS mana saja yang tidak ditemukan
-        $unmatchedNis = array_values(array_filter($nisList, fn($nis) => !in_array((string) $nis, $foundNipd)));
+        $unmatchedNis = array_values(array_filter($nisList, fn ($nis) => ! in_array((string) $nis, $foundNipd)));
 
         // Update database jika ada siswa yang cocok
-        if (!empty($foundIds)) {
+        if (! empty($foundIds)) {
             DB::transaction(function () use ($foundIds, $program) {
                 Siswa::whereIn('id', $foundIds)->update(['program_id' => $program->id]);
             });

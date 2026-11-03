@@ -19,7 +19,9 @@ class SiswaImport extends Component
     use GuardsPermission, WithFileUploads;
 
     public $file;
+
     public bool $isProcessing = false;
+
     public ?array $resultSummary = null;
 
     protected function rules(): array
@@ -35,7 +37,7 @@ class SiswaImport extends Component
         $this->validate();
 
         $path = $this->file->getRealPath();
-        $importer = new DapodikImporter();
+        $importer = new DapodikImporter;
 
         $this->resultSummary = $importer->import($path);
         session()->flash('status', "Import berhasil! {$this->resultSummary['imported']} siswa baru ditambahkan, {$this->resultSummary['updated']} data siswa diperbarui.");
@@ -49,12 +51,13 @@ class SiswaImport extends Component
         $this->guard('kesiswaan.siswa.tambah');
         $samplePath = base_path('DATABASE_SISWA_SAMPLE.xlsx');
 
-        if (!file_exists($samplePath)) {
+        if (! file_exists($samplePath)) {
             session()->flash('error', 'File DATABASE_SISWA_SAMPLE.xlsx tidak ditemukan di direktori utama.');
+
             return;
         }
 
-        $importer = new DapodikImporter();
+        $importer = new DapodikImporter;
         $this->resultSummary = $importer->import($samplePath);
         session()->flash('status', "Import Sample Berhasil! {$this->resultSummary['imported']} siswa berhasil diimpor.");
     }
@@ -66,7 +69,7 @@ class SiswaImport extends Component
     {
         $this->guard('kesiswaan.siswa.tambah');
 
-        $exporter = new SiswaExporter();
+        $exporter = new SiswaExporter;
         $spreadsheet = $exporter->downloadTemplate();
 
         return response()->streamDownload(function () use ($spreadsheet) {
@@ -87,7 +90,7 @@ class SiswaImport extends Component
 
         $siswas = Siswa::with(['rombel', 'rayon', 'program', 'orangTuas'])->orderBy('nama')->get();
 
-        $exporter = new SiswaExporter();
+        $exporter = new SiswaExporter;
         $spreadsheet = $exporter->exportDapodik($siswas);
         $timestamp = now()->format('Ymd_His');
 

@@ -17,8 +17,11 @@ class VerifikasiPerbaikanData extends Component
     use GuardsPermission, WithPagination;
 
     public string $filterStatus = 'menunggu';
+
     public ?int $selectedPengajuanId = null;
+
     public string $catatanTolak = '';
+
     public bool $showRejectModal = false;
 
     public function mount(): void
@@ -38,12 +41,14 @@ class VerifikasiPerbaikanData extends Component
         $pengajuan = PengajuanPerbaikanDataSiswa::with('siswa')->findOrFail($id);
         if ($pengajuan->status !== PengajuanPerbaikanDataSiswa::STATUS_MENUNGGU) {
             session()->flash('error', 'Pengajuan ini telah diproses sebelumnya.');
+
             return;
         }
 
         $siswa = $pengajuan->siswa;
         if (! $siswa) {
             session()->flash('error', 'Data siswa tidak ditemukan.');
+
             return;
         }
 

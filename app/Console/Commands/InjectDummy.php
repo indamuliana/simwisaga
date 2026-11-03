@@ -2,22 +2,26 @@
 
 namespace App\Console\Commands;
 
-use Illuminate\Console\Command;
 use App\Models\User;
-use App\Modules\Kepegawaian\Models\Pegawai;
-use App\Modules\Kepegawaian\Models\PenugasanMengajar;
 use App\Modules\Akademik\Models\Mapel;
 use App\Modules\Akademik\Models\Rombel;
+use App\Modules\Akademik\Models\Semester;
+use App\Modules\Ekstrakurikuler\Models\Ekstrakurikuler;
+use App\Modules\Ekstrakurikuler\Models\EkstrakurikulerAnggota;
+use App\Modules\Kepegawaian\Models\Pegawai;
+use App\Modules\Kepegawaian\Models\PenugasanMengajar;
 use App\Modules\Kesiswaan\Models\Siswa;
-use App\Modules\Penilaian\Models\TujuanPembelajaran;
+use App\Modules\Penilaian\Models\NilaiAkhir;
 use App\Modules\Penilaian\Models\NilaiFormatif;
 use App\Modules\Penilaian\Models\NilaiSumatif;
-use App\Modules\Penilaian\Models\NilaiAkhir;
+use App\Modules\Penilaian\Models\TujuanPembelajaran;
+use Illuminate\Console\Command;
 use Illuminate\Support\Facades\Hash;
 
 class InjectDummy extends Command
 {
     protected $signature = 'inject:dummy';
+
     protected $description = 'Inject dummy data for Sprint S7 testing';
 
     public function handle()
@@ -54,14 +58,16 @@ class InjectDummy extends Command
 
         // 3. Get existing Rombels or create
         $rombel1 = Rombel::first();
-        if (!$rombel1) {
+        if (! $rombel1) {
             $this->error('No Rombel found! Run master seeders first.');
+
             return;
         }
 
-        $semester = \App\Modules\Akademik\Models\Semester::where('is_active', true)->first();
-        if (!$semester) {
+        $semester = Semester::where('is_active', true)->first();
+        if (! $semester) {
             $this->error('No active Semester found!');
+
             return;
         }
 
@@ -91,12 +97,12 @@ class InjectDummy extends Command
             $this->info('Found less than 4 students in Rombel, creating dummies...');
             for ($i = $siswas->count(); $i < 4; $i++) {
                 $siswas->push(Siswa::create([
-                    'nama' => 'Siswa Dummy ' . ($i + 1),
-                    'nipd' => '1000' . $i,
-                    'nisn' => '001000' . $i,
+                    'nama' => 'Siswa Dummy '.($i + 1),
+                    'nipd' => '1000'.$i,
+                    'nisn' => '001000'.$i,
                     'jk' => 'L',
                     'tanggal_lahir' => '2005-01-01',
-                    'rombel_id' => $rombel1->id
+                    'rombel_id' => $rombel1->id,
                 ]));
             }
         }
@@ -123,10 +129,10 @@ class InjectDummy extends Command
             // Calculate and inject Nilai Akhir
             $rata = ($n1 + $n2 + $n3) / 3;
             $na = ($rata * 0.5) + ($sts * 0.25) + ($sas * 0.25);
-            
+
             // Just basic logic for desc
-            $descT = "Menunjukkan penguasaan yang sangat baik dalam " . lcfirst($tpWeb2->deskripsi) . ".";
-            $descR = "Perlu bimbingan lebih lanjut dalam " . lcfirst($tpWeb3->deskripsi) . ".";
+            $descT = 'Menunjukkan penguasaan yang sangat baik dalam '.lcfirst($tpWeb2->deskripsi).'.';
+            $descR = 'Perlu bimbingan lebih lanjut dalam '.lcfirst($tpWeb3->deskripsi).'.';
 
             NilaiAkhir::updateOrCreate(
                 ['siswa_id' => $siswa->id, 'penugasan_mengajar_id' => $penugasan1->id],
@@ -153,7 +159,7 @@ class InjectDummy extends Command
         );
         $instruktur->assignRole('Instruktur Ekskul');
 
-        $pegawaiInstruktur = \App\Modules\Kepegawaian\Models\Pegawai::firstOrCreate(
+        $pegawaiInstruktur = Pegawai::firstOrCreate(
             ['nip' => '199001012020011002'],
             [
                 'user_id' => $instruktur->id,
@@ -165,23 +171,23 @@ class InjectDummy extends Command
             ]
         );
 
-        $ekskul = \App\Modules\Ekstrakurikuler\Models\Ekstrakurikuler::firstOrCreate([
+        $ekskul = Ekstrakurikuler::firstOrCreate([
             'nama' => 'Pramuka',
-            'pembina_id' => $pegawaiInstruktur->id
+            'pembina_id' => $pegawaiInstruktur->id,
         ]);
 
         foreach ($siswas as $siswa) {
-            \App\Modules\Ekstrakurikuler\Models\EkstrakurikulerAnggota::firstOrCreate([
+            EkstrakurikulerAnggota::firstOrCreate([
                 'ekstrakurikuler_id' => $ekskul->id,
                 'siswa_id' => $siswa->id,
                 'semester_id' => $semester->id,
             ], [
                 'nilai_angka' => rand(80, 95),
                 'nilai_huruf' => 'Sangat Baik',
-                'deskripsi' => 'Aktif dalam setiap kegiatan dan memiliki jiwa kepemimpinan'
+                'deskripsi' => 'Aktif dalam setiap kegiatan dan memiliki jiwa kepemimpinan',
             ]);
         }
-        
+
         // 9. Assign Wali Kelas to Guru Dummy
         $rombel1->wali_kelas_id = $pegawai->id;
         $rombel1->save();

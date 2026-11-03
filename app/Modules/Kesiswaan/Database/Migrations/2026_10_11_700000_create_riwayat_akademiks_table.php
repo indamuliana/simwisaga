@@ -22,7 +22,7 @@ return new class extends Migration
                 'lulus',
                 'tidak_lulus',
                 'pindah',
-                'dikeluarkan'
+                'dikeluarkan',
             ]);
             $table->text('catatan')->nullable();
             $table->foreignId('diproses_oleh')->nullable()->constrained('users')->nullOnDelete();

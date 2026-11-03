@@ -9,7 +9,6 @@ use PhpOffice\PhpSpreadsheet\Cell\DataType;
 use PhpOffice\PhpSpreadsheet\Spreadsheet;
 use PhpOffice\PhpSpreadsheet\Style\Alignment;
 use PhpOffice\PhpSpreadsheet\Style\Border;
-use PhpOffice\PhpSpreadsheet\Style\Color;
 use PhpOffice\PhpSpreadsheet\Style\Fill;
 
 class SiswaExporter
@@ -19,7 +18,7 @@ class SiswaExporter
      */
     public function exportRingkasan(Collection $siswas): Spreadsheet
     {
-        $spreadsheet = new Spreadsheet();
+        $spreadsheet = new Spreadsheet;
         $sheet = $spreadsheet->getActiveSheet();
         $sheet->setTitle('Ringkasan Siswa');
 
@@ -110,7 +109,7 @@ class SiswaExporter
      */
     public function exportDapodik(Collection $siswas): Spreadsheet
     {
-        $spreadsheet = new Spreadsheet();
+        $spreadsheet = new Spreadsheet;
         $sheet = $spreadsheet->getActiveSheet();
         $sheet->setTitle('Data Siswa Dapodik');
 
@@ -221,7 +220,7 @@ class SiswaExporter
      */
     public function downloadTemplate(): Spreadsheet
     {
-        $spreadsheet = new Spreadsheet();
+        $spreadsheet = new Spreadsheet;
         $sheet = $spreadsheet->getActiveSheet();
         $sheet->setTitle('Template Import Dapodik');
 
@@ -378,7 +377,7 @@ class SiswaExporter
         ];
 
         foreach ($headersRow1 as $col => $val) {
-            $sheet->setCellValue($col . '1', $val);
+            $sheet->setCellValue($col.'1', $val);
         }
 
         // Merge Row 1 untuk kelompok Data Ayah, Ibu, Wali
@@ -389,19 +388,19 @@ class SiswaExporter
         // Row 2 sub-headers untuk Ayah, Ibu, Wali
         $subHeaders = ['Nama', 'Tahun Lahir', 'Jenjang Pendidikan', 'Pekerjaan', 'Penghasilan', 'NIK'];
         $colsAyah = ['Y', 'Z', 'AA', 'AB', 'AC', 'AD'];
-        $colsIbu  = ['AE', 'AF', 'AG', 'AH', 'AI', 'AJ'];
+        $colsIbu = ['AE', 'AF', 'AG', 'AH', 'AI', 'AJ'];
         $colsWali = ['AK', 'AL', 'AM', 'AN', 'AO', 'AP'];
 
         foreach ($subHeaders as $i => $title) {
-            $sheet->setCellValue($colsAyah[$i] . '2', $title);
-            $sheet->setCellValue($colsIbu[$i] . '2', $title);
-            $sheet->setCellValue($colsWali[$i] . '2', $title);
+            $sheet->setCellValue($colsAyah[$i].'2', $title);
+            $sheet->setCellValue($colsIbu[$i].'2', $title);
+            $sheet->setCellValue($colsWali[$i].'2', $title);
         }
 
         // Vertically merge kolom individual (A1:A2 s/d X1:X2, dan AQ1:AQ2 s/d BO1:BO2)
         $singleCols = [
-            'A','B','C','D','E','F','G','H','I','J','K','L','M','N','O','P','Q','R','S','T','U','V','W','X',
-            'AQ','AR','AS','AT','AU','AV','AW','AX','AY','AZ','BA','BB','BC','BD','BE','BF','BG','BH','BI','BJ','BK','BL','BM','BN','BO'
+            'A', 'B', 'C', 'D', 'E', 'F', 'G', 'H', 'I', 'J', 'K', 'L', 'M', 'N', 'O', 'P', 'Q', 'R', 'S', 'T', 'U', 'V', 'W', 'X',
+            'AQ', 'AR', 'AS', 'AT', 'AU', 'AV', 'AW', 'AX', 'AY', 'AZ', 'BA', 'BB', 'BC', 'BD', 'BE', 'BF', 'BG', 'BH', 'BI', 'BJ', 'BK', 'BL', 'BM', 'BN', 'BO',
         ];
         foreach ($singleCols as $sc) {
             $sheet->mergeCells("{$sc}1:{$sc}2");

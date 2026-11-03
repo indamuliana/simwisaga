@@ -3,7 +3,6 @@
 namespace App\Modules\AnalitikSpmb\Services;
 
 use App\Modules\AnalitikSpmb\Models\SpmbMasterSmp;
-use Illuminate\Support\Facades\DB;
 use Illuminate\Support\Str;
 use PhpOffice\PhpSpreadsheet\IOFactory;
 use PhpOffice\PhpSpreadsheet\Spreadsheet;
@@ -44,6 +43,7 @@ class SpmbMasterSmpImportService
 
             if (empty($npsn) || empty($nama)) {
                 $skipped++;
+
                 continue;
             }
 
@@ -140,6 +140,7 @@ class SpmbMasterSmpImportService
         $firstLine = fgets($handle);
         if (! $firstLine) {
             fclose($handle);
+
             return;
         }
 
@@ -223,6 +224,7 @@ class SpmbMasterSmpImportService
         foreach ($headerMap as $key => $colIdx) {
             $data[$key] = $row[$colIdx] ?? '';
         }
+
         return $data;
     }
 
@@ -233,11 +235,12 @@ class SpmbMasterSmpImportService
     {
         $val = trim($val);
         if (preg_match('/^kab\.?\s+(.*)$/i', $val, $m)) {
-            return 'Kab. ' . Str::title(strtolower(trim($m[1])));
+            return 'Kab. '.Str::title(strtolower(trim($m[1])));
         }
         if (preg_match('/^kota\s+(.*)$/i', $val, $m)) {
-            return 'Kota ' . Str::title(strtolower(trim($m[1])));
+            return 'Kota '.Str::title(strtolower(trim($m[1])));
         }
+
         return Str::title(strtolower($val));
     }
 
@@ -250,6 +253,7 @@ class SpmbMasterSmpImportService
         if (preg_match('/^kec\.?\s+(.*)$/i', $val, $m)) {
             $val = trim($m[1]);
         }
+
         return Str::title(strtolower($val));
     }
 
@@ -265,7 +269,7 @@ class SpmbMasterSmpImportService
             '20220385,SMP NEGERI 1 BOGOR,SMP,NEGERI,PENDIDIKAN DASAR,KOTA BOGOR,KEC. KOTA BOGOR TENGAH,PALEDANG,JL. IR. H. DJUANDA BOGOR NO 16',
         ];
 
-        return implode("\n", $lines) . "\n";
+        return implode("\n", $lines)."\n";
     }
 
     /**
@@ -273,7 +277,7 @@ class SpmbMasterSmpImportService
      */
     public function generateTemplateSpreadsheet(): Spreadsheet
     {
-        $spreadsheet = new Spreadsheet();
+        $spreadsheet = new Spreadsheet;
         $sheet = $spreadsheet->getActiveSheet();
         $sheet->setTitle('Template Master SMP');
 

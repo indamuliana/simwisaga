@@ -38,7 +38,7 @@ class SpmbMasterSmp extends Model implements Auditable
      */
     public function getReferensiKemendikbudUrlAttribute(): string
     {
-        return 'https://referensi.data.kemendikdasmen.go.id/pendidikan/npsn/' . urlencode($this->npsn);
+        return 'https://referensi.data.kemendikdasmen.go.id/pendidikan/npsn/'.urlencode($this->npsn);
     }
 
     /**
@@ -46,6 +46,6 @@ class SpmbMasterSmp extends Model implements Auditable
      */
     public function getDapodikUrlAttribute(): string
     {
-        return 'https://dapo.kemdikbud.go.id/sekolah/' . urlencode($this->npsn);
+        return 'https://dapo.kemdikbud.go.id/sekolah/'.urlencode($this->npsn);
     }
 }

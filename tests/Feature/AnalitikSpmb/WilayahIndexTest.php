@@ -3,12 +3,12 @@
 namespace Tests\Feature\AnalitikSpmb;
 
 use App\Models\User;
-use App\Modules\Akademik\Models\Jurusan;
 use App\Modules\Akademik\Models\Rombel;
-use App\Modules\Akademik\Models\TahunAjaran;
 use App\Modules\AnalitikSpmb\Livewire\WilayahIndex;
+use App\Modules\AnalitikSpmb\Models\MasterWilayah;
 use App\Modules\AnalitikSpmb\Models\SpmbMasterSmp;
 use App\Modules\AnalitikSpmb\Models\SpmbSekolahAsal;
+use App\Modules\AnalitikSpmb\Services\SpmbWilayahService;
 use App\Modules\Kesiswaan\Models\Siswa;
 use Database\Seeders\AkademikInitialSeeder;
 use Database\Seeders\AnalitikSpmbPermissionSeeder;
@@ -23,6 +23,7 @@ class WilayahIndexTest extends TestCase
     use RefreshDatabase;
 
     protected User $admin;
+
     protected User $regularUser;
 
     protected function setUp(): void
@@ -400,5 +401,189 @@ class WilayahIndexTest extends TestCase
         $siswa->refresh();
         $this->assertEquals('Kota Bogor', $siswa->kabupaten_kota);
         $this->assertEquals('Jawa Barat', $siswa->provinsi);
+    }
+
+    public function test_edit_alamat_siswa_dari_drawer_dan_simpan_lanjut(): void
+    {
+        $siswa1 = Siswa::create([
+            'nama' => 'Siswa Pertama Garut',
+            'nisn' => '8888888801',
+            'nipd' => '8001',
+            'jk' => 'L',
+            'alamat' => 'Kp. Sukamaju',
+            'kecamatan' => 'Tarogong Kaler',
+            'kabupaten_kota' => 'Kab. Garut',
+            'provinsi' => 'Jawa Barat',
+            'status' => 'aktif',
+            'is_active' => true,
+        ]);
+
+        $siswa2 = Siswa::create([
+            'nama' => 'Siswa Kedua Garut',
+            'nisn' => '8888888802',
+            'nipd' => '8002',
+            'jk' => 'P',
+            'alamat' => 'Jl. Pahlawan',
+            'kecamatan' => 'Tarogong Kaler',
+            'kabupaten_kota' => 'Kab. Garut',
+            'provinsi' => 'Jawa Barat',
+            'status' => 'aktif',
+            'is_active' => true,
+        ]);
+
+        Livewire::actingAs($this->admin)
+            ->test(WilayahIndex::class)
+            // Buka drawer untuk wilayah Tarogong Kaler
+            ->call('openDrawer', 'Indonesia', 'Jawa Barat', 'Kab. Garut', 'Tarogong Kaler')
+            ->assertSet('showDrawer', true)
+            ->assertSee('Siswa Pertama Garut')
+            ->assertSee('Siswa Kedua Garut')
+            // Buka modal edit alamat untuk siswa 2 (urutan pertama alfabetis: 'Siswa Kedua Garut')
+            ->call('openEditAddress', $siswa2->id)
+            ->assertSet('showEditAddressModal', true)
+            ->assertSet('editingAddressSiswaId', $siswa2->id)
+            ->assertSet('editAddressAlamat', 'Jl. Pahlawan')
+            // Ubah RT, RW, Kelurahan, Kode Pos untuk siswa 2
+            ->set('editAddressAlamat', 'Jl. Pahlawan No. 45')
+            ->set('editAddressRt', '01')
+            ->set('editAddressRw', '02')
+            ->set('editAddressKelurahan', 'Sirnajaya')
+            ->set('editAddressKodePos', '44151')
+            // Uji salin wilayah drawer
+            ->call('copyDrawerWilayahToAddress')
+            ->assertSet('editAddressKecamatan', 'Tarogong Kaler')
+            ->assertSet('editAddressKabupaten', 'Kab. Garut')
+            ->assertSet('editAddressProvinsi', 'Jawa Barat')
+            // Simpan dan Lanjut ke siswa 1 ('Siswa Pertama Garut')
+            ->call('saveStudentAddress', true)
+            ->assertSet('showEditAddressModal', true)
+            ->assertSet('editingAddressSiswaId', $siswa1->id)
+            ->assertSet('editAddressAlamat', 'Kp. Sukamaju')
+            // Simpan siswa 1 (siswa terakhir di drawer), modal otomatis tertutup
+            ->call('saveStudentAddress', true)
+            ->assertSet('showEditAddressModal', false);
+
+        // Pastikan database siswa 2 sudah terupdate
+        $siswa2->refresh();
+        $this->assertEquals('Jl. Pahlawan No. 45', $siswa2->alamat);
+        $this->assertEquals('01', $siswa2->rt);
+        $this->assertEquals('02', $siswa2->rw);
+        $this->assertEquals('Sirnajaya', $siswa2->kelurahan);
+        $this->assertEquals('44151', $siswa2->kode_pos);
+    }
+
+    public function test_cascading_selection_dan_smart_upward_fill_pada_edit_alamat_siswa(): void
+    {
+        SpmbMasterSmp::create([
+            'npsn' => '20200001',
+            'nama' => 'SMPN 1 CIBINONG',
+            'bentuk' => 'SMP',
+            'status' => 'Negeri',
+            'provinsi' => 'Jawa Barat',
+            'kabupaten' => 'Kab. Bogor',
+            'kecamatan' => 'Cibinong',
+            'kelurahan' => 'Cirimekar',
+        ]);
+
+        $siswa = Siswa::create([
+            'nama' => 'Siswa Test Cascading',
+            'nisn' => '99990001',
+            'nipd' => '9001',
+            'jk' => 'L',
+            'status' => 'aktif',
+            'is_active' => true,
+        ]);
+
+        Livewire::actingAs($this->admin)
+            ->test(WilayahIndex::class)
+            ->call('openEditAddress', $siswa->id)
+            ->assertSet('showEditAddressModal', true)
+            // 1. Uji Smart Upward Fill: Isi Kecamatan 'Cibinong' -> otomatis isi Kabupaten 'Kab. Bogor' & Provinsi 'Jawa Barat'
+            ->set('editAddressKecamatan', 'Cibinong')
+            ->assertSet('editAddressKabupaten', 'Kab. Bogor')
+            ->assertSet('editAddressProvinsi', 'Jawa Barat')
+            ->assertSet('editAddressNegara', 'Indonesia')
+            // 2. Uji Cascading Reset: Mengubah Provinsi ke 'Jawa Tengah' mereset Kab, Kec, dan Kelurahan
+            ->set('editAddressProvinsi', 'Jawa Tengah')
+            ->assertSet('editAddressKabupaten', '')
+            ->assertSet('editAddressKecamatan', '')
+            ->assertSet('editAddressKelurahan', '')
+            // 3. Uji Mode Hybrid Manual: Aktifkan mode manual pada Provinsi dan Kabupaten
+            ->set('isManualAddressProvinsi', true)
+            ->set('editAddressProvinsi', 'Provinsi Khusus')
+            ->set('isManualAddressKabupaten', true)
+            ->set('editAddressKabupaten', 'Kabupaten Khusus')
+            ->set('isManualAddressKecamatan', true)
+            ->set('editAddressKecamatan', 'Kecamatan Baru')
+            ->set('isManualAddressKelurahan', true)
+            ->set('editAddressKelurahan', 'Desa Maju')
+            ->call('saveStudentAddress')
+            ->assertSet('showEditAddressModal', false);
+
+        $siswa->refresh();
+        $this->assertEquals('Provinsi Khusus', $siswa->provinsi);
+        $this->assertEquals('Kabupaten Khusus', $siswa->kabupaten_kota);
+        $this->assertEquals('Kecamatan Baru', $siswa->kecamatan);
+        $this->assertEquals('Desa Maju', $siswa->kelurahan);
+    }
+
+    public function test_cascading_dan_smart_fill_pada_modal_standarisasi_kelompok(): void
+    {
+        SpmbMasterSmp::create([
+            'npsn' => '20200002',
+            'nama' => 'SMPN 1 KADUNGORA',
+            'bentuk' => 'SMP',
+            'status' => 'Negeri',
+            'provinsi' => 'Jawa Barat',
+            'kabupaten' => 'Kab. Garut',
+            'kecamatan' => 'Kadungora',
+            'kelurahan' => 'Karangtengah',
+        ]);
+
+        $siswa = Siswa::create([
+            'nama' => 'Siswa Kadungora',
+            'nisn' => '99990002',
+            'nipd' => '9002',
+            'jk' => 'L',
+            'kecamatan' => 'Kadungora',
+            'status' => 'aktif',
+            'is_active' => true,
+        ]);
+
+        Livewire::actingAs($this->admin)
+            ->test(WilayahIndex::class)
+            ->call('openEditGroupModal', 'Kadungora', '', (string) $siswa->id, 1)
+            ->assertSet('showEditModal', true)
+            // Uji Smart Upward Fill dari Kecamatan di Tab 2
+            ->set('editKecamatan', 'Kadungora')
+            ->assertSet('editKabupaten', 'Kab. Garut')
+            ->assertSet('editProvinsi', 'Jawa Barat')
+            // Uji Cascading Reset pada Tab 2
+            ->set('editProvinsi', 'DKI Jakarta')
+            ->assertSet('editKabupaten', '')
+            ->assertSet('editKecamatan', '');
+    }
+
+    public function test_master_wilayah_nasional_kemendagri_terintegrasi_dengan_service(): void
+    {
+        // Masukkan sampel data hirarki Kemendagri
+        MasterWilayah::create(['kode' => '33', 'nama' => 'Jawa Tengah', 'level' => 1, 'parent_kode' => null]);
+        MasterWilayah::create(['kode' => '33.28', 'nama' => 'Kab. Tegal', 'level' => 2, 'parent_kode' => '33']);
+        MasterWilayah::create(['kode' => '33.28.11', 'nama' => 'Adiwerna', 'level' => 3, 'parent_kode' => '33.28']);
+        MasterWilayah::create(['kode' => '33.28.11.2001', 'nama' => 'Harjosari Kidul', 'level' => 4, 'parent_kode' => '33.28.11']);
+
+        $service = app(SpmbWilayahService::class);
+
+        // Uji hirarki
+        $this->assertContains('Jawa Tengah', $service->getProvincesList());
+        $this->assertContains('Kab. Tegal', $service->getKabupatenList('Jawa Tengah'));
+        $this->assertContains('Adiwerna', $service->getKecamatanList('Kab. Tegal'));
+        $this->assertContains('Harjosari Kidul', $service->getDesaList('Adiwerna', 'Kab. Tegal'));
+
+        // Uji upward fill dari kecamatan Adiwerna
+        $resolved = $service->resolveLocationFromKecamatan('Adiwerna');
+        $this->assertNotNull($resolved);
+        $this->assertEquals('Kab. Tegal', $resolved['kabupaten']);
+        $this->assertEquals('Jawa Tengah', $resolved['provinsi']);
     }
 }

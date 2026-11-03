@@ -5,12 +5,14 @@ namespace Tests\Feature\AnalitikSpmb;
 use App\Models\User;
 use App\Modules\Akademik\Models\Jurusan;
 use App\Modules\Akademik\Models\Rombel;
+use App\Modules\Akademik\Models\TahunAjaran;
 use App\Modules\AnalitikSpmb\Livewire\PerbaikanSmpIndex;
 use App\Modules\AnalitikSpmb\Models\SpmbSekolahAsal;
 use App\Modules\AnalitikSpmb\Models\SpmbSekolahAsalAlias;
 use App\Modules\AnalitikSpmb\Services\SpmbDataCleansingService;
 use App\Modules\Kesiswaan\Models\Siswa;
 use Database\Seeders\AkademikInitialSeeder;
+use Database\Seeders\AnalitikSpmbPermissionSeeder;
 use Database\Seeders\ProgramInitialSeeder;
 use Database\Seeders\RolesSeeder;
 use Illuminate\Foundation\Testing\RefreshDatabase;
@@ -22,13 +24,14 @@ class PerbaikanSmpMappingTest extends TestCase
     use RefreshDatabase;
 
     protected User $admin;
+
     protected Rombel $rombel;
 
     protected function setUp(): void
     {
         parent::setUp();
         $this->seed(RolesSeeder::class);
-        $this->seed(\Database\Seeders\AnalitikSpmbPermissionSeeder::class);
+        $this->seed(AnalitikSpmbPermissionSeeder::class);
         $this->seed(AkademikInitialSeeder::class);
         $this->seed(ProgramInitialSeeder::class);
 
@@ -43,7 +46,7 @@ class PerbaikanSmpMappingTest extends TestCase
             'nama' => 'PPLG X-1',
             'tingkat' => 'X',
             'jurusan_id' => Jurusan::first()->id,
-            'tahun_ajaran_id' => \App\Modules\Akademik\Models\TahunAjaran::first()->id,
+            'tahun_ajaran_id' => TahunAjaran::first()->id,
             'nomor_urut' => 1,
         ]);
     }

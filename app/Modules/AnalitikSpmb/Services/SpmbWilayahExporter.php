@@ -3,6 +3,7 @@
 namespace App\Modules\AnalitikSpmb\Services;
 
 use Illuminate\Support\Collection;
+use PhpOffice\PhpSpreadsheet\Cell\Coordinate;
 use PhpOffice\PhpSpreadsheet\Spreadsheet;
 use PhpOffice\PhpSpreadsheet\Style\Alignment;
 use PhpOffice\PhpSpreadsheet\Style\Border;
@@ -15,7 +16,7 @@ class SpmbWilayahExporter
      */
     public function exportRekap(Collection $items, Collection $jurusans, array $stats): Spreadsheet
     {
-        $spreadsheet = new Spreadsheet();
+        $spreadsheet = new Spreadsheet;
         $sheet = $spreadsheet->getActiveSheet();
         $sheet->setTitle('Sebaran Wilayah Siswa');
 
@@ -24,7 +25,7 @@ class SpmbWilayahExporter
         $sheet->mergeCells('A1:J1');
         $sheet->getStyle('A1')->getFont()->setBold(true)->setSize(14);
 
-        $sheet->setCellValue('A2', 'Total Siswa: ' . ($stats['totalSiswa'] ?? 0) . ' | Negara: ' . ($stats['statNegara'] ?? 0) . ' | Provinsi: ' . ($stats['statProvinsi'] ?? 0) . ' | Kab/Kota: ' . ($stats['statKabupaten'] ?? 0) . ' | Siswa Luar Negeri: ' . ($stats['statLuarNegeri'] ?? 0));
+        $sheet->setCellValue('A2', 'Total Siswa: '.($stats['totalSiswa'] ?? 0).' | Negara: '.($stats['statNegara'] ?? 0).' | Provinsi: '.($stats['statProvinsi'] ?? 0).' | Kab/Kota: '.($stats['statKabupaten'] ?? 0).' | Siswa Luar Negeri: '.($stats['statLuarNegeri'] ?? 0));
         $sheet->mergeCells('A2:J2');
         $sheet->getStyle('A2')->getFont()->setItalic(true)->setSize(10);
 
@@ -48,7 +49,7 @@ class SpmbWilayahExporter
         $headers[] = 'Persentase (%)';
 
         $sheet->fromArray([$headers], null, 'A4');
-        $lastCol = \PhpOffice\PhpSpreadsheet\Cell\Coordinate::stringFromColumnIndex(count($headers));
+        $lastCol = Coordinate::stringFromColumnIndex(count($headers));
 
         // Style Header Tabel
         $headerRange = "A4:{$lastCol}4";
@@ -70,18 +71,18 @@ class SpmbWilayahExporter
             ];
 
             foreach ($jurusans as $j) {
-                $row[] = (int) ($item->{'jurusan_' . $j->id} ?? 0);
+                $row[] = (int) ($item->{'jurusan_'.$j->id} ?? 0);
             }
 
             $row[] = $item->dominant_jurusan ?? '-';
-            $row[] = ($item->percentage ?? 0) . '%';
+            $row[] = ($item->percentage ?? 0).'%';
 
             $sheet->fromArray([$row], null, "A{$rowNum}");
             $rowNum++;
         }
 
         // Borders
-        $sheet->getStyle("A4:{$lastCol}" . ($rowNum - 1))->getBorders()->getAllBorders()->setBorderStyle(Border::BORDER_THIN);
+        $sheet->getStyle("A4:{$lastCol}".($rowNum - 1))->getBorders()->getAllBorders()->setBorderStyle(Border::BORDER_THIN);
 
         foreach (range('A', $lastCol) as $col) {
             $sheet->getColumnDimension($col)->setAutoSize(true);
@@ -95,11 +96,11 @@ class SpmbWilayahExporter
      */
     public function exportDrawer(Collection $siswas, string $wilayahTitle): Spreadsheet
     {
-        $spreadsheet = new Spreadsheet();
+        $spreadsheet = new Spreadsheet;
         $sheet = $spreadsheet->getActiveSheet();
         $sheet->setTitle('Daftar Siswa');
 
-        $sheet->setCellValue('A1', 'DAFTAR SISWA - ' . strtoupper($wilayahTitle));
+        $sheet->setCellValue('A1', 'DAFTAR SISWA - '.strtoupper($wilayahTitle));
         $sheet->mergeCells('A1:L1');
         $sheet->getStyle('A1')->getFont()->setBold(true)->setSize(14);
 
@@ -120,7 +121,7 @@ class SpmbWilayahExporter
         ];
 
         $sheet->fromArray([$headers], null, 'A3');
-        $lastCol = \PhpOffice\PhpSpreadsheet\Cell\Coordinate::stringFromColumnIndex(count($headers));
+        $lastCol = Coordinate::stringFromColumnIndex(count($headers));
 
         $headerRange = "A3:{$lastCol}3";
         $sheet->getStyle($headerRange)->getFont()->setBold(true);
@@ -148,7 +149,7 @@ class SpmbWilayahExporter
             $rowNum++;
         }
 
-        $sheet->getStyle("A3:{$lastCol}" . ($rowNum - 1))->getBorders()->getAllBorders()->setBorderStyle(Border::BORDER_THIN);
+        $sheet->getStyle("A3:{$lastCol}".($rowNum - 1))->getBorders()->getAllBorders()->setBorderStyle(Border::BORDER_THIN);
 
         foreach (range('A', $lastCol) as $col) {
             $sheet->getColumnDimension($col)->setAutoSize(true);

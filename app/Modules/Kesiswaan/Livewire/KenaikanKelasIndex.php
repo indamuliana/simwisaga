@@ -23,13 +23,16 @@ class KenaikanKelasIndex extends Component
 
     // Filter Periode
     public ?int $tahunAjaranAsalId = null;
+
     public ?int $rombelAsalId = null;
 
     public ?int $tahunAjaranTujuanId = null;
+
     public ?int $rombelTujuanUtamaId = null;
 
     // Data Siswa & Keputusan
     public array $siswaDecisions = [];
+
     public bool $selectAll = true;
 
     public function mount(): void
@@ -72,12 +75,14 @@ class KenaikanKelasIndex extends Component
     {
         if (! $this->rombelAsalId || ! $this->tahunAjaranTujuanId) {
             $this->rombelTujuanUtamaId = null;
+
             return;
         }
 
         $rombelAsal = Rombel::find($this->rombelAsalId);
         if (! $rombelAsal) {
             $this->rombelTujuanUtamaId = null;
+
             return;
         }
 
@@ -213,11 +218,13 @@ class KenaikanKelasIndex extends Component
 
         if (! $this->rombelAsalId || ! $this->tahunAjaranTujuanId) {
             session()->flash('error', 'Silakan pilih Rombel Asal dan Tahun Ajaran Tujuan terlebih dahulu.');
+
             return;
         }
 
         if (empty($this->siswaDecisions)) {
             session()->flash('error', 'Tidak ada data siswa untuk diproses.');
+
             return;
         }
 
@@ -295,7 +302,7 @@ class KenaikanKelasIndex extends Component
                                 'tingkat_asal' => $rombelAsal->tingkat,
                                 'tingkat_tujuan' => $targetRombel->tingkat,
                                 'status_keputusan' => 'tinggal_kelas',
-                                'catatan' => $catatan ?: 'Dinyatakan tinggal di kelas ' . $rombelAsal->tingkat,
+                                'catatan' => $catatan ?: 'Dinyatakan tinggal di kelas '.$rombelAsal->tingkat,
                                 'diproses_oleh' => auth()->id(),
                             ]
                         );
@@ -334,7 +341,7 @@ class KenaikanKelasIndex extends Component
         if ($mutasiCount > 0) {
             $msg .= ", {$mutasiCount} siswa dimutasi/keluar";
         }
-        $msg .= ". Data historis telah tersimpan di riwayat akademik.";
+        $msg .= '. Data historis telah tersimpan di riwayat akademik.';
 
         session()->flash('status', $msg);
         $this->loadSiswas();

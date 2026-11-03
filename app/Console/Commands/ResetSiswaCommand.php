@@ -38,8 +38,9 @@ class ResetSiswaCommand extends Command
         $this->info('Akun Super Admin, Guru, Staff, serta Master Data (Jurusan, Rombel, Rayon) TETAP AMAN.');
         $this->newLine();
 
-        if (!$this->option('force') && !$this->confirm('Apakah Anda yakin ingin menghapus seluruh data siswa?', false)) {
+        if (! $this->option('force') && ! $this->confirm('Apakah Anda yakin ingin menghapus seluruh data siswa?', false)) {
             $this->info('Pembersihan dibatalkan.');
+
             return Command::SUCCESS;
         }
 

@@ -22,17 +22,22 @@ use PhpOffice\PhpSpreadsheet\Writer\Xlsx;
 #[Title('Plotting Rombel Massal (Kelas)')]
 class PlottingRombelMassal extends Component
 {
-    use GuardsPermission, WithPagination, WithFileUploads;
+    use GuardsPermission, WithFileUploads, WithPagination;
 
     // Filters
     public string $filterStatusRombel = 'belum_ada'; // 'belum_ada' atau 'semua'
+
     public string $filterTingkat = ''; // '', 'X', 'XI', 'XII'
+
     public ?int $filterJurusan = null;
+
     public ?int $filterRayon = null;
+
     public string $search = '';
 
     // Selection
     public array $selectedSiswaIds = [];
+
     public bool $selectAll = false;
 
     // Target Rombel Manual
@@ -40,8 +45,11 @@ class PlottingRombelMassal extends Component
 
     // Import Excel Modal
     public bool $showImportModal = false;
+
     public ?int $importTargetRombelId = null;
+
     public $fileExcel = null;
+
     public ?array $importResult = null;
 
     public function updatedFilterStatusRombel(): void
@@ -124,11 +132,13 @@ class PlottingRombelMassal extends Component
 
         if (empty($this->selectedSiswaIds)) {
             session()->flash('error', 'Pilih minimal satu siswa untuk dialokasikan ke rombel.');
+
             return;
         }
 
-        if (!$this->targetRombelId) {
+        if (! $this->targetRombelId) {
             session()->flash('error', 'Silakan pilih Rombel tujuan terlebih dahulu.');
+
             return;
         }
 
@@ -157,7 +167,7 @@ class PlottingRombelMassal extends Component
         $totalTerisi = $rombel->siswas()->count();
         $overMsg = ($rombel->kapasitas && $totalTerisi > $rombel->kapasitas)
             ? " (Peringatan: Rombel kini melebihi kapasitas standar: {$totalTerisi}/{$rombel->kapasitas})"
-            : "";
+            : '';
 
         session()->flash('status', "Berhasil! Sebanyak {$count} siswa berhasil dialokasikan ke {$rombel->nama}.{$overMsg}");
     }
@@ -179,12 +189,12 @@ class PlottingRombelMassal extends Component
     public function downloadTemplate(string $type = 'kosong')
     {
         $this->guard('kesiswaan.siswa.lihat');
-        $service = new PlottingRombelExcelService();
+        $service = new PlottingRombelExcelService;
 
         if ($type === 'prefill') {
             $siswas = $this->getQuery()->with(['rombel', 'rayon', 'program'])->orderBy('nama')->get();
             $spreadsheet = $service->generateTemplatePrefill($siswas);
-            $filename = 'Template_Plotting_Rombel_Filtered_' . date('Ymd_His') . '.xlsx';
+            $filename = 'Template_Plotting_Rombel_Filtered_'.date('Ymd_His').'.xlsx';
         } else {
             $spreadsheet = $service->generateTemplateKosong();
             $filename = 'Template_Plotting_Rombel_Kosong.xlsx';
@@ -213,7 +223,7 @@ class PlottingRombelMassal extends Component
             'fileExcel.mimes' => 'Berkas harus berformat .xlsx, .xls, atau .csv.',
         ]);
 
-        $service = new PlottingRombelExcelService();
+        $service = new PlottingRombelExcelService;
         $path = $this->fileExcel->getRealPath();
 
         $result = $service->importAndPlot($path, (int) $this->importTargetRombelId);
@@ -224,7 +234,7 @@ class PlottingRombelMassal extends Component
         if ($result['updated_count'] > 0) {
             $overMsg = $result['is_over_capacity']
                 ? " (Peringatan: Rombel melebihi kapasitas standar: {$result['total_terisi']}/{$result['kapasitas']})"
-                : "";
+                : '';
             session()->flash('status', "Berhasil! {$result['updated_count']} siswa dialokasikan ke Rombel {$result['rombel_nama']}.{$overMsg}");
         }
     }
@@ -236,7 +246,7 @@ class PlottingRombelMassal extends Component
 
         $ta = AcademicContext::currentTahunAjaran();
         $rombels = Rombel::withCount('siswas')
-            ->when($ta, fn($q) => $q->where('tahun_ajaran_id', $ta->id))
+            ->when($ta, fn ($q) => $q->where('tahun_ajaran_id', $ta->id))
             ->orderBy('tingkat')
             ->orderBy('nama')
             ->get();

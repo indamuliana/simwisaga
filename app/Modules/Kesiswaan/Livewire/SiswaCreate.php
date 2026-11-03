@@ -6,6 +6,8 @@ use App\Core\Concerns\GuardsPermission;
 use App\Models\User;
 use App\Modules\Akademik\Models\Rayon;
 use App\Modules\Akademik\Models\Rombel;
+use App\Modules\AnalitikSpmb\Models\MasterWilayah;
+use App\Modules\AnalitikSpmb\Services\SpmbWilayahService;
 use App\Modules\Kesiswaan\Models\Program;
 use App\Modules\Kesiswaan\Models\RayonSiswa;
 use App\Modules\Kesiswaan\Models\Siswa;
@@ -32,86 +34,164 @@ class SiswaCreate extends Component
 
     // 1. Identitas & Akademik
     public string $nama = '';
+
     public ?string $nipd = null; // NIS
+
     public string $jk = 'L';
+
     public string $nisn = '';
+
     public ?string $tempat_lahir = null;
+
     public ?string $tanggal_lahir = null;
+
     public ?string $nik = null;
+
     public ?string $agama = null;
+
     public ?int $rombel_id = null;
+
     public ?int $rayon_id = null;
+
     public ?int $program_id = null;
+
     public string $status = 'aktif';
+
     public bool $is_active = true;
 
     // 2. Alamat & Domisili
+    public string $cakupan_wilayah = 'dalam_negeri'; // 'dalam_negeri' | 'luar_negeri'
+
+    public string $negara = 'Indonesia';
+
+    public ?string $provinsi = null;
+
+    public ?string $kabupaten_kota = null;
+
     public ?string $alamat = null;
+
     public ?string $rt = null;
+
     public ?string $rw = null;
+
     public ?string $dusun = null;
+
     public ?string $kelurahan = null;
+
     public ?string $kecamatan = null;
+
     public ?string $kode_pos = null;
+
     public ?string $jenis_tinggal = null;
+
     public ?string $alat_transportasi = null;
+
     public ?string $lintang = null;
+
     public ?string $bujur = null;
+
     public ?float $jarak_ke_sekolah_km = null;
+
+    public bool $isManualProvinsi = false;
+
+    public bool $isManualKabupaten = false;
+
+    public bool $isManualKecamatan = false;
+
+    public bool $isManualKelurahan = false;
 
     // 3. Orang Tua & Wali
     // Ayah
     public ?string $ayah_nama = null;
+
     public ?int $ayah_tahun_lahir = null;
+
     public ?string $ayah_jenjang_pendidikan = null;
+
     public ?string $ayah_pekerjaan = null;
+
     public ?string $ayah_penghasilan = null;
+
     public ?string $ayah_nik = null;
 
     // Ibu
     public ?string $ibu_nama = null;
+
     public ?int $ibu_tahun_lahir = null;
+
     public ?string $ibu_jenjang_pendidikan = null;
+
     public ?string $ibu_pekerjaan = null;
+
     public ?string $ibu_penghasilan = null;
+
     public ?string $ibu_nik = null;
 
     // Wali
     public ?string $wali_nama = null;
+
     public ?int $wali_tahun_lahir = null;
+
     public ?string $wali_jenjang_pendidikan = null;
+
     public ?string $wali_pekerjaan = null;
+
     public ?string $wali_penghasilan = null;
+
     public ?string $wali_nik = null;
 
     // 4. Bantuan, Rekening & Dokumen
     public ?string $no_kk = null;
+
     public ?string $no_akta_lahir = null;
+
     public ?string $skhun = null;
+
     public ?string $no_peserta_un = null;
+
     public ?string $no_seri_ijazah = null;
+
     public ?string $sekolah_asal = null;
+
     public bool $penerima_kps = false;
+
     public ?string $no_kps = null;
+
     public bool $penerima_kip = false;
+
     public ?string $nomor_kip = null;
+
     public ?string $nama_di_kip = null;
+
     public ?string $nomor_kks = null;
+
     public bool $layak_pip = false;
+
     public ?string $alasan_layak_pip = null;
+
     public ?string $bank = null;
+
     public ?string $nomor_rekening_bank = null;
+
     public ?string $rekening_atas_nama = null;
 
     // 5. Fisik, Periodik & Kontak
     public ?string $kebutuhan_khusus = null;
+
     public ?int $anak_ke_berapa = null;
+
     public ?int $berat_badan = null;
+
     public ?int $tinggi_badan = null;
+
     public ?int $lingkar_kepala = null;
+
     public ?int $jml_saudara_kandung = null;
+
     public ?string $telepon = null;
+
     public ?string $hp = null;
+
     public ?string $email = null;
 
     public function mount(): void
@@ -122,6 +202,83 @@ class SiswaCreate extends Component
         $reguler = Program::where('kode', 'REG')->first();
         if ($reguler) {
             $this->program_id = $reguler->id;
+        }
+    }
+
+    public function updatedCakupanWilayah($val): void
+    {
+        if ($val === 'dalam_negeri') {
+            $this->negara = 'Indonesia';
+        } else {
+            if ($this->negara === 'Indonesia' || empty($this->negara)) {
+                $this->negara = 'Malaysia';
+            }
+        }
+    }
+
+    public function updatedProvinsi($val): void
+    {
+        if (! $this->isManualProvinsi) {
+            $this->kabupaten_kota = '';
+            $this->kecamatan = '';
+            $this->kelurahan = '';
+        }
+    }
+
+    public function updatedKabupatenKota($val): void
+    {
+        if (! $this->isManualKabupaten) {
+            $this->kecamatan = '';
+            $this->kelurahan = '';
+
+            if (empty($this->provinsi) && ! empty($val)) {
+                $master = MasterWilayah::where('level', 2)->where('nama', $val)->first();
+                if ($master && $master->parent_kode) {
+                    $prov = MasterWilayah::where('kode', $master->parent_kode)->first();
+                    if ($prov) {
+                        $this->provinsi = $prov->nama;
+                    }
+                }
+            }
+        }
+    }
+
+    public function updatedKecamatan($val): void
+    {
+        if (! $this->isManualKecamatan) {
+            $cleanVal = preg_replace('/^kec\.?\s+/i', '', trim($val));
+            if ($cleanVal !== $val) {
+                $this->kecamatan = $cleanVal;
+            }
+            $this->kelurahan = '';
+        } else {
+            $cleanVal = trim($val);
+        }
+
+        if (! empty($cleanVal)) {
+            $service = app(SpmbWilayahService::class);
+            $resolved = $service->resolveLocationFromKecamatan($cleanVal);
+            if ($resolved) {
+                if (empty($this->kabupaten_kota) || ! $this->isManualKabupaten) {
+                    $this->kabupaten_kota = $resolved['kabupaten'];
+                }
+                if (empty($this->provinsi) || ! $this->isManualProvinsi) {
+                    $this->provinsi = $resolved['provinsi'];
+                }
+                if (empty($this->negara)) {
+                    $this->negara = $resolved['negara'];
+                }
+            }
+        }
+    }
+
+    public function updatedKelurahan($val): void
+    {
+        if (! $this->isManualKelurahan) {
+            $cleanVal = preg_replace('/^(desa\/kel\.|desa|kelurahan|kel\.)\s+/i', '', trim($val));
+            if ($cleanVal !== $val) {
+                $this->kelurahan = $cleanVal;
+            }
         }
     }
 
@@ -181,23 +338,23 @@ class SiswaCreate extends Component
                     'must_change_password' => true,
                 ]
             );
-            if (!$userSiswa->hasRole('Siswa')) {
+            if (! $userSiswa->hasRole('Siswa')) {
                 $userSiswa->assignRole('Siswa');
             }
 
             // Akun User Orang Tua
-            $usernameOrtu = 'ortu_' . $usernameSiswa;
+            $usernameOrtu = 'ortu_'.$usernameSiswa;
             $userOrtu = User::firstOrCreate(
                 ['username' => $usernameOrtu],
                 [
-                    'name' => 'Orang Tua dari ' . $this->nama,
+                    'name' => 'Orang Tua dari '.$this->nama,
                     'email' => "{$usernameOrtu}@ortu.wikrama.sch.id",
                     'password' => Hash::make($defaultPassword),
                     'is_active' => true,
                     'must_change_password' => false,
                 ]
             );
-            if (!$userOrtu->hasRole('Orang Tua')) {
+            if (! $userOrtu->hasRole('Orang Tua')) {
                 $userOrtu->assignRole('Orang Tua');
             }
 
@@ -219,12 +376,15 @@ class SiswaCreate extends Component
                 'status' => $this->status,
                 'is_active' => $this->is_active,
 
-                'alamat' => $this->alamat ?: null,
-                'rt' => $this->rt ?: null,
-                'rw' => $this->rw ?: null,
-                'dusun' => $this->dusun ?: null,
-                'kelurahan' => $this->kelurahan ?: null,
+                'negara' => $this->negara ?: ($this->cakupan_wilayah === 'dalam_negeri' ? 'Indonesia' : null),
+                'provinsi' => $this->provinsi ?: null,
+                'kabupaten_kota' => $this->kabupaten_kota ?: null,
                 'kecamatan' => $this->kecamatan ?: null,
+                'kelurahan' => $this->kelurahan ?: null,
+                'alamat' => $this->alamat ?: null,
+                'rt' => $this->cakupan_wilayah === 'dalam_negeri' ? ($this->rt ?: null) : null,
+                'rw' => $this->cakupan_wilayah === 'dalam_negeri' ? ($this->rw ?: null) : null,
+                'dusun' => $this->cakupan_wilayah === 'dalam_negeri' ? ($this->dusun ?: null) : null,
                 'kode_pos' => $this->kode_pos ?: null,
                 'jenis_tinggal' => $this->jenis_tinggal ?: null,
                 'alat_transportasi' => $this->alat_transportasi ?: null,
@@ -306,6 +466,7 @@ class SiswaCreate extends Component
 
         if ($redirect) {
             session()->flash('status', "Siswa {$namaSiswa} berhasil ditambahkan beserta akun loginnya.");
+
             return redirect()->route('kesiswaan.siswa');
         }
 
@@ -405,6 +566,11 @@ class SiswaCreate extends Component
         if ($reguler) {
             $this->program_id = $reguler->id;
         }
+
+        $this->cakupan_wilayah = 'dalam_negeri';
+        $this->negara = 'Indonesia';
+        $this->provinsi = null;
+        $this->kabupaten_kota = null;
     }
 
     public function render()
@@ -413,10 +579,33 @@ class SiswaCreate extends Component
         $rayons = Rayon::orderBy('nama')->get();
         $programs = Program::where('is_active', true)->orderBy('nama')->get();
 
+        $wilayahService = app(SpmbWilayahService::class);
+        $provinceList = [];
+        $kabupatenList = [];
+        $kecamatanList = [];
+        $desaList = [];
+
+        if ($this->activeTab === 'alamat' && $this->cakupan_wilayah === 'dalam_negeri') {
+            $provinceList = $wilayahService->getProvincesList();
+            $kabupatenList = $wilayahService->getKabupatenList($this->provinsi ?: null);
+            $kecamatanList = $wilayahService->getKecamatanList($this->kabupaten_kota ?: null, $this->provinsi ?: null);
+            $desaList = $wilayahService->getDesaList($this->kecamatan ?: null, $this->kabupaten_kota ?: null);
+        }
+
+        $negaraList = [
+            'Malaysia', 'Singapura', 'Brunei Darussalam', 'Arab Saudi', 'Mesir',
+            'Yaman', 'Turki', 'Jepang', 'Korea Selatan', 'Australia', 'Inggris', 'Amerika Serikat',
+        ];
+
         return view('kesiswaan::livewire.siswa-create', [
             'rombels' => $rombels,
             'rayons' => $rayons,
             'programs' => $programs,
+            'provinceList' => $provinceList,
+            'kabupatenList' => $kabupatenList,
+            'kecamatanList' => $kecamatanList,
+            'desaList' => $desaList,
+            'negaraList' => $negaraList,
         ]);
     }
 }

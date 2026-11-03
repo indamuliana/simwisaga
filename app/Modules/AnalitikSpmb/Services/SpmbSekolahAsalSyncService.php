@@ -46,6 +46,7 @@ class SpmbSekolahAsalSyncService
                     'alias_raw' => $rawName,
                 ]);
                 $newAliases++;
+
                 continue;
             }
 
@@ -138,9 +139,13 @@ class SpmbSekolahAsalSyncService
         foreach ($words as $word) {
             $upper = strtoupper($word);
             if (in_array($upper, ['SMP', 'SMPN', 'MTS', 'MTSN', 'SMA', 'SMK', 'MA', 'IT', 'SD', 'SDN', 'PLUS', 'GARUT', 'KAB', 'KAB.'])) {
-                if ($upper === 'MTS') $result[] = 'MTs';
-                elseif ($upper === 'MTSN') $result[] = 'MTsN';
-                else $result[] = $upper;
+                if ($upper === 'MTS') {
+                    $result[] = 'MTs';
+                } elseif ($upper === 'MTSN') {
+                    $result[] = 'MTsN';
+                } else {
+                    $result[] = $upper;
+                }
             } else {
                 $result[] = Str::ucfirst(strtolower($word));
             }
@@ -155,14 +160,15 @@ class SpmbSekolahAsalSyncService
     public function getAlternativeName(string $normalized): ?string
     {
         if (preg_match('/^SMPN\s+(\d+)/i', $normalized, $matches)) {
-            return preg_replace('/^SMPN\s+(\d+)/i', 'SMP Negeri ' . $matches[1], $normalized);
+            return preg_replace('/^SMPN\s+(\d+)/i', 'SMP Negeri '.$matches[1], $normalized);
         }
         if (preg_match('/^SMP\s+Negeri\s+(\d+)/i', $normalized, $matches)) {
-            return preg_replace('/^SMP\s+Negeri\s+(\d+)/i', 'SMPN ' . $matches[1], $normalized);
+            return preg_replace('/^SMP\s+Negeri\s+(\d+)/i', 'SMPN '.$matches[1], $normalized);
         }
         if (preg_match('/^MTsN\s+(\d+)/i', $normalized, $matches)) {
-            return preg_replace('/^MTsN\s+(\d+)/i', 'MTs Negeri ' . $matches[1], $normalized);
+            return preg_replace('/^MTsN\s+(\d+)/i', 'MTs Negeri '.$matches[1], $normalized);
         }
+
         return null;
     }
 
@@ -205,6 +211,7 @@ class SpmbSekolahAsalSyncService
         } elseif ($totalSiswa >= 8) {
             return 'Potensial';
         }
+
         return 'Rintisan';
     }
 

@@ -221,69 +221,236 @@
 
     <!-- Tab 2: Alamat & Domisili -->
     @if($activeTab === 'alamat')
-    <div class="card p-6 space-y-4">
-        <h3 class="text-base font-bold text-text-main border-b border-border pb-3">
-            Alamat Tempat Tinggal & Domisili Siswa
-        </h3>
+    <div class="card p-6 space-y-6">
+        <div class="flex flex-col sm:flex-row sm:items-center justify-between gap-3 border-b border-border pb-4">
+            <div>
+                <h3 class="text-base font-bold text-text-main">
+                    Alamat Tempat Tinggal & Domisili Siswa
+                </h3>
+                <p class="text-xs text-text-muted mt-0.5">Tentukan cakupan wilayah tempat tinggal siswa (Dalam Negeri atau Luar Negeri).</p>
+            </div>
 
-        <div>
-            <label class="block text-xs font-semibold text-text-main mb-1">Alamat Jalan / Kampung</label>
-            <textarea wire:model="alamat" rows="2" placeholder="Nama jalan, gang, nomor rumah..." class="w-full text-sm rounded-lg border-border bg-surface text-text-main"></textarea>
-        </div>
-
-        <div class="grid grid-cols-2 sm:grid-cols-4 gap-4">
-            <div>
-                <label class="block text-xs font-semibold text-text-main mb-1">RT</label>
-                <input type="text" wire:model="rt" placeholder="001" class="w-full text-sm rounded-lg border-border bg-surface text-text-main">
-            </div>
-            <div>
-                <label class="block text-xs font-semibold text-text-main mb-1">RW</label>
-                <input type="text" wire:model="rw" placeholder="002" class="w-full text-sm rounded-lg border-border bg-surface text-text-main">
-            </div>
-            <div>
-                <label class="block text-xs font-semibold text-text-main mb-1">Dusun</label>
-                <input type="text" wire:model="dusun" placeholder="Nama dusun" class="w-full text-sm rounded-lg border-border bg-surface text-text-main">
-            </div>
-            <div>
-                <label class="block text-xs font-semibold text-text-main mb-1">Kode Pos</label>
-                <input type="text" wire:model="kode_pos" placeholder="441xx" class="w-full text-sm rounded-lg border-border bg-surface text-text-main">
+            {{-- Segmented Toggle Dalam Negeri / Luar Negeri --}}
+            <div class="flex items-center gap-1.5 p-1 bg-surface-subtle border border-border rounded-xl shrink-0">
+                <button type="button" 
+                        wire:click="$set('cakupan_wilayah', 'dalam_negeri')" 
+                        class="px-3.5 py-1.5 text-xs font-semibold rounded-lg transition-all flex items-center gap-1.5 {{ $cakupan_wilayah === 'dalam_negeri' ? 'bg-primary text-white shadow-xs' : 'text-text-secondary hover:text-text-main' }}">
+                    <span>🇮🇩</span>
+                    <span>Dalam Negeri</span>
+                </button>
+                <button type="button" 
+                        wire:click="$set('cakupan_wilayah', 'luar_negeri')" 
+                        class="px-3.5 py-1.5 text-xs font-semibold rounded-lg transition-all flex items-center gap-1.5 {{ $cakupan_wilayah === 'luar_negeri' ? 'bg-primary text-white shadow-xs' : 'text-text-secondary hover:text-text-main' }}">
+                    <span>🌐</span>
+                    <span>Luar Negeri</span>
+                </button>
             </div>
         </div>
 
-        <div class="grid grid-cols-1 sm:grid-cols-2 gap-4">
-            <div>
-                <label class="block text-xs font-semibold text-text-main mb-1">Kelurahan / Desa</label>
-                <input type="text" wire:model="kelurahan" placeholder="Nama kelurahan/desa" class="w-full text-sm rounded-lg border-border bg-surface text-text-main">
-            </div>
-            <div>
-                <label class="block text-xs font-semibold text-text-main mb-1">Kecamatan</label>
-                <input type="text" wire:model="kecamatan" placeholder="Nama kecamatan" class="w-full text-sm rounded-lg border-border bg-surface text-text-main">
-            </div>
-        </div>
+        @if($cakupan_wilayah === 'dalam_negeri')
+            {{-- MODE DALAM NEGERI (STANDAR KEMENDAGRI) --}}
+            <div class="space-y-4">
+                {{-- Alamat Jalan / Kampung --}}
+                <div>
+                    <label class="block text-xs font-semibold text-text-secondary mb-1">Alamat Jalan / Kampung / No. Rumah</label>
+                    <textarea wire:model="alamat" rows="2" placeholder="Contoh: Jl. Merdeka No. 45 / Kp. Babakan Sukamaju" class="w-full text-sm rounded-md border-border bg-surface text-text-main"></textarea>
+                </div>
 
-        <div class="grid grid-cols-1 sm:grid-cols-3 gap-4">
-            <div>
-                <label class="block text-xs font-semibold text-text-main mb-1">Jenis Tinggal</label>
-                <input type="text" wire:model="jenis_tinggal" placeholder="Bersama orang tua / Kost / Asrama" class="w-full text-sm rounded-lg border-border bg-surface text-text-main">
-            </div>
-            <div>
-                <label class="block text-xs font-semibold text-text-main mb-1">Alat Transportasi</label>
-                <input type="text" wire:model="alat_transportasi" placeholder="Sepeda motor / Angkutan umum / Jalan kaki" class="w-full text-sm rounded-lg border-border bg-surface text-text-main">
-            </div>
-            <div>
-                <label class="block text-xs font-semibold text-text-main mb-1">Jarak ke Sekolah (KM)</label>
-                <input type="number" step="0.1" wire:model="jarak_ke_sekolah_km" placeholder="Misal: 3.5" class="w-full text-sm rounded-lg border-border bg-surface text-text-main">
-            </div>
-        </div>
+                {{-- RT, RW, Dusun, Kode Pos --}}
+                <div class="grid grid-cols-2 sm:grid-cols-4 gap-4">
+                    <div>
+                        <label class="block text-xs font-semibold text-text-secondary mb-1">RT</label>
+                        <input type="text" wire:model="rt" placeholder="Contoh: 01" class="w-full text-sm rounded-md border-border bg-surface text-text-main">
+                    </div>
+                    <div>
+                        <label class="block text-xs font-semibold text-text-secondary mb-1">RW</label>
+                        <input type="text" wire:model="rw" placeholder="Contoh: 03" class="w-full text-sm rounded-md border-border bg-surface text-text-main">
+                    </div>
+                    <div>
+                        <label class="block text-xs font-semibold text-text-secondary mb-1">Dusun / Lingkungan</label>
+                        <input type="text" wire:model="dusun" placeholder="Contoh: Dusun Cikole" class="w-full text-sm rounded-md border-border bg-surface text-text-main">
+                    </div>
+                    <div>
+                        <label class="block text-xs font-semibold text-text-secondary mb-1">Kode Pos</label>
+                        <input type="text" wire:model="kode_pos" placeholder="Contoh: 44151" class="w-full text-sm rounded-md border-border bg-surface text-text-main">
+                    </div>
+                </div>
 
-        <div class="grid grid-cols-2 gap-4">
-            <div>
-                <label class="block text-xs font-semibold text-text-main mb-1">Lintang (Latitude)</label>
-                <input type="text" wire:model="lintang" placeholder="-7.213xxx" class="w-full text-sm font-mono rounded-lg border-border bg-surface text-text-main">
+                {{-- Provinsi & Kabupaten/Kota (Cascading Hybrid) --}}
+                <div class="grid grid-cols-1 sm:grid-cols-2 gap-4">
+                    <div>
+                        <div class="flex items-center justify-between mb-1">
+                            <label class="block text-xs font-semibold text-text-secondary">
+                                Provinsi <span class="text-rose-500">*</span>
+                            </label>
+                            <button type="button" wire:click="$toggle('isManualProvinsi')" class="text-[11px] font-medium text-primary hover:underline">
+                                {{ $isManualProvinsi ? '📋 Pilih Daftar' : '✏️ Ketik Manual' }}
+                            </button>
+                        </div>
+                        @if ($isManualProvinsi)
+                            <input type="text" wire:model.live="provinsi" placeholder="Contoh: Jawa Barat" class="w-full text-sm rounded-md border-border bg-surface text-text-main">
+                        @else
+                            <select wire:model.live="provinsi" class="w-full text-sm rounded-md border-border bg-surface text-text-main">
+                                <option value="">-- Pilih Provinsi --</option>
+                                @if ($provinsi && !in_array($provinsi, $provinceList))
+                                    <option value="{{ $provinsi }}">{{ $provinsi }} (Saat Ini)</option>
+                                @endif
+                                @foreach ($provinceList as $p)
+                                    <option value="{{ $p }}">{{ $p }}</option>
+                                @endforeach
+                            </select>
+                        @endif
+                    </div>
+
+                    <div>
+                        <div class="flex items-center justify-between mb-1">
+                            <label class="block text-xs font-semibold text-text-secondary">
+                                Kabupaten / Kota <span class="text-rose-500">*</span>
+                            </label>
+                            <button type="button" wire:click="$toggle('isManualKabupaten')" class="text-[11px] font-medium text-primary hover:underline">
+                                {{ $isManualKabupaten ? '📋 Pilih Daftar' : '✏️ Ketik Manual' }}
+                            </button>
+                        </div>
+                        @if ($isManualKabupaten)
+                            <input type="text" wire:model.live="kabupaten_kota" placeholder="Contoh: Kab. Garut" class="w-full text-sm rounded-md border-border bg-surface text-text-main">
+                        @else
+                            <select wire:model.live="kabupaten_kota" class="w-full text-sm rounded-md border-border bg-surface text-text-main">
+                                <option value="">-- Pilih Kabupaten / Kota --</option>
+                                @if ($kabupaten_kota && !in_array($kabupaten_kota, $kabupatenList))
+                                    <option value="{{ $kabupaten_kota }}">{{ $kabupaten_kota }} (Saat Ini)</option>
+                                @endif
+                                @foreach ($kabupatenList as $k)
+                                    <option value="{{ $k }}">{{ $k }}</option>
+                                @endforeach
+                            </select>
+                        @endif
+                    </div>
+                </div>
+
+                {{-- Kecamatan & Desa/Kelurahan (Cascading Hybrid) --}}
+                <div class="grid grid-cols-1 sm:grid-cols-2 gap-4">
+                    <div>
+                        <div class="flex items-center justify-between mb-1">
+                            <label class="block text-xs font-semibold text-text-secondary">
+                                Kecamatan
+                            </label>
+                            <button type="button" wire:click="$toggle('isManualKecamatan')" class="text-[11px] font-medium text-primary hover:underline">
+                                {{ $isManualKecamatan ? '📋 Pilih Daftar' : '✏️ Ketik Manual' }}
+                            </button>
+                        </div>
+                        @if ($isManualKecamatan || empty($kecamatanList))
+                            <input type="text" wire:model.live.debounce.300ms="kecamatan" placeholder="Contoh: Tarogong Kaler" class="w-full text-sm rounded-md border-border bg-surface text-text-main">
+                        @else
+                            <select wire:model.live="kecamatan" class="w-full text-sm rounded-md border-border bg-surface text-text-main">
+                                <option value="">-- Pilih Kecamatan --</option>
+                                @if ($kecamatan && !in_array($kecamatan, $kecamatanList))
+                                    <option value="{{ $kecamatan }}">{{ $kecamatan }} (Saat Ini)</option>
+                                @endif
+                                @foreach ($kecamatanList as $kec)
+                                    <option value="{{ $kec }}">{{ $kec }}</option>
+                                @endforeach
+                            </select>
+                        @endif
+                    </div>
+
+                    <div>
+                        <div class="flex items-center justify-between mb-1">
+                            <label class="block text-xs font-semibold text-text-secondary">
+                                Kelurahan / Desa
+                            </label>
+                            <button type="button" wire:click="$toggle('isManualKelurahan')" class="text-[11px] font-medium text-primary hover:underline">
+                                {{ $isManualKelurahan ? '📋 Pilih Daftar' : '✏️ Ketik Manual' }}
+                            </button>
+                        </div>
+                        @if ($isManualKelurahan || empty($desaList))
+                            <input type="text" wire:model="kelurahan" placeholder="Contoh: Pananjung" class="w-full text-sm rounded-md border-border bg-surface text-text-main">
+                        @else
+                            <select wire:model="kelurahan" class="w-full text-sm rounded-md border-border bg-surface text-text-main">
+                                <option value="">-- Pilih Desa / Kelurahan --</option>
+                                @if ($kelurahan && !in_array($kelurahan, $desaList))
+                                    <option value="{{ $kelurahan }}">{{ $kelurahan }} (Saat Ini)</option>
+                                @endif
+                                @foreach ($desaList as $d)
+                                    <option value="{{ $d }}">{{ $d }}</option>
+                                @endforeach
+                            </select>
+                        @endif
+                    </div>
+                </div>
             </div>
-            <div>
-                <label class="block text-xs font-semibold text-text-main mb-1">Bujur (Longitude)</label>
-                <input type="text" wire:model="bujur" placeholder="107.901xxx" class="w-full text-sm font-mono rounded-lg border-border bg-surface text-text-main">
+        @else
+            {{-- MODE LUAR NEGERI --}}
+            <div class="p-4 rounded-xl border border-amber-200 dark:border-amber-800/50 bg-amber-50/50 dark:bg-amber-950/20 space-y-4">
+                <div class="text-xs text-amber-800 dark:text-amber-300 font-medium flex items-center gap-1.5">
+                    <span>💡</span>
+                    <span>Siswa berdomisili di luar negeri. Masukkan negara, provinsi/state, kota, dan rincian alamat manual.</span>
+                </div>
+
+                {{-- Negara & Provinsi/State --}}
+                <div class="grid grid-cols-1 sm:grid-cols-2 gap-4">
+                    <div>
+                        <label class="block text-xs font-semibold text-text-secondary mb-1">Negara <span class="text-rose-500">*</span></label>
+                        <input type="text" wire:model="negara" list="listNegaraLuarCreate" placeholder="Contoh: Malaysia, Arab Saudi, dll." class="w-full text-sm rounded-md border-border bg-surface text-text-main">
+                        <datalist id="listNegaraLuarCreate">
+                            @foreach($negaraList as $nl)
+                                <option value="{{ $nl }}"></option>
+                            @endforeach
+                        </datalist>
+                    </div>
+                    <div>
+                        <label class="block text-xs font-semibold text-text-secondary mb-1">Provinsi / State / Negeri Bagian</label>
+                        <input type="text" wire:model="provinsi" placeholder="Contoh: Sabah, Sarawak, Mekkah, dll." class="w-full text-sm rounded-md border-border bg-surface text-text-main">
+                    </div>
+                </div>
+
+                {{-- Kota & Kode Pos Luar Negeri --}}
+                <div class="grid grid-cols-1 sm:grid-cols-2 gap-4">
+                    <div>
+                        <label class="block text-xs font-semibold text-text-secondary mb-1">Kota / Distrik / Daerah</label>
+                        <input type="text" wire:model="kabupaten_kota" placeholder="Contoh: Tawau, Sandakan, Jeddah, dll." class="w-full text-sm rounded-md border-border bg-surface text-text-main">
+                    </div>
+                    <div>
+                        <label class="block text-xs font-semibold text-text-secondary mb-1">Kode Pos Luar Negeri (Opsional)</label>
+                        <input type="text" wire:model="kode_pos" placeholder="Contoh: 91000" class="w-full text-sm rounded-md border-border bg-surface text-text-main">
+                    </div>
+                </div>
+
+                {{-- Alamat Manual Luar Negeri --}}
+                <div>
+                    <label class="block text-xs font-semibold text-text-secondary mb-1">Alamat Lengkap / Keterangan Asal</label>
+                    <textarea wire:model="alamat" rows="2" placeholder="Contoh: CLC Ladang Holyrood, Km 15 Jalan Apas / Konsulat RI Tawau" class="w-full text-sm rounded-md border-border bg-surface text-text-main"></textarea>
+                </div>
+            </div>
+        @endif
+
+        {{-- DATA DOMISILI & TRANSPORTASI --}}
+        <div class="pt-4 border-t border-border space-y-4">
+            <h4 class="text-xs font-bold text-text-muted uppercase tracking-wider">Informasi Domisili & Transportasi</h4>
+
+            <div class="grid grid-cols-1 sm:grid-cols-3 gap-4">
+                <div>
+                    <label class="block text-xs font-semibold text-text-secondary mb-1">Jenis Tinggal</label>
+                    <input type="text" wire:model="jenis_tinggal" placeholder="Pesantren / Asrama / Bersama Orang Tua / Kost" class="w-full text-sm rounded-md border-border bg-surface text-text-main">
+                </div>
+                <div>
+                    <label class="block text-xs font-semibold text-text-secondary mb-1">Alat Transportasi</label>
+                    <input type="text" wire:model="alat_transportasi" placeholder="Jalan kaki / Motor / Angkutan umum" class="w-full text-sm rounded-md border-border bg-surface text-text-main">
+                </div>
+                <div>
+                    <label class="block text-xs font-semibold text-text-secondary mb-1">Jarak ke Sekolah (KM)</label>
+                    <input type="number" step="0.1" wire:model="jarak_ke_sekolah_km" placeholder="Misal: 3.5" class="w-full text-sm rounded-md border-border bg-surface text-text-main">
+                </div>
+            </div>
+
+            <div class="grid grid-cols-1 sm:grid-cols-2 gap-4">
+                <div>
+                    <label class="block text-xs font-semibold text-text-secondary mb-1">Lintang (Latitude)</label>
+                    <input type="text" wire:model="lintang" placeholder="-7.213xxx" class="w-full text-sm font-mono rounded-md border-border bg-surface text-text-main">
+                </div>
+                <div>
+                    <label class="block text-xs font-semibold text-text-secondary mb-1">Bujur (Longitude)</label>
+                    <input type="text" wire:model="bujur" placeholder="107.901xxx" class="w-full text-sm font-mono rounded-md border-border bg-surface text-text-main">
+                </div>
             </div>
         </div>
     </div>

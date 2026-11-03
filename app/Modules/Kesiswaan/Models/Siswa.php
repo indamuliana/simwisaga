@@ -3,10 +3,28 @@
 namespace App\Modules\Kesiswaan\Models;
 
 use App\Models\User;
+use App\Modules\Absensi\Models\AbsensiHarian;
+use App\Modules\Akademik\Models\CustomKelompok;
+use App\Modules\Akademik\Models\CustomKelompokSiswa;
+use App\Modules\Akademik\Models\MapelPilihanAnggota;
 use App\Modules\Akademik\Models\Rayon;
 use App\Modules\Akademik\Models\Rombel;
+use App\Modules\Alumni\Models\Alumni;
+use App\Modules\BeasiswaOta\Models\SiswaPenerima;
+use App\Modules\Ekstrakurikuler\Models\EkstrakurikulerAnggota;
+use App\Modules\Kepesantrenan\Models\PesantrenHafalanSiswa;
+use App\Modules\Kepesantrenan\Models\PesantrenHalaqoh;
+use App\Modules\Kepesantrenan\Models\PesantrenHalaqohSiswa;
+use App\Modules\Kepesantrenan\Models\PesantrenKamar;
+use App\Modules\Kepesantrenan\Models\PesantrenKamarSiswa;
+use App\Modules\Kepesantrenan\Models\PesantrenSetoranHafalan;
+use App\Modules\PortalSiswa\Models\PengajuanBeasiswa;
+use App\Modules\PortalSiswa\Models\PengajuanPerbaikanDataSiswa;
+use App\Modules\Prestasi\Models\Prestasi;
+use App\Modules\SeniBudaya\Models\SeniBudayaAnggota;
 use Illuminate\Database\Eloquent\Model;
 use Illuminate\Database\Eloquent\Relations\BelongsTo;
+use Illuminate\Database\Eloquent\Relations\BelongsToMany;
 use Illuminate\Database\Eloquent\Relations\HasMany;
 use Illuminate\Database\Eloquent\Relations\HasOne;
 use OwenIt\Auditing\Contracts\Auditable;
@@ -143,20 +161,20 @@ class Siswa extends Model implements Auditable
 
     public function alumni(): HasOne
     {
-        return $this->hasOne(\App\Modules\Alumni\Models\Alumni::class);
+        return $this->hasOne(Alumni::class);
     }
 
-    public function customKelompoks(): \Illuminate\Database\Eloquent\Relations\BelongsToMany
+    public function customKelompoks(): BelongsToMany
     {
         return $this->belongsToMany(
-            \App\Modules\Akademik\Models\CustomKelompok::class,
+            CustomKelompok::class,
             'custom_kelompok_siswas'
         )->withPivot('id', 'keterangan')->withTimestamps();
     }
 
     public function customKelompokSiswas(): HasMany
     {
-        return $this->hasMany(\App\Modules\Akademik\Models\CustomKelompokSiswa::class);
+        return $this->hasMany(CustomKelompokSiswa::class);
     }
 
     public function getAyahAttribute(): ?SiswaOrangTua
@@ -181,23 +199,23 @@ class Siswa extends Model implements Auditable
     public function scopeInRombel($query, int $rombelId)
     {
         return $query->where(function ($q) use ($rombelId) {
-            $q->where($this->getTable() . '.rombel_id', $rombelId)
+            $q->where($this->getTable().'.rombel_id', $rombelId)
                 ->orWhereHas('riwayatRombel', function ($rq) use ($rombelId) {
                     $rq->where('rombel_id', $rombelId);
                 });
         });
     }
 
-    public function prestasis(): \Illuminate\Database\Eloquent\Relations\BelongsToMany
+    public function prestasis(): BelongsToMany
     {
-        return $this->belongsToMany(\App\Modules\Prestasi\Models\Prestasi::class, 'prestasi_siswa_anggotas', 'siswa_id', 'prestasi_id')
+        return $this->belongsToMany(Prestasi::class, 'prestasi_siswa_anggotas', 'siswa_id', 'prestasi_id')
             ->withPivot('peran', 'keterangan')
             ->withTimestamps();
     }
 
-    public function prestasisApproved(): \Illuminate\Database\Eloquent\Relations\BelongsToMany
+    public function prestasisApproved(): BelongsToMany
     {
-        return $this->belongsToMany(\App\Modules\Prestasi\Models\Prestasi::class, 'prestasi_siswa_anggotas', 'siswa_id', 'prestasi_id')
+        return $this->belongsToMany(Prestasi::class, 'prestasi_siswa_anggotas', 'siswa_id', 'prestasi_id')
             ->where('prestasis.status_verifikasi', 'approved')
             ->withPivot('peran', 'keterangan')
             ->withTimestamps();
@@ -205,48 +223,48 @@ class Siswa extends Model implements Auditable
 
     public function seniBudayaAnggotas(): HasMany
     {
-        return $this->hasMany(\App\Modules\SeniBudaya\Models\SeniBudayaAnggota::class, 'siswa_id');
+        return $this->hasMany(SeniBudayaAnggota::class, 'siswa_id');
     }
 
     public function ekstrakurikulerAnggotas(): HasMany
     {
-        return $this->hasMany(\App\Modules\Ekstrakurikuler\Models\EkstrakurikulerAnggota::class, 'siswa_id');
+        return $this->hasMany(EkstrakurikulerAnggota::class, 'siswa_id');
     }
 
     public function mapelPilihanAnggotas(): HasMany
     {
-        return $this->hasMany(\App\Modules\Akademik\Models\MapelPilihanAnggota::class, 'siswa_id');
+        return $this->hasMany(MapelPilihanAnggota::class, 'siswa_id');
     }
 
     public function otaPenerimas(): HasMany
     {
-        return $this->hasMany(\App\Modules\BeasiswaOta\Models\SiswaPenerima::class, 'siswa_id');
+        return $this->hasMany(SiswaPenerima::class, 'siswa_id');
     }
 
     public function absensiHarians(): HasMany
     {
-        return $this->hasMany(\App\Modules\Absensi\Models\AbsensiHarian::class, 'siswa_id');
+        return $this->hasMany(AbsensiHarian::class, 'siswa_id');
     }
 
     public function pengajuanPerbaikanDatas(): HasMany
     {
-        return $this->hasMany(\App\Modules\PortalSiswa\Models\PengajuanPerbaikanDataSiswa::class, 'siswa_id');
+        return $this->hasMany(PengajuanPerbaikanDataSiswa::class, 'siswa_id');
     }
 
     public function pengajuanBeasiswas(): HasMany
     {
-        return $this->hasMany(\App\Modules\PortalSiswa\Models\PengajuanBeasiswa::class, 'siswa_id');
+        return $this->hasMany(PengajuanBeasiswa::class, 'siswa_id');
     }
 
     public function pesantrenKamarSiswas(): HasMany
     {
-        return $this->hasMany(\App\Modules\Kepesantrenan\Models\PesantrenKamarSiswa::class, 'siswa_id');
+        return $this->hasMany(PesantrenKamarSiswa::class, 'siswa_id');
     }
 
-    public function pesantrenKamars(): \Illuminate\Database\Eloquent\Relations\BelongsToMany
+    public function pesantrenKamars(): BelongsToMany
     {
         return $this->belongsToMany(
-            \App\Modules\Kepesantrenan\Models\PesantrenKamar::class,
+            PesantrenKamar::class,
             'pesantren_kamar_siswas',
             'siswa_id',
             'kamar_id'
@@ -255,13 +273,13 @@ class Siswa extends Model implements Auditable
 
     public function pesantrenHalaqohSiswas(): HasMany
     {
-        return $this->hasMany(\App\Modules\Kepesantrenan\Models\PesantrenHalaqohSiswa::class, 'siswa_id');
+        return $this->hasMany(PesantrenHalaqohSiswa::class, 'siswa_id');
     }
 
-    public function pesantrenHalaqohs(): \Illuminate\Database\Eloquent\Relations\BelongsToMany
+    public function pesantrenHalaqohs(): BelongsToMany
     {
         return $this->belongsToMany(
-            \App\Modules\Kepesantrenan\Models\PesantrenHalaqoh::class,
+            PesantrenHalaqoh::class,
             'pesantren_halaqoh_siswas',
             'siswa_id',
             'halaqoh_id'
@@ -270,12 +288,11 @@ class Siswa extends Model implements Auditable
 
     public function pesantrenHafalans(): HasMany
     {
-        return $this->hasMany(\App\Modules\Kepesantrenan\Models\PesantrenHafalanSiswa::class, 'siswa_id');
+        return $this->hasMany(PesantrenHafalanSiswa::class, 'siswa_id');
     }
 
     public function pesantrenSetorans(): HasMany
     {
-        return $this->hasMany(\App\Modules\Kepesantrenan\Models\PesantrenSetoranHafalan::class, 'siswa_id');
+        return $this->hasMany(PesantrenSetoranHafalan::class, 'siswa_id');
     }
 }
-

@@ -45,8 +45,11 @@ class MasterSmpIndex extends Component
 
     // Modal Import State
     public bool $showImportModal = false;
+
     public string $inputProvinsi = 'Jawa Barat';
+
     public $importFile = null;
+
     public ?array $importResult = null;
 
     protected function rules(): array
@@ -155,6 +158,7 @@ class MasterSmpIndex extends Component
 
         if ($format === 'xlsx') {
             $spreadsheet = $importer->generateTemplateSpreadsheet();
+
             return response()->streamDownload(function () use ($spreadsheet) {
                 $writer = new Xlsx($spreadsheet);
                 $writer->save('php://output');
@@ -164,6 +168,7 @@ class MasterSmpIndex extends Component
         }
 
         $csv = $importer->generateTemplateCsv();
+
         return response()->streamDownload(function () use ($csv) {
             echo $csv;
         }, 'Template_Master_SMP.csv', [
@@ -191,7 +196,7 @@ class MasterSmpIndex extends Component
         $query = SpmbMasterSmp::query()->with('sekolahAsal');
 
         if ($this->search) {
-            $s = '%' . trim($this->search) . '%';
+            $s = '%'.trim($this->search).'%';
             $query->where(function ($q) use ($s) {
                 $q->where('nama', 'like', $s)
                     ->orWhere('npsn', 'like', $s)

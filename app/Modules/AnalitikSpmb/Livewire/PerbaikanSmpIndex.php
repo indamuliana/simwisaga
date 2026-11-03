@@ -22,12 +22,16 @@ class PerbaikanSmpIndex extends Component
 
     // Filter & Search
     public string $search = '';
+
     public string $filterMapping = ''; // '', 'mapped', 'unmapped'
+
     public string $filterNpsn = ''; // '', 'unfilled', 'mapped_unfilled', 'filled'
+
     public int $perPage = 20;
 
     // Selection for Multi-Merge
     public array $selectedSchools = [];
+
     public bool $selectAll = false;
 
     // Smart Duplicate Suggestions
@@ -35,44 +39,71 @@ class PerbaikanSmpIndex extends Component
 
     // Merge Modal State
     public bool $showMergeModal = false;
+
     public array $mergeSourceNames = [];
+
     public string $mergeTargetName = '';
+
     public ?int $mergeTargetMasterId = null;
+
     public bool $optUpdateSiswa = true;
+
     public bool $optCreateAlias = true;
+
     public string $masterSmpSearch = '';
+
     public ?int $mergeTargetMasterSmpId = null;
 
     // Quick Rename Modal State
     public bool $showRenameModal = false;
+
     public string $renameOldName = '';
+
     public string $renameNewName = '';
+
     public bool $renameOptUpdateSiswa = true;
+
     public bool $renameOptCreateAlias = true;
 
     // Quick Edit Master Modal State
     public bool $showEditMasterModal = false;
+
     public ?int $editMasterId = null;
+
     public string $editMasterNamaResmi = '';
+
     public string $editMasterNpsn = '';
+
     public string $editMasterCatatan = '';
+
     public string $editMasterTier = 'Rintisan';
+
     public string $editMasterJenis = 'SMP';
+
     public string $editMasterStatus = 'Negeri';
 
     // Unmap Confirmation Modal State
     public bool $showUnmapModal = false;
+
     public string $unmapRawName = '';
+
     public string $unmapMasterName = '';
+
     public int $unmapAffectedCount = 0;
 
     // Edit Mapping Modal State
     public bool $showEditMappingModal = false;
+
     public string $editMappingRawName = '';
+
     public ?int $editMappingCurrentMasterId = null;
+
     public string $editMappingCurrentMasterName = '';
+
     public ?int $editMappingNewMasterId = null;
+
     public string $editMappingMasterSearch = '';
+
     public ?int $editMappingTargetMasterSmpId = null;
 
     // Modal Daftar Rekomendasi Diabaikan
@@ -80,6 +111,7 @@ class PerbaikanSmpIndex extends Component
 
     // Drawer Detail Siswa
     public bool $showDrawer = false;
+
     public string $drawerSchoolName = '';
 
     protected $queryString = [
@@ -171,6 +203,7 @@ class PerbaikanSmpIndex extends Component
 
         if (trim($this->renameOldName) === trim($this->renameNewName)) {
             $this->closeRenameModal();
+
             return;
         }
 
@@ -193,6 +226,7 @@ class PerbaikanSmpIndex extends Component
 
         if (empty($this->selectedSchools)) {
             session()->flash('error', 'Pilih minimal 1 sekolah asal dari tabel untuk digabungkan.');
+
             return;
         }
 
@@ -318,6 +352,7 @@ class PerbaikanSmpIndex extends Component
 
         if ($unmapped->isEmpty()) {
             session()->flash('info', 'Tidak ada sekolah asal yang berstatus belum terpetakan.');
+
             return;
         }
 

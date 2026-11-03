@@ -20,6 +20,7 @@ class DatabaseSeeder extends Seeder
             PrestasiPermissionSeeder::class,
             AnalitikSpmbPermissionSeeder::class,
             QuranSurahSeeder::class,
+            MasterWilayahSeeder::class,
         ]);
     }
 }

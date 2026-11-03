@@ -3,6 +3,9 @@
 use Illuminate\Database\Migrations\Migration;
 use Illuminate\Database\Schema\Blueprint;
 use Illuminate\Support\Facades\Schema;
+use Spatie\Permission\Models\Permission;
+use Spatie\Permission\Models\Role;
+use Spatie\Permission\PermissionRegistrar;
 
 return new class extends Migration
 {
@@ -17,7 +20,7 @@ return new class extends Migration
 
         // Otomatis sinkronkan permission dan beri akses ke role standar saat migrasi
         try {
-            app(\Spatie\Permission\PermissionRegistrar::class)->forgetCachedPermissions();
+            app(PermissionRegistrar::class)->forgetCachedPermissions();
             $perms = [
                 'analitik_spmb.asal_smp.lihat',
                 'analitik_spmb.asal_smp.kelola',
@@ -25,13 +28,13 @@ return new class extends Migration
                 'analitik_spmb.perbaikan_smp.kelola',
             ];
             foreach ($perms as $p) {
-                \Spatie\Permission\Models\Permission::findOrCreate($p, 'web');
+                Permission::findOrCreate($p, 'web');
             }
-            $roles = \Spatie\Permission\Models\Role::whereIn('name', ['Super Admin', 'Admin', 'Kepala Sekolah', 'Kesiswaan', 'Operator'])->get();
+            $roles = Role::whereIn('name', ['Super Admin', 'Admin', 'Kepala Sekolah', 'Kesiswaan', 'Operator'])->get();
             foreach ($roles as $r) {
                 $r->givePermissionTo($perms);
             }
-        } catch (\Throwable $e) {
+        } catch (Throwable $e) {
             // Lanjutkan jika ada kendala
         }
     }

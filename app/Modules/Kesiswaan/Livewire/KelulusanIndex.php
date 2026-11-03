@@ -22,9 +22,11 @@ class KelulusanIndex extends Component
     use GuardsPermission;
 
     public ?int $tahunAjaranId = null;
+
     public ?int $rombelId = null;
 
     public array $kelulusanDecisions = [];
+
     public string $batchNoIjazahPrefix = '';
 
     public function mount(): void
@@ -123,6 +125,7 @@ class KelulusanIndex extends Component
 
         if (empty($this->kelulusanDecisions)) {
             session()->flash('error', 'Tidak ada data siswa kelas XII untuk diproses.');
+
             return;
         }
 

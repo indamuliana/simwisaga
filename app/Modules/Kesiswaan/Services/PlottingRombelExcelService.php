@@ -22,7 +22,7 @@ class PlottingRombelExcelService
      */
     public function generateTemplateKosong(): Spreadsheet
     {
-        $spreadsheet = new Spreadsheet();
+        $spreadsheet = new Spreadsheet;
         $sheet = $spreadsheet->getActiveSheet();
         $sheet->setTitle('Template Plotting Rombel');
 
@@ -50,7 +50,7 @@ class PlottingRombelExcelService
      */
     public function generateTemplatePrefill(Collection $siswas): Spreadsheet
     {
-        $spreadsheet = new Spreadsheet();
+        $spreadsheet = new Spreadsheet;
         $sheet = $spreadsheet->getActiveSheet();
         $sheet->setTitle('Daftar Siswa Plotting Rombel');
 
@@ -67,12 +67,12 @@ class PlottingRombelExcelService
         $row = 2;
         foreach ($siswas as $s) {
             $nis = $s->nipd ?: $s->nisn;
-            $sheet->setCellValueExplicit('A' . $row, (string) $nis, DataType::TYPE_STRING);
-            $sheet->setCellValue('B' . $row, $s->nama);
-            $sheet->setCellValue('C' . $row, $s->jk === 'L' ? 'L' : 'P');
-            $sheet->setCellValue('D' . $row, $s->rombel?->nama ?? 'Belum Ada');
-            $sheet->setCellValue('E' . $row, $s->rayon?->nama ?? '-');
-            $sheet->setCellValue('F' . $row, $s->program?->nama ?? 'Reguler');
+            $sheet->setCellValueExplicit('A'.$row, (string) $nis, DataType::TYPE_STRING);
+            $sheet->setCellValue('B'.$row, $s->nama);
+            $sheet->setCellValue('C'.$row, $s->jk === 'L' ? 'L' : 'P');
+            $sheet->setCellValue('D'.$row, $s->rombel?->nama ?? 'Belum Ada');
+            $sheet->setCellValue('E'.$row, $s->rayon?->nama ?? '-');
+            $sheet->setCellValue('F'.$row, $s->program?->nama ?? 'Reguler');
             $row++;
         }
 
@@ -101,7 +101,7 @@ class PlottingRombelExcelService
 
         // Loop mulai baris 2 (abaikan baris header)
         for ($r = 2; $r <= $highestRow; $r++) {
-            $rawNis = trim((string) $sheet->getCell('A' . $r)->getValue());
+            $rawNis = trim((string) $sheet->getCell('A'.$r)->getValue());
 
             if ($rawNis === '') {
                 continue;
@@ -110,7 +110,7 @@ class PlottingRombelExcelService
             // Sanitasi NIS: hilangkan tanda kutip jika diekspor sebagai text
             $cleanNis = ltrim($rawNis, "'");
 
-            if (!in_array($cleanNis, $nisList)) {
+            if (! in_array($cleanNis, $nisList)) {
                 $nisList[] = $cleanNis;
             }
         }
@@ -136,12 +136,16 @@ class PlottingRombelExcelService
 
         $foundIdentifiers = [];
         foreach ($siswas as $s) {
-            if ($s->nipd) $foundIdentifiers[] = (string) $s->nipd;
-            if ($s->nisn) $foundIdentifiers[] = (string) $s->nisn;
+            if ($s->nipd) {
+                $foundIdentifiers[] = (string) $s->nipd;
+            }
+            if ($s->nisn) {
+                $foundIdentifiers[] = (string) $s->nisn;
+            }
         }
 
         // Cari NIS/NISN mana saja yang tidak ditemukan di sistem
-        $unmatchedNis = array_values(array_filter($nisList, fn($nis) => !in_array((string) $nis, $foundIdentifiers)));
+        $unmatchedNis = array_values(array_filter($nisList, fn ($nis) => ! in_array((string) $nis, $foundIdentifiers)));
 
         // Update database dan catat riwayat rombel_siswa
         if ($siswas->isNotEmpty()) {

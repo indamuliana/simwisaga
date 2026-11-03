@@ -48,7 +48,7 @@ class SingleSiswaDocumentExporter
         $filename = $this->buildFilename($siswa, 'pdf');
 
         return response()->streamDownload(
-            fn () => print($pdf->output()),
+            fn () => print ($pdf->output()),
             $filename,
             ['Content-Type' => 'application/pdf']
         );
@@ -72,7 +72,7 @@ class SingleSiswaDocumentExporter
         $filename = $this->buildFilename($siswa, 'doc');
 
         return response()->streamDownload(
-            fn () => print($wordHtml),
+            fn () => print ($wordHtml),
             $filename,
             [
                 'Content-Type' => 'application/msword; charset=utf-8',
@@ -101,7 +101,7 @@ class SingleSiswaDocumentExporter
         $nikIbu = $canViewSensitive ? ($ibu?->nik ?? '-') : DataMasker::maskNik($ibu?->nik);
         $nikWali = $canViewSensitive ? ($wali?->nik ?? '-') : DataMasker::maskNik($wali?->nik);
 
-        $spreadsheet = new Spreadsheet();
+        $spreadsheet = new Spreadsheet;
         $sheet = $spreadsheet->getActiveSheet();
         $sheet->setTitle('Biodata Siswa');
 
@@ -121,7 +121,7 @@ class SingleSiswaDocumentExporter
         ]);
 
         $sheet->mergeCells('A3:D3');
-        $sheet->setCellValue('A3', 'Dicetak pada: ' . now()->translatedFormat('d F Y H:i'));
+        $sheet->setCellValue('A3', 'Dicetak pada: '.now()->translatedFormat('d F Y H:i'));
         $sheet->getStyle('A3')->applyFromArray([
             'font' => ['italic' => true, 'size' => 9, 'color' => ['rgb' => '64748B']],
             'alignment' => ['horizontal' => Alignment::HORIZONTAL_CENTER],
@@ -148,15 +148,15 @@ class SingleSiswaDocumentExporter
             // II. ALAMAT
             ['type' => 'section', 'title' => 'II. ALAMAT DAN TEMPAT TINGGAL'],
             ['label' => 'Alamat Jalan', 'value' => $siswa->alamat ?: '-'],
-            ['label' => 'RT / RW', 'value' => 'RT ' . ($siswa->rt ?: '-') . ' / RW ' . ($siswa->rw ?: '-'), 'is_string' => true],
+            ['label' => 'RT / RW', 'value' => 'RT '.($siswa->rt ?: '-').' / RW '.($siswa->rw ?: '-'), 'is_string' => true],
             ['label' => 'Dusun', 'value' => $siswa->dusun ?: '-'],
             ['label' => 'Kelurahan / Desa', 'value' => $siswa->kelurahan ?: '-'],
             ['label' => 'Kecamatan', 'value' => $siswa->kecamatan ?: '-'],
             ['label' => 'Kode Pos', 'value' => $siswa->kode_pos ?: '-', 'is_string' => true],
             ['label' => 'Jenis Tempat Tinggal', 'value' => $siswa->jenis_tinggal ?: '-'],
             ['label' => 'Alat Transportasi ke Sekolah', 'value' => $siswa->alat_transportasi ?: '-'],
-            ['label' => 'Jarak Rumah ke Sekolah', 'value' => $siswa->jarak_ke_sekolah_km ? $siswa->jarak_ke_sekolah_km . ' km' : '-'],
-            ['label' => 'Koordinat Lintang / Bujur', 'value' => ($siswa->lintang ?: '-') . ' / ' . ($siswa->bujur ?: '-')],
+            ['label' => 'Jarak Rumah ke Sekolah', 'value' => $siswa->jarak_ke_sekolah_km ? $siswa->jarak_ke_sekolah_km.' km' : '-'],
+            ['label' => 'Koordinat Lintang / Bujur', 'value' => ($siswa->lintang ?: '-').' / '.($siswa->bujur ?: '-')],
 
             // III. ORANG TUA / WALI
             ['type' => 'section', 'title' => 'III. DATA ORANG TUA DAN WALI'],
@@ -178,26 +178,26 @@ class SingleSiswaDocumentExporter
 
             ['label' => 'Nama Wali Siswa', 'value' => $wali?->nama ?? '-'],
             ['label' => 'NIK Wali', 'value' => $nikWali, 'is_string' => true],
-            ['label' => 'Pekerjaan & Kontak Wali', 'value' => ($wali?->pekerjaan ?? '-') . ' (' . ($wali?->no_hp ?? '-') . ')'],
+            ['label' => 'Pekerjaan & Kontak Wali', 'value' => ($wali?->pekerjaan ?? '-').' ('.($wali?->no_hp ?? '-').')'],
 
             // IV. BANTUAN & DOKUMEN
             ['type' => 'section', 'title' => 'IV. BANTUAN SOSIAL, REKENING & DOKUMEN PENDUKUNG'],
             ['label' => 'Nomor Kartu Keluarga (KK)', 'value' => $noKk ?: '-', 'is_string' => true],
             ['label' => 'No. Registrasi Akta Lahir', 'value' => $siswa->no_akta_lahir ?: '-', 'is_string' => true],
             ['label' => 'Sekolah Asal (SMP/MTs)', 'value' => $siswa->sekolah_asal ?: '-'],
-            ['label' => 'No. Peserta UN / No. Seri Ijazah', 'value' => ($siswa->no_peserta_un ?: '-') . ' / ' . ($siswa->no_seri_ijazah ?: '-'), 'is_string' => true],
+            ['label' => 'No. Peserta UN / No. Seri Ijazah', 'value' => ($siswa->no_peserta_un ?: '-').' / '.($siswa->no_seri_ijazah ?: '-'), 'is_string' => true],
             ['label' => 'SKHUN', 'value' => $siswa->skhun ?: '-', 'is_string' => true],
-            ['label' => 'Penerima KPS (No. KPS)', 'value' => $siswa->penerima_kps ? 'Ya (' . ($siswa->no_kps ?: '-') . ')' : 'Tidak'],
-            ['label' => 'Penerima KIP (Nomor KIP)', 'value' => $siswa->penerima_kip ? 'Ya (' . ($siswa->nomor_kip ?: '-') . ' a.n ' . ($siswa->nama_di_kip ?: '-') . ')' : 'Tidak'],
+            ['label' => 'Penerima KPS (No. KPS)', 'value' => $siswa->penerima_kps ? 'Ya ('.($siswa->no_kps ?: '-').')' : 'Tidak'],
+            ['label' => 'Penerima KIP (Nomor KIP)', 'value' => $siswa->penerima_kip ? 'Ya ('.($siswa->nomor_kip ?: '-').' a.n '.($siswa->nama_di_kip ?: '-').')' : 'Tidak'],
             ['label' => 'Nomor KKS', 'value' => $siswa->nomor_kks ?: '-', 'is_string' => true],
-            ['label' => 'Layak PIP', 'value' => $siswa->layak_pip ? 'Ya (Alasan: ' . ($siswa->alasan_layak_pip ?: '-') . ')' : 'Tidak'],
-            ['label' => 'Rekening Bank Siswa', 'value' => ($siswa->bank ?: '-') . ' - No. ' . ($siswa->nomor_rekening_bank ?: '-') . ' a.n ' . ($siswa->rekening_atas_nama ?: '-'), 'is_string' => true],
+            ['label' => 'Layak PIP', 'value' => $siswa->layak_pip ? 'Ya (Alasan: '.($siswa->alasan_layak_pip ?: '-').')' : 'Tidak'],
+            ['label' => 'Rekening Bank Siswa', 'value' => ($siswa->bank ?: '-').' - No. '.($siswa->nomor_rekening_bank ?: '-').' a.n '.($siswa->rekening_atas_nama ?: '-'), 'is_string' => true],
 
             // V. DATA PERIODIK & FISIK
             ['type' => 'section', 'title' => 'V. DATA PERIODIK DAN FISIK'],
-            ['label' => 'Tinggi / Berat Badan', 'value' => ($siswa->tinggi_badan ? $siswa->tinggi_badan . ' cm' : '-') . ' / ' . ($siswa->berat_badan ? $siswa->berat_badan . ' kg' : '-')],
-            ['label' => 'Lingkar Kepala', 'value' => $siswa->lingkar_kepala ? $siswa->lingkar_kepala . ' cm' : '-'],
-            ['label' => 'Status Anak & Jumlah Saudara', 'value' => 'Anak ke-' . ($siswa->anak_ke_berapa ?: '-') . ' dari ' . (($siswa->jml_saudara_kandung !== null) ? ($siswa->jml_saudara_kandung + 1) : '-') . ' bersaudara'],
+            ['label' => 'Tinggi / Berat Badan', 'value' => ($siswa->tinggi_badan ? $siswa->tinggi_badan.' cm' : '-').' / '.($siswa->berat_badan ? $siswa->berat_badan.' kg' : '-')],
+            ['label' => 'Lingkar Kepala', 'value' => $siswa->lingkar_kepala ? $siswa->lingkar_kepala.' cm' : '-'],
+            ['label' => 'Status Anak & Jumlah Saudara', 'value' => 'Anak ke-'.($siswa->anak_ke_berapa ?: '-').' dari '.(($siswa->jml_saudara_kandung !== null) ? ($siswa->jml_saudara_kandung + 1) : '-').' bersaudara'],
             ['label' => 'Kebutuhan Khusus', 'value' => $siswa->kebutuhan_khusus ?: 'Tidak Ada'],
         ];
 
@@ -207,7 +207,7 @@ class SingleSiswaDocumentExporter
         foreach ($rows as $item) {
             if (($item['type'] ?? '') === 'section') {
                 $sheet->mergeCells("A{$currentRow}:D{$currentRow}");
-                $sheet->setCellValue("A{$currentRow}", '  ' . $item['title']);
+                $sheet->setCellValue("A{$currentRow}", '  '.$item['title']);
                 $sheet->getStyle("A{$currentRow}:D{$currentRow}")->applyFromArray([
                     'font' => ['bold' => true, 'color' => ['rgb' => 'FFFFFF'], 'size' => 10],
                     'fill' => ['fillType' => Fill::FILL_SOLID, 'startColor' => ['rgb' => '1E40AF']],
@@ -220,7 +220,7 @@ class SingleSiswaDocumentExporter
                 $sheet->setCellValue("B{$currentRow}", $item['label']);
                 $sheet->setCellValue("C{$currentRow}", ':');
 
-                if (!empty($item['is_string'])) {
+                if (! empty($item['is_string'])) {
                     $sheet->setCellValueExplicit("D{$currentRow}", (string) $item['value'], DataType::TYPE_STRING);
                 } else {
                     $sheet->setCellValue("D{$currentRow}", $item['value']);
@@ -261,6 +261,7 @@ class SingleSiswaDocumentExporter
     {
         $namaClean = preg_replace('/[^A-Za-z0-9_\-]/', '_', $siswa->nama);
         $nis = $siswa->nipd ?: $siswa->nisn;
+
         return "Biodata_Siswa_{$namaClean}_{$nis}.{$ext}";
     }
 }

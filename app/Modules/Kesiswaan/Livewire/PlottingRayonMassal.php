@@ -20,17 +20,22 @@ use PhpOffice\PhpSpreadsheet\Writer\Xlsx;
 #[Title('Plotting Rayon Massal')]
 class PlottingRayonMassal extends Component
 {
-    use GuardsPermission, WithPagination, WithFileUploads;
+    use GuardsPermission, WithFileUploads, WithPagination;
 
     // Filters
     public string $filterStatusRayon = 'belum_ada'; // 'belum_ada' atau 'semua'
+
     public string $filterKecamatan = '';
+
     public string $filterKelurahan = '';
+
     public ?int $filterRombel = null;
+
     public string $search = '';
 
     // Selection
     public array $selectedSiswaIds = [];
+
     public bool $selectAll = false;
 
     // Target Rayon
@@ -38,14 +43,20 @@ class PlottingRayonMassal extends Component
 
     // Import Excel Modal
     public bool $showImportModal = false;
+
     public ?int $importTargetRayonId = null;
+
     public $fileExcel = null;
+
     public ?array $importResult = null;
 
     // Reset Plotting Rayon Modal
     public bool $showResetModal = false;
+
     public string $resetScope = 'terpilih'; // 'terpilih', 'filter', 'semua'
+
     public string $resetMode = 'kosongkan';  // 'kosongkan', 'acak'
+
     public string $resetConfirmText = '';
 
     public function updatedFilterStatusRayon(): void
@@ -123,11 +134,13 @@ class PlottingRayonMassal extends Component
 
         if (empty($this->selectedSiswaIds)) {
             session()->flash('error', 'Pilih minimal satu siswa untuk di-plot ke rayon.');
+
             return;
         }
 
-        if (!$this->targetRayonId) {
+        if (! $this->targetRayonId) {
             session()->flash('error', 'Silakan pilih Rayon tujuan.');
+
             return;
         }
 
@@ -161,7 +174,7 @@ class PlottingRayonMassal extends Component
     {
         $this->guard('kesiswaan.siswa.edit');
 
-        if (!empty($this->selectedSiswaIds)) {
+        if (! empty($this->selectedSiswaIds)) {
             $this->resetScope = 'terpilih';
         } elseif ($this->filterKecamatan || $this->filterKelurahan || $this->filterRombel || $this->search) {
             $this->resetScope = 'filter';
@@ -202,6 +215,7 @@ class PlottingRayonMassal extends Component
 
         if (empty($this->selectedSiswaIds)) {
             session()->flash('error', 'Pilih minimal satu siswa untuk mengosongkan rayon.');
+
             return;
         }
 
@@ -230,6 +244,7 @@ class PlottingRayonMassal extends Component
 
         if ($this->resetScope === 'semua' && strtoupper(trim($this->resetConfirmText)) !== 'RESET') {
             $this->addError('resetConfirmText', 'Ketik kata "RESET" dengan huruf kapital untuk mengonfirmasi.');
+
             return;
         }
 
@@ -238,6 +253,7 @@ class PlottingRayonMassal extends Component
         if ($this->resetScope === 'terpilih') {
             if (empty($this->selectedSiswaIds)) {
                 session()->flash('error', 'Tidak ada siswa yang dipilih.');
+
                 return;
             }
             $query->whereIn('id', $this->selectedSiswaIds);
@@ -259,6 +275,7 @@ class PlottingRayonMassal extends Component
         if ($count === 0) {
             session()->flash('error', 'Tidak ada data siswa yang perlu di-reset.');
             $this->showResetModal = false;
+
             return;
         }
 
@@ -306,8 +323,8 @@ class PlottingRayonMassal extends Component
         $this->resetPage();
 
         $actionText = ($this->resetMode === 'kosongkan')
-            ? "berhasil di-reset (dikosongkan) dari pembagian rayon."
-            : "berhasil diatur ulang dan didistribusikan secara acak merata ke seluruh rayon.";
+            ? 'berhasil di-reset (dikosongkan) dari pembagian rayon.'
+            : 'berhasil diatur ulang dan didistribusikan secara acak merata ke seluruh rayon.';
 
         session()->flash('status', "Sukses! Sebanyak {$count} siswa {$actionText}");
     }
@@ -333,12 +350,12 @@ class PlottingRayonMassal extends Component
     public function downloadTemplate(string $type = 'kosong')
     {
         $this->guard('kesiswaan.siswa.lihat');
-        $service = new PlottingRayonExcelService();
+        $service = new PlottingRayonExcelService;
 
         if ($type === 'prefill') {
             $siswas = $this->getQuery()->with(['rombel', 'rayon'])->orderBy('kecamatan')->orderBy('kelurahan')->orderBy('nama')->get();
             $spreadsheet = $service->generateTemplatePrefill($siswas);
-            $filename = 'Template_Plotting_Rayon_Filtered_' . date('Ymd_His') . '.xlsx';
+            $filename = 'Template_Plotting_Rayon_Filtered_'.date('Ymd_His').'.xlsx';
         } else {
             $spreadsheet = $service->generateTemplateKosong();
             $filename = 'Template_Plotting_Rayon_Kosong.xlsx';
@@ -367,7 +384,7 @@ class PlottingRayonMassal extends Component
             'fileExcel.mimes' => 'Berkas harus berformat .xlsx, .xls, atau .csv.',
         ]);
 
-        $service = new PlottingRayonExcelService();
+        $service = new PlottingRayonExcelService;
         $path = $this->fileExcel->getRealPath();
 
         $result = $service->importAndPlot($path, (int) $this->importTargetRayonId);

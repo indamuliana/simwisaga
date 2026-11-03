@@ -9,16 +9,20 @@ use App\Modules\Akademik\Models\Rombel;
 use App\Modules\Akademik\Support\AcademicContext;
 use App\Modules\Kesiswaan\Models\Program;
 use App\Modules\Kesiswaan\Models\Siswa;
+use App\Modules\Sistem\Models\School;
 use Barryvdh\DomPDF\Facade\Pdf;
 use Illuminate\Support\Str;
 use Livewire\Attributes\Layout;
 use Livewire\Attributes\Title;
 use Livewire\Component;
+use PhpOffice\PhpSpreadsheet\Cell\Coordinate;
 use PhpOffice\PhpSpreadsheet\Cell\DataType;
 use PhpOffice\PhpSpreadsheet\Spreadsheet;
 use PhpOffice\PhpSpreadsheet\Style\Alignment;
 use PhpOffice\PhpSpreadsheet\Style\Border;
 use PhpOffice\PhpSpreadsheet\Style\Fill;
+use PhpOffice\PhpSpreadsheet\Worksheet\Drawing;
+use PhpOffice\PhpSpreadsheet\Worksheet\PageSetup;
 use PhpOffice\PhpSpreadsheet\Writer\Xlsx;
 use Symfony\Component\HttpFoundation\StreamedResponse;
 
@@ -30,10 +34,15 @@ class CetakAbsensi extends Component
 
     // Filters
     public ?int $filterRombel = null;
+
     public ?int $filterRayon = null;
+
     public ?int $filterJurusan = null;
+
     public ?int $filterProgram = null;
+
     public string $filterTingkat = '';
+
     public string $filterJk = '';
 
     // Shortir by (Sorting)
@@ -41,9 +50,13 @@ class CetakAbsensi extends Component
 
     // Cetak Dokumen Settings
     public string $tahunPelajaran = '';
+
     public string $mapel = '';
+
     public int $jumlahKolom = 20;
+
     public string $namaGuru = '';
+
     public string $nipGuru = '';
 
     public function mount(): void
@@ -197,6 +210,7 @@ class CetakAbsensi extends Component
 
         if ($siswas->isEmpty()) {
             session()->flash('error', 'Tidak ada data siswa yang sesuai dengan filter yang dipilih.');
+
             return null;
         }
 
@@ -217,10 +231,10 @@ class CetakAbsensi extends Component
         ])->setPaper('A4', 'portrait');
 
         $safeLabel = Str::slug($filterLabel);
-        $filename = "Daftar_Hadir_Murid_{$safeLabel}_" . date('Ymd_His') . ".pdf";
+        $filename = "Daftar_Hadir_Murid_{$safeLabel}_".date('Ymd_His').'.pdf';
 
         return response()->streamDownload(
-            fn () => print($pdf->output()),
+            fn () => print ($pdf->output()),
             $filename
         );
     }
@@ -236,6 +250,7 @@ class CetakAbsensi extends Component
 
         if ($siswas->isEmpty()) {
             session()->flash('error', 'Tidak ada data siswa yang sesuai dengan filter yang dipilih.');
+
             return null;
         }
 
@@ -258,10 +273,10 @@ class CetakAbsensi extends Component
         // Agar file doc terbuka dengan layout cetak web yang baik,
         // tambahkan meta charset UTF-8 di string output.
         $safeLabel = Str::slug($filterLabel);
-        $filename = "Daftar_Hadir_Murid_{$safeLabel}_" . date('Ymd_His') . ".doc";
+        $filename = "Daftar_Hadir_Murid_{$safeLabel}_".date('Ymd_His').'.doc';
 
         return response()->streamDownload(
-            fn () => print($html),
+            fn () => print ($html),
             $filename,
             [
                 'Content-Type' => 'application/msword',
@@ -281,6 +296,7 @@ class CetakAbsensi extends Component
 
         if ($siswas->isEmpty()) {
             session()->flash('error', 'Tidak ada data siswa yang sesuai dengan filter yang dipilih.');
+
             return null;
         }
 
@@ -288,27 +304,27 @@ class CetakAbsensi extends Component
         $tahunPelajaran = $this->tahunPelajaran ?: '2026-2027';
         $jumlahKolom = max(1, min(50, $this->jumlahKolom));
 
-        $school = \App\Modules\Sistem\Models\School::current();
+        $school = School::current();
 
-        $spreadsheet = new Spreadsheet();
+        $spreadsheet = new Spreadsheet;
         $sheet = $spreadsheet->getActiveSheet();
         $sheet->setTitle('Daftar Hadir');
 
         // Orientasi Kertas Portrait (sama seperti PDF)
-        $sheet->getPageSetup()->setOrientation(\PhpOffice\PhpSpreadsheet\Worksheet\PageSetup::ORIENTATION_PORTRAIT);
-        $sheet->getPageSetup()->setPaperSize(\PhpOffice\PhpSpreadsheet\Worksheet\PageSetup::PAPERSIZE_A4);
+        $sheet->getPageSetup()->setOrientation(PageSetup::ORIENTATION_PORTRAIT);
+        $sheet->getPageSetup()->setPaperSize(PageSetup::PAPERSIZE_A4);
 
         $lastColIndex = 6 + $jumlahKolom; // jumlah kolom
-        $lastColLetter = \PhpOffice\PhpSpreadsheet\Cell\Coordinate::stringFromColumnIndex($lastColIndex);
+        $lastColLetter = Coordinate::stringFromColumnIndex($lastColIndex);
 
         $startRow = 1;
 
         // Kop Surat Image
-        if (!empty($school->kop_surat_path) && file_exists(public_path('storage/' . $school->kop_surat_path))) {
-            $drawing = new \PhpOffice\PhpSpreadsheet\Worksheet\Drawing();
+        if (! empty($school->kop_surat_path) && file_exists(public_path('storage/'.$school->kop_surat_path))) {
+            $drawing = new Drawing;
             $drawing->setName('Kop Surat');
             $drawing->setDescription('Kop Surat');
-            $drawing->setPath(public_path('storage/' . $school->kop_surat_path));
+            $drawing->setPath(public_path('storage/'.$school->kop_surat_path));
             $drawing->setCoordinates('A1');
             $drawing->setHeight(80);
             $drawing->setWorksheet($sheet);
@@ -327,21 +343,21 @@ class CetakAbsensi extends Component
 
         // Header Dokumen
         $sheet->setCellValue("A{$startRow}", 'DAFTAR HADIR MURID');
-        $sheet->setCellValue("A" . ($startRow+1), 'SMKS WIKRAMA 1 GARUT');
-        $sheet->setCellValue("A" . ($startRow+2), 'TAHUN PELAJARAN ' . $tahunPelajaran);
+        $sheet->setCellValue('A'.($startRow + 1), 'SMKS WIKRAMA 1 GARUT');
+        $sheet->setCellValue('A'.($startRow + 2), 'TAHUN PELAJARAN '.$tahunPelajaran);
 
         $sheet->mergeCells("A{$startRow}:{$lastColLetter}{$startRow}");
-        $sheet->mergeCells("A" . ($startRow+1) . ":{$lastColLetter}" . ($startRow+1));
-        $sheet->mergeCells("A" . ($startRow+2) . ":{$lastColLetter}" . ($startRow+2));
+        $sheet->mergeCells('A'.($startRow + 1).":{$lastColLetter}".($startRow + 1));
+        $sheet->mergeCells('A'.($startRow + 2).":{$lastColLetter}".($startRow + 2));
 
-        $sheet->getStyle("A{$startRow}:A" . ($startRow+2))->getFont()->setBold(true)->setSize(11);
-        $sheet->getStyle("A{$startRow}:A" . ($startRow+2))->getAlignment()->setHorizontal(Alignment::HORIZONTAL_CENTER);
+        $sheet->getStyle("A{$startRow}:A".($startRow + 2))->getFont()->setBold(true)->setSize(11);
+        $sheet->getStyle("A{$startRow}:A".($startRow + 2))->getAlignment()->setHorizontal(Alignment::HORIZONTAL_CENTER);
 
         // Info Metadata (Times New Roman 11)
         $metaRow = $startRow + 4;
-        $sheet->setCellValue("A{$metaRow}", 'Kriteria / Kelas: ' . $filterLabel);
-        $sheet->setCellValue("F{$metaRow}", 'Mata Pelajaran: ' . ($this->mapel ?: '..........................................'));
-        
+        $sheet->setCellValue("A{$metaRow}", 'Kriteria / Kelas: '.$filterLabel);
+        $sheet->setCellValue("F{$metaRow}", 'Mata Pelajaran: '.($this->mapel ?: '..........................................'));
+
         $sheet->getStyle("A{$metaRow}:F{$metaRow}")->getFont()->setName('Times New Roman')->setSize(11);
 
         // Table Header
@@ -353,33 +369,33 @@ class CetakAbsensi extends Component
         $sheet->setCellValue("E{$tableStartRow}", 'Prog');
         $sheet->setCellValue("F{$tableStartRow}", 'Rayon');
 
-        $sheet->mergeCells("A{$tableStartRow}:A" . ($tableStartRow + 1));
-        $sheet->mergeCells("B{$tableStartRow}:B" . ($tableStartRow + 1));
-        $sheet->mergeCells("C{$tableStartRow}:C" . ($tableStartRow + 1));
-        $sheet->mergeCells("D{$tableStartRow}:D" . ($tableStartRow + 1));
-        $sheet->mergeCells("E{$tableStartRow}:E" . ($tableStartRow + 1));
-        $sheet->mergeCells("F{$tableStartRow}:F" . ($tableStartRow + 1));
+        $sheet->mergeCells("A{$tableStartRow}:A".($tableStartRow + 1));
+        $sheet->mergeCells("B{$tableStartRow}:B".($tableStartRow + 1));
+        $sheet->mergeCells("C{$tableStartRow}:C".($tableStartRow + 1));
+        $sheet->mergeCells("D{$tableStartRow}:D".($tableStartRow + 1));
+        $sheet->mergeCells("E{$tableStartRow}:E".($tableStartRow + 1));
+        $sheet->mergeCells("F{$tableStartRow}:F".($tableStartRow + 1));
 
         // Tanggal / Pertemuan Header
         $dayStartLetter = 'G';
-        $dayEndLetter = \PhpOffice\PhpSpreadsheet\Cell\Coordinate::stringFromColumnIndex(6 + $jumlahKolom);
+        $dayEndLetter = Coordinate::stringFromColumnIndex(6 + $jumlahKolom);
         $sheet->setCellValue("G{$tableStartRow}", '........................................................');
         $sheet->mergeCells("G{$tableStartRow}:{$dayEndLetter}{$tableStartRow}");
 
         for ($d = 1; $d <= $jumlahKolom; $d++) {
-            $colLetter = \PhpOffice\PhpSpreadsheet\Cell\Coordinate::stringFromColumnIndex(6 + $d);
-            $sheet->setCellValue("{$colLetter}" . ($tableStartRow + 1), '');
+            $colLetter = Coordinate::stringFromColumnIndex(6 + $d);
+            $sheet->setCellValue("{$colLetter}".($tableStartRow + 1), '');
             $sheet->getColumnDimension($colLetter)->setWidth(2.5); // Sangat sempit
         }
 
         // Header Styling
-        $headerRange = "A{$tableStartRow}:{$dayEndLetter}" . ($tableStartRow + 1);
+        $headerRange = "A{$tableStartRow}:{$dayEndLetter}".($tableStartRow + 1);
         $sheet->getStyle($headerRange)->getFont()->setBold(true)->setSize(9);
         $sheet->getStyle($headerRange)->getAlignment()->setHorizontal(Alignment::HORIZONTAL_CENTER)->setVertical(Alignment::VERTICAL_CENTER);
         $sheet->getStyle($headerRange)->getFill()->setFillType(Fill::FILL_SOLID)->getStartColor()->setARGB('FFF0F4F8');
 
         // Font Tahoma untuk kolom No, NIS, Nama, JK, Prog, Rayon
-        $sheet->getStyle("A{$tableStartRow}:F" . ($tableStartRow + 1))->getFont()->setName('Tahoma');
+        $sheet->getStyle("A{$tableStartRow}:F".($tableStartRow + 1))->getFont()->setName('Tahoma');
 
         // Column widths
         $sheet->getColumnDimension('A')->setWidth(4); // Lebar kolom No
@@ -413,31 +429,31 @@ class CetakAbsensi extends Component
         }
 
         // Apply grid borders
-        $tableRange = "A{$tableStartRow}:{$lastColLetter}" . ($currentRow - 1);
+        $tableRange = "A{$tableStartRow}:{$lastColLetter}".($currentRow - 1);
         $sheet->getStyle($tableRange)->getBorders()->getAllBorders()->setBorderStyle(Border::BORDER_THIN);
         $sheet->getStyle($tableRange)->getFont()->setSize(9);
 
         // Teks Jumlah Siswa (Kiri Bawah tabel) Times New Roman 11 (1 enter di atasnya karena $currentRow kosong)
-        $sheet->setCellValue("A" . ($currentRow + 1), "Jumlah: " . $siswas->count() . " Siswa (L: " . $siswas->where('jk', 'L')->count() . ", P: " . $siswas->where('jk', 'P')->count() . ")");
-        $sheet->setCellValue("A" . ($currentRow + 2), "* Program: U = Unggulan, R = Reguler");
-        $sheet->getStyle("A" . ($currentRow + 1))->getFont()->setName('Times New Roman')->setSize(11);
-        $sheet->getStyle("A" . ($currentRow + 2))->getFont()->setSize(9);
+        $sheet->setCellValue('A'.($currentRow + 1), 'Jumlah: '.$siswas->count().' Siswa (L: '.$siswas->where('jk', 'L')->count().', P: '.$siswas->where('jk', 'P')->count().')');
+        $sheet->setCellValue('A'.($currentRow + 2), '* Program: U = Unggulan, R = Reguler');
+        $sheet->getStyle('A'.($currentRow + 1))->getFont()->setName('Times New Roman')->setSize(11);
+        $sheet->getStyle('A'.($currentRow + 2))->getFont()->setSize(9);
 
         // Signature section (Kanan Bawah tabel) Times New Roman 11, jangan sejajar
-        $sigRow = $currentRow + 5; 
-        $sigColLetter = \PhpOffice\PhpSpreadsheet\Cell\Coordinate::stringFromColumnIndex(max(1, $lastColIndex - 8));
-        
-        $sheet->setCellValue("{$sigColLetter}{$sigRow}", 'Garut, ........................... (' . date('Y') . ')');
-        $sheet->setCellValue("{$sigColLetter}" . ($sigRow + 1), 'Guru Mata Pelajaran,');
-        $sheet->setCellValue("{$sigColLetter}" . ($sigRow + 4), $this->namaGuru ?: '( ................................................ )');
-        $sheet->setCellValue("{$sigColLetter}" . ($sigRow + 5), 'NIP. ' . ($this->nipGuru ?: '..........................................'));
-        
-        $sheet->getStyle("{$sigColLetter}{$sigRow}:{$sigColLetter}" . ($sigRow + 5))->getFont()->setName('Times New Roman')->setSize(11);
+        $sigRow = $currentRow + 5;
+        $sigColLetter = Coordinate::stringFromColumnIndex(max(1, $lastColIndex - 8));
+
+        $sheet->setCellValue("{$sigColLetter}{$sigRow}", 'Garut, ........................... ('.date('Y').')');
+        $sheet->setCellValue("{$sigColLetter}".($sigRow + 1), 'Guru Mata Pelajaran,');
+        $sheet->setCellValue("{$sigColLetter}".($sigRow + 4), $this->namaGuru ?: '( ................................................ )');
+        $sheet->setCellValue("{$sigColLetter}".($sigRow + 5), 'NIP. '.($this->nipGuru ?: '..........................................'));
+
+        $sheet->getStyle("{$sigColLetter}{$sigRow}:{$sigColLetter}".($sigRow + 5))->getFont()->setName('Times New Roman')->setSize(11);
         // Bold for signature name
-        $sheet->getStyle("{$sigColLetter}" . ($sigRow + 4))->getFont()->setBold(true);
+        $sheet->getStyle("{$sigColLetter}".($sigRow + 4))->getFont()->setBold(true);
 
         $safeLabel = Str::slug($filterLabel);
-        $filename = "Daftar_Hadir_Murid_{$safeLabel}_" . date('Ymd_His') . ".xlsx";
+        $filename = "Daftar_Hadir_Murid_{$safeLabel}_".date('Ymd_His').'.xlsx';
 
         return response()->streamDownload(function () use ($spreadsheet) {
             $writer = new Xlsx($spreadsheet);
@@ -456,6 +472,7 @@ class CetakAbsensi extends Component
 
         if (empty($groups)) {
             session()->flash('error', 'Tidak ada data siswa aktif yang dapat dicetak untuk kriteria massal ini.');
+
             return null;
         }
 
@@ -471,10 +488,10 @@ class CetakAbsensi extends Component
             'nipGuru' => $this->nipGuru,
         ])->setPaper('A4', 'portrait');
 
-        $filename = "{$prefixFilename}_" . date('Ymd_His') . ".pdf";
+        $filename = "{$prefixFilename}_".date('Ymd_His').'.pdf';
 
         return response()->streamDownload(
-            fn () => print($pdf->output()),
+            fn () => print ($pdf->output()),
             $filename
         );
     }

@@ -4,11 +4,11 @@ namespace Tests\Feature\AnalitikSpmb;
 
 use App\Models\User;
 use App\Modules\Akademik\Models\Rombel;
+use App\Modules\AnalitikSpmb\Livewire\AsalSmpIndex;
 use App\Modules\AnalitikSpmb\Livewire\MasterSmpIndex;
 use App\Modules\AnalitikSpmb\Livewire\PerbaikanSmpIndex;
 use App\Modules\AnalitikSpmb\Models\SpmbMasterSmp;
 use App\Modules\AnalitikSpmb\Models\SpmbSekolahAsal;
-use App\Modules\AnalitikSpmb\Services\SpmbMasterSmpImportService;
 use App\Modules\Kesiswaan\Models\Siswa;
 use Database\Seeders\AkademikInitialSeeder;
 use Database\Seeders\AnalitikSpmbPermissionSeeder;
@@ -180,7 +180,7 @@ class MasterSmpTest extends TestCase
             ->test(MasterSmpIndex::class)
             ->call('jadikanSekolahAsal', $master->id)
             ->assertHasNoErrors()
-            ->assertSee("SMP NEGERI 50 KOTA BEKASI");
+            ->assertSee('SMP NEGERI 50 KOTA BEKASI');
 
         $this->assertDatabaseHas('spmb_sekolah_asals', [
             'master_smp_id' => $master->id,
@@ -345,7 +345,7 @@ class MasterSmpTest extends TestCase
 
         // 5. Jalankan tombol sync di AsalSmpIndex
         Livewire::actingAs($this->admin)
-            ->test(\App\Modules\AnalitikSpmb\Livewire\AsalSmpIndex::class)
+            ->test(AsalSmpIndex::class)
             ->call('syncWithMasterSmp')
             ->assertHasNoErrors()
             ->assertSee('Sinkronisasi Master SMP selesai!');

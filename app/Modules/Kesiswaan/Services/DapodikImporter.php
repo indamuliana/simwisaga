@@ -8,6 +8,7 @@ use App\Modules\Akademik\Models\Rayon;
 use App\Modules\Akademik\Models\Rombel;
 use App\Modules\Akademik\Models\TahunAjaran;
 use App\Modules\Akademik\Support\AcademicContext;
+use App\Modules\Kesiswaan\Models\Program;
 use App\Modules\Kesiswaan\Models\RayonSiswa;
 use App\Modules\Kesiswaan\Models\RombelSiswa;
 use App\Modules\Kesiswaan\Models\Siswa;
@@ -23,6 +24,7 @@ use PhpOffice\PhpSpreadsheet\Shared\Date as ExcelDate;
 class DapodikImporter
 {
     protected array $jurusansCache = [];
+
     protected ?TahunAjaran $tahunAjaran = null;
 
     public function __construct(?TahunAjaran $ta = null)
@@ -73,31 +75,32 @@ class DapodikImporter
 
         for ($i = 1; $i <= $highestColIndex; $i++) {
             $colLetter = Coordinate::stringFromColumnIndex($i);
-            $h1 = strtoupper(trim((string) $sheet->getCell($colLetter . '1')->getValue()));
-            $h2 = strtoupper(trim((string) $sheet->getCell($colLetter . '2')->getValue()));
+            $h1 = strtoupper(trim((string) $sheet->getCell($colLetter.'1')->getValue()));
+            $h2 = strtoupper(trim((string) $sheet->getCell($colLetter.'2')->getValue()));
 
-            if (!$colRombel && (str_contains($h1, 'ROMBEL') || str_contains($h2, 'ROMBEL'))) {
+            if (! $colRombel && (str_contains($h1, 'ROMBEL') || str_contains($h2, 'ROMBEL'))) {
                 $colRombel = $colLetter;
             }
-            if (!$colRayon && (str_contains($h1, 'RAYON') || str_contains($h2, 'RAYON'))) {
+            if (! $colRayon && (str_contains($h1, 'RAYON') || str_contains($h2, 'RAYON'))) {
                 $colRayon = $colLetter;
             }
         }
 
         // Fallback default kolom AQ untuk Rombel jika tidak terdeteksi via nama header
-        if (!$colRombel && $highestColIndex >= 43) {
+        if (! $colRombel && $highestColIndex >= 43) {
             $colRombel = 'AQ';
         }
 
         for ($r = 3; $r <= $highestRow; $r++) {
-            $nama = trim((string) $sheet->getCell('B' . $r)->getValue());
+            $nama = trim((string) $sheet->getCell('B'.$r)->getValue());
             if ($nama === '') {
                 continue; // Lewati baris kosong
             }
 
-            $nisn = trim((string) $sheet->getCell('E' . $r)->getValue());
+            $nisn = trim((string) $sheet->getCell('E'.$r)->getValue());
             if ($nisn === '') {
                 $errors[] = ['baris' => $r, 'nama' => $nama, 'pesan' => 'NISN tidak boleh kosong.'];
+
                 continue;
             }
 
@@ -107,69 +110,69 @@ class DapodikImporter
 
             try {
                 DB::transaction(function () use ($sheet, $r, $nama, $nisn, $colRombel, $colRayon, &$imported, &$updated, &$hashCache) {
-                    $nipd = trim((string) $sheet->getCell('C' . $r)->getValue());
-                    $jk = strtoupper(trim((string) $sheet->getCell('D' . $r)->getValue())) === 'P' ? 'P' : 'L';
-                    $tempatLahir = trim((string) $sheet->getCell('F' . $r)->getValue());
+                    $nipd = trim((string) $sheet->getCell('C'.$r)->getValue());
+                    $jk = strtoupper(trim((string) $sheet->getCell('D'.$r)->getValue())) === 'P' ? 'P' : 'L';
+                    $tempatLahir = trim((string) $sheet->getCell('F'.$r)->getValue());
 
                     // Tanggal Lahir
-                    $rawTgl = $sheet->getCell('G' . $r)->getValue();
+                    $rawTgl = $sheet->getCell('G'.$r)->getValue();
                     $tglLahir = $this->parseDate($rawTgl);
 
-                    $nik = trim((string) $sheet->getCell('H' . $r)->getValue());
-                    $agama = trim((string) $sheet->getCell('I' . $r)->getValue());
-                    $alamat = trim((string) $sheet->getCell('J' . $r)->getValue());
-                    $rt = trim((string) $sheet->getCell('K' . $r)->getValue());
-                    $rw = trim((string) $sheet->getCell('L' . $r)->getValue());
-                    $dusun = trim((string) $sheet->getCell('M' . $r)->getValue());
-                    $kelurahan = trim((string) $sheet->getCell('N' . $r)->getValue());
-                    $kecamatan = trim((string) $sheet->getCell('O' . $r)->getValue());
-                    $kodePos = trim((string) $sheet->getCell('P' . $r)->getValue());
-                    $jenisTinggal = trim((string) $sheet->getCell('Q' . $r)->getValue());
-                    $alatTransportasi = trim((string) $sheet->getCell('R' . $r)->getValue());
-                    $telepon = trim((string) $sheet->getCell('S' . $r)->getValue());
-                    $hp = trim((string) $sheet->getCell('T' . $r)->getValue());
-                    $email = trim((string) $sheet->getCell('U' . $r)->getValue());
-                    $skhun = trim((string) $sheet->getCell('V' . $r)->getValue());
-                    $penerimaKps = strtolower(trim((string) $sheet->getCell('W' . $r)->getValue())) === 'ya';
-                    $noKps = trim((string) $sheet->getCell('X' . $r)->getValue());
+                    $nik = trim((string) $sheet->getCell('H'.$r)->getValue());
+                    $agama = trim((string) $sheet->getCell('I'.$r)->getValue());
+                    $alamat = trim((string) $sheet->getCell('J'.$r)->getValue());
+                    $rt = trim((string) $sheet->getCell('K'.$r)->getValue());
+                    $rw = trim((string) $sheet->getCell('L'.$r)->getValue());
+                    $dusun = trim((string) $sheet->getCell('M'.$r)->getValue());
+                    $kelurahan = trim((string) $sheet->getCell('N'.$r)->getValue());
+                    $kecamatan = trim((string) $sheet->getCell('O'.$r)->getValue());
+                    $kodePos = trim((string) $sheet->getCell('P'.$r)->getValue());
+                    $jenisTinggal = trim((string) $sheet->getCell('Q'.$r)->getValue());
+                    $alatTransportasi = trim((string) $sheet->getCell('R'.$r)->getValue());
+                    $telepon = trim((string) $sheet->getCell('S'.$r)->getValue());
+                    $hp = trim((string) $sheet->getCell('T'.$r)->getValue());
+                    $email = trim((string) $sheet->getCell('U'.$r)->getValue());
+                    $skhun = trim((string) $sheet->getCell('V'.$r)->getValue());
+                    $penerimaKps = strtolower(trim((string) $sheet->getCell('W'.$r)->getValue())) === 'ya';
+                    $noKps = trim((string) $sheet->getCell('X'.$r)->getValue());
 
                     // Rombel Saat Ini (jika ada dan terisi)
-                    $rawRombel = $colRombel ? trim((string) $sheet->getCell($colRombel . $r)->getValue()) : '';
+                    $rawRombel = $colRombel ? trim((string) $sheet->getCell($colRombel.$r)->getValue()) : '';
                     $rombel = $rawRombel !== '' ? $this->resolveRombel($rawRombel) : null;
 
                     // Rayon (jika ada kolom Rayon di Excel)
                     $rayon = null;
                     if ($colRayon) {
-                        $rawRayon = trim((string) $sheet->getCell($colRayon . $r)->getValue());
+                        $rawRayon = trim((string) $sheet->getCell($colRayon.$r)->getValue());
                         if ($rawRayon !== '') {
                             $rayon = Rayon::firstOrCreate(['nama' => $rawRayon]);
                         }
                     }
 
                     // Dokumen & Bantuan
-                    $noPesertaUn = trim((string) $sheet->getCell('AR' . $r)->getValue());
-                    $noSeriIjazah = trim((string) $sheet->getCell('AS' . $r)->getValue());
-                    $penerimaKip = strtolower(trim((string) $sheet->getCell('AT' . $r)->getValue())) === 'ya';
-                    $nomorKip = trim((string) $sheet->getCell('AU' . $r)->getValue());
-                    $namaDiKip = trim((string) $sheet->getCell('AV' . $r)->getValue());
-                    $nomorKks = trim((string) $sheet->getCell('AW' . $r)->getValue());
-                    $noAktaLahir = trim((string) $sheet->getCell('AX' . $r)->getValue());
-                    $bank = trim((string) $sheet->getCell('AY' . $r)->getValue());
-                    $nomorRekeningBank = trim((string) $sheet->getCell('AZ' . $r)->getValue());
-                    $rekeningAtasNama = trim((string) $sheet->getCell('BA' . $r)->getValue());
-                    $layakPip = strtolower(trim((string) $sheet->getCell('BB' . $r)->getValue())) === 'ya';
-                    $alasanLayakPip = trim((string) $sheet->getCell('BC' . $r)->getValue());
-                    $kebutuhanKhusus = trim((string) $sheet->getCell('BD' . $r)->getValue());
-                    $sekolahAsal = trim((string) $sheet->getCell('BE' . $r)->getValue());
-                    $anakKe = is_numeric($sheet->getCell('BF' . $r)->getValue()) ? (int) $sheet->getCell('BF' . $r)->getValue() : null;
-                    $lintang = trim((string) $sheet->getCell('BG' . $r)->getValue());
-                    $bujur = trim((string) $sheet->getCell('BH' . $r)->getValue());
-                    $noKk = trim((string) $sheet->getCell('BI' . $r)->getValue());
-                    $bb = is_numeric($sheet->getCell('BJ' . $r)->getValue()) ? (int) $sheet->getCell('BJ' . $r)->getValue() : null;
-                    $tb = is_numeric($sheet->getCell('BK' . $r)->getValue()) ? (int) $sheet->getCell('BK' . $r)->getValue() : null;
-                    $lk = is_numeric($sheet->getCell('BL' . $r)->getValue()) ? (int) $sheet->getCell('BL' . $r)->getValue() : null;
-                    $jmlSaudara = is_numeric($sheet->getCell('BM' . $r)->getValue()) ? (int) $sheet->getCell('BM' . $r)->getValue() : null;
-                    $jarakKm = is_numeric($sheet->getCell('BN' . $r)->getValue()) ? (float) $sheet->getCell('BN' . $r)->getValue() : null;
+                    $noPesertaUn = trim((string) $sheet->getCell('AR'.$r)->getValue());
+                    $noSeriIjazah = trim((string) $sheet->getCell('AS'.$r)->getValue());
+                    $penerimaKip = strtolower(trim((string) $sheet->getCell('AT'.$r)->getValue())) === 'ya';
+                    $nomorKip = trim((string) $sheet->getCell('AU'.$r)->getValue());
+                    $namaDiKip = trim((string) $sheet->getCell('AV'.$r)->getValue());
+                    $nomorKks = trim((string) $sheet->getCell('AW'.$r)->getValue());
+                    $noAktaLahir = trim((string) $sheet->getCell('AX'.$r)->getValue());
+                    $bank = trim((string) $sheet->getCell('AY'.$r)->getValue());
+                    $nomorRekeningBank = trim((string) $sheet->getCell('AZ'.$r)->getValue());
+                    $rekeningAtasNama = trim((string) $sheet->getCell('BA'.$r)->getValue());
+                    $layakPip = strtolower(trim((string) $sheet->getCell('BB'.$r)->getValue())) === 'ya';
+                    $alasanLayakPip = trim((string) $sheet->getCell('BC'.$r)->getValue());
+                    $kebutuhanKhusus = trim((string) $sheet->getCell('BD'.$r)->getValue());
+                    $sekolahAsal = trim((string) $sheet->getCell('BE'.$r)->getValue());
+                    $anakKe = is_numeric($sheet->getCell('BF'.$r)->getValue()) ? (int) $sheet->getCell('BF'.$r)->getValue() : null;
+                    $lintang = trim((string) $sheet->getCell('BG'.$r)->getValue());
+                    $bujur = trim((string) $sheet->getCell('BH'.$r)->getValue());
+                    $noKk = trim((string) $sheet->getCell('BI'.$r)->getValue());
+                    $bb = is_numeric($sheet->getCell('BJ'.$r)->getValue()) ? (int) $sheet->getCell('BJ'.$r)->getValue() : null;
+                    $tb = is_numeric($sheet->getCell('BK'.$r)->getValue()) ? (int) $sheet->getCell('BK'.$r)->getValue() : null;
+                    $lk = is_numeric($sheet->getCell('BL'.$r)->getValue()) ? (int) $sheet->getCell('BL'.$r)->getValue() : null;
+                    $jmlSaudara = is_numeric($sheet->getCell('BM'.$r)->getValue()) ? (int) $sheet->getCell('BM'.$r)->getValue() : null;
+                    $jarakKm = is_numeric($sheet->getCell('BN'.$r)->getValue()) ? (float) $sheet->getCell('BN'.$r)->getValue() : null;
 
                     // Username Siswa: NIS (NIPD kolom C), jika kosong gunakan NISN
                     $usernameSiswa = $nipd ?: $nisn;
@@ -178,12 +181,12 @@ class DapodikImporter
                     $defaultPassword = $tglLahir ? Carbon::parse($tglLahir)->format('dmY') : $usernameSiswa;
 
                     // Program default: Reguler
-                    $programDefault = \App\Modules\Kesiswaan\Models\Program::where('kode', 'REG')->first();
+                    $programDefault = Program::where('kode', 'REG')->first();
 
                     // Buat Akun Siswa Otomatis
                     $userSiswa = User::where('username', $usernameSiswa)->first();
-                    if (!$userSiswa) {
-                        if (!isset($hashCache[$defaultPassword])) {
+                    if (! $userSiswa) {
+                        if (! isset($hashCache[$defaultPassword])) {
                             $hashCache[$defaultPassword] = Hash::make($defaultPassword);
                         }
                         $userSiswa = User::create([
@@ -195,27 +198,27 @@ class DapodikImporter
                             'must_change_password' => true,
                         ]);
                     }
-                    if (!$userSiswa->hasRole('Siswa')) {
+                    if (! $userSiswa->hasRole('Siswa')) {
                         $userSiswa->assignRole('Siswa');
                     }
 
                     // Buat Akun Orang Tua Otomatis: ortu_[NIS]
-                    $usernameOrtu = 'ortu_' . $usernameSiswa;
+                    $usernameOrtu = 'ortu_'.$usernameSiswa;
                     $userOrtu = User::where('username', $usernameOrtu)->first();
-                    if (!$userOrtu) {
-                        if (!isset($hashCache[$defaultPassword])) {
+                    if (! $userOrtu) {
+                        if (! isset($hashCache[$defaultPassword])) {
                             $hashCache[$defaultPassword] = Hash::make($defaultPassword);
                         }
                         $userOrtu = User::create([
                             'username' => $usernameOrtu,
-                            'name' => 'Orang Tua dari ' . $nama,
+                            'name' => 'Orang Tua dari '.$nama,
                             'email' => "{$usernameOrtu}@ortu.wikrama.sch.id",
                             'password' => $hashCache[$defaultPassword],
                             'is_active' => true,
                             'must_change_password' => false,
                         ]);
                     }
-                    if (!$userOrtu->hasRole('Orang Tua')) {
+                    if (! $userOrtu->hasRole('Orang Tua')) {
                         $userOrtu->assignRole('Orang Tua');
                     }
 
@@ -309,30 +312,30 @@ class DapodikImporter
 
                     // Simpan Data Orang Tua (Ayah, Ibu, Wali)
                     $this->saveOrangTua($siswa, 'ayah', [
-                        'nama' => trim((string) $sheet->getCell('Y' . $r)->getValue()),
-                        'tahun_lahir' => is_numeric($sheet->getCell('Z' . $r)->getValue()) ? (int) $sheet->getCell('Z' . $r)->getValue() : null,
-                        'jenjang_pendidikan' => trim((string) $sheet->getCell('AA' . $r)->getValue()) ?: null,
-                        'pekerjaan' => trim((string) $sheet->getCell('AB' . $r)->getValue()) ?: null,
-                        'penghasilan' => trim((string) $sheet->getCell('AC' . $r)->getValue()) ?: null,
-                        'nik' => trim((string) $sheet->getCell('AD' . $r)->getValue()) ?: null,
+                        'nama' => trim((string) $sheet->getCell('Y'.$r)->getValue()),
+                        'tahun_lahir' => is_numeric($sheet->getCell('Z'.$r)->getValue()) ? (int) $sheet->getCell('Z'.$r)->getValue() : null,
+                        'jenjang_pendidikan' => trim((string) $sheet->getCell('AA'.$r)->getValue()) ?: null,
+                        'pekerjaan' => trim((string) $sheet->getCell('AB'.$r)->getValue()) ?: null,
+                        'penghasilan' => trim((string) $sheet->getCell('AC'.$r)->getValue()) ?: null,
+                        'nik' => trim((string) $sheet->getCell('AD'.$r)->getValue()) ?: null,
                     ]);
 
                     $this->saveOrangTua($siswa, 'ibu', [
-                        'nama' => trim((string) $sheet->getCell('AE' . $r)->getValue()),
-                        'tahun_lahir' => is_numeric($sheet->getCell('AF' . $r)->getValue()) ? (int) $sheet->getCell('AF' . $r)->getValue() : null,
-                        'jenjang_pendidikan' => trim((string) $sheet->getCell('AG' . $r)->getValue()) ?: null,
-                        'pekerjaan' => trim((string) $sheet->getCell('AH' . $r)->getValue()) ?: null,
-                        'penghasilan' => trim((string) $sheet->getCell('AI' . $r)->getValue()) ?: null,
-                        'nik' => trim((string) $sheet->getCell('AJ' . $r)->getValue()) ?: null,
+                        'nama' => trim((string) $sheet->getCell('AE'.$r)->getValue()),
+                        'tahun_lahir' => is_numeric($sheet->getCell('AF'.$r)->getValue()) ? (int) $sheet->getCell('AF'.$r)->getValue() : null,
+                        'jenjang_pendidikan' => trim((string) $sheet->getCell('AG'.$r)->getValue()) ?: null,
+                        'pekerjaan' => trim((string) $sheet->getCell('AH'.$r)->getValue()) ?: null,
+                        'penghasilan' => trim((string) $sheet->getCell('AI'.$r)->getValue()) ?: null,
+                        'nik' => trim((string) $sheet->getCell('AJ'.$r)->getValue()) ?: null,
                     ]);
 
                     $this->saveOrangTua($siswa, 'wali', [
-                        'nama' => trim((string) $sheet->getCell('AK' . $r)->getValue()),
-                        'tahun_lahir' => is_numeric($sheet->getCell('AL' . $r)->getValue()) ? (int) $sheet->getCell('AL' . $r)->getValue() : null,
-                        'jenjang_pendidikan' => trim((string) $sheet->getCell('AM' . $r)->getValue()) ?: null,
-                        'pekerjaan' => trim((string) $sheet->getCell('AN' . $r)->getValue()) ?: null,
-                        'penghasilan' => trim((string) $sheet->getCell('AO' . $r)->getValue()) ?: null,
-                        'nik' => trim((string) $sheet->getCell('AP' . $r)->getValue()) ?: null,
+                        'nama' => trim((string) $sheet->getCell('AK'.$r)->getValue()),
+                        'tahun_lahir' => is_numeric($sheet->getCell('AL'.$r)->getValue()) ? (int) $sheet->getCell('AL'.$r)->getValue() : null,
+                        'jenjang_pendidikan' => trim((string) $sheet->getCell('AM'.$r)->getValue()) ?: null,
+                        'pekerjaan' => trim((string) $sheet->getCell('AN'.$r)->getValue()) ?: null,
+                        'penghasilan' => trim((string) $sheet->getCell('AO'.$r)->getValue()) ?: null,
+                        'nik' => trim((string) $sheet->getCell('AP'.$r)->getValue()) ?: null,
                     ]);
                 });
             } catch (\Throwable $e) {
@@ -379,7 +382,7 @@ class DapodikImporter
             }
         }
 
-        if (!$tingkat || !$kodeJurusan) {
+        if (! $tingkat || ! $kodeJurusan) {
             if ($this->tahunAjaran) {
                 $exact = Rombel::where('tahun_ajaran_id', $this->tahunAjaran->id)
                     ->where('nama', trim($raw))
@@ -388,11 +391,12 @@ class DapodikImporter
                     return $exact;
                 }
             }
+
             return null;
         }
 
         $jurusan = Jurusan::where('kode', $kodeJurusan)->first();
-        if (!$jurusan || !$this->tahunAjaran) {
+        if (! $jurusan || ! $this->tahunAjaran) {
             return null;
         }
 
@@ -485,7 +489,7 @@ class DapodikImporter
 
         $countUsers = count($siswaUserIds);
 
-        if (!empty($siswaUserIds)) {
+        if (! empty($siswaUserIds)) {
             DB::table('model_has_roles')
                 ->where('model_type', User::class)
                 ->whereIn('model_id', $siswaUserIds)

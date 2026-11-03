@@ -54,10 +54,11 @@ class ImportDapodikCommand extends Command
             }
         }
 
-        if (!$filePath || !file_exists($filePath)) {
+        if (! $filePath || ! file_exists($filePath)) {
             $this->error('File Excel DAPODIK tidak ditemukan.');
             $this->line('Silakan letakkan file di: database/seeders/data/dapodik.xlsx');
             $this->line('Atau berikan path file: php artisan siswa:import-dapodik "path/ke/file.xlsx"');
+
             return Command::FAILURE;
         }
 
@@ -82,9 +83,9 @@ class ImportDapodikCommand extends Command
             $totalRows = 0;
         }
 
-        $this->info("Memulai proses impor...");
+        $this->info('Memulai proses impor...');
         $bar = $this->output->createProgressBar(max(1, $totalRows));
-        $bar->setFormat(" %current%/%max% [%bar%] %percent:3s%% -- %message%");
+        $bar->setFormat(' %current%/%max% [%bar%] %percent:3s%% -- %message%');
         $bar->setMessage('Memulai...');
         $bar->start();
 
@@ -109,7 +110,7 @@ class ImportDapodikCommand extends Command
         );
 
         // 6. Tampilkan Rincian Error jika ada
-        if (!empty($result['errors'])) {
+        if (! empty($result['errors'])) {
             $this->warn('Rincian Baris Gagal:');
             $rowsError = array_map(function ($err) {
                 return [
@@ -122,11 +123,12 @@ class ImportDapodikCommand extends Command
             $this->table(['Baris', 'Nama', 'Keterangan Error'], $rowsError);
 
             if (count($result['errors']) > 20) {
-                $this->line('... dan ' . (count($result['errors']) - 20) . ' kesalahan lainnya.');
+                $this->line('... dan '.(count($result['errors']) - 20).' kesalahan lainnya.');
             }
         }
 
         $this->info('✓ Proses import selesai dengan sukses!');
+
         return Command::SUCCESS;
     }
 }

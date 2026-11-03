@@ -760,11 +760,12 @@
                                 <thead class="bg-surface-subtle text-text-muted uppercase font-semibold border-b border-border">
                                     <tr>
                                         <th class="py-2 px-2 text-center w-8">No</th>
-                                        <th class="py-2 px-3">Nama Siswa / NISN</th>
+                                        <th class="py-2 px-3">Nama Siswa / Alamat</th>
                                         <th class="py-2 px-2 text-center">JK</th>
                                         <th class="py-2 px-2 text-center">Rombel</th>
                                         <th class="py-2 px-2 text-center">Jurusan</th>
                                         <th class="py-2 px-3">Sekolah Asal</th>
+                                        <th class="py-2 px-2 text-center w-20">Aksi</th>
                                     </tr>
                                 </thead>
                                 <tbody class="divide-y divide-border text-text-main">
@@ -776,11 +777,28 @@
                                                 <div class="text-[10px] text-text-muted font-mono">
                                                     NISN: {{ $ds->nisn ?: '-' }} &bull; NIS: {{ $ds->nipd ?: '-' }}
                                                 </div>
-                                                @if ($ds->alamat)
-                                                    <div class="text-[10px] text-text-secondary truncate max-w-xs mt-0.5">
-                                                        📍 {{ $ds->alamat }}
+                                                <div class="text-[10px] text-text-secondary mt-1 bg-surface-subtle p-1.5 rounded border border-border/60 space-y-0.5">
+                                                    <div class="font-medium text-text-main">
+                                                        📍 {{ $ds->alamat ?: '[Alamat jalan/kp belum diisi]' }}
                                                     </div>
-                                                @endif
+                                                    <div class="text-text-muted flex flex-wrap gap-x-2">
+                                                        @if($ds->rt || $ds->rw)
+                                                            <span>RT {{ $ds->rt ?: '-' }}/RW {{ $ds->rw ?: '-' }}</span>
+                                                        @endif
+                                                        @if($ds->kelurahan)
+                                                            <span>Desa/Kel. {{ $ds->kelurahan }}</span>
+                                                        @endif
+                                                        @if($ds->kecamatan)
+                                                            <span>Kec. {{ $ds->kecamatan }}</span>
+                                                        @endif
+                                                        @if($ds->kabupaten_kota)
+                                                            <span>{{ $ds->kabupaten_kota }}</span>
+                                                        @endif
+                                                        @if($ds->kode_pos)
+                                                            <span>Pos: {{ $ds->kode_pos }}</span>
+                                                        @endif
+                                                    </div>
+                                                </div>
                                             </td>
                                             <td class="py-2 px-2 text-center">
                                                 <span class="px-1.5 py-0.5 rounded text-[10px] font-bold {{ $ds->jk === 'L' ? 'bg-blue-50 text-blue-700 dark:bg-blue-950 dark:text-blue-300' : 'bg-rose-50 text-rose-700 dark:bg-rose-950 dark:text-rose-300' }}">
@@ -800,10 +818,20 @@
                                                     {{ $ds->sekolah_asal ?: '-' }}
                                                 </div>
                                             </td>
+                                            <td class="py-2 px-2 text-center">
+                                                @can('analitik_spmb.wilayah.kelola')
+                                                    <button type="button" wire:click="openEditAddress({{ $ds->id }})" class="btn btn-secondary !py-1 !px-2 !text-[11px] gap-1 shadow-2xs hover:border-primary hover:text-primary whitespace-nowrap" title="Edit Alamat Siswa">
+                                                        <svg xmlns="http://www.w3.org/2000/svg" class="h-3 w-3" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                                                            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M15.232 5.232l3.536 3.536m-2.036-5.036a2.5 2.5 0 113.536 3.536L6.5 21.036H3v-3.572L16.732 3.732z" />
+                                                        </svg>
+                                                        <span>Edit</span>
+                                                    </button>
+                                                @endcan
+                                            </td>
                                         </tr>
                                     @empty
                                         <tr>
-                                            <td colspan="6" class="py-8 text-center text-text-muted text-xs">
+                                            <td colspan="7" class="py-8 text-center text-text-muted text-xs">
                                                 Tidak ada data siswa yang cocok dengan kriteria pencarian di wilayah ini.
                                             </td>
                                         </tr>
@@ -872,27 +900,55 @@
                                 @error('editNegara') <span class="text-rose-500 text-[11px]">{{ $message }}</span> @enderror
                             </div>
 
-                            {{-- Input Provinsi --}}
+                            {{-- Input Provinsi (Cascading Hybrid) --}}
                             <div>
-                                <label class="block text-xs font-semibold text-text-main mb-1">Provinsi <span class="text-rose-500">*</span></label>
-                                <input type="text" wire:model="editProvinsi" placeholder="Contoh: Jawa Barat atau Sabah" class="w-full text-xs py-2 px-3 rounded-lg border border-border bg-surface-subtle text-text-main focus:ring-1 focus:ring-primary">
+                                <div class="flex items-center justify-between mb-1">
+                                    <label class="block text-xs font-semibold text-text-main">
+                                        Provinsi <span class="text-rose-500">*</span>
+                                    </label>
+                                    <button type="button" wire:click="$toggle('isManualEditProvinsi')" class="text-[10px] font-medium text-primary hover:underline">
+                                        {{ $isManualEditProvinsi ? '📋 Pilih Daftar' : '✏️ Ketik Manual' }}
+                                    </button>
+                                </div>
+                                @if ($isManualEditProvinsi)
+                                    <input type="text" wire:model.live="editProvinsi" placeholder="Contoh: Jawa Barat atau Sabah" class="w-full text-xs py-2 px-3 rounded-lg border border-border bg-surface-subtle text-text-main focus:ring-1 focus:ring-primary">
+                                @else
+                                    <select wire:model.live="editProvinsi" class="w-full text-xs py-2 px-3 rounded-lg border border-border bg-surface text-text-main focus:ring-1 focus:ring-primary">
+                                        <option value="">-- Pilih Provinsi --</option>
+                                        @if ($editProvinsi && !in_array($editProvinsi, $groupProvinceList))
+                                            <option value="{{ $editProvinsi }}">{{ $editProvinsi }} (Nilai Saat Ini)</option>
+                                        @endif
+                                        @foreach ($groupProvinceList as $prov)
+                                            <option value="{{ $prov }}">{{ $prov }}</option>
+                                        @endforeach
+                                    </select>
+                                @endif
                                 @error('editProvinsi') <span class="text-rose-500 text-[11px]">{{ $message }}</span> @enderror
                             </div>
 
-                            {{-- Input Kabupaten / Kota --}}
+                            {{-- Input Kabupaten / Kota (Cascading Hybrid) --}}
                             <div>
-                                <label class="block text-xs font-semibold text-text-main mb-1">Kabupaten / Kota <span class="text-rose-500">*</span></label>
-                                <input type="text" wire:model="editKabupaten" list="kabupatenList" placeholder="Contoh: Kab. Garut, Kota Bogor, atau Tawau" class="w-full text-xs py-2 px-3 rounded-lg border border-border bg-surface-subtle text-text-main focus:ring-1 focus:ring-primary">
-                                <datalist id="kabupatenList">
-                                    @foreach ($kabupatenMasterList as $km)
-                                        <option value="{{ $km }}"></option>
-                                    @endforeach
-                                    <option value="Tawau"></option>
-                                    <option value="Sandakan"></option>
-                                    <option value="Kota Kinabalu"></option>
-                                    <option value="Beaufort"></option>
-                                    <option value="Lahad Datu"></option>
-                                </datalist>
+                                <div class="flex items-center justify-between mb-1">
+                                    <label class="block text-xs font-semibold text-text-main">
+                                        Kabupaten / Kota <span class="text-rose-500">*</span>
+                                    </label>
+                                    <button type="button" wire:click="$toggle('isManualEditKabupaten')" class="text-[10px] font-medium text-primary hover:underline">
+                                        {{ $isManualEditKabupaten ? '📋 Pilih Daftar' : '✏️ Ketik Manual' }}
+                                    </button>
+                                </div>
+                                @if ($isManualEditKabupaten)
+                                    <input type="text" wire:model.live="editKabupaten" placeholder="Contoh: Kab. Garut, Kota Bogor, atau Tawau" class="w-full text-xs py-2 px-3 rounded-lg border border-border bg-surface-subtle text-text-main focus:ring-1 focus:ring-primary">
+                                @else
+                                    <select wire:model.live="editKabupaten" class="w-full text-xs py-2 px-3 rounded-lg border border-border bg-surface text-text-main focus:ring-1 focus:ring-primary">
+                                        <option value="">-- Pilih Kabupaten / Kota --</option>
+                                        @if ($editKabupaten && !in_array($editKabupaten, $groupKabupatenList))
+                                            <option value="{{ $editKabupaten }}">{{ $editKabupaten }} (Nilai Saat Ini)</option>
+                                        @endif
+                                        @foreach ($groupKabupatenList as $kab)
+                                            <option value="{{ $kab }}">{{ $kab }}</option>
+                                        @endforeach
+                                    </select>
+                                @endif
                                 @error('editKabupaten') <span class="text-rose-500 text-[11px]">{{ $message }}</span> @enderror
 
                                 {{-- Opsi Pill Buttons Cepat --}}
@@ -922,11 +978,30 @@
                                 @endif
                             </div>
 
-                            {{-- Input Kecamatan Standar --}}
+                            {{-- Input Kecamatan Standar (Cascading Hybrid) --}}
                             <div>
-                                <label class="block text-xs font-semibold text-text-main mb-1">Nama Kecamatan Bersih</label>
-                                <input type="text" wire:model="editKecamatan" placeholder="Contoh: Tarogong Kaler (tanpa 'Kec.')" class="w-full text-xs py-2 px-3 rounded-lg border border-border bg-surface-subtle text-text-main focus:ring-1 focus:ring-primary">
-                                <p class="text-[11px] text-text-muted mt-1">Sistem akan otomatis menghapus awalan 'Kec.'</p>
+                                <div class="flex items-center justify-between mb-1">
+                                    <label class="block text-xs font-semibold text-text-main">
+                                        Nama Kecamatan Bersih
+                                    </label>
+                                    <button type="button" wire:click="$toggle('isManualEditKecamatan')" class="text-[10px] font-medium text-primary hover:underline">
+                                        {{ $isManualEditKecamatan ? '📋 Pilih Daftar' : '✏️ Ketik Manual' }}
+                                    </button>
+                                </div>
+                                @if ($isManualEditKecamatan || empty($groupKecamatanList))
+                                    <input type="text" wire:model.live.debounce.300ms="editKecamatan" placeholder="Contoh: Tarogong Kaler (tanpa 'Kec.')" class="w-full text-xs py-2 px-3 rounded-lg border border-border bg-surface-subtle text-text-main focus:ring-1 focus:ring-primary">
+                                @else
+                                    <select wire:model.live="editKecamatan" class="w-full text-xs py-2 px-3 rounded-lg border border-border bg-surface text-text-main focus:ring-1 focus:ring-primary">
+                                        <option value="">-- Pilih Kecamatan --</option>
+                                        @if ($editKecamatan && !in_array($editKecamatan, $groupKecamatanList))
+                                            <option value="{{ $editKecamatan }}">{{ $editKecamatan }} (Nilai Saat Ini)</option>
+                                        @endif
+                                        @foreach ($groupKecamatanList as $kec)
+                                            <option value="{{ $kec }}">{{ $kec }}</option>
+                                        @endforeach
+                                    </select>
+                                @endif
+                                <p class="text-[11px] text-text-muted mt-1">Sistem otomatis menghapus awalan 'Kec.'</p>
                                 @error('editKecamatan') <span class="text-rose-500 text-[11px]">{{ $message }}</span> @enderror
                             </div>
                         </div>
@@ -943,6 +1018,253 @@
                                     <span>Menyimpan...</span>
                                 </span>
                             </button>
+                        </div>
+                    </form>
+                </div>
+            </div>
+        </div>
+    @endif
+
+    {{-- MODAL EDIT ALAMAT SISWA PERORANGAN (DARI DRAWER) --}}
+    @if ($showEditAddressModal && $editingAddressSiswa)
+        <div class="fixed inset-0 z-50 overflow-y-auto" aria-labelledby="modal-address-title" role="dialog" aria-modal="true">
+            {{-- Backdrop --}}
+            <div class="fixed inset-0 bg-slate-900/60 backdrop-blur-xs transition-opacity z-10 cursor-pointer" wire:click="closeEditAddressModal"></div>
+
+            <div class="flex min-h-full items-center justify-center p-4 text-center sm:p-0 relative z-20 pointer-events-none">
+                <div class="w-full max-w-xl bg-surface rounded-2xl border border-border shadow-2xl overflow-hidden pointer-events-auto text-left transition-all my-8 animate-in fade-in zoom-in-95 duration-150">
+                    {{-- Modal Header --}}
+                    <div class="p-4 sm:p-5 border-b border-border bg-surface-subtle flex items-start justify-between gap-3">
+                        <div class="min-w-0">
+                            <div class="flex items-center gap-2">
+                                <span class="px-2 py-0.5 rounded text-[11px] font-semibold bg-primary/10 text-primary uppercase font-mono">
+                                    Edit Alamat Siswa
+                                </span>
+                                @if(!empty($drawerSiswaIds))
+                                    <span class="text-xs text-text-muted font-mono">
+                                        ({{ $editingAddressIndex }} dari {{ count($drawerSiswaIds) }})
+                                    </span>
+                                @endif
+                            </div>
+                            <h3 class="text-base sm:text-lg font-bold text-text-main mt-1 truncate" id="modal-address-title">
+                                {{ $editingAddressSiswa->nama }}
+                            </h3>
+                            <div class="text-xs text-text-muted mt-0.5 flex flex-wrap gap-x-2">
+                                <span>NISN: <strong>{{ $editingAddressSiswa->nisn ?: '-' }}</strong></span>
+                                <span>&bull;</span>
+                                <span>Rombel: <strong>{{ $editingAddressSiswa->rombel?->nama ?: '-' }}</strong></span>
+                                <span>&bull;</span>
+                                <span>Asal: <strong>{{ $editingAddressSiswa->sekolah_asal ?: '-' }}</strong></span>
+                            </div>
+                        </div>
+
+                        {{-- Navigasi Sebelumnya / Berikutnya & Tombol Close --}}
+                        <div class="flex items-center gap-1.5 shrink-0">
+                            @if(count($drawerSiswaIds) > 1)
+                                <button type="button" wire:click="navigateStudentAddress(-1)" class="p-1.5 rounded-lg border border-border bg-surface hover:bg-surface-hover text-text-secondary hover:text-text-main" title="Siswa Sebelumnya">
+                                    <svg xmlns="http://www.w3.org/2000/svg" class="h-4 w-4" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                                        <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M15 19l-7-7 7-7" />
+                                    </svg>
+                                </button>
+                                <button type="button" wire:click="navigateStudentAddress(1)" class="p-1.5 rounded-lg border border-border bg-surface hover:bg-surface-hover text-text-secondary hover:text-text-main" title="Siswa Berikutnya">
+                                    <svg xmlns="http://www.w3.org/2000/svg" class="h-4 w-4" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                                        <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9 5l7 7-7 7" />
+                                    </svg>
+                                </button>
+                            @endif
+                            <button type="button" wire:click="closeEditAddressModal" class="p-1.5 rounded-lg border border-border bg-surface hover:bg-surface-hover text-text-muted hover:text-text-main ml-1">
+                                <svg xmlns="http://www.w3.org/2000/svg" class="h-4 w-4" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                                    <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M6 18L18 6M6 6l12 12" />
+                                </svg>
+                            </button>
+                        </div>
+                    </div>
+
+                    {{-- Form Body --}}
+                    <form wire:submit="saveStudentAddress(false)" class="p-4 sm:p-5 space-y-4 max-h-[72vh] overflow-y-auto">
+                        {{-- Quick Action: Salin Wilayah Saat Ini --}}
+                        <div class="p-3 rounded-xl bg-primary/5 border border-primary/20 flex flex-col sm:flex-row sm:items-center justify-between gap-2.5">
+                            <div class="text-xs">
+                                <span class="font-bold text-text-main">Wilayah Drawer:</span>
+                                <span class="text-primary font-medium">{!! $drawerWilayahTitle !!}</span>
+                            </div>
+                            <button type="button" wire:click="copyDrawerWilayahToAddress" class="btn btn-secondary !py-1 !px-2.5 !text-xs gap-1.5 text-primary border-primary/30 hover:bg-primary hover:text-white shrink-0 shadow-2xs">
+                                <span>⚡</span>
+                                <span>Salin ke Form Ini</span>
+                            </button>
+                        </div>
+
+                        {{-- Input Alamat Jalan / Kp --}}
+                        <div>
+                            <label class="block text-xs font-semibold text-text-main mb-1">
+                                Alamat Jalan / Kampung / Dusun / No. Rumah
+                            </label>
+                            <textarea wire:model="editAddressAlamat" rows="2" placeholder="Contoh: Jl. Merdeka No. 45 / Kp. Babakan Sukamaju" class="w-full text-xs py-2 px-3 rounded-lg border border-border bg-surface-subtle text-text-main focus:ring-1 focus:ring-primary"></textarea>
+                            @error('editAddressAlamat') <span class="text-rose-500 text-[11px]">{{ $message }}</span> @enderror
+                        </div>
+
+                        {{-- RT, RW & Dusun --}}
+                        <div class="grid grid-cols-1 sm:grid-cols-3 gap-3">
+                            <div>
+                                <label class="block text-xs font-semibold text-text-main mb-1">RT</label>
+                                <input type="text" wire:model="editAddressRt" placeholder="Contoh: 01" class="w-full text-xs py-2 px-3 rounded-lg border border-border bg-surface-subtle text-text-main focus:ring-1 focus:ring-primary">
+                                @error('editAddressRt') <span class="text-rose-500 text-[11px]">{{ $message }}</span> @enderror
+                            </div>
+                            <div>
+                                <label class="block text-xs font-semibold text-text-main mb-1">RW</label>
+                                <input type="text" wire:model="editAddressRw" placeholder="Contoh: 03" class="w-full text-xs py-2 px-3 rounded-lg border border-border bg-surface-subtle text-text-main focus:ring-1 focus:ring-primary">
+                                @error('editAddressRw') <span class="text-rose-500 text-[11px]">{{ $message }}</span> @enderror
+                            </div>
+                            <div>
+                                <label class="block text-xs font-semibold text-text-main mb-1">Dusun / Lingkungan</label>
+                                <input type="text" wire:model="editAddressDusun" placeholder="Contoh: Dusun Cikole" class="w-full text-xs py-2 px-3 rounded-lg border border-border bg-surface-subtle text-text-main focus:ring-1 focus:ring-primary">
+                                @error('editAddressDusun') <span class="text-rose-500 text-[11px]">{{ $message }}</span> @enderror
+                            </div>
+                        </div>
+
+                        {{-- Provinsi & Kabupaten/Kota (Cascading Hybrid) --}}
+                        <div class="grid grid-cols-1 sm:grid-cols-2 gap-3">
+                            {{-- Provinsi --}}
+                            <div>
+                                <div class="flex items-center justify-between mb-1">
+                                    <label class="block text-xs font-semibold text-text-main">
+                                        Provinsi <span class="text-rose-500">*</span>
+                                    </label>
+                                    <button type="button" wire:click="$toggle('isManualAddressProvinsi')" class="text-[10px] font-medium text-primary hover:underline">
+                                        {{ $isManualAddressProvinsi ? '📋 Pilih Daftar' : '✏️ Ketik Manual' }}
+                                    </button>
+                                </div>
+                                @if ($isManualAddressProvinsi)
+                                    <input type="text" wire:model.live="editAddressProvinsi" placeholder="Contoh: Jawa Barat" class="w-full text-xs py-2 px-3 rounded-lg border border-border bg-surface-subtle text-text-main focus:ring-1 focus:ring-primary">
+                                @else
+                                    <select wire:model.live="editAddressProvinsi" class="w-full text-xs py-2 px-3 rounded-lg border border-border bg-surface text-text-main focus:ring-1 focus:ring-primary">
+                                        <option value="">-- Pilih Provinsi --</option>
+                                        @if ($editAddressProvinsi && !in_array($editAddressProvinsi, $addressProvinceList))
+                                            <option value="{{ $editAddressProvinsi }}">{{ $editAddressProvinsi }} (Nilai Saat Ini)</option>
+                                        @endif
+                                        @foreach ($addressProvinceList as $prov)
+                                            <option value="{{ $prov }}">{{ $prov }}</option>
+                                        @endforeach
+                                    </select>
+                                @endif
+                                @error('editAddressProvinsi') <span class="text-rose-500 text-[11px]">{{ $message }}</span> @enderror
+                            </div>
+
+                            {{-- Kabupaten / Kota --}}
+                            <div>
+                                <div class="flex items-center justify-between mb-1">
+                                    <label class="block text-xs font-semibold text-text-main">
+                                        Kabupaten / Kota <span class="text-rose-500">*</span>
+                                    </label>
+                                    <button type="button" wire:click="$toggle('isManualAddressKabupaten')" class="text-[10px] font-medium text-primary hover:underline">
+                                        {{ $isManualAddressKabupaten ? '📋 Pilih Daftar' : '✏️ Ketik Manual' }}
+                                    </button>
+                                </div>
+                                @if ($isManualAddressKabupaten)
+                                    <input type="text" wire:model.live="editAddressKabupaten" placeholder="Contoh: Kab. Garut" class="w-full text-xs py-2 px-3 rounded-lg border border-border bg-surface-subtle text-text-main focus:ring-1 focus:ring-primary">
+                                @else
+                                    <select wire:model.live="editAddressKabupaten" class="w-full text-xs py-2 px-3 rounded-lg border border-border bg-surface text-text-main focus:ring-1 focus:ring-primary">
+                                        <option value="">-- Pilih Kabupaten / Kota --</option>
+                                        @if ($editAddressKabupaten && !in_array($editAddressKabupaten, $addressKabupatenList))
+                                            <option value="{{ $editAddressKabupaten }}">{{ $editAddressKabupaten }} (Nilai Saat Ini)</option>
+                                        @endif
+                                        @foreach ($addressKabupatenList as $kab)
+                                            <option value="{{ $kab }}">{{ $kab }}</option>
+                                        @endforeach
+                                    </select>
+                                @endif
+                                @error('editAddressKabupaten') <span class="text-rose-500 text-[11px]">{{ $message }}</span> @enderror
+                            </div>
+                        </div>
+
+                        {{-- Kecamatan & Desa/Kelurahan (Cascading Hybrid) --}}
+                        <div class="grid grid-cols-1 sm:grid-cols-2 gap-3">
+                            {{-- Kecamatan --}}
+                            <div>
+                                <div class="flex items-center justify-between mb-1">
+                                    <label class="block text-xs font-semibold text-text-main">
+                                        Kecamatan
+                                    </label>
+                                    <button type="button" wire:click="$toggle('isManualAddressKecamatan')" class="text-[10px] font-medium text-primary hover:underline">
+                                        {{ $isManualAddressKecamatan ? '📋 Pilih Daftar' : '✏️ Ketik Manual' }}
+                                    </button>
+                                </div>
+                                @if ($isManualAddressKecamatan || empty($addressKecamatanList))
+                                    <input type="text" wire:model.live.debounce.300ms="editAddressKecamatan" placeholder="Contoh: Karangpawitan" class="w-full text-xs py-2 px-3 rounded-lg border border-border bg-surface-subtle text-text-main focus:ring-1 focus:ring-primary">
+                                @else
+                                    <select wire:model.live="editAddressKecamatan" class="w-full text-xs py-2 px-3 rounded-lg border border-border bg-surface text-text-main focus:ring-1 focus:ring-primary">
+                                        <option value="">-- Pilih Kecamatan --</option>
+                                        @if ($editAddressKecamatan && !in_array($editAddressKecamatan, $addressKecamatanList))
+                                            <option value="{{ $editAddressKecamatan }}">{{ $editAddressKecamatan }} (Nilai Saat Ini)</option>
+                                        @endif
+                                        @foreach ($addressKecamatanList as $kec)
+                                            <option value="{{ $kec }}">{{ $kec }}</option>
+                                        @endforeach
+                                    </select>
+                                @endif
+                                @error('editAddressKecamatan') <span class="text-rose-500 text-[11px]">{{ $message }}</span> @enderror
+                            </div>
+
+                            {{-- Desa / Kelurahan --}}
+                            <div>
+                                <div class="flex items-center justify-between mb-1">
+                                    <label class="block text-xs font-semibold text-text-main">
+                                        Desa / Kelurahan
+                                    </label>
+                                    <button type="button" wire:click="$toggle('isManualAddressKelurahan')" class="text-[10px] font-medium text-primary hover:underline">
+                                        {{ $isManualAddressKelurahan ? '📋 Pilih Daftar' : '✏️ Ketik Manual' }}
+                                    </button>
+                                </div>
+                                @if ($isManualAddressKelurahan || empty($addressDesaList))
+                                    <input type="text" wire:model="editAddressKelurahan" placeholder="Contoh: Sukamaju" class="w-full text-xs py-2 px-3 rounded-lg border border-border bg-surface-subtle text-text-main focus:ring-1 focus:ring-primary">
+                                @else
+                                    <select wire:model="editAddressKelurahan" class="w-full text-xs py-2 px-3 rounded-lg border border-border bg-surface text-text-main focus:ring-1 focus:ring-primary">
+                                        <option value="">-- Pilih Desa / Kelurahan --</option>
+                                        @if ($editAddressKelurahan && !in_array($editAddressKelurahan, $addressDesaList))
+                                            <option value="{{ $editAddressKelurahan }}">{{ $editAddressKelurahan }} (Nilai Saat Ini)</option>
+                                        @endif
+                                        @foreach ($addressDesaList as $desa)
+                                            <option value="{{ $desa }}">{{ $desa }}</option>
+                                        @endforeach
+                                    </select>
+                                @endif
+                                @error('editAddressKelurahan') <span class="text-rose-500 text-[11px]">{{ $message }}</span> @enderror
+                            </div>
+                        </div>
+
+                        {{-- Negara & Kode Pos --}}
+                        <div class="grid grid-cols-1 sm:grid-cols-2 gap-3">
+                            <div>
+                                <label class="block text-xs font-semibold text-text-main mb-1">Negara <span class="text-rose-500">*</span></label>
+                                <input type="text" wire:model="editAddressNegara" placeholder="Contoh: Indonesia / Malaysia" class="w-full text-xs py-2 px-3 rounded-lg border border-border bg-surface-subtle text-text-main focus:ring-1 focus:ring-primary">
+                                @error('editAddressNegara') <span class="text-rose-500 text-[11px]">{{ $message }}</span> @enderror
+                            </div>
+                            <div>
+                                <label class="block text-xs font-semibold text-text-main mb-1">Kode Pos</label>
+                                <input type="text" wire:model="editAddressKodePos" placeholder="Contoh: 44182" class="w-full text-xs py-2 px-3 rounded-lg border border-border bg-surface-subtle text-text-main focus:ring-1 focus:ring-primary">
+                                @error('editAddressKodePos') <span class="text-rose-500 text-[11px]">{{ $message }}</span> @enderror
+                            </div>
+                        </div>
+
+                        {{-- Modal Footer --}}
+                        <div class="pt-4 border-t border-border flex flex-col sm:flex-row items-center justify-between gap-2.5">
+                            <button type="button" wire:click="closeEditAddressModal" class="btn btn-secondary !py-2 !px-3 text-xs w-full sm:w-auto">
+                                Batal
+                            </button>
+
+                            <div class="flex items-center gap-2 w-full sm:w-auto">
+                                <button type="button" wire:click="saveStudentAddress(false)" wire:loading.attr="disabled" class="btn btn-secondary !py-2 !px-3.5 text-xs flex-1 sm:flex-none">
+                                    <span wire:loading.remove wire:target="saveStudentAddress">Simpan</span>
+                                    <span wire:loading wire:target="saveStudentAddress">Menyimpan...</span>
+                                </button>
+
+                                <button type="button" wire:click="saveStudentAddress(true)" wire:loading.attr="disabled" class="btn btn-primary !py-2 !px-4 text-xs gap-1.5 flex-1 sm:flex-none">
+                                    <span>Simpan & Lanjut</span>
+                                    <svg xmlns="http://www.w3.org/2000/svg" class="h-3.5 w-3.5" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                                        <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M14 5l7 7m0 0l-7 7m7-7H3" />
+                                    </svg>
+                                </button>
+                            </div>
                         </div>
                     </form>
                 </div>

@@ -12,6 +12,8 @@ use App\Modules\AnalitikSpmb\Services\SpmbDataCleansingService;
 use App\Modules\AnalitikSpmb\Services\SpmbSekolahAsalExporter;
 use App\Modules\AnalitikSpmb\Services\SpmbSekolahAsalSyncService;
 use App\Modules\Kesiswaan\Models\Siswa;
+use Illuminate\Database\QueryException;
+use Illuminate\Database\UniqueConstraintViolationException;
 use Illuminate\Pagination\LengthAwarePaginator;
 use Illuminate\Support\Facades\DB;
 use Livewire\Attributes\Layout;
@@ -29,39 +31,67 @@ class AsalSmpIndex extends Component
 
     // Filters
     public string $search = '';
+
     public string $filterTingkat = '';
+
     public string $filterTahunAjaranId = '';
+
     public string $filterJurusanId = '';
+
     public string $filterJk = '';
+
     public string $filterStatus = 'aktif';
+
     public string $filterTier = '';
+
     public string $filterJenis = '';
+
     public string $filterStatusSekolah = '';
+
     public string $sortBy = 'total_desc';
+
     public int $perPage = 15;
 
     // Slide-over Drawer (Daftar Siswa SMP)
     public bool $showDrawer = false;
+
     public ?int $selectedSekolahId = null;
+
     public ?string $selectedSekolahNama = null;
+
     public string $drawerSearch = '';
+
     public string $drawerFilterTingkat = '';
+
     public string $drawerFilterJurusan = '';
+
     public string $drawerFilterJk = '';
 
     // Modal Kelola Master & Alias
     public bool $showModalKelola = false;
+
     public ?int $editingMasterId = null;
+
     public ?int $formMasterSmpId = null;
+
     public string $masterSmpSearch = '';
+
     public string $formNamaResmi = '';
+
     public string $formNpsn = '';
+
     public string $formJenis = 'SMP';
+
     public string $formStatusSekolah = 'Negeri';
+
     public string $formKecamatan = '';
+
     public string $formKabupatenKota = 'Kab. Garut';
+
     public string $formTier = 'Rintisan';
+
     public string $formCatatan = '';
+
     public string $newAliasInput = '';
 
     // Unmapped Alert
@@ -82,17 +112,60 @@ class AsalSmpIndex extends Component
         $this->checkUnmapped();
     }
 
-    public function updatingSearch() { $this->resetPage(); }
-    public function updatingFilterTingkat() { $this->resetPage(); }
-    public function updatingFilterTahunAjaranId() { $this->resetPage(); }
-    public function updatingFilterJurusanId() { $this->resetPage(); }
-    public function updatingFilterJk() { $this->resetPage(); }
-    public function updatingFilterStatus() { $this->resetPage(); }
-    public function updatingFilterTier() { $this->resetPage(); }
-    public function updatingFilterJenis() { $this->resetPage(); }
-    public function updatingFilterStatusSekolah() { $this->resetPage(); }
-    public function updatingSortBy() { $this->resetPage(); }
-    public function updatingPerPage() { $this->resetPage(); }
+    public function updatingSearch()
+    {
+        $this->resetPage();
+    }
+
+    public function updatingFilterTingkat()
+    {
+        $this->resetPage();
+    }
+
+    public function updatingFilterTahunAjaranId()
+    {
+        $this->resetPage();
+    }
+
+    public function updatingFilterJurusanId()
+    {
+        $this->resetPage();
+    }
+
+    public function updatingFilterJk()
+    {
+        $this->resetPage();
+    }
+
+    public function updatingFilterStatus()
+    {
+        $this->resetPage();
+    }
+
+    public function updatingFilterTier()
+    {
+        $this->resetPage();
+    }
+
+    public function updatingFilterJenis()
+    {
+        $this->resetPage();
+    }
+
+    public function updatingFilterStatusSekolah()
+    {
+        $this->resetPage();
+    }
+
+    public function updatingSortBy()
+    {
+        $this->resetPage();
+    }
+
+    public function updatingPerPage()
+    {
+        $this->resetPage();
+    }
 
     public function resetFilters()
     {
@@ -239,7 +312,7 @@ class AsalSmpIndex extends Component
 
         $uniqueRule = 'required|string|max:150|unique:spmb_sekolah_asals,nama_resmi';
         if ($this->editingMasterId) {
-            $uniqueRule .= ',' . $this->editingMasterId;
+            $uniqueRule .= ','.$this->editingMasterId;
         }
 
         $this->validate([
@@ -261,6 +334,7 @@ class AsalSmpIndex extends Component
         $existingAlias = SpmbSekolahAsalAlias::where('alias_raw', $cleanName)->first();
         if ($existingAlias && $this->editingMasterId && $existingAlias->sekolah_asal_id !== $this->editingMasterId) {
             $this->addError('formNamaResmi', "Nama '{$cleanName}' sudah terdaftar sebagai alias untuk master lain ('{$existingAlias->sekolahAsal?->nama_resmi}'). Silakan satukan melalui fitur 'Gabungkan Sekolah' di menu Perbaikan Data.");
+
             return;
         }
 
@@ -296,8 +370,9 @@ class AsalSmpIndex extends Component
                 $this->editingMasterId = $master->id;
                 session()->flash('success', "Master sekolah '{$master->nama_resmi}' berhasil dibuat.");
             }
-        } catch (\Illuminate\Database\UniqueConstraintViolationException | \Illuminate\Database\QueryException $e) {
+        } catch (UniqueConstraintViolationException|QueryException $e) {
             $this->addError('formNamaResmi', 'Nama sekolah ini sudah terdaftar sebagai master sekolah lain di database. Gunakan fitur "Gabungkan Sekolah" di menu Perbaikan Data Asal SMP.');
+
             return;
         }
 
@@ -321,6 +396,7 @@ class AsalSmpIndex extends Component
         if ($exists) {
             if ($exists->sekolah_asal_id === $this->editingMasterId) {
                 $this->addError('newAliasInput', 'Variasi alias ini sudah terdaftar pada sekolah ini.');
+
                 return;
             }
             // Pindahkan ke master ini
@@ -328,6 +404,7 @@ class AsalSmpIndex extends Component
             $this->newAliasInput = '';
             session()->flash('success', "Alias '{$aliasRaw}' berhasil dipindahkan ke master ini.");
             $this->checkUnmapped();
+
             return;
         }
 
@@ -375,7 +452,7 @@ class AsalSmpIndex extends Component
         $data = $this->buildAnalyticsData(false);
         $jurusans = Jurusan::where('is_active', true)->orderBy('kode')->get()->all();
 
-        $exporter = new SpmbSekolahAsalExporter();
+        $exporter = new SpmbSekolahAsalExporter;
         $spreadsheet = $exporter->exportRekapSekolah(
             $data['allSchoolsCollection'],
             [
@@ -386,7 +463,7 @@ class AsalSmpIndex extends Component
             $jurusans
         );
 
-        $filename = 'Analitik_Asal_SMP_SPMB_' . date('Ymd_His') . '.xlsx';
+        $filename = 'Analitik_Asal_SMP_SPMB_'.date('Ymd_His').'.xlsx';
 
         return response()->streamDownload(function () use ($spreadsheet) {
             $writer = new Xlsx($spreadsheet);
@@ -435,11 +512,11 @@ class AsalSmpIndex extends Component
 
         $siswas = $query->select('siswas.*')->orderBy('siswas.nama')->get();
 
-        $exporter = new SpmbSekolahAsalExporter();
+        $exporter = new SpmbSekolahAsalExporter;
         $spreadsheet = $exporter->exportDaftarSiswa($sekolah, $siswas);
 
         $cleanName = preg_replace('/[^a-zA-Z0-9_-]/', '_', $sekolah->nama_resmi);
-        $filename = "Daftar_Siswa_{$cleanName}_" . date('Ymd_His') . '.xlsx';
+        $filename = "Daftar_Siswa_{$cleanName}_".date('Ymd_His').'.xlsx';
 
         return response()->streamDownload(function () use ($spreadsheet) {
             $writer = new Xlsx($spreadsheet);
@@ -541,7 +618,7 @@ class AsalSmpIndex extends Component
 
         // Filter Sekolah
         if ($this->search) {
-            $s = '%' . trim($this->search) . '%';
+            $s = '%'.trim($this->search).'%';
             $schoolQuery->where(function ($q) use ($s) {
                 $q->where('spmb_sekolah_asals.nama_resmi', 'like', $s)
                     ->orWhere('spmb_sekolah_asals.npsn', 'like', $s)
@@ -594,7 +671,7 @@ class AsalSmpIndex extends Component
             $dominantName = '-';
             $dominantCount = 0;
             foreach ($jurusans as $j) {
-                $cnt = (int) ($item->{'jurusan_' . $j->id} ?? 0);
+                $cnt = (int) ($item->{'jurusan_'.$j->id} ?? 0);
                 if ($cnt > $dominantCount) {
                     $dominantCount = $cnt;
                     $dominantName = $j->kode;
@@ -670,7 +747,7 @@ class AsalSmpIndex extends Component
                 }
 
                 if ($this->drawerSearch) {
-                    $ds = '%' . trim($this->drawerSearch) . '%';
+                    $ds = '%'.trim($this->drawerSearch).'%';
                     $sQuery->where(function ($q) use ($ds) {
                         $q->where('siswas.nama', 'like', $ds)
                             ->orWhere('siswas.nisn', 'like', $ds)

@@ -4,9 +4,9 @@ namespace App\Modules\Kesiswaan\Livewire;
 
 use App\Core\Concerns\GuardsPermission;
 use App\Core\Services\DocumentEngine;
-use App\Core\Support\DataMasker;
 use App\Modules\Akademik\Models\Rayon;
 use App\Modules\Akademik\Models\Rombel;
+use App\Modules\Akademik\Support\AcademicContext;
 use App\Modules\Kesiswaan\Models\Program;
 use App\Modules\Kesiswaan\Models\Siswa;
 use App\Modules\Kesiswaan\Services\DapodikImporter;
@@ -22,7 +22,7 @@ use PhpOffice\PhpSpreadsheet\Writer\Xlsx;
 #[Title('Data Induk Siswa')]
 class SiswaIndex extends Component
 {
-    use GuardsPermission, WithPagination, \App\Core\Livewire\Traits\WithSorting;
+    use \App\Core\Livewire\Traits\WithSorting, GuardsPermission, WithPagination;
 
     public function mount(): void
     {
@@ -31,9 +31,13 @@ class SiswaIndex extends Component
 
     // Filters & Search
     public string $search = '';
+
     public ?int $filterRombel = null;
+
     public ?int $filterRayon = null;
+
     public ?int $filterProgram = null;
+
     public string $filterStatus = '';
 
     public function updatedSearch(): void
@@ -156,7 +160,7 @@ class SiswaIndex extends Component
         );
 
         return response()->streamDownload(
-            fn () => print($pdf->output()),
+            fn () => print ($pdf->output()),
             "Daftar_Siswa_{$rombelNama}.pdf"
         );
     }
@@ -202,7 +206,7 @@ class SiswaIndex extends Component
             ? "Data_Siswa_Lengkap_DAPODIK_{$rombelNamaClean}_{$timestamp}.xlsx"
             : "Data_Siswa_Ringkasan_{$rombelNamaClean}_{$timestamp}.xlsx";
 
-        $exporter = new SiswaExporter();
+        $exporter = new SiswaExporter;
         $spreadsheet = ($type === 'lengkap')
             ? $exporter->exportLengkap($siswas)
             : $exporter->exportRingkasan($siswas);
@@ -220,7 +224,7 @@ class SiswaIndex extends Component
     {
         $this->guard('kesiswaan.siswa.lihat');
         $siswa = Siswa::findOrFail($id);
-        $exporter = new SingleSiswaDocumentExporter();
+        $exporter = new SingleSiswaDocumentExporter;
 
         return match ($format) {
             'word' => $exporter->downloadWord($siswa),
@@ -271,7 +275,7 @@ class SiswaIndex extends Component
             $query->where('status', $this->filterStatus);
         }
 
-        $activeTa = \App\Modules\Akademik\Support\AcademicContext::currentTahunAjaran();
+        $activeTa = AcademicContext::currentTahunAjaran();
         $siswas = $query->orderBy('is_active', 'desc')->orderBy($this->sortField, $this->sortDirection)->paginate(20);
         $rombels = Rombel::where('tahun_ajaran_id', $activeTa?->id)->orderBy('tingkat')->orderBy('nama')->get();
         $rayons = Rayon::orderBy('nama')->get();

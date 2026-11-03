@@ -21,7 +21,7 @@ class PlottingRayonExcelService
      */
     public function generateTemplateKosong(): Spreadsheet
     {
-        $spreadsheet = new Spreadsheet();
+        $spreadsheet = new Spreadsheet;
         $sheet = $spreadsheet->getActiveSheet();
         $sheet->setTitle('Template Plotting Rayon');
 
@@ -49,7 +49,7 @@ class PlottingRayonExcelService
      */
     public function generateTemplatePrefill(Collection $siswas): Spreadsheet
     {
-        $spreadsheet = new Spreadsheet();
+        $spreadsheet = new Spreadsheet;
         $sheet = $spreadsheet->getActiveSheet();
         $sheet->setTitle('Daftar Siswa Plotting Rayon');
 
@@ -66,12 +66,12 @@ class PlottingRayonExcelService
         $row = 2;
         foreach ($siswas as $s) {
             $nis = $s->nipd ?: $s->nisn;
-            $sheet->setCellValueExplicit('A' . $row, (string) $nis, DataType::TYPE_STRING);
-            $sheet->setCellValue('B' . $row, $s->nama);
-            $sheet->setCellValue('C' . $row, $s->rombel?->nama ?? '-');
-            $sheet->setCellValue('D' . $row, $s->kecamatan ?? '-');
-            $sheet->setCellValue('E' . $row, $s->kelurahan ?? '-');
-            $sheet->setCellValue('F' . $row, $s->rayon?->nama ?? 'Belum Ada');
+            $sheet->setCellValueExplicit('A'.$row, (string) $nis, DataType::TYPE_STRING);
+            $sheet->setCellValue('B'.$row, $s->nama);
+            $sheet->setCellValue('C'.$row, $s->rombel?->nama ?? '-');
+            $sheet->setCellValue('D'.$row, $s->kecamatan ?? '-');
+            $sheet->setCellValue('E'.$row, $s->kelurahan ?? '-');
+            $sheet->setCellValue('F'.$row, $s->rayon?->nama ?? 'Belum Ada');
             $row++;
         }
 
@@ -99,7 +99,7 @@ class PlottingRayonExcelService
 
         // Loop mulai dari baris 2 (melewati baris header)
         for ($r = 2; $r <= $highestRow; $r++) {
-            $rawNis = trim((string) $sheet->getCell('A' . $r)->getValue());
+            $rawNis = trim((string) $sheet->getCell('A'.$r)->getValue());
 
             if ($rawNis === '') {
                 continue;
@@ -108,7 +108,7 @@ class PlottingRayonExcelService
             // Sanitasi NIS: hilangkan tanda kutip tunggal jika ada
             $cleanNis = ltrim($rawNis, "'");
 
-            if (!in_array($cleanNis, $nisList)) {
+            if (! in_array($cleanNis, $nisList)) {
                 $nisList[] = $cleanNis;
             }
         }
@@ -124,10 +124,10 @@ class PlottingRayonExcelService
 
         // Cari siswa berdasarkan NIS (NIPD sekolah secara ketat)
         $siswas = Siswa::whereIn('nipd', $nisList)->get();
-        $foundNipd = $siswas->pluck('nipd')->map(fn($v) => (string) $v)->toArray();
+        $foundNipd = $siswas->pluck('nipd')->map(fn ($v) => (string) $v)->toArray();
 
         // Cari NIS mana saja yang tidak ditemukan di database
-        $unmatchedNis = array_values(array_filter($nisList, fn($nis) => !in_array((string) $nis, $foundNipd)));
+        $unmatchedNis = array_values(array_filter($nisList, fn ($nis) => ! in_array((string) $nis, $foundNipd)));
 
         // Update database dan catat riwayat rayon
         if ($siswas->isNotEmpty()) {
