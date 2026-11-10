@@ -5,6 +5,8 @@ namespace App\Modules\Kepegawaian\Models;
 use App\Modules\Akademik\Models\Mapel;
 use App\Modules\Akademik\Models\Rombel;
 use App\Modules\Akademik\Models\Semester;
+use App\Modules\Penilaian\Models\NilaiAkhir;
+use App\Modules\Penilaian\Models\TujuanPembelajaran;
 use Illuminate\Database\Eloquent\Model;
 use Illuminate\Database\Eloquent\Relations\BelongsTo;
 use OwenIt\Auditing\Contracts\Auditable;
@@ -48,11 +50,11 @@ class PenugasanMengajar extends Model implements Auditable
 
     public function tujuanPembelajarans()
     {
-        return $this->hasMany(\App\Modules\Penilaian\Models\TujuanPembelajaran::class, 'penugasan_mengajar_id');
+        return $this->hasMany(TujuanPembelajaran::class, 'penugasan_mengajar_id');
     }
 
     public function nilaiAkhirs()
     {
-        return $this->hasMany(\App\Modules\Penilaian\Models\NilaiAkhir::class, 'penugasan_mengajar_id');
+        return $this->hasMany(NilaiAkhir::class, 'penugasan_mengajar_id');
     }
 }

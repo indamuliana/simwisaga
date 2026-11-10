@@ -3,11 +3,9 @@
 namespace Tests\Feature\Kepegawaian;
 
 use App\Models\User;
-use App\Modules\Akademik\Models\Jurusan;
 use App\Modules\Akademik\Models\Mapel;
 use App\Modules\Akademik\Models\Rombel;
 use App\Modules\Akademik\Models\Semester;
-use App\Modules\Akademik\Models\TahunAjaran;
 use App\Modules\Kepegawaian\Models\Pegawai;
 use App\Modules\Kepegawaian\Models\PenugasanMengajar;
 use Database\Seeders\AkademikInitialSeeder;

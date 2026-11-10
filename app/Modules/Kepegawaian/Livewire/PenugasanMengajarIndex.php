@@ -22,19 +22,27 @@ class PenugasanMengajarIndex extends Component
     use GuardsPermission;
 
     public bool $showModal = false;
+
     public ?int $penugasanId = null;
 
     // Filters
     public ?int $filterSemester = null;
+
     public ?int $filterPegawai = null;
+
     public ?int $filterRombel = null;
 
     // Form fields
     public ?int $semester_id = null;
+
     public ?int $pegawai_id = null;
+
     public ?int $mapel_id = null;
+
     public ?int $rombel_id = null;
+
     public int $jp = 2;
+
     public ?string $keterangan = null;
 
     public function mount(): void
@@ -219,13 +227,13 @@ class PenugasanMengajarIndex extends Component
             title: 'REKAPITULASI PEMBAGIAN TUGAS MENGAJAR GURU',
             content: $html,
             options: [
-                'subtitle' => 'Tahun Ajaran ' . ($sem?->tahunAjaran?->nama ?? '') . ' Semester ' . ucfirst($sem?->semester ?? ''),
+                'subtitle' => 'Tahun Ajaran '.($sem?->tahunAjaran?->nama ?? '').' Semester '.ucfirst($sem?->semester ?? ''),
                 'template_kode' => 'leger_nilai',
             ]
         );
 
         return response()->streamDownload(
-            fn () => print($pdf->output()),
+            fn () => print ($pdf->output()),
             'Rekap_Beban_Mengajar_Guru.pdf'
         );
     }
