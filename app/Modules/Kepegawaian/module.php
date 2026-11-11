@@ -3,6 +3,7 @@
 return [
     'name' => 'Kepegawaian',
     'label' => 'Kepegawaian (GTK)',
+    'group' => 'KEPEGAWAIAN & SDM',
     'order' => 30,
     'menu' => [
         ['label' => 'Data Guru & Karyawan', 'route' => 'kepegawaian.pegawai', 'permission' => 'kepegawaian.pegawai.lihat'],

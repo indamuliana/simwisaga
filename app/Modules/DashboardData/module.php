@@ -3,6 +3,7 @@
 return [
     'name' => 'DashboardData',
     'label' => 'Dashboard Data',
+    'group' => 'ANALISIS',
     'order' => 15,
     'topbar' => [],
     'menu' => [

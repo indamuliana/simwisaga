@@ -3,6 +3,7 @@
 return [
     'name' => 'AnalitikSpmb',
     'label' => 'Analitik SPMB',
+    'group' => 'ANALISIS',
     'icon' => 'chart-bar',
     'order' => 14,
     'menu' => [

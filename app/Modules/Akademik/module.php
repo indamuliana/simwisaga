@@ -3,6 +3,7 @@
 return [
     'name' => 'Akademik',
     'label' => 'Master Akademik',
+    'group' => 'PENGATURAN',
     'order' => 20,
     'topbar' => [
         \App\Modules\Akademik\Livewire\AcademicContextSwitcher::class,

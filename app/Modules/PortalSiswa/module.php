@@ -3,6 +3,7 @@
 return [
     'name' => 'PortalSiswa',
     'label' => 'Portal Siswa',
+    'group' => 'Portal Siswa',
     'icon' => 'academic-cap',
     'order' => 15,
     'menu' => [

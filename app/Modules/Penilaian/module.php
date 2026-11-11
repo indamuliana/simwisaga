@@ -3,6 +3,7 @@
 return [
     'name' => 'Penilaian',
     'label' => 'Penilaian Pembelajaran',
+    'group' => 'KURIKULUM',
     'icon' => 'academic-cap',
     'order' => 60,
     'menu' => [
@@ -35,6 +36,7 @@ return [
     'permissions' => [
         'penilaian' => [
             'label' => 'Penilaian Pembelajaran',
+    'group' => 'KURIKULUM',
             'actions' => ['lihat', 'tambah', 'edit', 'hapus', 'cetak'],
         ],
     ],

@@ -3,6 +3,7 @@
 return [
     'name' => 'Ekstrakurikuler',
     'label' => 'UPD (Ekstrakurikuler)',
+    'group' => 'KURIKULUM',
     'icon' => 'sparkles',
     'order' => 70,
     'menu' => [

@@ -3,6 +3,7 @@
 return [
     'name' => 'Sistem',
     'label' => 'Pengaturan Sistem',
+    'group' => 'PENGATURAN',
     'order' => 90,
     'menu' => [
         ['label' => 'Identitas Sekolah', 'route' => 'sistem.sekolah', 'permission' => 'sistem.sekolah.lihat'],

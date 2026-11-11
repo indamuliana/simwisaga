@@ -3,6 +3,7 @@
 return [
     'name' => 'Kepesantrenan',
     'label' => 'Kepesantrenan',
+    'group' => 'KEPESANTRENAN',
     'icon' => 'book-open',
     'order' => 75,
     'menu' => [

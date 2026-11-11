@@ -3,6 +3,7 @@
 return [
     'name' => 'Prestasi',
     'label' => 'Manajemen Prestasi',
+    'group' => 'KESISWAAN',
     'icon' => 'trophy',
     'order' => 65,
     'menu' => [

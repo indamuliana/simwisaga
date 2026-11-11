@@ -3,6 +3,7 @@
 return [
     'name' => 'Sarpras',
     'label' => 'Sarana & Prasarana',
+    'group' => 'SARANA & PRASARANA',
     'icon' => 'archive-box',
     'order' => 45,
     'menu' => [

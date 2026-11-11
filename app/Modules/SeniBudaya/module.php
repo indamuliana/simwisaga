@@ -3,6 +3,7 @@
 return [
     'name' => 'SeniBudaya',
     'label' => 'Seni Budaya',
+    'group' => 'KURIKULUM',
     'icon' => 'sparkles',
     'order' => 65,
     'menu' => [
@@ -30,6 +31,7 @@ return [
     'permissions' => [
         'seni_budaya' => [
             'label' => 'Seni Budaya',
+    'group' => 'KURIKULUM',
             'actions' => ['kelola', 'setting']
         ]
     ]

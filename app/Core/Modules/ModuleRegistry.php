@@ -33,7 +33,7 @@ class ModuleRegistry
             return $this->modules;
         }
 
-        if (!app()->isLocal()) {
+        if (!app()->isLocal() && !app()->runningUnitTests()) {
             $cached = Cache::get('siraga_modules_manifest');
             if (is_array($cached)) {
                 return $this->modules = collect($cached);
@@ -60,7 +60,7 @@ class ModuleRegistry
 
         $sorted = $modules->sortBy('order');
 
-        if (!app()->isLocal()) {
+        if (!app()->isLocal() && !app()->runningUnitTests()) {
             Cache::forever('siraga_modules_manifest', $sorted->all());
         }
 
@@ -96,10 +96,86 @@ class ModuleRegistry
         return $blocks;
     }
 
-    /** Menu sidebar yang boleh dilihat user (difilter oleh permission). */
+    /** Pemetaan kelompok utama untuk struktur menu 3-tingkat (Kelompok -> Modul -> Submodul). */
+    public const DEFAULT_GROUPS = [
+        'ANALISIS' => [
+            'label' => 'ANALISIS',
+            'icon'  => 'chart-bar',
+            'order' => 10,
+        ],
+        'KURIKULUM' => [
+            'label' => 'KURIKULUM',
+            'icon'  => 'academic-cap',
+            'order' => 20,
+        ],
+        'KESISWAAN' => [
+            'label' => 'KESISWAAN',
+            'icon'  => 'user-group',
+            'order' => 30,
+        ],
+        'KEPESANTRENAN' => [
+            'label' => 'KEPESANTRENAN',
+            'icon'  => 'moon',
+            'order' => 40,
+        ],
+        'KEPEGAWAIAN & SDM' => [
+            'label' => 'KEPEGAWAIAN & SDM',
+            'icon'  => 'badge-check',
+            'order' => 50,
+        ],
+        'SARANA & PRASARANA' => [
+            'label' => 'SARANA & PRASARANA',
+            'icon'  => 'office-building',
+            'order' => 60,
+        ],
+        'PENGATURAN' => [
+            'label' => 'PENGATURAN',
+            'icon'  => 'cog',
+            'order' => 70,
+        ],
+        'Portal Siswa' => [
+            'label' => 'Portal Siswa',
+            'icon'  => 'user',
+            'order' => 80,
+        ],
+    ];
+
+    /** Default mapping modul ke kelompok */
+    public const MODULE_GROUP_MAP = [
+        'AnalitikSpmb'       => 'ANALISIS',
+        'DashboardData'      => 'ANALISIS',
+        'AiAssistant'        => 'ANALISIS',
+
+        'KalenderPendidikan' => 'KURIKULUM',
+        'Penilaian'          => 'KURIKULUM',
+        'SeniBudaya'         => 'KURIKULUM',
+        'Ekstrakurikuler'    => 'KURIKULUM',
+        'Rapor'              => 'KURIKULUM',
+
+        'Kesiswaan'          => 'KESISWAAN',
+        'Alumni'             => 'KESISWAAN',
+        'Absensi'            => 'KESISWAAN',
+        'Prestasi'           => 'KESISWAAN',
+
+        'Kepesantrenan'      => 'KEPESANTRENAN',
+        'BeasiswaOta'        => 'KEPESANTRENAN',
+
+        'Kepegawaian'        => 'KEPEGAWAIAN & SDM',
+
+        'Sarpras'            => 'SARANA & PRASARANA',
+
+        'Akademik'           => 'PENGATURAN',
+        'AdministrasiWeb'    => 'PENGATURAN',
+        'Sistem'             => 'PENGATURAN',
+        'Panduan'            => 'PENGATURAN',
+
+        'PortalSiswa'        => 'Portal Siswa',
+    ];
+
+    /** Menu sidebar 3-tingkat (Kelompok -> Modul -> Submodul) yang difilter oleh permission. */
     public function menuFor($user): array
     {
-        $groups = [];
+        $groupedModules = [];
 
         foreach ($this->all() as $module) {
             $items = collect($module['menu'])
@@ -107,16 +183,47 @@ class ModuleRegistry
                 ->values()
                 ->all();
 
-            if ($items) {
-                $groups[] = [
-                    'label' => $module['label'] ?? $module['name'],
-                    'icon' => $module['icon'] ?? null,
+            if (!empty($items)) {
+                $moduleName = $module['name'];
+                $groupName = $module['group'] ?? self::MODULE_GROUP_MAP[$moduleName] ?? ($module['label'] ?? $moduleName);
+
+                $groupedModules[$groupName][] = [
+                    'name'  => $moduleName,
+                    'label' => $module['label'] ?? $moduleName,
+                    'icon'  => $module['icon'] ?? null,
+                    'order' => $module['order'] ?? 100,
                     'items' => $items,
                 ];
             }
         }
 
-        return $groups;
+        $result = [];
+        foreach ($groupedModules as $groupName => $modules) {
+            // Urutkan modul dalam kelompok berdasarkan 'order'
+            usort($modules, fn ($a, $b) => ($a['order'] ?? 100) <=> ($b['order'] ?? 100));
+
+            $def = self::DEFAULT_GROUPS[$groupName] ?? [
+                'label' => $groupName,
+                'icon'  => null,
+                'order' => 999,
+            ];
+
+            // Flatten all submodules for backwards-compatibility with tests expecting $group['items']
+            $allItems = collect($modules)->flatMap(fn ($m) => $m['items'])->all();
+
+            $result[] = [
+                'label'   => $def['label'] ?? $groupName,
+                'icon'    => $def['icon'] ?? null,
+                'order'   => $def['order'] ?? 999,
+                'modules' => $modules,
+                'items'   => $allItems,
+            ];
+        }
+
+        // Urutkan kelompok berdasarkan 'order' kelompok
+        usort($result, fn ($a, $b) => ($a['order'] ?? 999) <=> ($b['order'] ?? 999));
+
+        return $result;
     }
 
     /**

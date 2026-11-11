@@ -3,6 +3,7 @@
 return [
     'name' => 'KalenderPendidikan',
     'label' => 'Kalender Pendidikan',
+    'group' => 'KURIKULUM',
     'icon' => 'calendar',
     'order' => 16,
     'menu' => [
@@ -25,6 +26,7 @@ return [
     'permissions' => [
         'kalender' => [
             'label' => 'Kalender Pendidikan',
+    'group' => 'KURIKULUM',
             'actions' => ['lihat', 'tambah', 'edit', 'hapus', 'flag_final'],
         ],
         'kalender.kategori' => [

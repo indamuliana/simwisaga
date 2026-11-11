@@ -3,6 +3,7 @@
 return [
     'name' => 'BeasiswaOta',
     'label' => 'Beasiswa OTA',
+    'group' => 'KEPESANTRENAN',
     'icon' => 'heart',
     'order' => 85,
     'menu' => [

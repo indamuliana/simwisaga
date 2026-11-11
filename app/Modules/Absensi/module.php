@@ -3,6 +3,7 @@
 return [
     'name' => 'Absensi',
     'label' => 'Pengelolaan Absensi',
+    'group' => 'KESISWAAN',
     'order' => 50,
     'menu' => [
         ['label' => 'Absensi Harian', 'route' => 'absensi.harian', 'permission' => 'absensi.harian.lihat'],

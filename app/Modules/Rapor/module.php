@@ -3,6 +3,7 @@
 return [
     'name' => 'Rapor',
     'label' => 'Rapor Akademik',
+    'group' => 'KURIKULUM',
     'icon' => 'document-text',
     'order' => 80,
     'menu' => [

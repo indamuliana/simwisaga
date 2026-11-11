@@ -3,6 +3,7 @@
 return [
     'name' => 'Kesiswaan',
     'label' => 'Kesiswaan & Siswa',
+    'group' => 'KESISWAAN',
     'order' => 40,
     'menu' => [
         ['label' => 'Data Siswa', 'route' => 'kesiswaan.siswa', 'permission' => 'kesiswaan.siswa.lihat'],

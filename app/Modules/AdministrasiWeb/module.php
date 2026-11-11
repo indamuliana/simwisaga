@@ -3,6 +3,7 @@
 return [
     'name' => 'AdministrasiWeb',
     'label' => 'Administrasi Web',
+    'group' => 'PENGATURAN',
     'icon' => 'globe-alt',
     'order' => 85,
     'menu' => [

@@ -3,6 +3,7 @@
 return [
     'name' => 'Alumni',
     'label' => 'Pengelolaan Alumni',
+    'group' => 'KESISWAAN',
     'icon' => 'academic-cap',
     'order' => 45,
     'menu' => [
