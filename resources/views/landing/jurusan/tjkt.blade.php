@@ -155,7 +155,7 @@
     <section class="py-24 bg-[#020e0b] text-white relative overflow-hidden" style="background-color: #020e0b;">
         <!-- Uploaded Cyber Binary / Network Perspective Background Image -->
         <div class="absolute inset-0 pointer-events-none select-none z-0 overflow-hidden">
-            <img src="{{ asset('images/landing/bg-tjkt-binary.jpg') }}" alt="Cyber Data Infrastructure" class="w-full h-full object-cover object-center filter brightness-50 contrast-125 scale-105">
+            <img src="{{ asset('images/landing/bg-tjkt-binary.jpg') }}" alt="Cyber Data Infrastructure" class="w-full h-full object-cover object-center filter brightness-50 contrast-125 scale-105" loading="lazy" decoding="async">
             <!-- Multi-layer Darkening Overlays for 100% Text Legibility -->
             <div class="absolute inset-0 bg-[#020e0b]/75"></div>
             <div class="absolute inset-0 bg-gradient-to-r from-[#020e0b] via-[#020e0b]/90 to-[#020e0b]/50"></div>
@@ -224,7 +224,7 @@
                 <div class="lg:col-span-6 grid grid-cols-2 gap-4">
                     <div class="space-y-4">
                         <div class="rounded-2xl overflow-hidden shadow-xl border border-emerald-500/30 bg-slate-900/60">
-                            <img src="{{ asset('images/landing/lab-tjkt.jpeg') }}" alt="Lab Jaringan TJKT Wikrama" class="w-full h-48 sm:h-56 object-cover hover:scale-105 transition-all duration-300">
+                            <img src="{{ asset('images/landing/lab-tjkt.jpeg') }}" alt="Lab Jaringan TJKT Wikrama" class="w-full h-48 sm:h-56 object-cover hover:scale-105 transition-all duration-300" loading="lazy" decoding="async">
                         </div>
                         <div class="p-5 rounded-2xl bg-slate-950/90 backdrop-blur-md border border-emerald-500/30 text-white space-y-2 shadow-lg">
                             <span class="text-[#A2E8B9] text-xs font-bold uppercase tracking-wider">Unit Produksi TEFA</span>
@@ -239,7 +239,7 @@
                             <p class="text-xs text-emerald-100/90 leading-relaxed">Fasilitas splicing mandiri dan konfigurasi cloud server berkecepatan tinggi 10 Gbps.</p>
                         </div>
                         <div class="rounded-2xl overflow-hidden shadow-xl border border-emerald-500/30 bg-slate-900/60">
-                            <img src="{{ asset('images/web/hero-tjkt.jpg') }}" alt="Suasana Praktik Server Siswa TJKT" class="w-full h-48 sm:h-56 object-cover hover:scale-105 transition-all duration-300">
+                            <img src="{{ asset('images/web/hero-tjkt.jpg') }}" alt="Suasana Praktik Server Siswa TJKT" class="w-full h-48 sm:h-56 object-cover hover:scale-105 transition-all duration-300" loading="lazy" decoding="async">
                         </div>
                     </div>
                 </div>
@@ -495,7 +495,7 @@
                 <!-- Fasilitas 1 -->
                 <div class="rounded-2xl overflow-hidden border border-emerald-200 shadow-sm hover:shadow-md transition-shadow group">
                     <div class="relative aspect-video overflow-hidden bg-slate-100">
-                        <img src="{{ asset('images/landing/lab-tjkt.jpeg') }}" alt="Lab Jaringan Komputer TJKT" class="w-full h-full object-cover group-hover:scale-105 transition-all duration-300">
+                        <img src="{{ asset('images/landing/lab-tjkt.jpeg') }}" alt="Lab Jaringan Komputer TJKT" class="w-full h-full object-cover group-hover:scale-105 transition-all duration-300" loading="lazy" decoding="async">
                         <span class="absolute top-3 left-3 px-3 py-1 rounded-full text-[11px] font-bold bg-[#059669] text-white">Lab Router &amp; Switch</span>
                     </div>
                     <div class="p-5">
@@ -509,7 +509,7 @@
                 <!-- Fasilitas 2 -->
                 <div class="rounded-2xl overflow-hidden border border-emerald-200 shadow-sm hover:shadow-md transition-shadow group">
                     <div class="relative aspect-video overflow-hidden bg-slate-100">
-                        <img src="{{ asset('images/web/facility-lab.jpg') }}" alt="Studio Fiber Optic Splicing" class="w-full h-full object-cover group-hover:scale-105 transition-all duration-300">
+                        <img src="{{ asset('images/web/facility-lab.jpg') }}" alt="Studio Fiber Optic Splicing" class="w-full h-full object-cover group-hover:scale-105 transition-all duration-300" loading="lazy" decoding="async">
                         <span class="absolute top-3 left-3 px-3 py-1 rounded-full text-[11px] font-bold bg-teal-700 text-white">Fiber Optic Studio</span>
                     </div>
                     <div class="p-5">
@@ -523,7 +523,7 @@
                 <!-- Fasilitas 3 -->
                 <div class="rounded-2xl overflow-hidden border border-emerald-200 shadow-sm hover:shadow-md transition-shadow group">
                     <div class="relative aspect-video overflow-hidden bg-slate-100">
-                        <img src="{{ asset('images/web/activity-students.jpg') }}" alt="Server Cloud Data Center" class="w-full h-full object-cover group-hover:scale-105 transition-all duration-300">
+                        <img src="{{ asset('images/web/activity-students.jpg') }}" alt="Server Cloud Data Center" class="w-full h-full object-cover group-hover:scale-105 transition-all duration-300" loading="lazy" decoding="async">
                         <span class="absolute top-3 left-3 px-3 py-1 rounded-full text-[11px] font-bold bg-slate-900 text-white">Cloud Server Center</span>
                     </div>
                     <div class="p-5">
@@ -537,7 +537,7 @@
                 <!-- Fasilitas 4 -->
                 <div class="rounded-2xl overflow-hidden border border-emerald-200 shadow-sm hover:shadow-md transition-shadow group">
                     <div class="relative aspect-video overflow-hidden bg-slate-100">
-                        <img src="{{ asset('images/landing/suasana-belajar-aktif.jpg') }}" alt="NOC Backbone Room" class="w-full h-full object-cover group-hover:scale-105 transition-all duration-300">
+                        <img src="{{ asset('images/landing/suasana-belajar-aktif.jpg') }}" alt="NOC Backbone Room" class="w-full h-full object-cover group-hover:scale-105 transition-all duration-300" loading="lazy" decoding="async">
                         <span class="absolute top-3 left-3 px-3 py-1 rounded-full text-[11px] font-bold bg-cyan-800 text-white">NOC Command Center</span>
                     </div>
                     <div class="p-5">
@@ -551,7 +551,7 @@
                 <!-- Fasilitas 5 -->
                 <div class="rounded-2xl overflow-hidden border border-emerald-200 shadow-sm hover:shadow-md transition-shadow group">
                     <div class="relative aspect-video overflow-hidden bg-slate-100">
-                        <img src="{{ asset('images/web/activity-learning.jpg') }}" alt="Cybersecurity Lab" class="w-full h-full object-cover group-hover:scale-105 transition-all duration-300">
+                        <img src="{{ asset('images/web/activity-learning.jpg') }}" alt="Cybersecurity Lab" class="w-full h-full object-cover group-hover:scale-105 transition-all duration-300" loading="lazy" decoding="async">
                         <span class="absolute top-3 left-3 px-3 py-1 rounded-full text-[11px] font-bold bg-emerald-800 text-white">Cyber Defense Sandbox</span>
                     </div>
                     <div class="p-5">
@@ -565,7 +565,7 @@
                 <!-- Fasilitas 6 -->
                 <div class="rounded-2xl overflow-hidden border border-emerald-200 shadow-sm hover:shadow-md transition-shadow group">
                     <div class="relative aspect-video overflow-hidden bg-slate-100">
-                        <img src="{{ asset('images/landing/jurusan-tjkt.jpg') }}" alt="Bengkel Hardware & Wireless" class="w-full h-full object-cover group-hover:scale-105 transition-all duration-300">
+                        <img src="{{ asset('images/landing/jurusan-tjkt.jpg') }}" alt="Bengkel Hardware & Wireless" class="w-full h-full object-cover group-hover:scale-105 transition-all duration-300" loading="lazy" decoding="async">
                         <span class="absolute top-3 left-3 px-3 py-1 rounded-full text-[11px] font-bold bg-[#059669] text-white">Hardware &amp; Wireless Tower</span>
                     </div>
                     <div class="p-5">
@@ -685,7 +685,7 @@
                 <div class="absolute -right-20 -bottom-20 w-64 h-64 bg-[#10b981]/20 rounded-full blur-2xl pointer-events-none"></div>
 
                 <div class="flex flex-col sm:flex-row items-center gap-6 sm:gap-8 relative z-10">
-                    <img src="{{ asset('images/web/alumni-ichsan.png') }}" alt="Alumni TJKT Wikrama" class="w-24 h-24 sm:w-28 sm:h-28 rounded-full object-cover border-4 border-[#53D769] shadow-lg shrink-0">
+                    <img src="{{ asset('images/web/alumni-ichsan.png') }}" alt="Alumni TJKT Wikrama" class="w-24 h-24 sm:w-28 sm:h-28 rounded-full object-cover border-4 border-[#53D769] shadow-lg shrink-0" loading="lazy" decoding="async">
                     <div class="space-y-3 text-center sm:text-left">
                         <div class="flex items-center justify-center sm:justify-start gap-1 text-emerald-400">
                             @for($i = 0; $i < 5; $i++)

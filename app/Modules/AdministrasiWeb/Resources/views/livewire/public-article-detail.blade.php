@@ -42,7 +42,7 @@
         <!-- Cover Image -->
         @if ($article->gambar_sampul)
         <div class="rounded-3xl overflow-hidden aspect-[16/9] bg-slate-100 shadow-xl mb-10 border border-slate-200">
-            <img src="{{ $article->gambarSampulUrl() }}" alt="{{ $article->judul }}" class="w-full h-full object-cover">
+            <img src="{{ $article->gambarSampulUrl() }}" alt="{{ $article->judul }}" class="w-full h-full object-cover" fetchpriority="high" decoding="async">
         </div>
         @endif
 
@@ -84,7 +84,7 @@
                 @foreach ($relatedArticles as $rel)
                 <a href="{{ url('/berita/' . $rel->slug) }}" class="group block p-4 rounded-2xl bg-white border border-slate-200 hover:border-[#00519E] hover:shadow-md transition-all">
                     <div class="aspect-[16/10] rounded-xl overflow-hidden bg-slate-100 mb-3">
-                        <img src="{{ $rel->gambarSampulUrl() }}" alt="{{ $rel->judul }}" class="w-full h-full object-cover group-hover:scale-105 transition-transform duration-500">
+                        <img src="{{ $rel->gambarSampulUrl() }}" alt="{{ $rel->judul }}" class="w-full h-full object-cover group-hover:scale-105 transition-transform duration-500" loading="lazy" decoding="async">
                     </div>
                     <span class="text-[10px] font-bold text-[#00519E] block mb-1">
                         {{ $rel->category?->nama ?? 'Berita' }}

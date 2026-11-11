@@ -286,7 +286,7 @@
                 <div class="lg:col-span-6 grid grid-cols-2 gap-4">
                     <div class="space-y-4">
                         <div class="rounded-2xl overflow-hidden shadow-xl border border-rose-500/30 bg-slate-900/60">
-                            <img src="{{ asset('images/web/hero-htl.png') }}" alt="Praktik Perhotelan Wikrama" class="w-full h-48 sm:h-56 object-cover hover:scale-105 transition-all duration-300">
+                            <img src="{{ asset('images/web/hero-htl.png') }}" alt="Praktik Perhotelan Wikrama" class="w-full h-48 sm:h-56 object-cover hover:scale-105 transition-all duration-300" loading="lazy" decoding="async">
                         </div>
                         <div class="p-5 rounded-2xl bg-slate-950/90 backdrop-blur-md border border-rose-500/30 text-white space-y-2 shadow-lg">
                             <span class="text-[#E2B714] text-xs font-bold uppercase tracking-wider">Unit Produksi TEFA</span>
@@ -301,7 +301,7 @@
                             <p class="text-xs text-rose-100 leading-relaxed">Praktik barista langsung dengan pesanan nyata dari guru, tamu, dan santri setiap harinya.</p>
                         </div>
                         <div class="rounded-2xl overflow-hidden shadow-xl border border-rose-500/30 bg-slate-900/60">
-                            <img src="{{ asset('images/web/activity-learning.jpg') }}" alt="Suasana Praktik Siswa Perhotelan" class="w-full h-48 sm:h-56 object-cover hover:scale-105 transition-all duration-300">
+                            <img src="{{ asset('images/web/activity-learning.jpg') }}" alt="Suasana Praktik Siswa Perhotelan" class="w-full h-48 sm:h-56 object-cover hover:scale-105 transition-all duration-300" loading="lazy" decoding="async">
                         </div>
                     </div>
                 </div>
@@ -555,7 +555,7 @@
                 <!-- Fasilitas 1: Mockup Room Suite -->
                 <div class="rounded-2xl overflow-hidden border border-rose-200 shadow-sm hover:shadow-md transition-shadow group">
                     <div class="relative aspect-video overflow-hidden bg-slate-100">
-                        <img src="{{ asset('images/landing/jurusan-hotel.png') }}" alt="Mockup Suite Room Hotel Wikrama" class="w-full h-full object-cover group-hover:scale-105 transition-all duration-300">
+                        <img src="{{ asset('images/landing/jurusan-hotel.png') }}" alt="Mockup Suite Room Hotel Wikrama" class="w-full h-full object-cover group-hover:scale-105 transition-all duration-300" loading="lazy" decoding="async">
                         <span class="absolute top-3 left-3 px-3 py-1 rounded-full text-[11px] font-bold bg-slate-900/80 text-white backdrop-blur-md">Mock-up Suite Room</span>
                     </div>
                     <div class="p-5">
@@ -569,7 +569,7 @@
                 <!-- Fasilitas 2: Wikrama Barista Cafe & Coffee Lounge -->
                 <div class="rounded-2xl overflow-hidden border border-rose-200 shadow-sm hover:shadow-md transition-shadow group">
                     <div class="relative aspect-video overflow-hidden bg-slate-100">
-                        <img src="{{ asset('images/web/hero-htl.png') }}" alt="Cafe Barista Wikrama" class="w-full h-full object-cover group-hover:scale-105 transition-all duration-300">
+                        <img src="{{ asset('images/web/hero-htl.png') }}" alt="Cafe Barista Wikrama" class="w-full h-full object-cover group-hover:scale-105 transition-all duration-300" loading="lazy" decoding="async">
                         <span class="absolute top-3 left-3 px-3 py-1 rounded-full text-[11px] font-bold bg-[#FC3158] text-white">Barista &amp; Coffee Corner</span>
                     </div>
                     <div class="p-5">
@@ -583,7 +583,7 @@
                 <!-- Fasilitas 3: Front Desk Lobby & PMS Lab -->
                 <div class="rounded-2xl overflow-hidden border border-rose-200 shadow-sm hover:shadow-md transition-shadow group">
                     <div class="relative aspect-video overflow-hidden bg-slate-100">
-                        <img src="{{ asset('images/web/facility-lab.jpg') }}" alt="Front Desk Reception Simulator" class="w-full h-full object-cover group-hover:scale-105 transition-all duration-300">
+                        <img src="{{ asset('images/web/facility-lab.jpg') }}" alt="Front Desk Reception Simulator" class="w-full h-full object-cover group-hover:scale-105 transition-all duration-300" loading="lazy" decoding="async">
                         <span class="absolute top-3 left-3 px-3 py-1 rounded-full text-[11px] font-bold bg-amber-600 text-white">Front Desk &amp; PMS Lab</span>
                     </div>
                     <div class="p-5">
@@ -597,7 +597,7 @@
                 <!-- Fasilitas 4: Table Manner Dining Hall -->
                 <div class="rounded-2xl overflow-hidden border border-rose-200 shadow-sm hover:shadow-md transition-shadow group">
                     <div class="relative aspect-video overflow-hidden bg-slate-100">
-                        <img src="{{ asset('images/web/activity-learning.jpg') }}" alt="Banquet & Dining Hall" class="w-full h-full object-cover group-hover:scale-105 transition-all duration-300">
+                        <img src="{{ asset('images/web/activity-learning.jpg') }}" alt="Banquet & Dining Hall" class="w-full h-full object-cover group-hover:scale-105 transition-all duration-300" loading="lazy" decoding="async">
                         <span class="absolute top-3 left-3 px-3 py-1 rounded-full text-[11px] font-bold bg-slate-900/80 text-white backdrop-blur-md">Dining &amp; Banquet</span>
                     </div>
                     <div class="p-5">
@@ -611,7 +611,7 @@
                 <!-- Fasilitas 5: Laundry & Linen Care Center -->
                 <div class="rounded-2xl overflow-hidden border border-rose-200 shadow-sm hover:shadow-md transition-shadow group">
                     <div class="relative aspect-video overflow-hidden bg-slate-100">
-                        <img src="{{ asset('images/web/activity-students.jpg') }}" alt="Laundry & Linen Management" class="w-full h-full object-cover group-hover:scale-105 transition-all duration-300">
+                        <img src="{{ asset('images/web/activity-students.jpg') }}" alt="Laundry & Linen Management" class="w-full h-full object-cover group-hover:scale-105 transition-all duration-300" loading="lazy" decoding="async">
                         <span class="absolute top-3 left-3 px-3 py-1 rounded-full text-[11px] font-bold bg-pink-700 text-white">Linen &amp; Laundry</span>
                     </div>
                     <div class="p-5">
@@ -625,7 +625,7 @@
                 <!-- Fasilitas 6: Grooming & Personality Mirror Room -->
                 <div class="rounded-2xl overflow-hidden border border-rose-200 shadow-sm hover:shadow-md transition-shadow group">
                     <div class="relative aspect-video overflow-hidden bg-slate-100">
-                        <img src="{{ asset('images/landing/suasana-belajar-aktif.jpg') }}" alt="Grooming & Attitude Studio" class="w-full h-full object-cover group-hover:scale-105 transition-all duration-300">
+                        <img src="{{ asset('images/landing/suasana-belajar-aktif.jpg') }}" alt="Grooming & Attitude Studio" class="w-full h-full object-cover group-hover:scale-105 transition-all duration-300" loading="lazy" decoding="async">
                         <span class="absolute top-3 left-3 px-3 py-1 rounded-full text-[11px] font-bold bg-rose-700 text-white">Grooming &amp; Manner</span>
                     </div>
                     <div class="p-5">
@@ -745,7 +745,7 @@
                 <div class="absolute -right-20 -bottom-20 w-64 h-64 bg-[#FC3158]/20 rounded-full blur-2xl pointer-events-none"></div>
 
                 <div class="flex flex-col sm:flex-row items-center gap-6 sm:gap-8 relative z-10">
-                    <img src="{{ asset('images/web/alumni-desta.png') }}" alt="Alumni Perhotelan Wikrama" class="w-24 h-24 sm:w-28 sm:h-28 rounded-full object-cover border-4 border-[#FC3158] shadow-lg shrink-0">
+                    <img src="{{ asset('images/web/alumni-desta.png') }}" alt="Alumni Perhotelan Wikrama" class="w-24 h-24 sm:w-28 sm:h-28 rounded-full object-cover border-4 border-[#FC3158] shadow-lg shrink-0" loading="lazy" decoding="async">
                     <div class="space-y-3 text-center sm:text-left">
                         <div class="flex items-center justify-center sm:justify-start gap-1 text-[#E2B714]">
                             @for($i = 0; $i < 5; $i++)

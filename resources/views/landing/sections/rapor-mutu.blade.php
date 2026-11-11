@@ -6,6 +6,26 @@
                 <div class="absolute -bottom-20 right-10 w-80 h-80 bg-amber-100/30 rounded-full blur-3xl"></div>
             </div>
 
+            <style>
+                .rapor-progress-track {
+                    width: 100%;
+                    background-color: #e2e8f0;
+                    height: 12px;
+                    border-radius: 9999px;
+                    overflow: hidden;
+                    padding: 2px;
+                    box-shadow: inset 0 1px 2px rgba(0, 0, 0, 0.06);
+                }
+                .rapor-progress-fill {
+                    height: 100%;
+                    border-radius: 9999px;
+                    background: linear-gradient(90deg, #00519E 0%, #0284C7 50%, #1F513F 100%);
+                    width: 0%;
+                    transition: width 2.4s cubic-bezier(0.22, 1, 0.36, 1);
+                    box-shadow: 0 1px 4px rgba(0, 81, 158, 0.25);
+                }
+            </style>
+
             <div class="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 relative z-10">
                 <div class="grid grid-cols-1 lg:grid-cols-12 gap-8 lg:gap-14 items-center">
                     
@@ -22,16 +42,24 @@
                             *{{ $cfg['rapor_mutu']['source'] ?? 'Validasi Data Resmi: Kemendikdasmen RI (raportpendidikan.kemdikbud.go.id)' }}
                         </p>
 
-                        <!-- High-Contrast Institutional Progress Bars -->
+                        <!-- High-Contrast Institutional Progress Bars with Dynamic Gradient & Animation -->
                         <div class="space-y-5 sm:space-y-6">
                             @foreach($cfg['rapor_mutu']['metrics'] ?? [] as $m)
+                            @php
+                                $badgeText = $m['badge'] ?? '';
+                                preg_match('/^(\d+)%(.*)$/', $badgeText, $matches);
+                                $targetNumber = isset($matches[1]) ? (int)$matches[1] : (int)($m['value'] ?? 0);
+                                $suffixText = isset($matches[2]) ? trim($matches[2]) : '';
+                            @endphp
                             <div>
                                 <div class="flex items-center justify-between gap-3 text-xs sm:text-sm font-bold text-slate-900 mb-2">
                                     <span class="leading-tight">{{ $m['label'] }}</span>
-                                    <span class="text-[#00519E] font-mono-code font-bold shrink-0 text-xs sm:text-sm">{{ $m['badge'] }}</span>
+                                    <span class="text-[#00519E] font-mono-code font-bold shrink-0 text-xs sm:text-sm">
+                                        <span class="rapor-counter-val" data-target="{{ $targetNumber }}">0</span>%@if($suffixText) <span>{{ $suffixText }}</span>@endif
+                                    </span>
                                 </div>
-                                <div class="w-full bg-slate-200/90 h-3 rounded-full overflow-hidden p-0.5">
-                                    <div class="bg-gradient-to-r from-[#00519E] via-[#0284C7] to-[#1F513F] h-full rounded-full transition-all duration-1000 ease-out" style="width: {{ $m['value'] }}%"></div>
+                                <div class="rapor-progress-track">
+                                    <div class="rapor-progress-fill" data-progress="{{ $m['value'] }}" style="width: 0%;"></div>
                                 </div>
                             </div>
                             @endforeach
@@ -60,4 +88,68 @@
                     </div>
                 </div>
             </div>
+
+            <script>
+                (function() {
+                    function initRaporMutuAnimation() {
+                        const section = document.getElementById('rapor-mutu');
+                        if (!section) return;
+
+                        const bars = section.querySelectorAll('.rapor-progress-fill');
+                        const counters = section.querySelectorAll('.rapor-counter-val');
+                        let hasAnimated = false;
+
+                        function triggerProgressAnimation() {
+                            if (hasAnimated) return;
+                            hasAnimated = true;
+
+                            // 1. Animate Width Bar
+                            bars.forEach(function(bar) {
+                                const target = bar.getAttribute('data-progress') || '0';
+                                bar.style.width = target + '%';
+                            });
+
+                            // 2. Animate Counter Number
+                            const duration = 2400;
+                            const startTime = performance.now();
+
+                            function stepCounter(currentTime) {
+                                const elapsed = currentTime - startTime;
+                                const progress = Math.min(elapsed / duration, 1);
+                                const ease = 1 - Math.pow(1 - progress, 3); // cubic ease-out
+
+                                counters.forEach(function(counter) {
+                                    const target = parseInt(counter.getAttribute('data-target') || '0', 10);
+                                    counter.textContent = Math.round(ease * target);
+                                });
+
+                                if (progress < 1) {
+                                    requestAnimationFrame(stepCounter);
+                                }
+                            }
+                            requestAnimationFrame(stepCounter);
+                        }
+
+                        if ('IntersectionObserver' in window) {
+                            const observer = new IntersectionObserver(function(entries) {
+                                entries.forEach(function(entry) {
+                                    if (entry.isIntersecting) {
+                                        triggerProgressAnimation();
+                                        observer.unobserve(entry.target);
+                                    }
+                                });
+                            }, { threshold: 0.15, rootMargin: '0px 0px -50px 0px' });
+                            observer.observe(section);
+                        } else {
+                            triggerProgressAnimation();
+                        }
+                    }
+
+                    if (document.readyState === 'loading') {
+                        document.addEventListener('DOMContentLoaded', initRaporMutuAnimation);
+                    } else {
+                        initRaporMutuAnimation();
+                    }
+                })();
+            </script>
         </section>

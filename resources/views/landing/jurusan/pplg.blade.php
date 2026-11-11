@@ -223,7 +223,7 @@
                 <div class="lg:col-span-6 grid grid-cols-2 gap-4">
                     <div class="space-y-4">
                         <div class="rounded-2xl overflow-hidden shadow-xl border border-blue-500/30 bg-slate-900/60">
-                            <img src="{{ asset('images/landing/lab-komputer-pplg.jpg') }}" alt="Praktik Coding PPLG Wikrama" class="w-full h-48 sm:h-56 object-cover hover:scale-105 transition-all duration-300">
+                            <img src="{{ asset('images/landing/lab-komputer-pplg.jpg') }}" alt="Praktik Coding PPLG Wikrama" class="w-full h-48 sm:h-56 object-cover hover:scale-105 transition-all duration-300" loading="lazy" decoding="async">
                         </div>
                         <div class="p-5 rounded-2xl bg-slate-950/90 backdrop-blur-md border border-blue-500/30 text-white space-y-2 shadow-lg">
                             <span class="text-[#5FC9F8] text-xs font-bold uppercase tracking-wider">Unit Produksi TEFA</span>
@@ -238,7 +238,7 @@
                             <p class="text-xs text-blue-100/90 leading-relaxed">Pengembangan aplikasi Flutter lintas platform (Android/iOS) dan integrasi LLM AI.</p>
                         </div>
                         <div class="rounded-2xl overflow-hidden shadow-xl border border-blue-500/30 bg-slate-900/60">
-                            <img src="{{ asset('images/web/hero-pplg.jpg') }}" alt="Suasana Belajar Siswa PPLG" class="w-full h-48 sm:h-56 object-cover hover:scale-105 transition-all duration-300">
+                            <img src="{{ asset('images/web/hero-pplg.jpg') }}" alt="Suasana Belajar Siswa PPLG" class="w-full h-48 sm:h-56 object-cover hover:scale-105 transition-all duration-300" loading="lazy" decoding="async">
                         </div>
                     </div>
                 </div>
@@ -492,7 +492,7 @@
                 <!-- Fasilitas 1 -->
                 <div class="rounded-2xl overflow-hidden border border-blue-200 shadow-sm hover:shadow-md transition-shadow group">
                     <div class="relative aspect-video overflow-hidden bg-slate-100">
-                        <img src="{{ asset('images/landing/lab-komputer-pplg.jpg') }}" alt="Lab Komputer PPLG" class="w-full h-full object-cover group-hover:scale-105 transition-all duration-300">
+                        <img src="{{ asset('images/landing/lab-komputer-pplg.jpg') }}" alt="Lab Komputer PPLG" class="w-full h-full object-cover group-hover:scale-105 transition-all duration-300" loading="lazy" decoding="async">
                         <span class="absolute top-3 left-3 px-3 py-1 rounded-full text-[11px] font-bold bg-[#147EFB] text-white">Lab Fullstack Code Studio</span>
                     </div>
                     <div class="p-5">
@@ -506,7 +506,7 @@
                 <!-- Fasilitas 2 -->
                 <div class="rounded-2xl overflow-hidden border border-blue-200 shadow-sm hover:shadow-md transition-shadow group">
                     <div class="relative aspect-video overflow-hidden bg-slate-100">
-                        <img src="{{ asset('images/landing/kelas-digital.jpg') }}" alt="Studio Game Dev & AI" class="w-full h-full object-cover group-hover:scale-105 transition-all duration-300">
+                        <img src="{{ asset('images/landing/kelas-digital.jpg') }}" alt="Studio Game Dev & AI" class="w-full h-full object-cover group-hover:scale-105 transition-all duration-300" loading="lazy" decoding="async">
                         <span class="absolute top-3 left-3 px-3 py-1 rounded-full text-[11px] font-bold bg-cyan-700 text-white">Studio Game &amp; AI</span>
                     </div>
                     <div class="p-5">
@@ -520,7 +520,7 @@
                 <!-- Fasilitas 3 -->
                 <div class="rounded-2xl overflow-hidden border border-blue-200 shadow-sm hover:shadow-md transition-shadow group">
                     <div class="relative aspect-video overflow-hidden bg-slate-100">
-                        <img src="{{ asset('images/web/facility-lab.jpg') }}" alt="Lab Mobile Apps" class="w-full h-full object-cover group-hover:scale-105 transition-all duration-300">
+                        <img src="{{ asset('images/web/facility-lab.jpg') }}" alt="Lab Mobile Apps" class="w-full h-full object-cover group-hover:scale-105 transition-all duration-300" loading="lazy" decoding="async">
                         <span class="absolute top-3 left-3 px-3 py-1 rounded-full text-[11px] font-bold bg-blue-800 text-white">Mobile Testing Station</span>
                     </div>
                     <div class="p-5">
@@ -534,7 +534,7 @@
                 <!-- Fasilitas 4 -->
                 <div class="rounded-2xl overflow-hidden border border-blue-200 shadow-sm hover:shadow-md transition-shadow group">
                     <div class="relative aspect-video overflow-hidden bg-slate-100">
-                        <img src="{{ asset('images/web/activity-learning.jpg') }}" alt="Coworking Space Scrum" class="w-full h-full object-cover group-hover:scale-105 transition-all duration-300">
+                        <img src="{{ asset('images/web/activity-learning.jpg') }}" alt="Coworking Space Scrum" class="w-full h-full object-cover group-hover:scale-105 transition-all duration-300" loading="lazy" decoding="async">
                         <span class="absolute top-3 left-3 px-3 py-1 rounded-full text-[11px] font-bold bg-indigo-700 text-white">Scrum &amp; Agile Hub</span>
                     </div>
                     <div class="p-5">
@@ -548,7 +548,7 @@
                 <!-- Fasilitas 5 -->
                 <div class="rounded-2xl overflow-hidden border border-blue-200 shadow-sm hover:shadow-md transition-shadow group">
                     <div class="relative aspect-video overflow-hidden bg-slate-100">
-                        <img src="{{ asset('images/landing/suasana-belajar-aktif.jpg') }}" alt="Server Staging Lab" class="w-full h-full object-cover group-hover:scale-105 transition-all duration-300">
+                        <img src="{{ asset('images/landing/suasana-belajar-aktif.jpg') }}" alt="Server Staging Lab" class="w-full h-full object-cover group-hover:scale-105 transition-all duration-300" loading="lazy" decoding="async">
                         <span class="absolute top-3 left-3 px-3 py-1 rounded-full text-[11px] font-bold bg-slate-900 text-white">Server &amp; DevOps</span>
                     </div>
                     <div class="p-5">
@@ -562,7 +562,7 @@
                 <!-- Fasilitas 6 -->
                 <div class="rounded-2xl overflow-hidden border border-blue-200 shadow-sm hover:shadow-md transition-shadow group">
                     <div class="relative aspect-video overflow-hidden bg-slate-100">
-                        <img src="{{ asset('images/landing/prestasi-seminar-siswa.jpg') }}" alt="Showcase & Pitching Arena" class="w-full h-full object-cover group-hover:scale-105 transition-all duration-300">
+                        <img src="{{ asset('images/landing/prestasi-seminar-siswa.jpg') }}" alt="Showcase & Pitching Arena" class="w-full h-full object-cover group-hover:scale-105 transition-all duration-300" loading="lazy" decoding="async">
                         <span class="absolute top-3 left-3 px-3 py-1 rounded-full text-[11px] font-bold bg-emerald-700 text-white">Showcase &amp; Pitching</span>
                     </div>
                     <div class="p-5">
@@ -682,7 +682,7 @@
                 <div class="absolute -right-20 -bottom-20 w-64 h-64 bg-[#147EFB]/20 rounded-full blur-2xl pointer-events-none"></div>
 
                 <div class="flex flex-col sm:flex-row items-center gap-6 sm:gap-8 relative z-10">
-                    <img src="{{ asset('images/web/alumni-faras.png') }}" alt="Alumni PPLG Wikrama" class="w-24 h-24 sm:w-28 sm:h-28 rounded-full object-cover border-4 border-[#147EFB] shadow-lg shrink-0">
+                    <img src="{{ asset('images/web/alumni-faras.png') }}" alt="Alumni PPLG Wikrama" class="w-24 h-24 sm:w-28 sm:h-28 rounded-full object-cover border-4 border-[#147EFB] shadow-lg shrink-0" loading="lazy" decoding="async">
                     <div class="space-y-3 text-center sm:text-left">
                         <div class="flex items-center justify-center sm:justify-start gap-1 text-amber-400">
                             @for($i = 0; $i < 5; $i++)

@@ -93,7 +93,7 @@
                     <div>
                         <!-- Header Visual with Tech Blue Accent -->
                         <div class="relative h-60 sm:h-72 w-full overflow-hidden bg-slate-900">
-                            <img src="{{ asset('images/web/hero-pplg.jpg') }}" alt="PPLG SMK Wikrama" class="w-full h-full object-cover group-hover:scale-105 transition-transform duration-500">
+                            <img src="{{ asset('images/web/hero-pplg.jpg') }}" alt="PPLG SMK Wikrama" class="w-full h-full object-cover group-hover:scale-105 transition-transform duration-500" loading="lazy" decoding="async">
                             <div class="absolute inset-0 bg-gradient-to-t from-slate-950/80 via-slate-950/30 to-transparent"></div>
                             
                             <div class="absolute top-4 left-4 flex items-center gap-2">
@@ -162,7 +162,7 @@
                     <div>
                         <!-- Header Visual with Cyber Green Accent -->
                         <div class="relative h-60 sm:h-72 w-full overflow-hidden bg-slate-900">
-                            <img src="{{ asset('images/web/hero-tjkt.jpg') }}" alt="TJKT SMK Wikrama" class="w-full h-full object-cover group-hover:scale-105 transition-transform duration-500">
+                            <img src="{{ asset('images/web/hero-tjkt.jpg') }}" alt="TJKT SMK Wikrama" class="w-full h-full object-cover group-hover:scale-105 transition-transform duration-500" loading="lazy" decoding="async">
                             <div class="absolute inset-0 bg-gradient-to-t from-slate-950/80 via-slate-950/30 to-transparent"></div>
                             
                             <div class="absolute top-4 left-4 flex items-center gap-2">
@@ -231,7 +231,7 @@
                     <div>
                         <!-- Header Visual with Vibrant Orange Accent -->
                         <div class="relative h-60 sm:h-72 w-full overflow-hidden bg-slate-900">
-                            <img src="{{ asset('images/web/hero-pmn.jpg') }}" alt="Pemasaran SMK Wikrama" class="w-full h-full object-cover group-hover:scale-105 transition-transform duration-500">
+                            <img src="{{ asset('images/web/hero-pmn.jpg') }}" alt="Pemasaran SMK Wikrama" class="w-full h-full object-cover group-hover:scale-105 transition-transform duration-500" loading="lazy" decoding="async">
                             <div class="absolute inset-0 bg-gradient-to-t from-slate-950/80 via-slate-950/30 to-transparent"></div>
                             
                             <div class="absolute top-4 left-4 flex items-center gap-2">
@@ -300,7 +300,7 @@
                     <div>
                         <!-- Header Visual with Luxury Rose-Gold Accent -->
                         <div class="relative h-60 sm:h-72 w-full overflow-hidden bg-slate-900">
-                            <img src="{{ asset('images/web/hero-htl.png') }}" alt="Perhotelan SMK Wikrama" class="w-full h-full object-cover group-hover:scale-105 transition-transform duration-500">
+                            <img src="{{ asset('images/web/hero-htl.png') }}" alt="Perhotelan SMK Wikrama" class="w-full h-full object-cover group-hover:scale-105 transition-transform duration-500" loading="lazy" decoding="async">
                             <div class="absolute inset-0 bg-gradient-to-t from-slate-950/80 via-slate-950/30 to-transparent"></div>
                             
                             <div class="absolute top-4 left-4 flex items-center gap-2">
