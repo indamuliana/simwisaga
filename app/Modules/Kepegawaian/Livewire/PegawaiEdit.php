@@ -29,6 +29,8 @@ class PegawaiEdit extends Component
     public string $activeTab = 'identitas';
 
     // 1. Identitas Pribadi
+    public ?string $niy = null;
+
     public string $nama_lengkap = '';
 
     public ?string $gelar_depan = null;
@@ -81,6 +83,10 @@ class PegawaiEdit extends Component
 
     public ?string $jabatan_struktural = null;
 
+    public ?string $mapel_diampu = null;
+
+    public ?string $jam_kerja = null;
+
     public ?string $nip = null;
 
     public ?string $nuptk = null;
@@ -97,9 +103,19 @@ class PegawaiEdit extends Component
 
     public ?string $no_sk_mulai_guru = null;
 
+    public ?string $tgl_pertama_kontrak = null;
+
+    public ?string $no_sk_kontrak_pertama = null;
+
     public ?string $tgl_diangkat_pegawai_tetap = null;
 
     public ?string $no_sk_tetap_yayasan = null;
+
+    public ?string $habis_kontrak = null;
+
+    public ?string $lama_kontrak_selanjutnya = null;
+
+    public ?string $keterangan_perpanjang = null;
 
     public ?string $tgl_awal_masuk_wikrama = null;
 
@@ -116,6 +132,8 @@ class PegawaiEdit extends Component
 
     // 5. Pendidikan & Pengalaman
     public ?string $pendidikan_terakhir = null;
+
+    public ?string $jenjang_pendidikan = null;
 
     public ?string $jurusan_dan_instansi = null;
 
@@ -190,6 +208,7 @@ class PegawaiEdit extends Component
         $p = $this->pegawai;
 
         // Prefill Data
+        $this->niy = $p->niy;
         $this->nama_lengkap = $p->nama_lengkap;
         $this->gelar_depan = $p->gelar_depan;
         $this->gelar_belakang = $p->gelar_belakang;
@@ -217,6 +236,8 @@ class PegawaiEdit extends Component
         $this->jenis_gtk = $p->jenis_gtk ?: 'Guru';
         $this->status_kepegawaian = $p->status_kepegawaian ?: 'GTY';
         $this->jabatan_struktural = $p->jabatan_struktural;
+        $this->mapel_diampu = $p->mapel_diampu;
+        $this->jam_kerja = $p->jam_kerja;
         $this->nip = $p->nip;
         $this->nuptk = $p->nuptk;
         $this->nomor_peserta_ukg = $p->nomor_peserta_ukg;
@@ -225,8 +246,13 @@ class PegawaiEdit extends Component
         $this->nomor_sertifikat_pendidik = $p->nomor_sertifikat_pendidik;
         $this->tmt_awal_guru = $p->tmt_awal_guru ? $p->tmt_awal_guru->format('Y-m-d') : null;
         $this->no_sk_mulai_guru = $p->no_sk_mulai_guru;
+        $this->tgl_pertama_kontrak = $p->tgl_pertama_kontrak ? $p->tgl_pertama_kontrak->format('Y-m-d') : null;
+        $this->no_sk_kontrak_pertama = $p->no_sk_kontrak_pertama;
         $this->tgl_diangkat_pegawai_tetap = $p->tgl_diangkat_pegawai_tetap ? $p->tgl_diangkat_pegawai_tetap->format('Y-m-d') : null;
         $this->no_sk_tetap_yayasan = $p->no_sk_tetap_yayasan;
+        $this->habis_kontrak = $p->habis_kontrak ? $p->habis_kontrak->format('Y-m-d') : null;
+        $this->lama_kontrak_selanjutnya = $p->lama_kontrak_selanjutnya;
+        $this->keterangan_perpanjang = $p->keterangan_perpanjang;
         $this->tgl_awal_masuk_wikrama = $p->tgl_awal_masuk_wikrama ? $p->tgl_awal_masuk_wikrama->format('Y-m-d') : null;
         $this->is_active = (bool) $p->is_active;
 
@@ -236,6 +262,7 @@ class PegawaiEdit extends Component
         $this->no_kartu_bpjs_ketenagakerjaan = $p->no_kartu_bpjs_ketenagakerjaan;
 
         $this->pendidikan_terakhir = $p->pendidikan_terakhir;
+        $this->jenjang_pendidikan = $p->jenjang_pendidikan;
         $this->jurusan_dan_instansi = $p->jurusan_dan_instansi;
         $this->tgl_lulus_pendidikan_terakhir = $p->tgl_lulus_pendidikan_terakhir ? $p->tgl_lulus_pendidikan_terakhir->format('Y-m-d') : null;
         $this->tahun_lulus_pendidikan_terakhir = $p->tahun_lulus_pendidikan_terakhir;
@@ -389,6 +416,7 @@ class PegawaiEdit extends Component
 
         $this->validate([
             'nama_lengkap' => 'required|string|max:150',
+            'niy' => ['nullable', 'string', 'max:30', Rule::unique('pegawais', 'niy')->ignore($this->pegawai->id)],
             'jenis_kelamin' => 'required|in:L,P',
             'jenis_gtk' => 'required|string|max:50',
             'status_kepegawaian' => 'required|string|max:50',
@@ -396,6 +424,8 @@ class PegawaiEdit extends Component
             'nuptk' => ['nullable', 'string', 'max:30', Rule::unique('pegawais', 'nuptk')->ignore($this->pegawai->id)],
             'nik' => ['nullable', 'string', 'max:20', Rule::unique('pegawais', 'nik')->ignore($this->pegawai->id)],
             'email' => 'nullable|email|max:100',
+            'tgl_pertama_kontrak' => 'nullable|date',
+            'habis_kontrak' => 'nullable|date',
             'foto_1' => ['nullable', 'image', 'max:3072'],
             'foto_2' => 'nullable|image|max:3072',
             'foto_3' => 'nullable|image|max:3072',
@@ -468,6 +498,7 @@ class PegawaiEdit extends Component
             }
 
             $this->pegawai->update([
+                'niy' => $this->niy ?: null,
                 'nama_lengkap' => $this->nama_lengkap,
                 'gelar_depan' => $this->gelar_depan ?: null,
                 'gelar_belakang' => $this->gelar_belakang ?: null,
@@ -494,14 +525,21 @@ class PegawaiEdit extends Component
                 'desa_nama' => $this->desa_nama ?: null,
                 'kode_pos' => $this->kode_pos ?: null,
                 'jabatan_struktural' => $this->jabatan_struktural ?: null,
+                'mapel_diampu' => $this->mapel_diampu ?: null,
+                'jam_kerja' => $this->jam_kerja ?: null,
                 'nomor_peserta_ukg' => $this->nomor_peserta_ukg ?: null,
                 'nomor_registrasi_guru' => $this->nomor_registrasi_guru ?: null,
                 'nomor_peserta_sertifikasi' => $this->nomor_peserta_sertifikasi ?: null,
                 'nomor_sertifikat_pendidik' => $this->nomor_sertifikat_pendidik ?: null,
                 'tmt_awal_guru' => $this->tmt_awal_guru ?: null,
                 'no_sk_mulai_guru' => $this->no_sk_mulai_guru ?: null,
+                'tgl_pertama_kontrak' => $this->tgl_pertama_kontrak ?: null,
+                'no_sk_kontrak_pertama' => $this->no_sk_kontrak_pertama ?: null,
                 'tgl_diangkat_pegawai_tetap' => $this->tgl_diangkat_pegawai_tetap ?: null,
                 'no_sk_tetap_yayasan' => $this->no_sk_tetap_yayasan ?: null,
+                'habis_kontrak' => $this->habis_kontrak ?: null,
+                'lama_kontrak_selanjutnya' => $this->lama_kontrak_selanjutnya ?: null,
+                'keterangan_perpanjang' => $this->keterangan_perpanjang ?: null,
                 'tgl_awal_masuk_wikrama' => $this->tgl_awal_masuk_wikrama ?: null,
                 'golongan_darah' => $this->golongan_darah ?: null,
                 'npwp' => $this->npwp ?: null,
@@ -509,6 +547,7 @@ class PegawaiEdit extends Component
                 'no_kartu_bpjs_kesehatan' => $this->no_kartu_bpjs_kesehatan ?: null,
                 'no_kartu_bpjs_ketenagakerjaan' => $this->no_kartu_bpjs_ketenagakerjaan ?: null,
                 'pendidikan_terakhir' => $this->pendidikan_terakhir ?: null,
+                'jenjang_pendidikan' => $this->jenjang_pendidikan ?: null,
                 'jurusan_dan_instansi' => $this->jurusan_dan_instansi ?: null,
                 'tgl_lulus_pendidikan_terakhir' => $this->tgl_lulus_pendidikan_terakhir ?: null,
                 'tahun_lulus_pendidikan_terakhir' => $this->tahun_lulus_pendidikan_terakhir ?: null,
@@ -538,7 +577,7 @@ class PegawaiEdit extends Component
         $kecamatanList = [];
         $desaList = [];
 
-        if ($this->activeTab === 'alamat' && $this->jenis_wilayah === 'dalam_negeri') {
+        if ($this->jenis_wilayah === 'dalam_negeri') {
             $provinceList = $wilayahService->getProvincesList();
             $kabupatenList = $wilayahService->getKabupatenList($this->provinsi_nama ?: null);
             $kecamatanList = $wilayahService->getKecamatanList($this->kabupaten_nama ?: null, $this->provinsi_nama ?: null);

@@ -27,6 +27,8 @@ class PegawaiCreate extends Component
     public string $activeTab = 'identitas';
 
     // 1. Identitas Pribadi
+    public ?string $niy = null;
+
     public string $nama_lengkap = '';
 
     public ?string $gelar_depan = null;
@@ -79,6 +81,10 @@ class PegawaiCreate extends Component
 
     public ?string $jabatan_struktural = null;
 
+    public ?string $mapel_diampu = null;
+
+    public ?string $jam_kerja = null;
+
     public ?string $nip = null;
 
     public ?string $nuptk = null;
@@ -95,9 +101,19 @@ class PegawaiCreate extends Component
 
     public ?string $no_sk_mulai_guru = null;
 
+    public ?string $tgl_pertama_kontrak = null;
+
+    public ?string $no_sk_kontrak_pertama = null;
+
     public ?string $tgl_diangkat_pegawai_tetap = null;
 
     public ?string $no_sk_tetap_yayasan = null;
+
+    public ?string $habis_kontrak = null;
+
+    public ?string $lama_kontrak_selanjutnya = null;
+
+    public ?string $keterangan_perpanjang = null;
 
     public ?string $tgl_awal_masuk_wikrama = null;
 
@@ -114,6 +130,8 @@ class PegawaiCreate extends Component
 
     // 5. Pendidikan & Pengalaman
     public ?string $pendidikan_terakhir = null;
+
+    public ?string $jenjang_pendidikan = null;
 
     public ?string $jurusan_dan_instansi = null;
 
@@ -290,6 +308,7 @@ class PegawaiCreate extends Component
 
         $this->validate([
             'nama_lengkap' => 'required|string|max:150',
+            'niy' => 'nullable|string|max:30|unique:pegawais,niy',
             'jenis_kelamin' => 'required|in:L,P',
             'jenis_gtk' => 'required|string|max:50',
             'status_kepegawaian' => 'required|string|max:50',
@@ -297,6 +316,8 @@ class PegawaiCreate extends Component
             'nuptk' => 'nullable|string|max:30|unique:pegawais,nuptk',
             'nik' => 'nullable|string|max:20|unique:pegawais,nik',
             'email' => 'nullable|email|max:100',
+            'tgl_pertama_kontrak' => 'nullable|date',
+            'habis_kontrak' => 'nullable|date',
             'foto_1' => 'required|image|max:3072', // Wajib slot 1
             'foto_2' => 'nullable|image|max:3072',
             'foto_3' => 'nullable|image|max:3072',
@@ -330,6 +351,7 @@ class PegawaiCreate extends Component
 
             $pegawai = Pegawai::create([
                 'user_id' => $userId,
+                'niy' => $this->niy ?: null,
                 'nama_lengkap' => $this->nama_lengkap,
                 'gelar_depan' => $this->gelar_depan ?: null,
                 'gelar_belakang' => $this->gelar_belakang ?: null,
@@ -356,14 +378,21 @@ class PegawaiCreate extends Component
                 'desa_nama' => $this->desa_nama ?: null,
                 'kode_pos' => $this->kode_pos ?: null,
                 'jabatan_struktural' => $this->jabatan_struktural ?: null,
+                'mapel_diampu' => $this->mapel_diampu ?: null,
+                'jam_kerja' => $this->jam_kerja ?: null,
                 'nomor_peserta_ukg' => $this->nomor_peserta_ukg ?: null,
                 'nomor_registrasi_guru' => $this->nomor_registrasi_guru ?: null,
                 'nomor_peserta_sertifikasi' => $this->nomor_peserta_sertifikasi ?: null,
                 'nomor_sertifikat_pendidik' => $this->nomor_sertifikat_pendidik ?: null,
                 'tmt_awal_guru' => $this->tmt_awal_guru ?: null,
                 'no_sk_mulai_guru' => $this->no_sk_mulai_guru ?: null,
+                'tgl_pertama_kontrak' => $this->tgl_pertama_kontrak ?: null,
+                'no_sk_kontrak_pertama' => $this->no_sk_kontrak_pertama ?: null,
                 'tgl_diangkat_pegawai_tetap' => $this->tgl_diangkat_pegawai_tetap ?: null,
                 'no_sk_tetap_yayasan' => $this->no_sk_tetap_yayasan ?: null,
+                'habis_kontrak' => $this->habis_kontrak ?: null,
+                'lama_kontrak_selanjutnya' => $this->lama_kontrak_selanjutnya ?: null,
+                'keterangan_perpanjang' => $this->keterangan_perpanjang ?: null,
                 'tgl_awal_masuk_wikrama' => $this->tgl_awal_masuk_wikrama ?: null,
                 'golongan_darah' => $this->golongan_darah ?: null,
                 'npwp' => $this->npwp ?: null,
@@ -371,6 +400,7 @@ class PegawaiCreate extends Component
                 'no_kartu_bpjs_kesehatan' => $this->no_kartu_bpjs_kesehatan ?: null,
                 'no_kartu_bpjs_ketenagakerjaan' => $this->no_kartu_bpjs_ketenagakerjaan ?: null,
                 'pendidikan_terakhir' => $this->pendidikan_terakhir ?: null,
+                'jenjang_pendidikan' => $this->jenjang_pendidikan ?: null,
                 'jurusan_dan_instansi' => $this->jurusan_dan_instansi ?: null,
                 'tgl_lulus_pendidikan_terakhir' => $this->tgl_lulus_pendidikan_terakhir ?: null,
                 'tahun_lulus_pendidikan_terakhir' => $this->tahun_lulus_pendidikan_terakhir ?: null,
@@ -423,7 +453,7 @@ class PegawaiCreate extends Component
         $kecamatanList = [];
         $desaList = [];
 
-        if ($this->activeTab === 'alamat' && $this->jenis_wilayah === 'dalam_negeri') {
+        if ($this->jenis_wilayah === 'dalam_negeri') {
             $provinceList = $wilayahService->getProvincesList();
             $kabupatenList = $wilayahService->getKabupatenList($this->provinsi_nama ?: null);
             $kecamatanList = $wilayahService->getKecamatanList($this->kabupaten_nama ?: null, $this->provinsi_nama ?: null);

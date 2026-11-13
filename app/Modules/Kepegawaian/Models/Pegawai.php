@@ -17,6 +17,7 @@ class Pegawai extends Model implements Auditable
 
     protected $fillable = [
         'user_id',
+        'niy',
         'nip',
         'nuptk',
         'nik',
@@ -43,14 +44,21 @@ class Pegawai extends Model implements Auditable
         'desa_nama',
         'kode_pos',
         'jabatan_struktural',
+        'mapel_diampu',
         'nomor_peserta_ukg',
         'nomor_registrasi_guru',
         'nomor_peserta_sertifikasi',
         'nomor_sertifikat_pendidik',
         'tmt_awal_guru',
         'no_sk_mulai_guru',
+        'tgl_pertama_kontrak',
+        'no_sk_kontrak_pertama',
         'tgl_diangkat_pegawai_tetap',
         'no_sk_tetap_yayasan',
+        'habis_kontrak',
+        'lama_kontrak_selanjutnya',
+        'keterangan_perpanjang',
+        'jam_kerja',
         'tgl_awal_masuk_wikrama',
         'golongan_darah',
         'npwp',
@@ -58,6 +66,7 @@ class Pegawai extends Model implements Auditable
         'no_kartu_bpjs_kesehatan',
         'no_kartu_bpjs_ketenagakerjaan',
         'pendidikan_terakhir',
+        'jenjang_pendidikan',
         'jurusan_dan_instansi',
         'tgl_lulus_pendidikan_terakhir',
         'tahun_lulus_pendidikan_terakhir',
@@ -78,7 +87,9 @@ class Pegawai extends Model implements Auditable
         'is_active' => 'boolean',
         'tanggal_lahir' => 'date',
         'tmt_awal_guru' => 'date',
+        'tgl_pertama_kontrak' => 'date',
         'tgl_diangkat_pegawai_tetap' => 'date',
+        'habis_kontrak' => 'date',
         'tgl_awal_masuk_wikrama' => 'date',
         'tgl_lulus_pendidikan_terakhir' => 'date',
         'tgl_lahir_pasangan' => 'date',
@@ -134,6 +145,27 @@ class Pegawai extends Model implements Auditable
     public function getUmurLabelAttribute(): string
     {
         return $this->umur !== null ? "{$this->umur} Tahun" : '-';
+    }
+
+    /**
+     * Pengecekan apakah NIK perlu diverifikasi ulang dari KTP fisik.
+     * Mengembalikan true jika NIK ada tetapi berakhiran 0000 (akibat keterbatasan presisi Excel float)
+     * atau panjang digit bersihnya kurang dari 16 karakter.
+     */
+    public function getPerluVerifikasiNikAttribute(): bool
+    {
+        if (! $this->nik) {
+            return false;
+        }
+
+        $clean = preg_replace('/\D/', '', $this->nik);
+
+        return str_ends_with($clean, '0000') || strlen($clean) < 16;
+    }
+
+    public function getNiyLabelAttribute(): string
+    {
+        return $this->niy ?: '-';
     }
 
     /**
