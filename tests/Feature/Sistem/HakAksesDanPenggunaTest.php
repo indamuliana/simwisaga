@@ -142,4 +142,37 @@ class HakAksesDanPenggunaTest extends TestCase
         $pegawai->refresh();
         $this->assertNull($pegawai->user_id);
     }
+
+    public function test_matriks_hak_akses_groups_and_toggle_group(): void
+    {
+        $registry = app(\App\Core\Modules\ModuleRegistry::class);
+        $matrix = $registry->permissionMatrix();
+
+        // Verify Master Akademik (akademik.tahun_ajaran) is under KURIKULUM group
+        $this->assertArrayHasKey('akademik.tahun_ajaran', $matrix);
+        $this->assertEquals('KURIKULUM', $matrix['akademik.tahun_ajaran']['group']);
+
+        $component = Livewire::actingAs($this->admin)
+            ->test(HakAkses::class)
+            ->call('selectRole', (string) $this->guruRole->id)
+            ->call('clearAllForRole');
+
+        $this->assertEmpty($component->get('rolePermissions'));
+
+        // Toggle all for KURIKULUM group
+        $component->call('toggleAllForGroup', 'KURIKULUM');
+        $kurikulumPerms = $component->get('rolePermissions');
+        $this->assertNotEmpty($kurikulumPerms);
+
+        // Check that an akademik permission is present
+        $this->assertContains('akademik.tahun_ajaran.lihat', $kurikulumPerms);
+
+        // Toggle off for KURIKULUM group
+        $component->call('toggleAllForGroup', 'KURIKULUM');
+        $this->assertEmpty($component->get('rolePermissions'));
+
+        // Test search filter by group name
+        $component->set('search', 'KURIKULUM');
+        $component->assertSee('Master Akademik');
+    }
 }

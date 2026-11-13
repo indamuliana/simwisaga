@@ -110,6 +110,28 @@ class HakAkses extends Component
         }
     }
 
+    public function toggleAllForGroup(string $groupName): void
+    {
+        $this->guard('sistem.hakakses.edit');
+
+        $groupPermissions = [];
+        foreach ($this->matrix as $resource => $def) {
+            if (($def['group'] ?? '') === $groupName) {
+                foreach ($def['actions'] as $act) {
+                    $groupPermissions[] = "{$resource}.{$act}";
+                }
+            }
+        }
+
+        $allSelected = count(array_intersect($groupPermissions, $this->rolePermissions)) === count($groupPermissions);
+
+        if ($allSelected) {
+            $this->rolePermissions = array_values(array_diff($this->rolePermissions, $groupPermissions));
+        } else {
+            $this->rolePermissions = array_values(array_unique(array_merge($this->rolePermissions, $groupPermissions)));
+        }
+    }
+
     public function selectAllForRole(): void
     {
         $this->guard('sistem.hakakses.edit');
@@ -276,6 +298,7 @@ class HakAkses extends Component
             $term = strtolower(trim($this->search));
             $filteredMatrix = array_filter($this->matrix, function ($def, $resource) use ($term) {
                 return str_contains(strtolower($resource), $term)
+                    || str_contains(strtolower($def['group'] ?? ''), $term)
                     || str_contains(strtolower($def['module'] ?? ''), $term)
                     || str_contains(strtolower($def['label'] ?? ''), $term);
             }, ARRAY_FILTER_USE_BOTH);

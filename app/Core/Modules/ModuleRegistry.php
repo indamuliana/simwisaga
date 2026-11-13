@@ -234,14 +234,34 @@ class ModuleRegistry
     {
         $matrix = [];
         foreach ($this->all() as $module) {
+            $moduleName = $module['name'];
+            $groupName = $module['group'] ?? self::MODULE_GROUP_MAP[$moduleName] ?? ($module['label'] ?? $moduleName);
+            $groupDef = self::DEFAULT_GROUPS[$groupName] ?? ['label' => $groupName, 'icon' => 'folder', 'order' => 999];
+
             foreach ($module['permissions'] as $resource => $def) {
                 $matrix[$resource] = [
-                    'module' => $module['label'] ?? $module['name'],
+                    'group' => $groupName,
+                    'group_icon' => $groupDef['icon'] ?? 'folder',
+                    'group_order' => $groupDef['order'] ?? 999,
+                    'module' => $module['label'] ?? $moduleName,
+                    'module_name' => $moduleName,
+                    'module_order' => $module['order'] ?? 100,
                     'label' => $def['label'] ?? $resource,
                     'actions' => $def['actions'] ?? ['lihat', 'tambah', 'edit', 'hapus', 'cetak'],
                 ];
             }
         }
+
+        // Urutkan berdasarkan group_order, lalu module_order
+        uasort($matrix, function ($a, $b) {
+            if ($a['group_order'] !== $b['group_order']) {
+                return $a['group_order'] <=> $b['group_order'];
+            }
+            if ($a['module_order'] !== $b['module_order']) {
+                return $a['module_order'] <=> $b['module_order'];
+            }
+            return 0;
+        });
 
         return $matrix;
     }
