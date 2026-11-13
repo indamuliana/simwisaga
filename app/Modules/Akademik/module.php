@@ -3,8 +3,8 @@
 return [
     'name' => 'Akademik',
     'label' => 'Master Akademik',
-    'group' => 'PENGATURAN',
-    'order' => 20,
+    'group' => 'KURIKULUM',
+    'order' => 10,
     'topbar' => [
         \App\Modules\Akademik\Livewire\AcademicContextSwitcher::class,
     ],

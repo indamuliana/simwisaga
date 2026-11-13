@@ -147,6 +147,7 @@ class ModuleRegistry
         'AiAssistant'        => 'ANALISIS',
 
         'KalenderPendidikan' => 'KURIKULUM',
+        'Akademik'           => 'KURIKULUM',
         'Penilaian'          => 'KURIKULUM',
         'SeniBudaya'         => 'KURIKULUM',
         'Ekstrakurikuler'    => 'KURIKULUM',
@@ -164,7 +165,6 @@ class ModuleRegistry
 
         'Sarpras'            => 'SARANA & PRASARANA',
 
-        'Akademik'           => 'PENGATURAN',
         'AdministrasiWeb'    => 'PENGATURAN',
         'Sistem'             => 'PENGATURAN',
         'Panduan'            => 'PENGATURAN',

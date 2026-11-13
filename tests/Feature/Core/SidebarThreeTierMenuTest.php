@@ -40,6 +40,7 @@ class SidebarThreeTierMenuTest extends TestCase
 
         // 2. Verifikasi kelompok KURIKULUM
         $kurikulumModules = collect($groupsByKey['KURIKULUM']['modules'])->pluck('name')->all();
+        $this->assertContains('Akademik', $kurikulumModules);
         $this->assertContains('KalenderPendidikan', $kurikulumModules);
         $this->assertContains('Penilaian', $kurikulumModules);
         $this->assertContains('SeniBudaya', $kurikulumModules);
@@ -55,7 +56,7 @@ class SidebarThreeTierMenuTest extends TestCase
 
         // 4. Verifikasi kelompok PENGATURAN
         $pengaturanModules = collect($groupsByKey['PENGATURAN']['modules'])->pluck('name')->all();
-        $this->assertContains('Akademik', $pengaturanModules);
+        $this->assertNotContains('Akademik', $pengaturanModules);
         $this->assertContains('AdministrasiWeb', $pengaturanModules);
         $this->assertContains('Sistem', $pengaturanModules);
         $this->assertContains('Panduan', $pengaturanModules);
