@@ -161,6 +161,8 @@
             {{-- Judul Piagam & Nomor Resmi (Tanpa Logo/Kop Sekolah) --}}
             <div class="cert-title">PIAGAM PENGHARGAAN</div>
             <div class="cert-nomor">Nomor: {{ $nomorSertifikat }}</div>
+            <br>
+            <br>
 
             {{-- Penerima Piagam --}}
             <div class="cert-subtitle">Diberikan Sebagai Apresiasi Kepada:</div>
@@ -174,6 +176,7 @@
                     periode <span class="cert-highlight">{{ $donasi->keterangan_periode }}</span>
                 @endif
                 dalam mendukung keberlangsungan pendidikan siswa di SMK Wikrama 1 Garut.
+                <br>
                 <br>
                 <em>
                     Semoga Allah SWT / Tuhan Yang Maha Esa membalas segala amal kebaikan dengan keberkahan yang berlipat ganda.
@@ -219,11 +222,13 @@
                 {{-- Baris 4: Nama Penanda Tangan (Sejajar Sempurna) --}}
                 <tr>
                     <td class="col-signer" style="vertical-align: top;">
+                    <br>
                         <div class="signer-name">{{ $ketuaOtaNama }}</div>
                         <div class="signer-title">Pengelola Beasiswa OTA</div>
                     </td>
                     <td class="col-qr" style="vertical-align: top;"></td>
                     <td class="col-signer" style="vertical-align: top;">
+                    <br>
                         <div class="signer-name">{{ $kepsekNama }}</div>
                         <div class="signer-title">NIP: {{ $kepsekNip }}</div>
                     </td>
