@@ -56,6 +56,24 @@ Route::prefix('jurusan')->name('web.jurusan.')->group(function () {
     Route::redirect('/perhotelan', '/jurusan/htl');
 });
 
+// Halaman Publik: Verifikasi Tanda Terima Donasi Beasiswa OTA (Akses via Scan QR Code)
+Route::get('/beasiswa-ota/verifikasi/{nomorTransaksi}', [\App\Modules\BeasiswaOta\Controllers\OtaPrintController::class, 'verifikasiDonasi'])
+    ->name('beasiswa-ota.verifikasi-donasi');
+Route::get('/v/ota/{nomorTransaksi}', [\App\Modules\BeasiswaOta\Controllers\OtaPrintController::class, 'verifikasiDonasi'])
+    ->name('beasiswa-ota.v');
+Route::get('/beasiswa-ota/verifikasi-kolektif/{batchKode}', [\App\Modules\BeasiswaOta\Controllers\OtaPrintController::class, 'verifikasiKolektif'])
+    ->name('beasiswa-ota.verifikasi-kolektif');
+Route::get('/v/ota-batch/{batchKode}', [\App\Modules\BeasiswaOta\Controllers\OtaPrintController::class, 'verifikasiKolektif'])
+    ->name('beasiswa-ota.v-kolektif');
+Route::get('/beasiswa-ota/verifikasi-penyaluran/{nomorKwitansi}', [\App\Modules\BeasiswaOta\Controllers\OtaPrintController::class, 'verifikasiPenyaluran'])
+    ->name('beasiswa-ota.verifikasi-penyaluran');
+Route::get('/v/ota-kwitansi/{nomorKwitansi}', [\App\Modules\BeasiswaOta\Controllers\OtaPrintController::class, 'verifikasiPenyaluran'])
+    ->name('beasiswa-ota.v-kwitansi');
+Route::get('/beasiswa-ota/verifikasi-sertifikat/{donasiId}', [\App\Modules\BeasiswaOta\Controllers\OtaPrintController::class, 'verifikasiSertifikat'])
+    ->name('beasiswa-ota.verifikasi-sertifikat');
+Route::get('/v/ota-sertifikat/{donasiId}', [\App\Modules\BeasiswaOta\Controllers\OtaPrintController::class, 'verifikasiSertifikat'])
+    ->name('beasiswa-ota.v-sertifikat');
+
 Route::middleware('guest')->group(function () {
     Route::get('/login', Login::class)->name('login');
 });
