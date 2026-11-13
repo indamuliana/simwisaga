@@ -57,7 +57,7 @@
                     <svg class="w-4 h-4 text-emerald-600" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 10v6m0 0l-3-3m3 3l3-3m2 8H7a2 2 0 01-2-2V5a2 2 0 012-2h5.586a1 1 0 01.707.293l5.414 5.414a1 1 0 01.293.707V19a2 2 0 01-2 2z"/></svg>
                     Template Excel
                 </button>
-                <button wire:click="$set('showImportDonaturModal', true)" class="btn btn-outline btn-sm text-xs flex items-center gap-1.5" title="Import Donatur dari Excel">
+                <button wire:click="openImportDonaturModal()" class="btn btn-outline btn-sm text-xs flex items-center gap-1.5" title="Import Donatur dari Excel">
                     <svg class="w-4 h-4 text-indigo-600" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M4 16v1a3 3 0 003 3h10a3 3 0 003-3v-1m-4-8l-4-4m0 0L8 8m4-4v12"/></svg>
                     Import Excel
                 </button>
@@ -388,16 +388,22 @@
                             </div>
                             <p class="text-[11px] text-text-secondary">Pilih satu atau centang banyak donatur rutin sekaligus untuk dimasukkan ke kelompok ini.</p>
                         </div>
-                        @if(count($selectedDonaturModalIds) > 0)
-                            <div class="flex items-center gap-2">
+                        <div class="flex items-center gap-2">
+                            <button type="button" 
+                                    wire:click="openImportDonaturModal({{ $selectedKelompok->id }})" 
+                                    class="btn btn-outline btn-xs gap-1 border-border hover:bg-surface-hover text-primary font-medium">
+                                <svg class="w-3.5 h-3.5" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M4 16v1a3 3 0 003 3h10a3 3 0 003-3v-1m-4-8l-4-4m0 0L8 8m4-4v12"/></svg>
+                                <span>Import Excel ke Kelompok Ini</span>
+                            </button>
+                            @if(count($selectedDonaturModalIds) > 0)
                                 <span class="inline-flex items-center px-2 py-0.5 rounded-full text-xs font-bold bg-primary/10 text-primary">
                                     {{ count($selectedDonaturModalIds) }} Donatur Terpilih
                                 </span>
                                 <button type="button" wire:click="$set('selectedDonaturModalIds', [])" class="text-[11px] text-text-secondary hover:underline">
                                     (Reset)
                                 </button>
-                            </div>
-                        @endif
+                            @endif
+                        </div>
                     </div>
 
                     <!-- Setting Nominal Komitmen Bersama & Tombol Tambah -->
@@ -657,8 +663,9 @@
                     <div class="font-bold text-text-main">Petunjuk Import:</div>
                     <ul class="list-disc list-inside space-y-1 text-text-secondary">
                         <li>Gunakan file format <strong>.xlsx</strong> atau <strong>.xls</strong>.</li>
-                        <li>Pastikan kolom sesuai dengan template resmi SIRAGA.</li>
-                        <li>Jika nama donatur sudah ada, datanya akan diperbarui secara otomatis.</li>
+                        <li>Pastikan kolom sesuai dengan template resmi SIRAGA (Nama, No HP, Email, Alamat, Tipe, Status, Nominal Komitmen).</li>
+                        <li>Jika kelompok tujuan dipilih, donatur akan otomatis diset sebagai donatur <strong>Rutin</strong> dan dimasukkan ke kelompok tersebut.</li>
+                        <li>Donatur yang sudah menjadi anggota di kelompok terpilih akan dilewati secara otomatis (tidak dobel).</li>
                     </ul>
                     <div class="pt-1">
                         <button type="button" wire:click="downloadTemplateDonatur" class="text-xs text-primary hover:underline font-semibold flex items-center gap-1">
@@ -666,6 +673,41 @@
                             Klik di sini untuk mengunduh Template Excel Donatur
                         </button>
                     </div>
+                </div>
+
+                <!-- Pilihan Kelompok Tujuan & Nominal Komitmen -->
+                <div class="space-y-3 bg-surface-hover/30 p-3 rounded-xl border border-border">
+                    <div>
+                        <label class="block text-xs font-semibold text-text-secondary uppercase mb-1">
+                            Kelompok Donatur Tujuan (Opsional)
+                        </label>
+                        <select wire:model.live="importTargetKelompokId" class="select select-bordered select-sm w-full text-xs">
+                            <option value="">(Opsional) Jangan masukkan ke kelompok manapun (Hanya Master Donatur)</option>
+                            @foreach($allKelompoks as $kel)
+                                <option value="{{ $kel->id }}">
+                                    {{ $kel->nama_kelompok }} (Target: Rp {{ number_format($kel->target_nominal, 0, ',', '.') }})
+                                </option>
+                            @endforeach
+                        </select>
+                        <p class="text-[11px] text-text-secondary mt-1">
+                            Pilih kelompok jika donatur yang di-import ingin langsung dimasukkan sebagai anggota kelompok donatur.
+                        </p>
+                    </div>
+
+                    @if($importTargetKelompokId)
+                        <div>
+                            <label class="block text-xs font-semibold text-text-secondary mb-1">
+                                Nominal Komitmen Iuran Default (Rp)
+                            </label>
+                            <input type="text" inputmode="numeric" wire:model="importNominalKomitmen" 
+                                   class="input input-bordered input-sm w-full text-xs font-bold" 
+                                   placeholder="150000">
+                            <p class="text-[11px] text-text-secondary mt-1">
+                                Digunakan jika Kolom G (Nominal Komitmen) pada baris Excel dikosongkan. Nilai default: Rp 150.000.
+                            </p>
+                            @error('importNominalKomitmen') <span class="text-xs text-rose-500 block mt-0.5">{{ $message }}</span> @enderror
+                        </div>
+                    @endif
                 </div>
 
                 <div class="space-y-2">

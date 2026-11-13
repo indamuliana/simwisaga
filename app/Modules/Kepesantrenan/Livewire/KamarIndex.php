@@ -164,10 +164,21 @@ class KamarIndex extends Component
         session()->flash('message', 'Santri berhasil ditambahkan ke kamar.');
     }
 
-    public function togglePeran(int $kamarSiswaId): void
+    public function togglePeran(?int $kamarSiswaId = null, ?int $siswaId = null): void
     {
         $this->guard('pesantren.kamar.kelola');
-        $ks = PesantrenKamarSiswa::findOrFail($kamarSiswaId);
+
+        $ks = null;
+        if ($kamarSiswaId) {
+            $ks = PesantrenKamarSiswa::find($kamarSiswaId);
+        } elseif ($siswaId && $this->activeKamar) {
+            $ks = PesantrenKamarSiswa::where('kamar_id', $this->activeKamar->id)->where('siswa_id', $siswaId)->first();
+        }
+
+        if (! $ks) {
+            return;
+        }
+
         $ks->peran = ($ks->peran === 'mudabbir') ? 'anggota' : 'mudabbir';
         $ks->save();
 
@@ -176,10 +187,17 @@ class KamarIndex extends Component
         }
     }
 
-    public function removeSiswaFromKamar(int $kamarSiswaId): void
+    public function removeSiswaFromKamar(?int $kamarSiswaId = null, ?int $siswaId = null): void
     {
         $this->guard('pesantren.kamar.kelola');
-        PesantrenKamarSiswa::findOrFail($kamarSiswaId)->delete();
+
+        if ($kamarSiswaId) {
+            PesantrenKamarSiswa::where('id', $kamarSiswaId)->delete();
+        } elseif ($siswaId && $this->activeKamar) {
+            PesantrenKamarSiswa::where('kamar_id', $this->activeKamar->id)->where('siswa_id', $siswaId)->delete();
+        } else {
+            return;
+        }
 
         if ($this->activeKamar) {
             $this->activeKamar->load(['siswas.rombel']);

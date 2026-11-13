@@ -32,6 +32,8 @@ class DonaturKelompokIndex extends Component
     // Import State
     public $fileImportDonatur;
     public bool $showImportDonaturModal = false;
+    public ?int $importTargetKelompokId = null;
+    public float|int|string $importNominalKomitmen = 150000;
     public $fileImportKelompok;
     public bool $showImportKelompokModal = false;
 
@@ -363,20 +365,62 @@ class DonaturKelompokIndex extends Component
         ]);
     }
 
+    public function openImportDonaturModal(?int $kelompokId = null)
+    {
+        $this->importTargetKelompokId = $kelompokId;
+        $this->importNominalKomitmen = 150000;
+        $this->fileImportDonatur = null;
+        $this->showImportDonaturModal = true;
+    }
+
     public function importDonaturExcel()
     {
         $this->guard('beasiswa_ota.kelola');
 
-        $this->validate([
+        $rules = [
             'fileImportDonatur' => 'required|file|mimes:xlsx,xls|max:10240',
-        ]);
+            'importTargetKelompokId' => 'nullable|exists:ota_kelompoks,id',
+        ];
 
-        $res = OtaExcelService::importDonaturs($this->fileImportDonatur->getRealPath());
+        if ($this->importTargetKelompokId) {
+            $rules['importNominalKomitmen'] = 'required';
+        }
+
+        $this->validate($rules);
+
+        $nominal = self::cleanNominal($this->importNominalKomitmen);
+        if ($this->importTargetKelompokId && $nominal <= 0) {
+            $nominal = 150000;
+        }
+
+        $res = OtaExcelService::importDonaturs(
+            $this->fileImportDonatur->getRealPath(),
+            $this->importTargetKelompokId,
+            $nominal
+        );
+
+        $targetKelompokNama = '';
+        if ($this->importTargetKelompokId) {
+            $k = Kelompok::find($this->importTargetKelompokId);
+            $targetKelompokNama = $k ? " ke {$k->nama_kelompok}" : '';
+        }
 
         $this->showImportDonaturModal = false;
         $this->fileImportDonatur = null;
 
-        session()->flash('message', "Import Donatur Selesai! {$res['imported']} donatur baru ditambahkan, {$res['updated']} donatur diperbarui.");
+        $msg = "Import Donatur Selesai! {$res['imported']} donatur baru ditambahkan, {$res['updated']} donatur diperbarui.";
+        if ($this->importTargetKelompokId) {
+            $msg .= " Sebanyak {$res['kelompok_assigned']} donatur berhasil didaftarkan{$targetKelompokNama}";
+            if ($res['kelompok_skipped'] > 0) {
+                $msg .= " ({$res['kelompok_skipped']} donatur dilewati karena sudah menjadi anggota)";
+            }
+            $msg .= ".";
+        }
+
+        session()->flash('message', $msg);
+        if ($this->showAnggotaModal) {
+            session()->flash('message_anggota', $msg);
+        }
     }
 
     // --- Export & Import Kelompok ---
@@ -528,9 +572,11 @@ class DonaturKelompokIndex extends Component
         $availableDonaturs = Donatur::where('tipe', 'rutin')->where('is_aktif', true)->with('kelompoks')->orderBy('nama')->get();
 
         $selectedKelompok = $this->selectedKelompokId ? Kelompok::with(['anggotaKelompok.donatur'])->find($this->selectedKelompokId) : null;
+        $allKelompoks = Kelompok::orderBy('nama_kelompok')->get();
 
         return view('beasiswaota::livewire.donatur-kelompok-index', [
             'kelompoks' => $kelompoks,
+            'allKelompoks' => $allKelompoks,
             'donaturs' => $donaturs,
             'availableDonaturs' => $availableDonaturs,
             'selectedKelompok' => $selectedKelompok,

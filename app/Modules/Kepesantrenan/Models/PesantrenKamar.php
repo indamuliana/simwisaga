@@ -45,7 +45,7 @@ class PesantrenKamar extends Model
     public function siswas()
     {
         return $this->belongsToMany(Siswa::class, 'pesantren_kamar_siswas', 'kamar_id', 'siswa_id')
-            ->withPivot('peran', 'nomor_ranjang')
+            ->withPivot('id', 'peran', 'nomor_ranjang')
             ->withTimestamps();
     }
 

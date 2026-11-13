@@ -125,6 +125,55 @@ class KepesantrenanModuleTest extends TestCase
         ]);
 
         $this->assertEquals(1, $kamar->mudabbirs()->count());
+
+        // Pastikan pivot->id terpanggil dengan baik melalui withPivot('id')
+        $kamar->load(['siswas.rombel']);
+        $this->assertNotNull($kamar->siswas->first()->pivot->id);
+        $pivotId = $kamar->siswas->first()->pivot->id;
+
+        // Uji togglePeran tanpa argumen tidak melempar BindingResolutionException
+        Livewire::test(KamarIndex::class)
+            ->call('openPlotting', $kamar->id)
+            ->call('togglePeran')
+            ->assertOk();
+
+        // Uji togglePeran dengan pivot id
+        Livewire::test(KamarIndex::class)
+            ->call('openPlotting', $kamar->id)
+            ->call('togglePeran', $pivotId)
+            ->assertOk();
+
+        $this->assertDatabaseHas('pesantren_kamar_siswas', [
+            'id' => $pivotId,
+            'peran' => 'anggota',
+        ]);
+
+        // Uji togglePeran dengan fallback siswa_id
+        Livewire::test(KamarIndex::class)
+            ->call('openPlotting', $kamar->id)
+            ->call('togglePeran', null, $this->siswaUnggulan->id)
+            ->assertOk();
+
+        $this->assertDatabaseHas('pesantren_kamar_siswas', [
+            'id' => $pivotId,
+            'peran' => 'mudabbir',
+        ]);
+
+        // Uji removeSiswaFromKamar tanpa argumen aman
+        Livewire::test(KamarIndex::class)
+            ->call('openPlotting', $kamar->id)
+            ->call('removeSiswaFromKamar')
+            ->assertOk();
+
+        // Uji removeSiswaFromKamar
+        Livewire::test(KamarIndex::class)
+            ->call('openPlotting', $kamar->id)
+            ->call('removeSiswaFromKamar', $pivotId)
+            ->assertOk();
+
+        $this->assertDatabaseMissing('pesantren_kamar_siswas', [
+            'id' => $pivotId,
+        ]);
     }
 
     public function test_hafalan_input_and_setoran_audit(): void

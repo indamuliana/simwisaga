@@ -221,8 +221,8 @@
     <!-- Modal Kelola / Plotting Santri Kamar -->
     @if($showPlottingModal && $activeKamar)
         <div class="fixed inset-0 z-50 overflow-y-auto bg-black/60 backdrop-blur-xs flex items-center justify-center p-4">
-            <div class="bg-surface rounded-2xl border border-border shadow-2xl w-full max-w-3xl overflow-hidden animate-in fade-in zoom-in-95 duration-200">
-                <div class="px-6 py-4 border-b border-border flex items-center justify-between bg-surface-hover/50">
+            <div class="bg-surface rounded-2xl border border-border shadow-2xl w-full max-w-4xl flex flex-col overflow-hidden animate-in fade-in zoom-in-95 duration-200" style="max-height: 90vh;">
+                <div class="px-6 py-4 border-b border-border flex items-center justify-between bg-surface-hover/50 shrink-0">
                     <div>
                         <div class="flex items-center gap-2">
                             <h3 class="text-lg font-bold text-text-main">Santri Kamar: {{ $activeKamar->nama_kamar }}</h3>
@@ -237,46 +237,56 @@
                     <button wire:click="$set('showPlottingModal', false)" class="text-text-muted hover:text-text-main text-2xl">&times;</button>
                 </div>
 
-                <div class="p-6 space-y-6">
+                <div class="p-6 space-y-6 overflow-y-auto flex-1">
                     <!-- Form Tambah Santri ke Kamar (Hanya Santri Unggulan) -->
                     @can('pesantren.kamar.kelola')
                         <div class="p-4 bg-surface-hover rounded-xl border border-border space-y-3">
-                            <h4 class="text-xs font-bold uppercase tracking-wider text-text-secondary">Tambah Santri Unggulan ke Kamar</h4>
-                            <div class="grid grid-cols-1 sm:grid-cols-12 gap-3 items-end">
-                                <div class="sm:col-span-6">
-                                    <label class="block text-[11px] text-text-muted mb-1">Pilih Santri Unggulan (Ketik Nama / NISN)</label>
-                                    <div class="space-y-1">
-                                        <input type="text" wire:model.live.debounce.300ms="searchSiswa" placeholder="Ketik untuk memfilter santri..." class="input w-full text-xs">
-                                        <select wire:model="selectedSiswaId" class="select w-full text-xs">
-                                            <option value="">-- Pilih dari {{ $availableSiswas->count() }} santri tersedia --</option>
-                                            @foreach($availableSiswas as $s)
-                                                <option value="{{ $s->id }}">{{ $s->nama }} ({{ $s->rombel?->nama ?? '-' }})</option>
-                                            @endforeach
-                                        </select>
-                                    </div>
+                            <div class="flex items-center justify-between">
+                                <h4 class="text-xs font-bold uppercase tracking-wider text-text-secondary">Tambah Santri Unggulan ke Kamar</h4>
+                                <span class="text-[11px] text-text-muted">Kapasitas: {{ $activeKamar->siswas->count() }} / {{ $activeKamar->kapasitas }} Santri</span>
+                            </div>
+
+                            <div class="grid grid-cols-1 md:grid-cols-12 gap-3 items-end">
+                                <div class="col-span-1 md:col-span-3">
+                                    <label class="block text-[11px] font-semibold text-text-muted mb-1">Cari / Filter Nama</label>
+                                    <input type="text" wire:model.live.debounce.300ms="searchSiswa" placeholder="Ketik nama / NISN..." class="input w-full text-xs">
                                 </div>
-                                <div class="sm:col-span-3">
-                                    <label class="block text-[11px] text-text-muted mb-1">Peran di Kamar</label>
+                                <div class="col-span-1 md:col-span-4">
+                                    <label class="block text-[11px] font-semibold text-text-muted mb-1">Pilih Santri Unggulan ({{ $availableSiswas->count() }})</label>
+                                    <select wire:model="selectedSiswaId" class="select w-full text-xs">
+                                        <option value="">-- Pilih dari {{ $availableSiswas->count() }} santri --</option>
+                                        @foreach($availableSiswas as $s)
+                                            <option value="{{ $s->id }}">{{ $s->nama }} ({{ $s->rombel?->nama ?? '-' }})</option>
+                                        @endforeach
+                                    </select>
+                                </div>
+                                <div class="col-span-1 md:col-span-3">
+                                    <label class="block text-[11px] font-semibold text-text-muted mb-1">Peran di Kamar</label>
                                     <select wire:model="selectedPeran" class="select w-full text-xs">
                                         <option value="anggota">Anggota Biasa</option>
                                         <option value="mudabbir">MUDABBIR (Ketua/PJ)</option>
                                     </select>
                                 </div>
-                                <div class="sm:col-span-3">
-                                    <button wire:click="addSiswaToKamar" class="btn btn-primary text-xs w-full py-2 flex items-center justify-center gap-1.5" {{ $activeKamar->siswas->count() >= $activeKamar->kapasitas ? 'disabled' : '' }}>
-                                        <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 4v16m8-8H4"/></svg>
-                                        <span>Tambahkan</span>
+                                <div class="col-span-1 md:col-span-2">
+                                    <button wire:click="addSiswaToKamar" 
+                                            class="btn btn-primary text-xs w-full py-2 flex items-center justify-center gap-1.5" 
+                                            {{ $activeKamar->siswas->count() >= $activeKamar->kapasitas ? 'disabled' : '' }}>
+                                        <svg class="w-4 h-4 shrink-0" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 4v16m8-8H4"/></svg>
+                                        <span class="truncate">Tambahkan</span>
                                     </button>
                                 </div>
                             </div>
+                            @if($activeKamar->siswas->count() >= $activeKamar->kapasitas)
+                                <p class="text-xs text-rose-500 font-medium">Kapasitas kamar sudah penuh ({{ $activeKamar->kapasitas }} santri).</p>
+                            @endif
                         </div>
                     @endcan
 
                     <!-- Daftar Santri di Kamar Ini -->
                     <div>
                         <h4 class="text-xs font-bold uppercase tracking-wider text-text-secondary mb-3">Daftar Penghuni Kamar Aktif</h4>
-                        <div class="border border-border rounded-xl overflow-hidden">
-                            <table class="w-full text-xs text-left">
+                        <div class="border border-border rounded-xl overflow-x-auto">
+                            <table class="w-full text-xs text-left min-w-[500px] md:min-w-full">
                                 <thead class="bg-surface-hover/80 text-text-secondary border-b border-border">
                                     <tr>
                                         <th class="p-3">Santri</th>
@@ -306,13 +316,13 @@
                                                 {{ $siswa->rombel?->nama ?? '-' }}
                                             </td>
                                             <td class="p-3">
-                                                <button wire:click="togglePeran({{ $siswa->pivot->id }})" class="cursor-pointer text-[11px] font-medium px-2 py-0.5 rounded border {{ $isMudabbir ? 'border-amber-400 bg-amber-100 text-amber-800 dark:bg-amber-950 dark:text-amber-300' : 'border-border text-text-muted hover:text-text-main' }}" title="Klik untuk ubah peran">
+                                                <button wire:click="togglePeran({{ $siswa->pivot->id ?? 'null' }}, {{ $siswa->id }})" class="cursor-pointer text-[11px] font-medium px-2 py-0.5 rounded border {{ $isMudabbir ? 'border-amber-400 bg-amber-100 text-amber-800 dark:bg-amber-950 dark:text-amber-300' : 'border-border text-text-muted hover:text-text-main' }}" title="Klik untuk ubah peran">
                                                     {{ $isMudabbir ? 'Mudabbir' : 'Anggota Biasa' }}
                                                 </button>
                                             </td>
                                             <td class="p-3 text-right">
                                                 @can('pesantren.kamar.kelola')
-                                                    <button wire:click="removeSiswaFromKamar({{ $siswa->pivot->id }})" wire:confirm="Keluarkan santri {{ $siswa->nama }} dari kamar ini?" class="text-rose-500 hover:text-rose-700 font-semibold p-1" title="Keluarkan dari kamar">
+                                                    <button wire:click="removeSiswaFromKamar({{ $siswa->pivot->id ?? 'null' }}, {{ $siswa->id }})" wire:confirm="Keluarkan santri {{ $siswa->nama }} dari kamar ini?" class="text-rose-500 hover:text-rose-700 font-semibold p-1" title="Keluarkan dari kamar">
                                                         Keluarkan
                                                     </button>
                                                 @endcan
@@ -331,7 +341,7 @@
                     </div>
                 </div>
 
-                <div class="px-6 py-3.5 bg-surface-hover/50 border-t border-border flex justify-end">
+                <div class="px-6 py-3.5 bg-surface-hover/50 border-t border-border flex justify-end shrink-0">
                     <button wire:click="$set('showPlottingModal', false)" class="btn btn-secondary text-sm">Tutup</button>
                 </div>
             </div>

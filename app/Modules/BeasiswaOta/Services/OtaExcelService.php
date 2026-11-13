@@ -106,13 +106,14 @@ class OtaExcelService
             'D1' => 'Email',
             'E1' => 'Alamat',
             'F1' => 'Keterangan',
+            'G1' => 'Nominal Komitmen Iuran (Opsional)',
         ];
 
         foreach ($headers as $cell => $text) {
             $sheet->setCellValue($cell, $text);
         }
 
-        $sheet->getStyle('A1:F1')->applyFromArray([
+        $sheet->getStyle('A1:G1')->applyFromArray([
             'font' => ['bold' => true, 'color' => ['rgb' => 'FFFFFF']],
             'fill' => [
                 'fillType' => Fill::FILL_SOLID,
@@ -127,9 +128,9 @@ class OtaExcelService
 
         // Contoh baris petunjuk
         $samples = [
-            ['Bapak H. Fulan', 'rutin', '081234567890', 'fulan@example.com', 'Garut', 'Orang tua asuh rutin'],
-            ['Ibu Siti Maryam', 'rutin', '081987654321', 'siti@example.com', 'Bandung', 'Donatur rutin kelompok'],
-            ['Hamba Allah', 'insidental', '085544332211', '', 'Jakarta', 'Donatur insidental bebas'],
+            ['Bapak H. Fulan', 'rutin', '081234567890', 'fulan@example.com', 'Garut', 'Orang tua asuh rutin', 150000],
+            ['Ibu Siti Maryam', 'rutin', '081987654321', 'siti@example.com', 'Bandung', 'Donatur rutin kelompok', 200000],
+            ['Hamba Allah', 'insidental', '085544332211', '', 'Jakarta', 'Donatur insidental bebas', ''],
         ];
 
         $r = 2;
@@ -140,12 +141,16 @@ class OtaExcelService
             $sheet->setCellValue('D' . $r, $s[3]);
             $sheet->setCellValue('E' . $r, $s[4]);
             $sheet->setCellValue('F' . $r, $s[5]);
+            if (!empty($s[6])) {
+                $sheet->setCellValue('G' . $r, $s[6]);
+            }
             $r++;
         }
 
-        $sheet->getStyle("A1:F4")->getBorders()->getAllBorders()->setBorderStyle(Border::BORDER_THIN);
+        $sheet->getStyle("A1:G4")->getBorders()->getAllBorders()->setBorderStyle(Border::BORDER_THIN);
+        $sheet->getStyle("G2:G4")->getNumberFormat()->setFormatCode('#,##0');
 
-        foreach (range('A', 'F') as $col) {
+        foreach (range('A', 'G') as $col) {
             $sheet->getColumnDimension($col)->setAutoSize(true);
         }
 
@@ -155,8 +160,11 @@ class OtaExcelService
     /**
      * Import Data Donatur dari Excel.
      */
-    public static function importDonaturs(string $filePath): array
-    {
+    public static function importDonaturs(
+        string $filePath, 
+        ?int $targetKelompokId = null, 
+        float $defaultNominalKomitmen = 150000
+    ): array {
         $reader = IOFactory::createReaderForFile($filePath);
         $reader->setReadDataOnly(true);
         $spreadsheet = $reader->load($filePath);
@@ -166,6 +174,10 @@ class OtaExcelService
 
         $imported = 0;
         $updated = 0;
+        $kelompokAssigned = 0;
+        $kelompokSkipped = 0;
+
+        $targetKelompok = $targetKelompokId ? Kelompok::find($targetKelompokId) : null;
 
         foreach ($rows as $index => $row) {
             if ($index === 1) {
@@ -178,12 +190,29 @@ class OtaExcelService
             }
 
             $rawTipe = strtolower(trim((string) ($row['B'] ?? 'rutin')));
-            $tipe = in_array($rawTipe, ['rutin', 'insidental']) ? $rawTipe : 'rutin';
+            // Jika ada target kelompok, tipe otomatis diset 'rutin'
+            if ($targetKelompok) {
+                $tipe = 'rutin';
+            } else {
+                $tipe = in_array($rawTipe, ['rutin', 'insidental']) ? $rawTipe : 'rutin';
+            }
 
             $telepon = trim((string) ($row['C'] ?? ''));
             $email = trim((string) ($row['D'] ?? ''));
             $alamat = trim((string) ($row['E'] ?? ''));
             $keterangan = trim((string) ($row['F'] ?? ''));
+
+            // Baca nominal komitmen dari kolom G (jika ada)
+            $rawNominal = trim((string) ($row['G'] ?? ''));
+            $nominalKomitmen = 0.0;
+            if (!empty($rawNominal)) {
+                $cleaned = preg_replace('/[.,]00$/', '', $rawNominal);
+                $cleaned = preg_replace('/[^\d]/', '', $cleaned);
+                $nominalKomitmen = (float) $cleaned;
+            }
+            if ($nominalKomitmen <= 0) {
+                $nominalKomitmen = $defaultNominalKomitmen;
+            }
 
             $existing = Donatur::where('nama', $nama)->first();
 
@@ -195,9 +224,10 @@ class OtaExcelService
                     'alamat' => $alamat ?: $existing->alamat,
                     'keterangan' => $keterangan ?: $existing->keterangan,
                 ]);
+                $donatur = $existing;
                 $updated++;
             } else {
-                Donatur::create([
+                $donatur = Donatur::create([
                     'nama' => $nama,
                     'tipe' => $tipe,
                     'nomor_telepon' => $telepon ?: null,
@@ -208,11 +238,32 @@ class OtaExcelService
                 ]);
                 $imported++;
             }
+
+            // Jika ada target kelompok, daftarkan ke kelompok_anggotas jika belum ada
+            if ($targetKelompok && $donatur) {
+                $alreadyMember = KelompokAnggota::where('kelompok_id', $targetKelompok->id)
+                    ->where('donatur_id', $donatur->id)
+                    ->exists();
+
+                if ($alreadyMember) {
+                    $kelompokSkipped++;
+                } else {
+                    KelompokAnggota::create([
+                        'kelompok_id' => $targetKelompok->id,
+                        'donatur_id' => $donatur->id,
+                        'nominal_komitmen' => $nominalKomitmen,
+                        'keterangan' => 'Import Excel ' . now()->format('d/m/Y'),
+                    ]);
+                    $kelompokAssigned++;
+                }
+            }
         }
 
         return [
             'imported' => $imported,
             'updated' => $updated,
+            'kelompok_assigned' => $kelompokAssigned,
+            'kelompok_skipped' => $kelompokSkipped,
         ];
     }
 
