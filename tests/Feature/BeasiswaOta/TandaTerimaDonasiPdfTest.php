@@ -335,7 +335,6 @@ class TandaTerimaDonasiPdfTest extends TestCase
         $this->assertStringNotContainsString('250.000', $html);
         $this->assertStringNotContainsString('Rp ', $html);
         $this->assertStringNotContainsString('Dua Ratus Lima Puluh Ribu', $html);
-        $this->assertStringContainsString('Scan untuk Verifikasi Sah', $html);
         $this->assertStringContainsString('data:image/png;base64,', $html);
     }
 

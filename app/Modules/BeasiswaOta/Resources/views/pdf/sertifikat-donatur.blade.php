@@ -43,7 +43,7 @@
 
         /* Container Isi: Menggunakan margin horizontal simetris agar posisi teks presisi di tengah bingkai emas */
         .content-container {
-            margin: 28mm 40mm 15mm 40mm;
+            margin: 22mm 38mm 12mm 38mm;
             text-align: center;
             page-break-inside: avoid;
         }
@@ -55,36 +55,40 @@
             text-transform: uppercase;
             letter-spacing: 3px;
             margin-top: 0;
-            margin-bottom: 4px;
+            margin-bottom: 2px;
         }
         .cert-nomor {
             font-family: 'Courier New', Courier, monospace;
-            font-size: 10pt;
+            font-size: 12pt;
             color: #475569;
             letter-spacing: 0.5px;
-            margin-bottom: 20px;
+            margin-bottom: 12px;
             font-weight: bold;
         }
         .cert-subtitle {
-            font-size: 12pt;
+            font-size: 14pt;
             font-style: italic;
             color: #475569;
-            margin-bottom: 8px;
+            margin-bottom: 6px;
         }
         .recipient-name {
             font-size: 26pt;
             font-weight: bold;
             color: #1e3a8a;
             text-decoration: underline;
-            margin: 8px 0 20px 0;
+            margin: 6px 0 14px 0;
             letter-spacing: 0.5px;
         }
         .cert-body {
-            font-size: 11pt;
-            line-height: 1.75;
+            font-size: 14pt;
+            line-height: 1.5;
             color: #334155;
-            max-width: 90%;
-            margin: 0 auto 22px auto;
+            max-width: 92%;
+            margin: 0 auto 16px auto;
+        }
+        .cert-body em {
+            font-size: 14pt;
+            color: #475569;
         }
         .cert-highlight {
             font-weight: bold;
@@ -93,8 +97,8 @@
 
         /* Tabel Tanda Tangan & QR Code 3 Kolom Sejajar Sempurna */
         .signatures-table {
-            width: 92%;
-            margin: 20px auto 0 auto;
+            width: 94%;
+            margin: 10px auto 0 auto;
             border-collapse: collapse;
             text-align: center;
             page-break-inside: avoid;
@@ -110,29 +114,29 @@
             width: 24%;
         }
         .sig-date {
-            font-size: 9.5pt;
+            font-size: 12pt;
             color: #334155;
             font-weight: 500;
-            margin-bottom: 3px;
+            margin-bottom: 2px;
         }
         .sig-title {
-            font-size: 9.5pt;
+            font-size: 14pt;
             font-weight: 600;
             color: #1e293b;
-            padding-bottom: 3px;
+            padding-bottom: 2px;
         }
         .sign-space {
-            height: 52px;
+            height: 48px;
         }
         .signer-name {
             font-weight: bold;
             text-decoration: underline;
-            font-size: 10.5pt;
+            font-size: 14pt;
             color: #0f172a;
             padding-top: 2px;
         }
         .signer-title {
-            font-size: 8.5pt;
+            font-size: 14pt;
             color: #64748b;
             margin-top: 1px;
         }
@@ -148,14 +152,6 @@
             height: 68px;
             border: none;
             background-color: #ffffff;
-        }
-        .qr-hint {
-            font-size: 6.5pt;
-            color: #64748b;
-            letter-spacing: 0.3px;
-            margin-top: 3px;
-            text-transform: uppercase;
-            font-weight: bold;
         }
     </style>
 </head>
@@ -179,7 +175,7 @@
                 @endif
                 dalam mendukung keberlangsungan pendidikan siswa di SMK Wikrama 1 Garut.
                 <br>
-                <em style="font-size: 9.5pt; color: #475569;">
+                <em>
                     Semoga Allah SWT / Tuhan Yang Maha Esa membalas segala amal kebaikan dengan keberkahan yang berlipat ganda.
                 </em>
             </div>
@@ -215,7 +211,6 @@
                                 <img src="{{ $qrCodePng }}" class="qr-img" alt="QR Verifikasi">
                             @endif
                         </div>
-                        <div class="qr-hint">Scan untuk Verifikasi Sah</div>
                     </td>
                     <td class="col-signer" style="vertical-align: middle;">
                         <div class="sign-space"></div>
