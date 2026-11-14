@@ -80,7 +80,7 @@
 		<!-- Kop Surat -->
 		@if($kopPath)
 			<div class="header-kop-banner" style="text-align: center; margin-bottom: 12px;">
-				<img src="{{ $kopPath }}" style="width: 100%; max-height: 110px; object-fit: contain;" alt="Kop Surat">
+				<img src="{{ $kopPath }}" style="width: 100%; height: auto;" alt="Kop Surat">
 			</div>
 		@else
 			<div class="header-kop-fallback" style="text-align: center; border-bottom: 3px double #000; margin-bottom: 12px; padding-bottom: 6px; position: relative;">
@@ -109,7 +109,7 @@
 		<!-- Identitas Siswa -->
 		<table class="info-table">
 			<tr>
-				<td width="16%">Nama Peserta Didik</td><td width="2%">:</td><td width="36%">{{ $siswa->nama }}</td>
+				<td width="16%">Nama</td><td width="2%">:</td><td width="36%">{{ $siswa->nama }}</td>
 				<td width="16%">Rombel / Rayon</td><td width="2%">:</td><td width="28%">{{ $siswa->rombel->nama ?? '-' }} / {{ $siswa->rayon?->wilayah_cakupan ?: ($siswa->rayon?->nama ?? '-') }}</td>
 			</tr>
 			<tr>
@@ -142,7 +142,7 @@
 			<tbody>
 				@if($groupedAcademic->isNotEmpty())
 					@foreach($groupedAcademic as $namaKelompok => $items)
-						<tr style="background-color: #f8fafc;">
+						<tr style="background-color: #f8fafc; page-break-after: avoid;">
 							<td colspan="8" style="font-weight: bold; padding: 3px 6px; font-size: 9pt;">
 								{{ $namaKelompok }}
 							</td>
@@ -152,7 +152,7 @@
 								$tpCount = !empty($row->tps) ? count($row->tps) : 0;
 								$rowspan = 1 + $tpCount;
 							@endphp
-							<tr style="background-color: {{ $loop->iteration % 2 == 0 ? '#fff' : '#fcfcfc' }};">
+							<tr style="background-color: #ffffff; {{ $tpCount > 0 ? 'page-break-after: avoid;' : '' }}">
 								<td rowspan="{{ $rowspan }}" style="text-align: center; font-weight: bold; vertical-align: top; font-size: 9pt;">{{ $idxItem + 1 }}</td>
 								<td style="font-weight: bold; font-size: 9pt; vertical-align: top;">{{ $row->mapel_nama }}</td>
 								<td rowspan="{{ $rowspan }}" style="text-align: center; font-size: 9pt; font-weight: bold; color: #000; vertical-align: top;">{{ (int) ($row->kkm ?? 75) }}</td>
@@ -192,7 +192,7 @@
 							<!-- Baris Bertingkat: Rincian TP Mata Pelajaran -->
 							@if(!empty($row->tps) && count($row->tps) > 0)
 								@foreach($row->tps as $tp)
-									<tr style="background-color: #f8fafc; font-size: 7.5pt;">
+									<tr style="background-color: #ffffff; font-size: 7.5pt; page-break-before: avoid; {{ !$loop->last ? 'page-break-after: avoid;' : '' }}">
 										<td style="padding-left: 15px; color: #475569; vertical-align: top;">
 											<strong>&bull;</strong> {{ $tp->deskripsi }}
 										</td>

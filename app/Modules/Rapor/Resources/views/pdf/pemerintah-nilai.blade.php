@@ -72,7 +72,7 @@
 		<!-- Kop Surat -->
 		@if($kopPath)
 			<div class="header-kop-banner" style="text-align: center; margin-bottom: 12px;">
-				<img src="{{ $kopPath }}" style="width: 100%; max-height: 110px; object-fit: contain;" alt="Kop Surat">
+				<img src="{{ $kopPath }}" style="width: 100%; height: auto;" alt="Kop Surat">
 			</div>
 		@else
 			<div class="header-kop-fallback" style="text-align: center; border-bottom: 3px double #000; margin-bottom: 12px; padding-bottom: 6px; position: relative;">
@@ -96,7 +96,7 @@
 		<!-- Identitas Siswa -->
 		<table class="info-table">
 			<tr>
-				<td width="18%">Nama Peserta Didik</td><td width="2%">:</td><td width="38%">{{ $siswa->nama }}</td>
+				<td width="18%">Nama</td><td width="2%">:</td><td width="38%">{{ $siswa->nama }}</td>
 				<td width="16%">Kelas</td><td width="2%">:</td><td width="24%">{{ $siswa->rombel->nama ?? '-' }}</td>
 			</tr>
 			<tr>

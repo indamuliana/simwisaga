@@ -30,7 +30,7 @@
 	<!-- Kop Surat -->
 	<div class="header-kop">
 		@if($sekolah->kop_surat_path)
-			<img src="{{ storage_path('app/public/' . $sekolah->kop_surat_path) }}" style="width: 100%; max-height: 150px; object-fit: contain;">
+			<img src="{{ storage_path('app/public/' . $sekolah->kop_surat_path) }}" style="width: 100%; height: auto;">
 		@else
 			<!-- Fallback text kop -->
 			@if($sekolah->logo_sekolah_path)
