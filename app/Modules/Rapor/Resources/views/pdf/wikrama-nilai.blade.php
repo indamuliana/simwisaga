@@ -4,28 +4,29 @@
 	<meta charset="UTF-8">
 	<title>Rapor Wikrama - {{ count($studentsData) === 1 ? ($studentsData[0]['siswa']->nama ?? 'Siswa') : 'Kumpulan Rapor' }}</title>
 	<style>
-		body { font-family: 'Helvetica Neue', Helvetica, Arial, sans-serif; font-size: 8.5pt; line-height: 1.3; color: #000; margin: 0; padding: 0; }
+		@page { margin: 20px 25px 35px 25px; }
+		body { font-family: 'Times New Roman', Times, serif; font-size: 8.5pt; line-height: 1.3; color: #000; margin: 0; padding: 0; }
 		.header-kop { text-align: center; border-bottom: 3px double #000; margin-bottom: 10px; padding-bottom: 4px; }
 		.header-kop h1 { margin: 0; font-size: 15pt; text-transform: uppercase; font-weight: 800; }
 		.header-kop h2 { margin: 2px 0; font-size: 12pt; font-weight: 700; }
 		.header-kop p { margin: 0; font-size: 8pt; color: #333; }
 		
-		.title { text-align: center; font-size: 11.5pt; font-weight: bold; margin-bottom: 10px; text-transform: uppercase; letter-spacing: 0.5px; }
+		.title { text-align: center; font-size: 12pt; font-weight: bold; margin-bottom: 10px; text-transform: uppercase; letter-spacing: 0.5px; }
 		
-		.info-table { width: 100%; margin-bottom: 10px; font-weight: bold; font-size: 8pt; }
+		.info-table { width: 100%; margin-bottom: 10px; font-weight: bold; font-size: 10pt; }
 		.info-table td { padding: 1px 2px; }
 		
 		.data-table { width: 100%; border-collapse: collapse; margin-bottom: 10px; font-size: 8pt; }
 		.data-table thead { display: table-header-group; }
 		.data-table tr { page-break-inside: avoid; }
-		.data-table th, .data-table td { border: 1px solid #000; padding: 3px 4px; }
-		.data-table th { background-color: #f1f5f9; text-align: center; font-weight: bold; }
+		.data-table th, .data-table td { border: 1px solid #000; padding: 3px 4px; vertical-align: top; }
+		.data-table th { background-color: #f1f5f9; text-align: center; vertical-align: middle; font-weight: bold; font-size: 10pt; }
 		
 		.avoid-break { page-break-inside: avoid; }
-		.catatan-box { border: 1px solid #000; padding: 6px 8px; min-height: 35px; margin-bottom: 10px; font-size: 8pt; line-height: 1.35; }
+		.catatan-box { border: 1px solid #000; padding: 6px 8px; min-height: 35px; margin-bottom: 10px; font-size: 9pt; line-height: 1.35; }
 		
-		.signature-table { width: 100%; margin-top: 10px; text-align: center; page-break-inside: avoid; font-size: 8pt; }
-		.signature-table td { width: 33.33%; vertical-align: bottom; height: 75px; }
+		.signature-table { width: 100%; margin-top: 15px; font-size: 9pt; border-collapse: collapse; page-break-inside: avoid; }
+		.signature-table td { vertical-align: top; }
 
 		.page-break { page-break-after: always; }
 	</style>
@@ -100,7 +101,7 @@
 		<!-- Judul Rapor -->
 		<div class="title">
 			LAPORAN HASIL BELAJAR PESERTA DIDIK<br>
-			<span style="font-size: 10.5pt; font-weight: normal; text-transform: uppercase;">
+			<span style="font-size: 12pt; font-weight: normal; text-transform: uppercase;">
 				(RAPOR {{ $periodMeta['sebutan'] ?? '9 MINGGU' }} - SEMESTER {{ strtoupper($semester->semester ?? 'GANJIL') }})
 			</span>
 		</div>
@@ -108,70 +109,66 @@
 		<!-- Identitas Siswa -->
 		<table class="info-table">
 			<tr>
-				<td width="16%">Nama Peserta Didik</td><td width="2%">:</td><td width="38%">{{ $siswa->nama }}</td>
-				<td width="16%">Kelas / Rombel</td><td width="2%">:</td><td width="26%">{{ $siswa->rombel->nama ?? '-' }}</td>
+				<td width="16%">Nama Peserta Didik</td><td width="2%">:</td><td width="36%">{{ $siswa->nama }}</td>
+				<td width="16%">Rombel / Rayon</td><td width="2%">:</td><td width="28%">{{ $siswa->rombel->nama ?? '-' }} / {{ $siswa->rayon?->wilayah_cakupan ?: ($siswa->rayon?->nama ?? '-') }}</td>
 			</tr>
 			<tr>
 				<td>NISN / NIS</td><td>:</td><td>{{ $siswa->nisn ?? '-' }} / {{ $siswa->nipd ?? '-' }}</td>
-				<td>Rayon / Pembimbing</td><td>:</td>
-				<td>
-					{{ $siswa->rayon->nama ?? '-' }}
-					@if($siswa->rayon?->pembimbing)
-						/ {{ $siswa->rayon->pembimbing->nama_lengkap ?? $siswa->rayon->pembimbing->name }}
-					@endif
-				</td>
-			</tr>
-			<tr>
-				<td>Kompetensi Keahlian</td><td>:</td><td>{{ $siswa->rombel->jurusan->nama ?? '-' }}</td>
 				<td>Fase / Semester</td><td>:</td><td>{{ $fase }} / {{ $semNama }} ({{ $periodMeta['sebutan'] }})</td>
 			</tr>
 			<tr>
+				<td>Keahlian</td><td>:</td><td>{{ $siswa->rombel->jurusan->nama ?? '-' }}</td>
 				<td>Tahun Pelajaran</td><td>:</td><td>{{ $semester->tahunAjaran?->nama ?? ($semester->tahun_ajaran->nama ?? '-') }}</td>
-				<td>Tempat, Tanggal Cetak</td><td>:</td><td>{{ $sekolah->kabupaten ?: 'Garut' }}, {{ \Carbon\Carbon::parse($tanggal)->translatedFormat('d F Y') }}</td>
 			</tr>
 		</table>
 
+		<br>
+
 		<!-- A. Nilai Akademik -->
-		<div style="font-weight: bold; margin-bottom: 4px; font-size: 9pt;">A. Nilai Akademik (Rincian Hasil Belajar)</div>
+		<div style="font-weight: bold; margin-bottom: 4px; font-size: 10pt;">A. Nilai Akademik (Rincian Hasil Belajar)</div>
 		<table class="data-table">
 			<thead>
 				<tr>
-					<th width="4%">No</th>
-					<th width="32%">Mata Pelajaran & Capaian TP</th>
-					<th width="5%">KKM</th>
-					<th width="8%">Nilai Harian</th>
-					<th width="8%">{{ $sumatifLabel }}</th>
-					<th width="7%">Nilai Akhir</th>
-					<th width="10%">Predikat</th>
-					<th width="26%">Capaian Kompetensi</th>
+					<th width="4%" style="text-align: center; vertical-align: middle;">No</th>
+					<th width="32%" style="text-align: center; vertical-align: middle;">Mata Pelajaran & Capaian TP</th>
+					<th width="5%" style="text-align: center; vertical-align: middle;">KKM</th>
+					<th width="8%" style="text-align: center; vertical-align: middle;">Nilai Harian</th>
+					<th width="8%" style="text-align: center; vertical-align: middle;">{{ $sumatifLabel }}</th>
+					<th width="7%" style="text-align: center; vertical-align: middle;">Nilai Akhir</th>
+					<th width="10%" style="text-align: center; vertical-align: middle;">Predikat</th>
+					<th width="26%" style="text-align: center; vertical-align: middle;">Capaian Kompetensi</th>
 				</tr>
 			</thead>
 			<tbody>
 				@if($groupedAcademic->isNotEmpty())
 					@foreach($groupedAcademic as $namaKelompok => $items)
 						<tr style="background-color: #f8fafc;">
-							<td colspan="8" style="font-weight: bold; padding: 3px 6px; font-size: 8.5pt;">
+							<td colspan="8" style="font-weight: bold; padding: 3px 6px; font-size: 9pt;">
 								{{ $namaKelompok }}
 							</td>
 						</tr>
 						@foreach($items as $idxItem => $row)
+							@php
+								$tpCount = !empty($row->tps) ? count($row->tps) : 0;
+								$rowspan = 1 + $tpCount;
+							@endphp
 							<tr style="background-color: {{ $loop->iteration % 2 == 0 ? '#fff' : '#fcfcfc' }};">
-								<td style="text-align: center; font-weight: bold;">{{ $idxItem + 1 }}</td>
-								<td style="font-weight: bold; font-size: 8.5pt;">{{ $row->mapel_nama }}</td>
-								<td style="text-align: center; font-family: monospace; font-size: 8pt; color: #475569;">{{ (int) ($row->kkm ?? 75) }}</td>
-								<td style="text-align: center; font-family: monospace; {{ ($row->nh !== null && $row->nh < ($row->kkm ?? 75)) ? 'color: #b91c1c; font-weight: bold;' : '' }}">
+								<td rowspan="{{ $rowspan }}" style="text-align: center; font-weight: bold; vertical-align: top; font-size: 9pt;">{{ $idxItem + 1 }}</td>
+								<td style="font-weight: bold; font-size: 9pt; vertical-align: top;">{{ $row->mapel_nama }}</td>
+								<td rowspan="{{ $rowspan }}" style="text-align: center; font-size: 9pt; font-weight: bold; color: #000; vertical-align: top;">{{ (int) ($row->kkm ?? 75) }}</td>
+								<td style="text-align: center; font-size: 9pt; font-weight: bold; vertical-align: top; {{ ($row->nh !== null && $row->nh < ($row->kkm ?? 75)) ? 'color: #b91c1c;' : 'color: #000;' }}">
 									{{ $row->nh !== null ? number_format($row->nh, 0) : '-' }}
 								</td>
-								<td style="text-align: center; font-family: monospace; {{ ($row->sumatif !== null && $row->sumatif < ($row->kkm ?? 75)) ? 'color: #b91c1c; font-weight: bold;' : '' }}">
+								<td rowspan="{{ $rowspan }}" style="text-align: center; font-size: 9pt; font-weight: bold; vertical-align: top; {{ ($row->sumatif !== null && $row->sumatif < ($row->kkm ?? 75)) ? 'color: #b91c1c;' : 'color: #000;' }}">
 									{{ $row->sumatif !== null ? number_format($row->sumatif, 0) : '-' }}
 								</td>
-								<td style="text-align: center; font-family: monospace; font-weight: bold;">
+								<td rowspan="{{ $rowspan }}" style="text-align: center; font-size: 9pt; font-weight: bold; color: #000; vertical-align: top;">
 									{{ $row->nilai_akhir !== null ? number_format($row->nilai_akhir, 0) : '-' }}
 								</td>
-								<td style="text-align: center; font-size: 8pt; font-weight: bold;">
+								<td style="text-align: center; font-size: 9pt; font-weight: bold; vertical-align: top;">
 									{{ $row->predikat ?? '-' }}
 								</td>
-								<td style="font-size: 8pt; line-height: 1.3; color: #1e293b;">
+								<td rowspan="{{ $rowspan }}" style="font-size: 8pt; line-height: 1.35; color: #000; vertical-align: top;">
 									@if($row->status === 'belum_lengkap')
 										<span style="color: #b45309; font-weight: 600;">{{ $row->deskripsi_tertinggi ?: 'Nilai belum lengkap, silakan hubungi guru yang bersangkutan.' }}</span>
 									@elseif($row->status === 'belum_kompeten')
@@ -180,10 +177,10 @@
 										{!! nl2br(e($row->deskripsi_manual)) !!}
 									@else
 										@if(!empty($row->deskripsi_tertinggi))
-											<div>{{ $row->deskripsi_tertinggi }}</div>
+											<div>{!! nl2br(e($row->deskripsi_tertinggi)) !!}</div>
 										@endif
 										@if(!empty($row->deskripsi_terendah))
-											<div style="margin-top: 2px;">{{ $row->deskripsi_terendah }}</div>
+											<div style="{{ !empty($row->deskripsi_tertinggi) ? 'margin-top: 4px;' : '' }}">{!! nl2br(e($row->deskripsi_terendah)) !!}</div>
 										@endif
 										@if(empty($row->deskripsi_tertinggi) && empty($row->deskripsi_terendah))
 											<span style="color: #94a3b8; font-style: italic;">Belum ada deskripsi</span>
@@ -196,33 +193,21 @@
 							@if(!empty($row->tps) && count($row->tps) > 0)
 								@foreach($row->tps as $tp)
 									<tr style="background-color: #f8fafc; font-size: 7.5pt;">
-										<td></td>
-										<td style="padding-left: 15px; color: #475569;">
-											<strong>&bull; [{{ $tp->kode }}]</strong> {{ $tp->deskripsi }}
+										<td style="padding-left: 15px; color: #475569; vertical-align: top;">
+											<strong>&bull;</strong> {{ $tp->deskripsi }}
 										</td>
-										<td style="text-align: center; font-family: monospace; font-size: 7.5pt; color: #64748b;">
-											{{ (int)($row->kkm ?? 75) }}
+										<td style="text-align: center; font-size: 9pt; font-weight: bold; vertical-align: top; {{ ($tp->score !== null && $tp->score < ($row->kkm ?? 75)) ? 'color: #b91c1c;' : 'color: #000;' }}">
+											{{ $tp->score !== null ? number_format($tp->score, 0) : '-' }}
 										</td>
-										<td colspan="2" style="text-align: center; font-family: monospace; font-size: 8pt;">
+										<td style="text-align: center; font-size: 9pt; font-weight: bold; vertical-align: top;">
 											@if($tp->score !== null)
-												<span style="{{ $tp->score < ($row->kkm ?? 75) ? 'color: #b91c1c; font-weight: bold;' : 'font-weight: 600;' }}">
-													Skor TP: {{ number_format($tp->score, 0) }}
-												</span>
-											@else
-												-
-											@endif
-										</td>
-										<td style="text-align: center; color: #94a3b8;">-</td>
-										<td style="text-align: center; font-size: 7.5pt;">
-											@if($tp->score !== null)
-												<span style="color: {{ $tp->score >= ($row->kkm ?? 75) ? '#15803d' : '#b91c1c' }}; font-weight: bold;">
+												<span style="color: {{ $tp->score >= ($row->kkm ?? 75) ? '#000' : '#b91c1c' }};">
 													{{ $tp->score >= ($row->kkm ?? 75) ? 'Tuntas' : 'Remedial' }}
 												</span>
 											@else
 												-
 											@endif
 										</td>
-										<td style="color: #64748b; font-style: italic; font-size: 7.5pt;">Tujuan Pembelajaran</td>
 									</tr>
 								@endforeach
 							@endif
@@ -240,7 +225,7 @@
 
 		<div class="avoid-break">
 			<!-- B. Ekstrakurikuler -->
-			<div style="font-weight: bold; margin-bottom: 4px; font-size: 8.5pt;">B. Ekstrakurikuler</div>
+			<div style="font-weight: bold; margin-bottom: 4px; font-size: 10pt;">B. Ekstrakurikuler</div>
 			<table class="data-table" style="width: 100%; margin-bottom: 8px;">
 				<thead>
 					<tr>
@@ -249,16 +234,16 @@
 						<th width="50%">Keterangan / Predikat</th>
 					</tr>
 				</thead>
-				<tbody>
+				<tbody style="font-size: 10pt;">
 					@forelse($ekskuls as $idxEks => $ekskul)
-						<tr>
-							<td style="text-align: center;">{{ $idxEks + 1 }}</td>
-							<td>{{ $ekskul->ekstrakurikuler->nama ?? '-' }}</td>
-							<td>{{ $ekskul->nilai_huruf ? ($ekskul->deskripsi ? $ekskul->nilai_huruf . ' - ' . $ekskul->deskripsi : $ekskul->nilai_huruf) : ($ekskul->deskripsi ?? ($ekskul->predikat ?? ($ekskul->keterangan ?? 'Aktif Mengikuti'))) }}</td>
+						<tr style="font-size: 10pt;">
+							<td style="text-align: center; font-size: 10pt;">{{ $idxEks + 1 }}</td>
+							<td style="font-size: 10pt;">{{ $ekskul->ekstrakurikuler->nama ?? '-' }}</td>
+							<td style="font-size: 10pt;">{{ $ekskul->nilai_huruf ? ($ekskul->deskripsi ? $ekskul->nilai_huruf . ' - ' . $ekskul->deskripsi : $ekskul->nilai_huruf) : ($ekskul->deskripsi ?? ($ekskul->predikat ?? ($ekskul->keterangan ?? 'Aktif Mengikuti'))) }}</td>
 						</tr>
 					@empty
-						<tr>
-							<td colspan="3" style="text-align: center; color: #94a3b8; font-style: italic; padding: 4px;">
+						<tr style="font-size: 10pt;">
+							<td colspan="3" style="text-align: center; color: #94a3b8; font-style: italic; padding: 4px; font-size: 10pt;">
 								-
 							</td>
 						</tr>
@@ -267,42 +252,42 @@
 			</table>
 
 			<!-- C. Ketidakhadiran -->
-			<div style="font-weight: bold; margin-bottom: 4px; font-size: 8.5pt;">C. Ketidakhadiran</div>
+			<div style="font-weight: bold; margin-bottom: 4px; font-size: 10pt;">C. Ketidakhadiran</div>
 			<table class="data-table" style="width: 100%; margin-bottom: 8px;">
 				<thead>
 					<tr>
-						<th width="30%">Jenis Ketidakhadiran</th>
-						<th width="20%">Jumlah</th>
-						<th width="50%">Tanggal Kejadian (DD/MM/YY)</th>
+						<th width="22%">Jenis Ketidakhadiran</th>
+						<th width="11%">Jumlah</th>
+						<th width="67%" style="text-align: center;">Tanggal</th>
 					</tr>
 				</thead>
 				<tbody>
 					<tr>
 						<td>Sakit (S)</td>
 						<td style="text-align: center; font-weight: bold;">{{ $rekapAbsen['sakit'] }} hari</td>
-						<td style="text-align: center;">{{ $rekapAbsen['sakit_dates'] ?? '-' }}</td>
+						<td style="text-align: left; padding-left: 6px;">{{ $rekapAbsen['sakit_dates'] ?? '-' }}</td>
 					</tr>
 					<tr>
 						<td>Izin (I)</td>
 						<td style="text-align: center; font-weight: bold;">{{ $rekapAbsen['izin'] }} hari</td>
-						<td style="text-align: center;">{{ $rekapAbsen['izin_dates'] ?? '-' }}</td>
+						<td style="text-align: left; padding-left: 6px;">{{ $rekapAbsen['izin_dates'] ?? '-' }}</td>
 					</tr>
 					<tr>
 						<td>Tanpa Keterangan (A)</td>
 						<td style="text-align: center; font-weight: bold;">{{ $rekapAbsen['alpa'] }} hari</td>
-						<td style="text-align: center;">{{ $rekapAbsen['alpa_dates'] ?? '-' }}</td>
+						<td style="text-align: left; padding-left: 6px;">{{ $rekapAbsen['alpa_dates'] ?? '-' }}</td>
 					</tr>
 				</tbody>
 			</table>
 
 			<!-- D. Catatan Pembimbing Rayon -->
-			<div style="font-weight: bold; margin-bottom: 4px; font-size: 8.5pt;">D. Catatan Perkembangan Karakter & Akademik (Pembimbing Rayon)</div>
+			<div style="font-weight: bold; margin-bottom: 4px; font-size: 10pt;">D. Catatan Perkembangan Karakter & Akademik (Pembimbing Rayon)</div>
 			<div class="catatan-box">
-				<div>{{ $catatan ?: 'Peserta didik terus menunjukkan kemajuan belajar dan kedisiplinan yang baik. Pertahankan dan tingkatkan prestasi pada periode selanjutnya.' }}</div>
+				<div style="font-size: 9pt;">{{ $catatan ?: 'Peserta didik terus menunjukkan kemajuan belajar dan kedisiplinan yang baik. Pertahankan dan tingkatkan prestasi pada periode selanjutnya.' }}</div>
 				@if(!empty($prestasis) && $prestasis->isNotEmpty())
-					<div style="margin-top: 5px; border-top: 1px dashed #94a3b8; padding-top: 3px; font-size: 7.5pt;">
-						<strong>Prestasi / Penghargaan yang Diraih pada Periode Ini:</strong>
-						<ul style="margin: 2px 0 0 12px; padding: 0;">
+					<div style="margin-top: 5px; border-top: 1px dashed #94a3b8; padding-top: 3px; font-size: 9pt;">
+						<strong style="font-size: 9pt;">Prestasi / Penghargaan yang Diraih pada Periode Ini:</strong>
+						<ul style="margin: 2px 0 0 12px; padding: 0; font-size: 9pt;">
 							@foreach($prestasis as $p)
 								<li>
 									{{ $p->nama_prestasi }} &mdash; <strong>{{ $p->peringkat }}</strong> (Tingkat {{ $p->tingkat_label }} &bull; Penyelenggara: {{ $p->penyelenggara_nama }})
@@ -313,25 +298,29 @@
 				@endif
 			</div>
 
-			<!-- Tanda Tangan: Orang Tua, Pembimbing Rayon, Kepala Sekolah -->
-			<table class="signature-table">
+			<!-- Tanda Tangan: 2 Baris -->
+			<table class="signature-table" style="width: 100%; margin-top: 20px; font-size: 9pt; border-collapse: collapse; page-break-inside: avoid;">
+				<!-- Baris 1: Orang Tua/Wali & Pembimbing Siswa -->
 				<tr>
-					<td>
-						Mengetahui,<br>
-						Orang Tua / Wali<br><br><br><br>
-						<strong>............................................</strong>
+					<td style="width: 50%; vertical-align: top; text-align: center; height: auto;">
+						<br>
+						Orang Tua/Wali<br><br><br><br><br><br>
+						............................................
 					</td>
-					<td>
+					<td style="width: 50%; vertical-align: top; text-align: center; height: auto;">
 						{{ $sekolah->kabupaten ?: 'Garut' }}, {{ \Carbon\Carbon::parse($tanggal)->translatedFormat('d F Y') }}<br>
-						Pembimbing Rayon,<br><br><br><br>
+						Pembimbing siswa<br><br><br><br><br><br>
 						<strong>{{ $siswa->rayon?->pembimbing?->nama_lengkap ?? ($siswa->rayon?->pembimbing?->name ?? '............................................') }}</strong>
 					</td>
-					<td>
+				</tr>
+				<!-- Baris 2: Kepala Sekolah di Tengah -->
+				<tr>
+					<td colspan="2" style="text-align: center; vertical-align: top; padding-top: 22px; height: auto;">
 						Mengetahui,<br>
-						Kepala {{ $sekolah->nama ?? 'Sekolah' }}<br><br><br><br>
+						Kepala {{ $sekolah->nama ?? 'Sekolah' }}<br><br><br><br><br><br>
 						<strong>{{ $sekolah->kepala_sekolah_nama ?: ($sekolah->kepala_sekolah ?: '............................................') }}</strong><br>
 						@if($sekolah->kepala_sekolah_nip || $sekolah->nip_kepala_sekolah)
-							<span style="font-size: 7.5pt; color: #475569;">NIP. {{ $sekolah->kepala_sekolah_nip ?: $sekolah->nip_kepala_sekolah }}</span>
+							<span style="font-size: 9pt; color: #475569;">NIP. {{ $sekolah->kepala_sekolah_nip ?: $sekolah->nip_kepala_sekolah }}</span>
 						@endif
 					</td>
 				</tr>
@@ -339,6 +328,34 @@
 		</div>
 	</div>
 @endforeach
+
+<script type="text/php">
+if (isset($pdf)) {
+	$font = $fontMetrics->get_font("Times-Roman", "normal");
+	$color = [0.35, 0.35, 0.35];
+	$w = $pdf->get_width();
+	$h = $pdf->get_height();
+	$y = $h - 22;
+
+	$pdf->page_script(function ($pageNumber, $pageCount, $canvas, $fontMetrics) use ($w, $h, $y, $font, $color) {
+		// Garis tipis pembatas footer
+		$canvas->line(25, $y - 4, $w - 25, $y - 4, [0.8, 0.8, 0.8], 0.5);
+
+		@if(count($studentsData) === 1)
+			$textLeft = "{{ $studentsData[0]['siswa']->nama }} - NIS: {{ $studentsData[0]['siswa']->nipd ?? $studentsData[0]['siswa']->nisn ?? '-' }} - {{ $studentsData[0]['siswa']->rombel->nama ?? '-' }}";
+			$canvas->text(25, $y, $textLeft, $font, 7.5, $color);
+
+			$textRight = "Rapor {{ $studentsData[0]['periodMeta']['sebutan'] ?? '9 Minggu' }} - Halaman " . $pageNumber . "/" . $pageCount;
+			$tw = $fontMetrics->get_text_width($textRight, $font, 7.5);
+			$canvas->text($w - 25 - $tw, $y, $textRight, $font, 7.5, $color);
+		@else
+			$textRight = "Halaman " . $pageNumber . "/" . $pageCount;
+			$tw = $fontMetrics->get_text_width($textRight, $font, 7.5);
+			$canvas->text($w - 25 - $tw, $y, $textRight, $font, 7.5, $color);
+		@endif
+	});
+}
+</script>
 
 </body>
 </html>

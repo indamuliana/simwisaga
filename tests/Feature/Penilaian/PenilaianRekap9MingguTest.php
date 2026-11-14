@@ -612,4 +612,28 @@ class PenilaianRekap9MingguTest extends TestCase
         $this->assertEquals('belum_lengkap', $resNh['status']);
         $this->assertEquals('Segera selesaikan nilai NH (Harian).', $resNh['deskripsi_tertinggi']);
     }
+
+    public function test_narasi_tiga_tp_mencakup_seluruh_tp_dengan_pemisah_baris(): void
+    {
+        $calc = app(\App\Modules\Penilaian\Services\PenilaianScoreCalculator::class);
+
+        $tp1 = new TujuanPembelajaran(['deskripsi' => 'Memahami ayat Al-Qur\'an tentang toleransi']);
+        $tp1->id = 1;
+        $tp2 = new TujuanPembelajaran(['deskripsi' => 'Meneladani peran ulama dan kearifan lokal']);
+        $tp2->id = 2;
+        $tp3 = new TujuanPembelajaran(['deskripsi' => 'Menerapkan ketentuan syariat tentang zakat']);
+        $tp3->id = 3;
+        $tps = collect([$tp1, $tp2, $tp3]);
+
+        // TP 1 (98 - Mahir), TP 3 (80 - Cakap), TP 2 (75 - Terendah)
+        $res = $calc->generateKmNarration([1 => 98, 2 => 75, 3 => 80], $tps, 75);
+
+        // Memastikan TP tertinggi (98) dan TP menengah (80) masuk ke deskripsi_tertinggi dipisah newline
+        $this->assertStringContainsString('Menunjukkan penguasaan yang sangat baik dalam memahami ayat Al-Qur\'an tentang toleransi.', $res['deskripsi_tertinggi']);
+        $this->assertStringContainsString('Menunjukkan penguasaan yang baik dalam menerapkan ketentuan syariat tentang zakat.', $res['deskripsi_tertinggi']);
+        $this->assertStringContainsString("\n", $res['deskripsi_tertinggi']);
+
+        // Memastikan TP terendah (75) masuk ke deskripsi_terendah
+        $this->assertEquals('Perlu peningkatan dan latihan dalam meneladani peran ulama dan kearifan lokal.', $res['deskripsi_terendah']);
+    }
 }

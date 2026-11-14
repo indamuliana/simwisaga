@@ -4,7 +4,7 @@
 	<meta charset="UTF-8">
 	<title>Rapor Pemerintah - {{ count($studentsData) === 1 ? ($studentsData[0]['siswa']->nama ?? 'Siswa') : 'Kumpulan Rapor' }}</title>
 	<style>
-		body { font-family: 'Helvetica Neue', Helvetica, Arial, sans-serif; font-size: 9.5pt; line-height: 1.4; color: #000; margin: 0; padding: 0; }
+		body { font-family: 'Times New Roman', Times, serif; font-size: 9.5pt; line-height: 1.4; color: #000; margin: 0; padding: 0; }
 		.header-kop { text-align: center; border-bottom: 3px double #000; margin-bottom: 16px; padding-bottom: 8px; }
 		.header-kop h1 { margin: 0; font-size: 17pt; text-transform: uppercase; font-weight: 800; }
 		.header-kop h2 { margin: 2px 0; font-size: 13pt; font-weight: 700; }
@@ -133,7 +133,7 @@
 							<tr>
 								<td style="text-align: center;">{{ $idxItem + 1 }}</td>
 								<td style="font-weight: 500;">{{ $row->mapel_nama }}</td>
-								<td style="text-align: center; font-family: monospace; font-weight: bold; font-size: 10pt;">
+								<td style="text-align: center; font-weight: bold; font-size: 10pt;">
 									{{ $row->nilai_akhir !== null ? number_format($row->nilai_akhir, 0) : '-' }}
 								</td>
 								<td style="text-align: center; font-size: 8.5pt; font-weight: bold;">

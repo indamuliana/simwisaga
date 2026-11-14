@@ -282,33 +282,89 @@ class PenilaianScoreCalculator
         $bestScore = (float) reset($validTpScores);
         $worstScore = (float) end($validTpScores);
 
-        $bestTpIds = array_keys(array_filter($validTpScores, fn($s) => (float)$s == $bestScore));
-        $worstTpIds = array_keys(array_filter($validTpScores, fn($s) => (float)$s == $worstScore));
+        // KASUS 2A: Seluruh TP bernilai sama
+        if ($bestScore === $worstScore) {
+            $allDescs = [];
+            foreach (array_keys($validTpScores) as $tpId) {
+                $tp = $tps->firstWhere('id', $tpId);
+                if ($tp) {
+                    $allDescs[] = $cleanDesc($tp->deskripsi ?? $tp->deskripsi_tp);
+                }
+            }
+            $allDescs = array_values(array_filter($allDescs));
 
-        // Ambil seluruh TP dengan skor terbaik
-        $bestDescs = [];
-        foreach ($tps->whereIn('id', $bestTpIds) as $tp) {
-            $bestDescs[] = $cleanDesc($tp->deskripsi ?? $tp->deskripsi_tp);
+            if ($bestScore >= $kkm) {
+                return [
+                    'deskripsi_tertinggi' => $getPrefixTinggi($bestScore) . $this->formatJoinedDescriptions($allDescs) . '.',
+                    'deskripsi_terendah' => '',
+                ];
+            } else {
+                return [
+                    'deskripsi_tertinggi' => '',
+                    'deskripsi_terendah' => $getPrefixRendah($bestScore) . $this->formatJoinedDescriptions($allDescs) . '.',
+                ];
+            }
         }
-        $bestDescs = array_values(array_filter($bestDescs));
 
-        $descTinggi = !empty($bestDescs)
-            ? $getPrefixTinggi($bestScore) . $this->formatJoinedDescriptions($bestDescs) . '.'
-            : '';
-
-        // Terendah: Hanya jika nilai terendah berbeda dengan nilai tertinggi
-        $descRendah = '';
-        if ($worstScore < $bestScore) {
-            $worstDescs = [];
-            foreach ($tps->whereIn('id', $worstTpIds) as $tp) {
+        // KASUS 2B: Nilai bervariasi (terdapat skor tertinggi, menengah, dan terendah)
+        // 1. Ambil TP dengan skor terendah untuk deskripsi_terendah / perlu peningkatan
+        $worstTpIds = array_keys(array_filter($validTpScores, fn($s) => (float)$s == $worstScore));
+        $worstDescs = [];
+        foreach ($worstTpIds as $tpId) {
+            $tp = $tps->firstWhere('id', $tpId);
+            if ($tp) {
                 $worstDescs[] = $cleanDesc($tp->deskripsi ?? $tp->deskripsi_tp);
             }
-            $worstDescs = array_values(array_filter($worstDescs));
+        }
+        $worstDescs = array_values(array_filter($worstDescs));
+        $descRendah = !empty($worstDescs)
+            ? $getPrefixRendah($worstScore) . $this->formatJoinedDescriptions($worstDescs) . '.'
+            : '';
 
-            if (!empty($worstDescs)) {
-                $descRendah = $getPrefixRendah($worstScore) . $this->formatJoinedDescriptions($worstDescs) . '.';
+        // 2. Ambil sisa TP (skor di atas terendah) dan kelompokkan berdasarkan tier kemampuan
+        $remainingTpScores = array_filter($validTpScores, fn($s) => (float)$s > $worstScore);
+        
+        $tierGroups = [
+            'sangat_baik' => ['prefix' => 'Menunjukkan penguasaan yang sangat baik dalam ', 'tp_ids' => []],
+            'baik'        => ['prefix' => 'Menunjukkan penguasaan yang baik dalam ',        'tp_ids' => []],
+            'cukup'       => ['prefix' => 'Cukup menguasai dalam ',                         'tp_ids' => []],
+            'bimbingan'   => ['prefix' => 'Perlu bimbingan dalam ',                         'tp_ids' => []],
+        ];
+
+        foreach ($remainingTpScores as $tpId => $score) {
+            $num = (float) $score;
+            if ($num >= 90) {
+                $tierGroups['sangat_baik']['tp_ids'][] = $tpId;
+            } elseif ($num >= 80) {
+                $tierGroups['baik']['tp_ids'][] = $tpId;
+            } elseif ($num >= $kkm) {
+                $tierGroups['cukup']['tp_ids'][] = $tpId;
+            } else {
+                $tierGroups['bimbingan']['tp_ids'][] = $tpId;
             }
         }
+
+        $linesTinggi = [];
+        foreach ($tierGroups as $tier) {
+            if (empty($tier['tp_ids'])) {
+                continue;
+            }
+
+            $groupDescs = [];
+            foreach ($tier['tp_ids'] as $tpId) {
+                $tp = $tps->firstWhere('id', $tpId);
+                if ($tp) {
+                    $groupDescs[] = $cleanDesc($tp->deskripsi ?? $tp->deskripsi_tp);
+                }
+            }
+            $groupDescs = array_values(array_filter($groupDescs));
+
+            if (!empty($groupDescs)) {
+                $linesTinggi[] = $tier['prefix'] . $this->formatJoinedDescriptions($groupDescs) . '.';
+            }
+        }
+
+        $descTinggi = implode("\n", $linesTinggi);
 
         return [
             'deskripsi_tertinggi' => $descTinggi,

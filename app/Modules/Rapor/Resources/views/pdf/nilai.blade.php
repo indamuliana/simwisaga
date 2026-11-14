@@ -4,7 +4,7 @@
 	<meta charset="UTF-8">
 	<title>Capaian Hasil Belajar - {{ $siswa->nama }}</title>
 	<style>
-		body { font-family: 'Helvetica Neue', Helvetica, Arial, sans-serif; font-size: 10pt; line-height: 1.4; color: #000; margin: 0; padding: 0; }
+		body { font-family: 'Times New Roman', Times, serif; font-size: 10pt; line-height: 1.4; color: #000; margin: 0; padding: 0; }
 		.header-kop { text-align: center; border-bottom: 3px double #000; margin-bottom: 20px; padding-bottom: 10px; }
 		.header-kop h1 { margin: 0; font-size: 18pt; text-transform: uppercase; }
 		.header-kop h2 { margin: 2px 0; font-size: 14pt; }

@@ -79,7 +79,8 @@ Route::redirect('/rapor', '/rapor/wikrama')->name('rapor.index');
         }
 
         $pdf = Pdf::loadView('rapor::pdf.wikrama-nilai', compact('studentsData'))
-            ->setPaper('A4', 'portrait');
+            ->setPaper('A4', 'portrait')
+            ->setOption(['isPhpEnabled' => true]);
 
         $filename = 'Rapor_Wikrama_Massal_' . ($scope === 'rayon' ? 'Rayon_' : 'Rombel_') . $targetId . '.pdf';
         return $pdf->stream($filename);
@@ -186,7 +187,8 @@ Route::redirect('/rapor', '/rapor/wikrama')->name('rapor.index');
         ];
 
         $pdf = Pdf::loadView('rapor::pdf.wikrama-nilai', compact('studentsData'))
-            ->setPaper('A4', 'portrait');
+            ->setPaper('A4', 'portrait')
+            ->setOption(['isPhpEnabled' => true]);
 
         return $pdf->stream('Rapor_Wikrama_' . ($periodMeta['period_key'] ?? '9M') . '_' . $siswa->nisn . '.pdf');
     })->whereNumber('siswa_id')->name('rapor.cetak.wikrama');

@@ -478,6 +478,13 @@ class RaporScoreService
 
             if ($block9M && is_array($block9M)) {
                 $eval = $block9M;
+                // Jika tidak ada manual override, status kompeten, dan memiliki data TP terisi, sinkronkan narasi terbaru
+                if (empty($eval['deskripsi_manual']) && ($eval['status'] ?? '') === 'kompeten' && $tpsInBlock->isNotEmpty() && !empty($tpScoresMap)) {
+                    $narratives = $calc->generateKmNarration($tpScoresMap, $tpsInBlock, $kkm);
+                    $eval['deskripsi_tertinggi'] = $narratives['deskripsi_tertinggi'];
+                    $eval['deskripsi_terendah'] = $narratives['deskripsi_terendah'];
+                    $eval['narasi_capaian'] = trim($eval['deskripsi_tertinggi'] . ($eval['deskripsi_terendah'] ? ' ' . $eval['deskripsi_terendah'] : ''));
+                }
             } else {
                 $eval = $calc->calculate9MBlock(
                     $tpScoresMap,
