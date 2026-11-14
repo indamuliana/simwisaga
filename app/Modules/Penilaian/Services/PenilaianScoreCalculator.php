@@ -122,9 +122,19 @@ class PenilaianScoreCalculator
             ];
         }
 
-        // Check completeness: all defined TPs in this block must be graded, and STS must be graded
-        $missingTp = count($validTpScores) < $tps->count();
-        $missingSumatif = ($sumatifScore === null || $sumatifScore === '');
+        // Check completeness: all defined TPs in this block must be graded, NH must be graded, and STS must be graded
+        $missingItems = [];
+        foreach ($tps as $tp) {
+            if (!isset($validTpScores[$tp->id])) {
+                $missingItems[] = $tp->kode ?: ('TP ' . $tp->id);
+            }
+        }
+        if ($nhScore === null || $nhScore === '') {
+            $missingItems[] = 'NH (Harian)';
+        }
+        if ($sumatifScore === null || $sumatifScore === '') {
+            $missingItems[] = 'Sumatif';
+        }
 
         $hasBelowKkm = false;
 
@@ -151,11 +161,11 @@ class PenilaianScoreCalculator
         $rataTp = count($validTpScores) > 0 ? round(array_sum($validTpScores) / count($validTpScores), 2) : null;
         $numSumatif = ($sumatifScore !== null && is_numeric($sumatifScore)) ? (float) $sumatifScore : null;
 
-        if ($missingTp || $missingSumatif) {
+        if (!empty($missingItems)) {
             $status = 'belum_lengkap';
             $predikat = 'Belum Lengkap';
             $nilaiAkhir = null;
-            $deskripsiTinggi = 'Nilai belum lengkap, silakan hubungi guru yang bersangkutan.';
+            $deskripsiTinggi = 'Segera selesaikan nilai ' . implode(', ', $missingItems) . '.';
             $deskripsiRendah = '';
         } elseif ($hasBelowKkm) {
             $status = 'belum_kompeten';
@@ -200,9 +210,23 @@ class PenilaianScoreCalculator
     }
 
     /**
+     * Format penggabungan teks daftar deskripsi TP dengan koma dan 'serta'
+     */
+    protected function formatJoinedDescriptions(array $descs): string
+    {
+        $count = count($descs);
+        if ($count === 0) return '';
+        if ($count === 1) return $descs[0];
+        if ($count === 2) return $descs[0] . ' serta ' . $descs[1];
+
+        $last = array_pop($descs);
+        return implode(', ', $descs) . ', serta ' . $last;
+    }
+
+    /**
      * Generate Kurikulum Merdeka 2-line narration:
-     * 1. Menunjukkan penguasaan yang sangat baik dalam ...
-     * 2. Perlu peningkatan dan bimbingan lebih lanjut dalam ...
+     * 1. Menunjukkan penguasaan yang sangat baik / baik / cukup dalam ...
+     * 2. Perlu pemantapan / peningkatan / bimbingan dalam ...
      */
     public function generateKmNarration(array $validTpScores, Collection $tps, float $kkm = 75): array
     {
@@ -215,62 +239,74 @@ class PenilaianScoreCalculator
             return lcfirst(rtrim($c, '.'));
         };
 
+        // Helper pembuka frasa capaian tertinggi berdasarkan nilai TP
+        $getPrefixTinggi = function (float $score) use ($kkm): string {
+            if ($score >= 90) return 'Menunjukkan penguasaan yang sangat baik dalam ';
+            if ($score >= 80) return 'Menunjukkan penguasaan yang baik dalam ';
+            if ($score >= $kkm) return 'Cukup menguasai dalam ';
+            return 'Perlu bimbingan dalam ';
+        };
+
+        // Helper pembuka frasa capaian terendah / perlu peningkatan
+        $getPrefixRendah = function (float $score) use ($kkm): string {
+            if ($score >= 85) return 'Perlu pemantapan dalam ';
+            if ($score >= $kkm) return 'Perlu peningkatan dan latihan dalam ';
+            return 'Perlu bimbingan intensif dalam ';
+        };
+
+        // KASUS 1: Hanya ada 1 TP dalam 1 periode rapor
         if (count($validTpScores) === 1) {
             $onlyTpId = array_key_first($validTpScores);
-            $onlyScore = $validTpScores[$onlyTpId];
+            $onlyScore = (float) $validTpScores[$onlyTpId];
             $onlyTp = $tps->firstWhere('id', $onlyTpId);
             $onlyDesc = $cleanDesc($onlyTp->deskripsi ?? $onlyTp->deskripsi_tp ?? '');
 
-            if ($onlyScore >= 85) {
-                $descTinggi = 'Menunjukkan penguasaan yang sangat baik dalam ' . $onlyDesc . '.';
-            } elseif ($onlyScore >= $kkm) {
-                $descTinggi = 'Menunjukkan penguasaan yang baik dalam ' . $onlyDesc . '.';
-            } else {
-                $descTinggi = 'Cukup menguasai dalam ' . $onlyDesc . '.';
-            }
-
             if ($onlyScore >= $kkm) {
-                $descRendah = 'Perlu pemantapan lebih lanjut dalam ' . $onlyDesc . ' secara berkelanjutan.';
+                // Baris tunggal capaian tertinggi tanpa baris bimbingan kontradiktif jika kompeten
+                return [
+                    'deskripsi_tertinggi' => $getPrefixTinggi($onlyScore) . $onlyDesc . '.',
+                    'deskripsi_terendah' => '',
+                ];
             } else {
-                $descRendah = 'Perlu bimbingan lebih lanjut dalam ' . $onlyDesc . '.';
+                // Baris tunggal jika di bawah KKM
+                return [
+                    'deskripsi_tertinggi' => '',
+                    'deskripsi_terendah' => $getPrefixRendah($onlyScore) . $onlyDesc . '.',
+                ];
             }
-
-            return [
-                'deskripsi_tertinggi' => $descTinggi,
-                'deskripsi_terendah' => $descRendah,
-            ];
         }
 
+        // KASUS 2: Ada lebih dari 1 TP (2, 3, 4, dst)
         arsort($validTpScores);
 
-        $bestScore = reset($validTpScores);
-        $worstScore = end($validTpScores);
+        $bestScore = (float) reset($validTpScores);
+        $worstScore = (float) end($validTpScores);
 
-        $bestTpIds = array_keys(array_filter($validTpScores, fn($s) => $s == $bestScore));
-        $worstTpIds = array_keys(array_filter($validTpScores, fn($s) => $s == $worstScore));
+        $bestTpIds = array_keys(array_filter($validTpScores, fn($s) => (float)$s == $bestScore));
+        $worstTpIds = array_keys(array_filter($validTpScores, fn($s) => (float)$s == $worstScore));
 
-        // Tertinggi
+        // Ambil seluruh TP dengan skor terbaik
         $bestDescs = [];
-        foreach ($tps->whereIn('id', $bestTpIds)->take(2) as $tp) {
+        foreach ($tps->whereIn('id', $bestTpIds) as $tp) {
             $bestDescs[] = $cleanDesc($tp->deskripsi ?? $tp->deskripsi_tp);
         }
+        $bestDescs = array_values(array_filter($bestDescs));
+
         $descTinggi = !empty($bestDescs)
-            ? 'Menunjukkan penguasaan yang sangat baik dalam ' . implode(' serta ', $bestDescs) . '.'
+            ? $getPrefixTinggi($bestScore) . $this->formatJoinedDescriptions($bestDescs) . '.'
             : '';
 
-        // Terendah (hanya jika berbeda nilai dengan tertinggi)
+        // Terendah: Hanya jika nilai terendah berbeda dengan nilai tertinggi
         $descRendah = '';
         if ($worstScore < $bestScore) {
             $worstDescs = [];
-            foreach ($tps->whereIn('id', $worstTpIds)->take(2) as $tp) {
+            foreach ($tps->whereIn('id', $worstTpIds) as $tp) {
                 $worstDescs[] = $cleanDesc($tp->deskripsi ?? $tp->deskripsi_tp);
             }
+            $worstDescs = array_values(array_filter($worstDescs));
+
             if (!empty($worstDescs)) {
-                if ($worstScore >= $kkm) {
-                    $descRendah = 'Perlu pemantapan dalam ' . implode(' serta ', $worstDescs) . '.';
-                } else {
-                    $descRendah = 'Perlu bimbingan dalam ' . implode(' serta ', $worstDescs) . '.';
-                }
+                $descRendah = $getPrefixRendah($worstScore) . $this->formatJoinedDescriptions($worstDescs) . '.';
             }
         }
 
@@ -289,11 +325,20 @@ class PenilaianScoreCalculator
         $b2Status = $block2['status'] ?? 'belum_ada_nilai';
 
         if ($b1Status === 'belum_lengkap' || $b2Status === 'belum_lengkap') {
+            $msg = '';
+            if ($b1Status === 'belum_lengkap' && !empty($block1['deskripsi_tertinggi'])) {
+                $msg = $block1['deskripsi_tertinggi'];
+            } elseif ($b2Status === 'belum_lengkap' && !empty($block2['deskripsi_tertinggi'])) {
+                $msg = $block2['deskripsi_tertinggi'];
+            } else {
+                $msg = 'Nilai belum lengkap, silakan hubungi guru yang bersangkutan.';
+            }
+
             return [
                 'status' => 'belum_lengkap',
                 'nilai_akhir' => null,
                 'predikat' => 'Belum Lengkap',
-                'deskripsi' => 'Nilai belum lengkap, silakan hubungi guru yang bersangkutan.',
+                'deskripsi' => $msg,
             ];
         }
 

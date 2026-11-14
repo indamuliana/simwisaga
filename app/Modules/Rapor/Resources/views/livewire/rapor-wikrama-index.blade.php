@@ -489,6 +489,19 @@
                                         <div class="text-sm font-bold text-rose-600">{{ $previewData['rekapAbsen']['alpa'] }} hr</div>
                                     </div>
                                 </div>
+                                @if(($previewData['rekapAbsen']['sakit'] ?? 0) > 0 || ($previewData['rekapAbsen']['izin'] ?? 0) > 0 || ($previewData['rekapAbsen']['alpa'] ?? 0) > 0)
+                                    <div class="mt-2.5 pt-2 border-t border-border text-[11px] space-y-1 font-sans">
+                                        @if(($previewData['rekapAbsen']['sakit'] ?? 0) > 0)
+                                            <div class="text-text-secondary"><span class="font-semibold text-text-main">Tgl Sakit:</span> {{ $previewData['rekapAbsen']['sakit_dates'] }}</div>
+                                        @endif
+                                        @if(($previewData['rekapAbsen']['izin'] ?? 0) > 0)
+                                            <div class="text-text-secondary"><span class="font-semibold text-text-main">Tgl Izin:</span> {{ $previewData['rekapAbsen']['izin_dates'] }}</div>
+                                        @endif
+                                        @if(($previewData['rekapAbsen']['alpa'] ?? 0) > 0)
+                                            <div class="text-text-secondary"><span class="font-semibold text-rose-600">Tgl Alpa:</span> {{ $previewData['rekapAbsen']['alpa_dates'] }}</div>
+                                        @endif
+                                    </div>
+                                @endif
                             </div>
 
                             <!-- Catatan Pembimbing Rayon & Prestasi -->

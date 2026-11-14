@@ -229,7 +229,7 @@ class MapelPilihanPenilaianTest extends TestCase
         $block9M1_1 = $na1->data_9m['9M1'];
         $this->assertEquals('belum_lengkap', $block9M1_1['status']);
         $this->assertNull($block9M1_1['nilai_akhir']);
-        $this->assertStringContainsString('Nilai belum lengkap', $block9M1_1['deskripsi_tertinggi']);
+        $this->assertStringContainsString('Segera selesaikan nilai', $block9M1_1['deskripsi_tertinggi']);
 
         // Verifikasi Nilai Akhir Siswa 2 (Di bawah KKM)
         $na2 = NilaiMapelPilihanAkhir::where('mapel_pilihan_id', $this->mapil->id)

@@ -425,6 +425,36 @@ class PenilaianInput extends Component
         }
     }
 
+    public function updatedTpScores($value, $key): void
+    {
+        $parts = explode('.', $key);
+        if (count($parts) === 2) {
+            $siswaId = (int) $parts[0];
+            $tpId = (int) $parts[1];
+            $tp = $this->allTps->firstWhere('id', $tpId);
+            if ($tp && !empty($tp->alokasi_ah)) {
+                $numVal = ($value !== null && $value !== '' && is_numeric($value)) ? (float) $value : null;
+                $this->ahData[$siswaId][$tp->alokasi_ah] = $numVal;
+            }
+        }
+    }
+
+    public function updatedAhData($value, $key): void
+    {
+        $parts = explode('.', $key);
+        if (count($parts) === 2) {
+            $siswaId = (int) $parts[0];
+            $kodeAh = $parts[1];
+            $numVal = ($value !== null && $value !== '' && is_numeric($value)) ? (float) $value : null;
+            foreach ($this->allTps as $tp) {
+                if ($tp->alokasi_ah === $kodeAh) {
+                    $this->tpScores[$siswaId][$tp->id] = $numVal;
+                    $this->formatifData[$siswaId][$tp->id] = $numVal;
+                }
+            }
+        }
+    }
+
     public function switchTab($tab)
     {
         $this->activeTab = $tab;
@@ -761,15 +791,34 @@ class PenilaianInput extends Component
             }
         }
 
-        // 1. Simpan Nilai Formatif per TP
+        $targetGanjilPmId = $this->pmGanjilId ?: ($this->penugasan->semester?->semester === 'ganjil' ? $this->penugasan_id : null);
+        $targetGenapPmId = $this->pmGenapId ?: ($this->penugasan->semester?->semester === 'genap' ? $this->penugasan_id : null);
+        if (!$targetGanjilPmId && !$targetGenapPmId) {
+            $targetGanjilPmId = $this->penugasan_id;
+        }
+
+        // 1. Simpan Nilai Formatif per TP & Sinkronisasi Asesmen Harian (TP sebagai Single Source of Truth)
         foreach ($this->tpScores as $siswaId => $scores) {
             foreach ($scores as $tpId => $val) {
+                $tp = $this->allTps->firstWhere('id', $tpId);
+
                 if ($val !== null && $val !== '' && is_numeric($val)) {
+                    $numVal = (float) $val;
                     NilaiFormatif::updateOrCreate(
                         ['siswa_id' => $siswaId, 'tujuan_pembelajaran_id' => $tpId],
-                        ['nilai' => (float)$val]
+                        ['nilai' => $numVal]
                     );
-                    $this->formatifData[$siswaId][$tpId] = (float)$val;
+                    $this->formatifData[$siswaId][$tpId] = $numVal;
+
+                    if ($tp && !empty($tp->alokasi_ah)) {
+                        $isGenap = in_array($tp->alokasi_ah, ['AH 5', 'AH 6', 'AH 7', 'AH 8']);
+                        $targetPmId = $isGenap ? ($targetGenapPmId ?: $this->penugasan_id) : ($targetGanjilPmId ?: $this->penugasan_id);
+                        NilaiAsesmenHarian::updateOrCreate(
+                            ['siswa_id' => $siswaId, 'penugasan_mengajar_id' => $targetPmId, 'kode_ah' => $tp->alokasi_ah],
+                            ['nilai' => $numVal]
+                        );
+                        $this->ahData[$siswaId][$tp->alokasi_ah] = $numVal;
+                    }
                 } else {
                     NilaiFormatif::where('siswa_id', $siswaId)->where('tujuan_pembelajaran_id', $tpId)->delete();
                     $this->formatifData[$siswaId][$tpId] = null;
@@ -777,34 +826,38 @@ class PenilaianInput extends Component
             }
         }
 
-        $targetGanjilPmId = $this->pmGanjilId ?: ($this->penugasan->semester?->semester === 'ganjil' ? $this->penugasan_id : null);
-        $targetGenapPmId = $this->pmGenapId ?: ($this->penugasan->semester?->semester === 'genap' ? $this->penugasan_id : null);
-        if (!$targetGanjilPmId && !$targetGenapPmId) {
-            $targetGanjilPmId = $this->penugasan_id;
-        }
-
-        // Simpan Asesmen Harian jika ahData diisi
+        // Simpan Asesmen Harian jika ahData diisi / disinkronkan
         if (!empty($this->ahData)) {
             foreach ($this->ahData as $siswaId => $codes) {
                 foreach ($codes as $kodeAh => $ahVal) {
+                    $isGenap = in_array($kodeAh, ['AH 5', 'AH 6', 'AH 7', 'AH 8']);
+                    $targetPmId = $isGenap ? ($targetGenapPmId ?: $this->penugasan_id) : ($targetGanjilPmId ?: $this->penugasan_id);
+
                     if ($ahVal !== null && $ahVal !== '' && is_numeric($ahVal)) {
-                        $isGenap = in_array($kodeAh, ['AH 5', 'AH 6', 'AH 7', 'AH 8']);
-                        $targetPmId = $isGenap ? ($targetGenapPmId ?: $this->penugasan_id) : ($targetGanjilPmId ?: $this->penugasan_id);
+                        $numVal = (float) $ahVal;
                         NilaiAsesmenHarian::updateOrCreate(
                             ['siswa_id' => $siswaId, 'penugasan_mengajar_id' => $targetPmId, 'kode_ah' => $kodeAh],
-                            ['nilai' => (float)$ahVal]
+                            ['nilai' => $numVal]
                         );
-                        // Duplikasi nilai ke seluruh TP yang berafiliasi dengan AH ini
+
+                        // Duplikasi nilai ke seluruh TP yang berafiliasi dengan AH ini HANYA jika TP belum diset di tpScores
                         foreach ($this->allTps as $tp) {
                             if ($tp->alokasi_ah === $kodeAh) {
-                                NilaiFormatif::updateOrCreate(
-                                    ['siswa_id' => $siswaId, 'tujuan_pembelajaran_id' => $tp->id],
-                                    ['nilai' => (float)$ahVal]
-                                );
-                                $this->tpScores[$siswaId][$tp->id] = (float)$ahVal;
-                                $this->formatifData[$siswaId][$tp->id] = (float)$ahVal;
+                                if (!isset($this->tpScores[$siswaId][$tp->id]) || $this->tpScores[$siswaId][$tp->id] === null || $this->tpScores[$siswaId][$tp->id] === '') {
+                                    NilaiFormatif::updateOrCreate(
+                                        ['siswa_id' => $siswaId, 'tujuan_pembelajaran_id' => $tp->id],
+                                        ['nilai' => $numVal]
+                                    );
+                                    $this->tpScores[$siswaId][$tp->id] = $numVal;
+                                    $this->formatifData[$siswaId][$tp->id] = $numVal;
+                                }
                             }
                         }
+                    } else {
+                        NilaiAsesmenHarian::where('siswa_id', $siswaId)
+                            ->where('penugasan_mengajar_id', $targetPmId)
+                            ->where('kode_ah', $kodeAh)
+                            ->delete();
                     }
                 }
             }

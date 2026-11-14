@@ -65,7 +65,7 @@
 		</tr>
 		<tr>
 			<td>Kompetensi Keahlian</td><td>:</td><td>{{ $siswa->rombel->jurusan->nama ?? '-' }}</td>
-			<td>Tahun Pelajaran</td><td>:</td><td>{{ $semester->tahun_ajaran->nama ?? '-' }}</td>
+			<td>Tahun Pelajaran</td><td>:</td><td>{{ $semester->tahunAjaran?->nama ?? ($semester->tahun_ajaran->nama ?? '-') }}</td>
 		</tr>
 	</table>
 

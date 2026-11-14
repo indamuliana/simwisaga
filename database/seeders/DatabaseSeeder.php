@@ -12,6 +12,7 @@ class DatabaseSeeder extends Seeder
         require_once __DIR__.'/SeniBudayaPermissionSeeder.php';
         require_once __DIR__.'/PrestasiPermissionSeeder.php';
         require_once __DIR__.'/AnalitikSpmbPermissionSeeder.php';
+        require_once __DIR__.'/AkademikPenugasanPermissionSeeder.php';
 
         $this->call([
             RolesSeeder::class,
@@ -19,6 +20,7 @@ class DatabaseSeeder extends Seeder
             SeniBudayaPermissionSeeder::class,
             PrestasiPermissionSeeder::class,
             AnalitikSpmbPermissionSeeder::class,
+            AkademikPenugasanPermissionSeeder::class,
             QuranSurahSeeder::class,
             MasterWilayahSeeder::class,
         ]);

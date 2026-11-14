@@ -61,16 +61,34 @@ class RaporScoreService
         }
 
         // 2. Preload Absensi Harian (S/I/A)
-        $absensiGrouped = AbsensiHarian::whereIn('siswa_id', $siswaIds)
-            ->where('semester_id', $semester->id)
-            ->get()
-            ->groupBy('siswa_id');
+        $periode = $periodeRaporId ? PeriodeRapor::find($periodeRaporId) : null;
+        $absenQuery = AbsensiHarian::whereIn('siswa_id', $siswaIds)
+            ->where('semester_id', $semester->id);
+
+        if ($periode && $periode->tanggal_mulai && $periode->tanggal_selesai) {
+            $absenQuery->whereBetween('tanggal', [$periode->tanggal_mulai, $periode->tanggal_selesai]);
+        }
+
+        $absensiGrouped = $absenQuery->get()->groupBy('siswa_id');
+
+        $formatDates = function ($items) {
+            if (! $items || $items->isEmpty()) {
+                return '-';
+            }
+            return $items->sortBy('tanggal')->pluck('tanggal')->map(fn ($d) => \Carbon\Carbon::parse($d)->format('d/m/y'))->join(', ');
+        };
+
         foreach ($siswaIds as $sId) {
-            $abs = $absensiGrouped->get($sId, collect())->groupBy('status');
+            $abs = $absensiGrouped->get($sId, collect())->groupBy(function ($item) {
+                return $item->status instanceof \App\Enums\StatusAbsensi ? $item->status->value : (string) $item->status;
+            });
             $this->cohortCache['absen'][$sId] = [
                 'sakit' => isset($abs['Sakit']) ? count($abs['Sakit']) : 0,
                 'izin' => isset($abs['Izin']) ? count($abs['Izin']) : 0,
                 'alpa' => isset($abs['Alpa']) ? count($abs['Alpa']) : 0,
+                'sakit_dates' => $formatDates($abs['Sakit'] ?? null),
+                'izin_dates' => $formatDates($abs['Izin'] ?? null),
+                'alpa_dates' => $formatDates($abs['Alpa'] ?? null),
             ];
         }
 
@@ -135,13 +153,38 @@ class RaporScoreService
         foreach ($siswaIds as $sId) {
             $this->cohortCache['nilai_sumatif'][$sId] = $nsGrouped->get($sId, collect())->keyBy('penugasan_mengajar_id');
         }
+
+        // 9. Preload Seni Budaya Anggota
+        $sbGrouped = SeniBudayaAnggota::with('seniBudaya')
+            ->whereIn('siswa_id', $siswaIds)
+            ->where('semester_id', $semester->id)
+            ->where('status_keanggotaan', 'aktif')
+            ->get()
+            ->groupBy('siswa_id');
+        foreach ($siswaIds as $sId) {
+            $this->cohortCache['seni_budaya'][$sId] = $sbGrouped->get($sId, collect())->first();
+        }
+    }
+
+    /**
+     * Reset memoization & cohort caches
+     */
+    public function clearCache(): void
+    {
+        $this->cohortCache = [];
+        $this->penugasansCache = [];
+        $this->strukturKurikulumCache = [];
+        $this->mapelSeniCache = null;
     }
     /**
      * Menentukan target period key (9M1, 9M2, 9M3, 9M4, atau Semester) dari PeriodeRapor
      */
     public function resolveTargetPeriodKey(?PeriodeRapor $periode, ?Semester $semester): string
     {
-        $isGenap = $semester && str_contains(strtolower($semester->semester), 'genap');
+        $isGenap = $periode?->semester
+            ? str_contains(strtolower($periode->semester), 'genap')
+            : ($semester && str_contains(strtolower($semester->semester), 'genap'));
+
         if (!$periode) {
             return $isGenap ? '9M4' : '9M2';
         }
@@ -362,7 +405,26 @@ class RaporScoreService
             $tpsInBlock = collect();
             if ($pm) {
                 $allTpsForPm = $pm->tujuanPembelajarans ?? collect();
-                $tpsInBlock = $allTpsForPm->filter(fn($tp) => ($tp->target_periode === $normKey) || empty($tp->target_periode))->sortBy('urutan')->values();
+                $tpsInBlock = $allTpsForPm->filter(function ($tp) use ($normKey, $isGenap) {
+                    if (!empty($tp->target_periode)) {
+                        return $tp->target_periode === $normKey;
+                    }
+                    if (!empty($tp->alokasi_ah)) {
+                        $derived = match ($tp->alokasi_ah) {
+                            'AH 1', 'AH 2' => '9M1',
+                            'AH 3', 'AH 4' => '9M2',
+                            'AH 5', 'AH 6' => '9M3',
+                            'AH 7', 'AH 8' => '9M4',
+                            default => null,
+                        };
+                        if ($derived) {
+                            return $derived === $normKey;
+                        }
+                    }
+                    $tpUrutan = (int) ($tp->urutan ?? 1);
+                    $derived = $isGenap ? ($tpUrutan > 2 ? '9M4' : '9M3') : ($tpUrutan > 2 ? '9M2' : '9M1');
+                    return $derived === $normKey;
+                })->sortBy('urutan')->values();
             }
 
             // Kumpulkan nilai TP
@@ -461,7 +523,7 @@ class RaporScoreService
         }
 
         // 5. Integrasi Seni Budaya Dinamis (Cabang Seni Budaya)
-        $sbAnggota = SeniBudayaAnggota::with('seniBudaya')
+        $sbAnggota = $this->cohortCache['seni_budaya'][$siswa->id] ?? SeniBudayaAnggota::with('seniBudaya')
             ->where('siswa_id', $siswa->id)
             ->where('semester_id', $semester->id)
             ->where('status_keanggotaan', 'aktif')
@@ -644,7 +706,7 @@ class RaporScoreService
         }
 
         // Integrasi Seni Budaya (Jika terdaftar aktif)
-        $sbAnggota = SeniBudayaAnggota::with('seniBudaya')
+        $sbAnggota = $this->cohortCache['seni_budaya'][$siswa->id] ?? SeniBudayaAnggota::with('seniBudaya')
             ->where('siswa_id', $siswa->id)
             ->where('semester_id', $semester->id)
             ->where('status_keanggotaan', 'aktif')
@@ -779,23 +841,39 @@ class RaporScoreService
     }
 
     /**
-     * Ambil Rekap Ketidakhadiran (S/I/A)
+     * Ambil Rekap Ketidakhadiran (S/I/A) beserta rincian tanggal kejadian
      */
-    public function getRekapAbsen(int $siswaId, int $semesterId): array
+    public function getRekapAbsen(int $siswaId, int $semesterId, ?PeriodeRapor $periode = null): array
     {
         if (isset($this->cohortCache['absen'][$siswaId])) {
             return $this->cohortCache['absen'][$siswaId];
         }
 
-        $absensi = AbsensiHarian::where('siswa_id', $siswaId)
-            ->where('semester_id', $semesterId)
-            ->get()
-            ->groupBy('status');
+        $query = AbsensiHarian::where('siswa_id', $siswaId)
+            ->where('semester_id', $semesterId);
+
+        if ($periode && $periode->tanggal_mulai && $periode->tanggal_selesai) {
+            $query->whereBetween('tanggal', [$periode->tanggal_mulai, $periode->tanggal_selesai]);
+        }
+
+        $abs = $query->get()->groupBy(function ($item) {
+            return $item->status instanceof \App\Enums\StatusAbsensi ? $item->status->value : (string) $item->status;
+        });
+
+        $formatDates = function ($items) {
+            if (! $items || $items->isEmpty()) {
+                return '-';
+            }
+            return $items->sortBy('tanggal')->pluck('tanggal')->map(fn ($d) => \Carbon\Carbon::parse($d)->format('d/m/y'))->join(', ');
+        };
 
         return [
-            'sakit' => isset($absensi['Sakit']) ? count($absensi['Sakit']) : 0,
-            'izin' => isset($absensi['Izin']) ? count($absensi['Izin']) : 0,
-            'alpa' => isset($absensi['Alpa']) ? count($absensi['Alpa']) : 0,
+            'sakit' => isset($abs['Sakit']) ? count($abs['Sakit']) : 0,
+            'izin' => isset($abs['Izin']) ? count($abs['Izin']) : 0,
+            'alpa' => isset($abs['Alpa']) ? count($abs['Alpa']) : 0,
+            'sakit_dates' => $formatDates($abs['Sakit'] ?? null),
+            'izin_dates' => $formatDates($abs['Izin'] ?? null),
+            'alpa_dates' => $formatDates($abs['Alpa'] ?? null),
         ];
     }
 

@@ -273,8 +273,8 @@ class PenilaianAlokasiAHTest extends TestCase
         $this->assertEquals(85.0, (float) $na->rata_formatif);
         // Deskripsi tertinggi harus membaca TP yang nilainya 90 (TP 2 atau TP 3)
         $this->assertStringContainsString('penguasaan yang sangat baik', $na->deskripsi_tertinggi);
-        // Karena nilai terendah adalah 80 (>= KKM 75), siswa diberikan catatan pemantapan
-        $this->assertStringContainsString('Perlu pemantapan', $na->deskripsi_terendah);
+        // Karena nilai terendah adalah 80 (KKM s.d. 84), siswa diberikan catatan peningkatan dan latihan
+        $this->assertStringContainsString('Perlu peningkatan', $na->deskripsi_terendah);
 
         // Jika siswa memiliki nilai di bawah KKM (< 75), NA menjadi null dan deskripsi belum kompeten
         NilaiFormatif::where('siswa_id', $this->siswa1->id)->where('tujuan_pembelajaran_id', $tp1->id)->update(['nilai' => 68]);

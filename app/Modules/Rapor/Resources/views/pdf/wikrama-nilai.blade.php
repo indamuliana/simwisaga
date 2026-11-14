@@ -4,25 +4,28 @@
 	<meta charset="UTF-8">
 	<title>Rapor Wikrama - {{ count($studentsData) === 1 ? ($studentsData[0]['siswa']->nama ?? 'Siswa') : 'Kumpulan Rapor' }}</title>
 	<style>
-		body { font-family: 'Helvetica Neue', Helvetica, Arial, sans-serif; font-size: 9pt; line-height: 1.35; color: #000; margin: 0; padding: 0; }
-		.header-kop { text-align: center; border-bottom: 3px double #000; margin-bottom: 12px; padding-bottom: 6px; }
-		.header-kop h1 { margin: 0; font-size: 16pt; text-transform: uppercase; font-weight: 800; }
-		.header-kop h2 { margin: 2px 0; font-size: 13pt; font-weight: 700; }
-		.header-kop p { margin: 0; font-size: 8.5pt; color: #333; }
+		body { font-family: 'Helvetica Neue', Helvetica, Arial, sans-serif; font-size: 8.5pt; line-height: 1.3; color: #000; margin: 0; padding: 0; }
+		.header-kop { text-align: center; border-bottom: 3px double #000; margin-bottom: 10px; padding-bottom: 4px; }
+		.header-kop h1 { margin: 0; font-size: 15pt; text-transform: uppercase; font-weight: 800; }
+		.header-kop h2 { margin: 2px 0; font-size: 12pt; font-weight: 700; }
+		.header-kop p { margin: 0; font-size: 8pt; color: #333; }
 		
-		.title { text-align: center; font-size: 12.5pt; font-weight: bold; margin-bottom: 12px; text-transform: uppercase; letter-spacing: 0.5px; }
+		.title { text-align: center; font-size: 11.5pt; font-weight: bold; margin-bottom: 10px; text-transform: uppercase; letter-spacing: 0.5px; }
 		
-		.info-table { width: 100%; margin-bottom: 12px; font-weight: bold; font-size: 8.5pt; }
-		.info-table td { padding: 1.5px 2px; }
+		.info-table { width: 100%; margin-bottom: 10px; font-weight: bold; font-size: 8pt; }
+		.info-table td { padding: 1px 2px; }
 		
-		.data-table { width: 100%; border-collapse: collapse; margin-bottom: 12px; font-size: 8.5pt; }
-		.data-table th, .data-table td { border: 1px solid #000; padding: 4.5px 5px; }
+		.data-table { width: 100%; border-collapse: collapse; margin-bottom: 10px; font-size: 8pt; }
+		.data-table thead { display: table-header-group; }
+		.data-table tr { page-break-inside: avoid; }
+		.data-table th, .data-table td { border: 1px solid #000; padding: 3px 4px; }
 		.data-table th { background-color: #f1f5f9; text-align: center; font-weight: bold; }
 		
-		.catatan-box { border: 1px solid #000; padding: 8px 10px; min-height: 40px; margin-bottom: 12px; font-size: 8.5pt; line-height: 1.4; }
+		.avoid-break { page-break-inside: avoid; }
+		.catatan-box { border: 1px solid #000; padding: 6px 8px; min-height: 35px; margin-bottom: 10px; font-size: 8pt; line-height: 1.35; }
 		
-		.signature-table { width: 100%; margin-top: 15px; text-align: center; page-break-inside: avoid; font-size: 8.5pt; }
-		.signature-table td { width: 33.33%; vertical-align: bottom; height: 85px; }
+		.signature-table { width: 100%; margin-top: 10px; text-align: center; page-break-inside: avoid; font-size: 8pt; }
+		.signature-table td { width: 33.33%; vertical-align: bottom; height: 75px; }
 
 		.page-break { page-break-after: always; }
 	</style>
@@ -48,23 +51,51 @@
 		$tingkat = $siswa->rombel?->tingkat ?? 'X';
 		$fase = in_array($tingkat, ['XI', 'XII']) ? 'F' : 'E';
 		$semNama = ucfirst($semester->semester ?? '');
+
+		$kopPath = null;
+		if (!empty($sekolah->kop_surat_path)) {
+			$p1 = public_path('storage/' . $sekolah->kop_surat_path);
+			$p2 = storage_path('app/public/' . $sekolah->kop_surat_path);
+			if (file_exists($p1)) {
+				$kopPath = $p1;
+			} elseif (file_exists($p2)) {
+				$kopPath = $p2;
+			}
+		}
+
+		$logoPath = null;
+		if (!empty($sekolah->logo_sekolah_path)) {
+			$lp1 = public_path('storage/' . $sekolah->logo_sekolah_path);
+			$lp2 = storage_path('app/public/' . $sekolah->logo_sekolah_path);
+			if (file_exists($lp1)) {
+				$logoPath = $lp1;
+			} elseif (file_exists($lp2)) {
+				$logoPath = $lp2;
+			}
+		}
 	@endphp
 
 	<div class="{{ !$loop->last ? 'page-break' : '' }}">
 		<!-- Kop Surat -->
-		<div class="header-kop">
-			@if($sekolah->kop_surat_path)
-				<img src="{{ storage_path('app/public/' . $sekolah->kop_surat_path) }}" style="width: 100%; max-height: 120px; object-fit: contain;">
-			@else
-				@if($sekolah->logo_sekolah_path)
-					<img src="{{ storage_path('app/public/' . $sekolah->logo_sekolah_path) }}" style="height:70px; position:absolute; left:20px; top:0;">
+		@if($kopPath)
+			<div class="header-kop-banner" style="text-align: center; margin-bottom: 12px;">
+				<img src="{{ $kopPath }}" style="width: 100%; max-height: 110px; object-fit: contain;" alt="Kop Surat">
+			</div>
+		@else
+			<div class="header-kop-fallback" style="text-align: center; border-bottom: 3px double #000; margin-bottom: 12px; padding-bottom: 6px; position: relative;">
+				@if($logoPath)
+					<img src="{{ $logoPath }}" style="height: 65px; position: absolute; left: 15px; top: 0;" alt="Logo">
 				@endif
-				<h2>{{ $sekolah->nama_yayasan ?? 'YAYASAN PRAWITAMA' }}</h2>
-				<h1>{{ $sekolah->nama ?? 'SMK WIKRAMA BOGOR' }}</h1>
-				<p>{{ $sekolah->alamat }} Telp. {{ $sekolah->telepon }}</p>
-				<p>Website: {{ $sekolah->website }} | Email: {{ $sekolah->email }}</p>
-			@endif
-		</div>
+				<h2 style="margin: 0; font-size: 11pt; font-weight: 700; text-transform: uppercase;">{{ $sekolah->nama_yayasan ?? 'YAYASAN PRAWITAMA' }}</h2>
+				<h1 style="margin: 2px 0; font-size: 15pt; font-weight: 800; text-transform: uppercase;">{{ $sekolah->nama ?? 'SMK WIKRAMA 1 GARUT' }}</h1>
+				<p style="margin: 0; font-size: 8.5pt; color: #333;">{{ $sekolah->alamat ?? 'Jl. Otto Iskandardinata, Tarogong Kaler, Garut' }}</p>
+				<p style="margin: 0; font-size: 8.5pt; color: #333;">
+					@if(!empty($sekolah->telepon)) Telp. {{ $sekolah->telepon }} | @endif
+					@if(!empty($sekolah->website)) Website: {{ $sekolah->website }} | @endif
+					@if(!empty($sekolah->email)) Email: {{ $sekolah->email }} @endif
+				</p>
+			</div>
+		@endif
 
 		<!-- Judul Rapor -->
 		<div class="title">
@@ -95,8 +126,8 @@
 				<td>Fase / Semester</td><td>:</td><td>{{ $fase }} / {{ $semNama }} ({{ $periodMeta['sebutan'] }})</td>
 			</tr>
 			<tr>
-				<td>Tahun Pelajaran</td><td>:</td><td>{{ $semester->tahun_ajaran->nama ?? '-' }}</td>
-				<td>Tempat, Tanggal Cetak</td><td>:</td><td>{{ $sekolah->kabupaten ?: 'Bogor' }}, {{ \Carbon\Carbon::parse($tanggal)->translatedFormat('d F Y') }}</td>
+				<td>Tahun Pelajaran</td><td>:</td><td>{{ $semester->tahunAjaran?->nama ?? ($semester->tahun_ajaran->nama ?? '-') }}</td>
+				<td>Tempat, Tanggal Cetak</td><td>:</td><td>{{ $sekolah->kabupaten ?: 'Garut' }}, {{ \Carbon\Carbon::parse($tanggal)->translatedFormat('d F Y') }}</td>
 			</tr>
 		</table>
 
@@ -167,7 +198,7 @@
 									<tr style="background-color: #f8fafc; font-size: 7.5pt;">
 										<td></td>
 										<td style="padding-left: 15px; color: #475569;">
-											<strong>↳ [{{ $tp->kode }}]</strong> {{ $tp->deskripsi }}
+											<strong>&bull; [{{ $tp->kode }}]</strong> {{ $tp->deskripsi }}
 										</td>
 										<td style="text-align: center; font-family: monospace; font-size: 7.5pt; color: #64748b;">
 											{{ (int)($row->kkm ?? 75) }}
@@ -207,100 +238,105 @@
 			</tbody>
 		</table>
 
-		<!-- Baris Ekstrakurikuler & Ketidakhadiran Berdampingan -->
-		<table style="width: 100%; border-collapse: collapse; margin-bottom: 8px;">
-			<tr>
-				<!-- B. Ekstrakurikuler -->
-				<td style="width: 58%; vertical-align: top; padding-right: 8px;">
-					<div style="font-weight: bold; margin-bottom: 4px; font-size: 9pt;">B. Ekstrakurikuler</div>
-					<table class="data-table" style="margin-bottom: 0;">
-						<thead>
-							<tr>
-								<th width="8%">No</th>
-								<th width="48%">Kegiatan Ekstrakurikuler</th>
-								<th width="44%">Keterangan / Predikat</th>
-							</tr>
-						</thead>
-						<tbody>
-							@forelse($ekskuls as $idxEks => $ekskul)
-								<tr>
-									<td style="text-align: center;">{{ $idxEks + 1 }}</td>
-									<td>{{ $ekskul->ekstrakurikuler->nama ?? '-' }}</td>
-									<td>{{ $ekskul->nilai_huruf ? ($ekskul->deskripsi ? $ekskul->nilai_huruf . ' - ' . $ekskul->deskripsi : $ekskul->nilai_huruf) : ($ekskul->deskripsi ?? ($ekskul->predikat ?? ($ekskul->keterangan ?? 'Aktif Mengikuti'))) }}</td>
-								</tr>
-							@empty
-								<tr>
-									<td colspan="3" style="text-align: center; color: #94a3b8; font-style: italic; padding: 4px;">
-										-
-									</td>
-								</tr>
-							@endforelse
-						</tbody>
-					</table>
-				</td>
+		<div class="avoid-break">
+			<!-- B. Ekstrakurikuler -->
+			<div style="font-weight: bold; margin-bottom: 4px; font-size: 8.5pt;">B. Ekstrakurikuler</div>
+			<table class="data-table" style="width: 100%; margin-bottom: 8px;">
+				<thead>
+					<tr>
+						<th width="5%">No</th>
+						<th width="45%">Kegiatan Ekstrakurikuler</th>
+						<th width="50%">Keterangan / Predikat</th>
+					</tr>
+				</thead>
+				<tbody>
+					@forelse($ekskuls as $idxEks => $ekskul)
+						<tr>
+							<td style="text-align: center;">{{ $idxEks + 1 }}</td>
+							<td>{{ $ekskul->ekstrakurikuler->nama ?? '-' }}</td>
+							<td>{{ $ekskul->nilai_huruf ? ($ekskul->deskripsi ? $ekskul->nilai_huruf . ' - ' . $ekskul->deskripsi : $ekskul->nilai_huruf) : ($ekskul->deskripsi ?? ($ekskul->predikat ?? ($ekskul->keterangan ?? 'Aktif Mengikuti'))) }}</td>
+						</tr>
+					@empty
+						<tr>
+							<td colspan="3" style="text-align: center; color: #94a3b8; font-style: italic; padding: 4px;">
+								-
+							</td>
+						</tr>
+					@endforelse
+				</tbody>
+			</table>
 
-				<!-- C. Ketidakhadiran -->
-				<td style="width: 42%; vertical-align: top;">
-					<div style="font-weight: bold; margin-bottom: 4px; font-size: 9pt;">C. Ketidakhadiran</div>
-					<table class="data-table" style="margin-bottom: 0;">
-						<tr>
-							<td width="60%">Sakit (S)</td>
-							<td width="40%" style="text-align: center; font-weight: bold;">{{ $rekapAbsen['sakit'] }} hari</td>
-						</tr>
-						<tr>
-							<td>Izin (I)</td>
-							<td style="text-align: center; font-weight: bold;">{{ $rekapAbsen['izin'] }} hari</td>
-						</tr>
-						<tr>
-							<td>Tanpa Keterangan (A)</td>
-							<td style="text-align: center; font-weight: bold;">{{ $rekapAbsen['alpa'] }} hari</td>
-						</tr>
-					</table>
-				</td>
-			</tr>
-		</table>
+			<!-- C. Ketidakhadiran -->
+			<div style="font-weight: bold; margin-bottom: 4px; font-size: 8.5pt;">C. Ketidakhadiran</div>
+			<table class="data-table" style="width: 100%; margin-bottom: 8px;">
+				<thead>
+					<tr>
+						<th width="30%">Jenis Ketidakhadiran</th>
+						<th width="20%">Jumlah</th>
+						<th width="50%">Tanggal Kejadian (DD/MM/YY)</th>
+					</tr>
+				</thead>
+				<tbody>
+					<tr>
+						<td>Sakit (S)</td>
+						<td style="text-align: center; font-weight: bold;">{{ $rekapAbsen['sakit'] }} hari</td>
+						<td style="text-align: center;">{{ $rekapAbsen['sakit_dates'] ?? '-' }}</td>
+					</tr>
+					<tr>
+						<td>Izin (I)</td>
+						<td style="text-align: center; font-weight: bold;">{{ $rekapAbsen['izin'] }} hari</td>
+						<td style="text-align: center;">{{ $rekapAbsen['izin_dates'] ?? '-' }}</td>
+					</tr>
+					<tr>
+						<td>Tanpa Keterangan (A)</td>
+						<td style="text-align: center; font-weight: bold;">{{ $rekapAbsen['alpa'] }} hari</td>
+						<td style="text-align: center;">{{ $rekapAbsen['alpa_dates'] ?? '-' }}</td>
+					</tr>
+				</tbody>
+			</table>
 
-		<!-- D. Catatan Pembimbing Rayon -->
-		<div style="font-weight: bold; margin-bottom: 4px; font-size: 9pt;">D. Catatan Perkembangan Karakter & Akademik (Pembimbing Rayon)</div>
-		<div class="catatan-box">
-			<div>{{ $catatan ?: 'Peserta didik terus menunjukkan kemajuan belajar dan kedisiplinan yang baik. Pertahankan dan tingkatkan prestasi pada periode selanjutnya.' }}</div>
-			@if(!empty($prestasis) && $prestasis->isNotEmpty())
-				<div style="margin-top: 6px; border-top: 1px dashed #94a3b8; padding-top: 4px; font-size: 8pt;">
-					<strong>Prestasi / Penghargaan yang Diraih pada Periode Ini:</strong>
-					<ul style="margin: 3px 0 0 14px; padding: 0;">
-						@foreach($prestasis as $p)
-							<li>
-								{{ $p->nama_prestasi }} &mdash; <strong>{{ $p->peringkat }}</strong> (Tingkat {{ $p->tingkat_label }} &bull; Penyelenggara: {{ $p->penyelenggara_nama }})
-							</li>
-						@endforeach
-					</ul>
-				</div>
-			@endif
+			<!-- D. Catatan Pembimbing Rayon -->
+			<div style="font-weight: bold; margin-bottom: 4px; font-size: 8.5pt;">D. Catatan Perkembangan Karakter & Akademik (Pembimbing Rayon)</div>
+			<div class="catatan-box">
+				<div>{{ $catatan ?: 'Peserta didik terus menunjukkan kemajuan belajar dan kedisiplinan yang baik. Pertahankan dan tingkatkan prestasi pada periode selanjutnya.' }}</div>
+				@if(!empty($prestasis) && $prestasis->isNotEmpty())
+					<div style="margin-top: 5px; border-top: 1px dashed #94a3b8; padding-top: 3px; font-size: 7.5pt;">
+						<strong>Prestasi / Penghargaan yang Diraih pada Periode Ini:</strong>
+						<ul style="margin: 2px 0 0 12px; padding: 0;">
+							@foreach($prestasis as $p)
+								<li>
+									{{ $p->nama_prestasi }} &mdash; <strong>{{ $p->peringkat }}</strong> (Tingkat {{ $p->tingkat_label }} &bull; Penyelenggara: {{ $p->penyelenggara_nama }})
+								</li>
+							@endforeach
+						</ul>
+					</div>
+				@endif
+			</div>
+
+			<!-- Tanda Tangan: Orang Tua, Pembimbing Rayon, Kepala Sekolah -->
+			<table class="signature-table">
+				<tr>
+					<td>
+						Mengetahui,<br>
+						Orang Tua / Wali<br><br><br><br>
+						<strong>............................................</strong>
+					</td>
+					<td>
+						{{ $sekolah->kabupaten ?: 'Garut' }}, {{ \Carbon\Carbon::parse($tanggal)->translatedFormat('d F Y') }}<br>
+						Pembimbing Rayon,<br><br><br><br>
+						<strong>{{ $siswa->rayon?->pembimbing?->nama_lengkap ?? ($siswa->rayon?->pembimbing?->name ?? '............................................') }}</strong>
+					</td>
+					<td>
+						Mengetahui,<br>
+						Kepala {{ $sekolah->nama ?? 'Sekolah' }}<br><br><br><br>
+						<strong>{{ $sekolah->kepala_sekolah_nama ?: ($sekolah->kepala_sekolah ?: '............................................') }}</strong><br>
+						@if($sekolah->kepala_sekolah_nip || $sekolah->nip_kepala_sekolah)
+							<span style="font-size: 7.5pt; color: #475569;">NIP. {{ $sekolah->kepala_sekolah_nip ?: $sekolah->nip_kepala_sekolah }}</span>
+						@endif
+					</td>
+				</tr>
+			</table>
 		</div>
-
-		<!-- Tanda Tangan: Orang Tua, Pembimbing Rayon, Kepala Sekolah -->
-		<table class="signature-table">
-			<tr>
-				<td>
-					Mengetahui,<br>
-					Orang Tua / Wali<br><br><br><br>
-					<strong>............................................</strong>
-				</td>
-				<td>
-					{{ $sekolah->kabupaten ?: 'Bogor' }}, {{ \Carbon\Carbon::parse($tanggal)->translatedFormat('d F Y') }}<br>
-					Pembimbing Rayon,<br><br><br><br>
-					<strong>{{ $siswa->rayon?->pembimbing?->nama_lengkap ?? ($siswa->rayon?->pembimbing?->name ?? '............................................') }}</strong>
-				</td>
-				<td>
-					Mengetahui,<br>
-					Kepala SMK Wikrama Bogor<br><br><br><br>
-					<strong>{{ $sekolah->kepala_sekolah_nama ?: ($sekolah->kepala_sekolah ?: '............................................') }}</strong><br>
-					@if($sekolah->kepala_sekolah_nip || $sekolah->nip_kepala_sekolah)
-						<span style="font-size: 8pt; color: #475569;">NIP. {{ $sekolah->kepala_sekolah_nip ?: $sekolah->nip_kepala_sekolah }}</span>
-					@endif
-				</td>
-			</tr>
-		</table>
 	</div>
 @endforeach
 

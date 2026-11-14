@@ -116,9 +116,9 @@ class RaporWikramaIndex extends Component
         }
 
         $user = auth()->user();
-        $pegawai = Pegawai::where('user_id', $user?->id)->first();
-        if ($pegawai) {
-            $myRombels = Rombel::where('wali_kelas_id', $pegawai->id)
+        $authIds = array_filter([$user?->id, $user?->pegawai?->id]);
+        if (!empty($authIds)) {
+            $myRombels = Rombel::whereIn('wali_kelas_id', $authIds)
                 ->where('tahun_ajaran_id', $activeTa->id)
                 ->orderBy('tingkat')
                 ->orderBy('nama')
@@ -142,9 +142,12 @@ class RaporWikramaIndex extends Component
         }
 
         $user = auth()->user();
-        $myRayons = Rayon::with('pembimbing')->where('pembimbing_id', $user?->id)->orderBy('nama')->get();
-        if ($myRayons->isNotEmpty()) {
-            return $myRayons;
+        $authIds = array_filter([$user?->id, $user?->pegawai?->id]);
+        if (!empty($authIds)) {
+            $myRayons = Rayon::with('pembimbing')->whereIn('pembimbing_id', $authIds)->orderBy('nama')->get();
+            if ($myRayons->isNotEmpty()) {
+                return $myRayons;
+            }
         }
 
         return Rayon::with('pembimbing')->orderBy('nama')->get();
@@ -240,8 +243,9 @@ class RaporWikramaIndex extends Component
         $periodMeta = $this->periodMeta;
         $records = $service->getWikramaAcademicRecords($siswa, $semester, $periodMeta['period_key']);
         $grouped = $service->groupAcademicRecords($records);
+        $periode = $this->selectedPeriodeId ? PeriodeRapor::find($this->selectedPeriodeId) : null;
         $catatan = $service->getCatatanForSiswa($siswa->id, $semester->id, $this->selectedPeriodeId);
-        $rekapAbsen = $service->getRekapAbsen($siswa->id, $semester->id);
+        $rekapAbsen = $service->getRekapAbsen($siswa->id, $semester->id, $periode);
         $ekskuls = $service->getEkskuls($siswa->id, $semester->id);
         $prestasis = $service->getPrestasiForSiswa($siswa->id, $semester->id, $this->selectedPeriodeId);
 

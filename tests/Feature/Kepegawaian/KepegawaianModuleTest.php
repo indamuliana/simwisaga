@@ -77,6 +77,11 @@ class KepegawaianModuleTest extends TestCase
 
         $this->actingAs($this->admin)
             ->get(route('kepegawaian.penugasan'))
+            ->assertRedirect(route('akademik.penugasan'));
+
+        $this->actingAs($this->admin)
+            ->followingRedirects()
+            ->get(route('kepegawaian.penugasan'))
             ->assertOk()
             ->assertSee('Rina Marlina')
             ->assertSee('4 JP');

@@ -44,23 +44,51 @@
 		$tingkat = $siswa->rombel?->tingkat ?? 'X';
 		$fase = in_array($tingkat, ['XI', 'XII']) ? 'F' : 'E';
 		$semNama = ucfirst($semester->semester ?? '');
+
+		$kopPath = null;
+		if (!empty($sekolah->kop_surat_path)) {
+			$p1 = public_path('storage/' . $sekolah->kop_surat_path);
+			$p2 = storage_path('app/public/' . $sekolah->kop_surat_path);
+			if (file_exists($p1)) {
+				$kopPath = $p1;
+			} elseif (file_exists($p2)) {
+				$kopPath = $p2;
+			}
+		}
+
+		$logoPath = null;
+		if (!empty($sekolah->logo_sekolah_path)) {
+			$lp1 = public_path('storage/' . $sekolah->logo_sekolah_path);
+			$lp2 = storage_path('app/public/' . $sekolah->logo_sekolah_path);
+			if (file_exists($lp1)) {
+				$logoPath = $lp1;
+			} elseif (file_exists($lp2)) {
+				$logoPath = $lp2;
+			}
+		}
 	@endphp
 
 	<div class="{{ !$loop->last ? 'page-break' : '' }}">
 		<!-- Kop Surat -->
-		<div class="header-kop">
-			@if($sekolah->kop_surat_path)
-				<img src="{{ storage_path('app/public/' . $sekolah->kop_surat_path) }}" style="width: 100%; max-height: 140px; object-fit: contain;">
-			@else
-				@if($sekolah->logo_sekolah_path)
-					<img src="{{ storage_path('app/public/' . $sekolah->logo_sekolah_path) }}" style="height:75px; position:absolute; left:20px; top:0;">
+		@if($kopPath)
+			<div class="header-kop-banner" style="text-align: center; margin-bottom: 12px;">
+				<img src="{{ $kopPath }}" style="width: 100%; max-height: 110px; object-fit: contain;" alt="Kop Surat">
+			</div>
+		@else
+			<div class="header-kop-fallback" style="text-align: center; border-bottom: 3px double #000; margin-bottom: 12px; padding-bottom: 6px; position: relative;">
+				@if($logoPath)
+					<img src="{{ $logoPath }}" style="height: 65px; position: absolute; left: 15px; top: 0;" alt="Logo">
 				@endif
-				<h2>{{ $sekolah->nama_yayasan ?? 'YAYASAN PRAWITAMA' }}</h2>
-				<h1>{{ $sekolah->nama ?? 'SMK WIKRAMA BOGOR' }}</h1>
-				<p>{{ $sekolah->alamat }} Telp. {{ $sekolah->telepon }}</p>
-				<p>Website: {{ $sekolah->website }} | Email: {{ $sekolah->email }}</p>
-			@endif
-		</div>
+				<h2 style="margin: 0; font-size: 11pt; font-weight: 700; text-transform: uppercase;">{{ $sekolah->nama_yayasan ?? 'YAYASAN PRAWITAMA' }}</h2>
+				<h1 style="margin: 2px 0; font-size: 15pt; font-weight: 800; text-transform: uppercase;">{{ $sekolah->nama ?? 'SMK WIKRAMA 1 GARUT' }}</h1>
+				<p style="margin: 0; font-size: 8.5pt; color: #333;">{{ $sekolah->alamat ?? 'Jl. Otto Iskandardinata, Tarogong Kaler, Garut' }}</p>
+				<p style="margin: 0; font-size: 8.5pt; color: #333;">
+					@if(!empty($sekolah->telepon)) Telp. {{ $sekolah->telepon }} | @endif
+					@if(!empty($sekolah->website)) Website: {{ $sekolah->website }} | @endif
+					@if(!empty($sekolah->email)) Email: {{ $sekolah->email }} @endif
+				</p>
+			</div>
+		@endif
 
 		<!-- Judul Resmi Kurikulum Merdeka -->
 		<div class="title">LAPORAN HASIL BELAJAR PESERTA DIDIK</div>
@@ -77,7 +105,7 @@
 			</tr>
 			<tr>
 				<td>Kompetensi Keahlian</td><td>:</td><td>{{ $siswa->rombel->jurusan->nama ?? '-' }}</td>
-				<td>Tahun Pelajaran</td><td>:</td><td>{{ $semester->tahun_ajaran->nama ?? '-' }}</td>
+				<td>Tahun Pelajaran</td><td>:</td><td>{{ $semester->tahunAjaran?->nama ?? ($semester->tahun_ajaran->nama ?? '-') }}</td>
 			</tr>
 		</table>
 

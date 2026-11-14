@@ -17,6 +17,7 @@ return [
         ['label' => 'Mata Pelajaran', 'route' => 'akademik.mapel', 'permission' => 'akademik.mapel.lihat'],
         ['label' => 'Mapel Pilihan (Mapil)', 'route' => 'akademik.mapil', 'permission' => 'akademik.mapil.lihat'],
         ['label' => 'Struktur Kurikulum', 'route' => 'akademik.kurikulum', 'permission' => 'akademik.kurikulum.lihat'],
+        ['label' => 'Penugasan Mengajar', 'route' => 'akademik.penugasan', 'permission' => 'akademik.penugasan.lihat'],
         ['label' => 'Custom Kelompok', 'route' => 'akademik.custom-kelompok', 'permission' => 'akademik.custom_kelompok.lihat'],
     ],
     'permissions' => [
@@ -28,6 +29,7 @@ return [
         'akademik.mapel' => ['label' => 'Mata Pelajaran', 'actions' => ['lihat', 'tambah', 'edit', 'hapus', 'cetak']],
         'akademik.mapil' => ['label' => 'Mata Pelajaran Pilihan (Mapil)', 'actions' => ['lihat', 'tambah', 'edit', 'hapus', 'cetak']],
         'akademik.kurikulum' => ['label' => 'Struktur Kurikulum', 'actions' => ['lihat', 'tambah', 'edit', 'hapus', 'cetak']],
+        'akademik.penugasan' => ['label' => 'Penugasan Mengajar', 'actions' => ['lihat', 'tambah', 'edit', 'hapus', 'cetak']],
         'akademik.custom_kelompok' => ['label' => 'Custom Kelompok', 'actions' => ['lihat', 'tambah', 'edit', 'hapus', 'cetak']],
     ],
 ];

@@ -25,12 +25,11 @@ Route::redirect('/rapor', '/rapor/wikrama')->name('rapor.index');
         $tanggal = request('tanggal', date('Y-m-d'));
 
         $user = auth()->user();
-        $isAuthorizedBulk = $user->isSuperAdmin() || $user->can('rapor.cetak') || (
-            $user->pegawai && (
-                ($scope === 'rombel' && \App\Modules\Akademik\Models\Rombel::where('id', $targetId)->where('wali_kelas_id', $user->pegawai->id)->exists()) ||
-                ($scope === 'rayon' && \App\Modules\Akademik\Models\Rayon::where('id', $targetId)->where('pembimbing_id', $user->pegawai->id)->exists())
-            )
-        );
+        $authIds = array_filter([$user?->id, $user?->pegawai?->id]);
+        $isAuthorizedBulk = $user && ($user->isSuperAdmin() || $user->can('rapor.cetak') || (
+            ($scope === 'rombel' && \App\Modules\Akademik\Models\Rombel::where('id', $targetId)->whereIn('wali_kelas_id', $authIds)->exists()) ||
+            ($scope === 'rayon' && \App\Modules\Akademik\Models\Rayon::where('id', $targetId)->whereIn('pembimbing_id', $authIds)->exists())
+        ));
         abort_unless($isAuthorizedBulk, 403, 'Anda tidak memiliki hak akses untuk mencetak massal rombel/rayon ini.');
 
         $semester = Semester::where('is_active', true)->firstOrFail();
@@ -50,6 +49,7 @@ Route::redirect('/rapor', '/rapor/wikrama')->name('rapor.index');
         }
 
         $service = app(RaporScoreService::class);
+        $service->clearCache();
         $service->preloadCohort($siswas, $semester, $periode?->id);
         $targetKey = $service->resolveTargetPeriodKey($periode, $semester);
         $periodMeta = $service->getPeriodMeta($targetKey);
@@ -59,7 +59,7 @@ Route::redirect('/rapor', '/rapor/wikrama')->name('rapor.index');
             $records = $service->getWikramaAcademicRecords($siswa, $semester, $targetKey);
             $groupedAcademic = $service->groupAcademicRecords($records);
             $catatan = $service->getCatatanForSiswa($siswa->id, $semester->id, $periode?->id);
-            $rekapAbsen = $service->getRekapAbsen($siswa->id, $semester->id);
+            $rekapAbsen = $service->getRekapAbsen($siswa->id, $semester->id, $periode);
             $ekskuls = $service->getEkskuls($siswa->id, $semester->id);
             $prestasis = $service->getPrestasiForSiswa($siswa->id, $semester->id, $periode?->id);
 
@@ -92,12 +92,11 @@ Route::redirect('/rapor', '/rapor/wikrama')->name('rapor.index');
         $tanggal = request('tanggal', date('Y-m-d'));
 
         $user = auth()->user();
-        $isAuthorizedBulk = $user->isSuperAdmin() || $user->can('rapor.cetak') || (
-            $user->pegawai && (
-                ($scope === 'rombel' && \App\Modules\Akademik\Models\Rombel::where('id', $targetId)->where('wali_kelas_id', $user->pegawai->id)->exists()) ||
-                ($scope === 'rayon' && \App\Modules\Akademik\Models\Rayon::where('id', $targetId)->where('pembimbing_id', $user->pegawai->id)->exists())
-            )
-        );
+        $authIds = array_filter([$user?->id, $user?->pegawai?->id]);
+        $isAuthorizedBulk = $user && ($user->isSuperAdmin() || $user->can('rapor.cetak') || (
+            ($scope === 'rombel' && \App\Modules\Akademik\Models\Rombel::where('id', $targetId)->whereIn('wali_kelas_id', $authIds)->exists()) ||
+            ($scope === 'rayon' && \App\Modules\Akademik\Models\Rayon::where('id', $targetId)->whereIn('pembimbing_id', $authIds)->exists())
+        ));
         abort_unless($isAuthorizedBulk, 403, 'Anda tidak memiliki hak akses untuk mencetak massal rombel/rayon ini.');
 
         $semester = $semesterId ? Semester::findOrFail($semesterId) : Semester::where('is_active', true)->firstOrFail();
@@ -116,6 +115,7 @@ Route::redirect('/rapor', '/rapor/wikrama')->name('rapor.index');
         }
 
         $service = app(RaporScoreService::class);
+        $service->clearCache();
         $service->preloadCohort($siswas, $semester, null);
         $studentsData = [];
 
@@ -165,7 +165,7 @@ Route::redirect('/rapor', '/rapor/wikrama')->name('rapor.index');
         $records = $service->getWikramaAcademicRecords($siswa, $semester, $targetKey);
         $groupedAcademic = $service->groupAcademicRecords($records);
         $catatan = $service->getCatatanForSiswa($siswa->id, $semester->id, $periode?->id);
-        $rekapAbsen = $service->getRekapAbsen($siswa->id, $semester->id);
+        $rekapAbsen = $service->getRekapAbsen($siswa->id, $semester->id, $periode);
         $ekskuls = $service->getEkskuls($siswa->id, $semester->id);
         $prestasis = $service->getPrestasiForSiswa($siswa->id, $semester->id, $periode?->id);
 

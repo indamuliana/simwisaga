@@ -333,7 +333,7 @@ class PenilaianRekap9MingguTest extends TestCase
         $this->assertEquals('Penguasaan geometri ruang sangat unggul.', $na->getDescriptionForPeriod('9M2')['deskripsi_tertinggi']);
     }
 
-    public function test_two_line_narration_with_single_tp(): void
+    public function test_single_line_narration_with_single_tp(): void
     {
         $this->actingAs($this->guruUser);
 
@@ -368,12 +368,11 @@ class PenilaianRekap9MingguTest extends TestCase
         $na = NilaiAkhir::where('siswa_id', $this->siswa->id)->firstOrFail();
         $m1 = $na->data_9m['9M1'];
 
-        // Tetap menghasilkan 2 baris meskipun hanya ada 1 TP
+        // Menghasilkan 1 baris tunggal jika hanya ada 1 TP kompeten
         $this->assertNotEmpty($m1['deskripsi_tertinggi']);
-        $this->assertNotEmpty($m1['deskripsi_terendah']);
-        $this->assertStringContainsString('Menunjukkan penguasaan yang sangat baik', $m1['deskripsi_tertinggi']);
-        $this->assertStringContainsString('Perlu pemantapan lebih lanjut', $m1['deskripsi_terendah']);
-        $this->assertStringContainsString('menerapkan kalkulus diferensial dalam rekayasa', $m1['deskripsi_terendah']);
+        $this->assertEmpty($m1['deskripsi_terendah']);
+        $this->assertStringContainsString('Menunjukkan penguasaan yang baik', $m1['deskripsi_tertinggi']);
+        $this->assertStringContainsString('menerapkan kalkulus diferensial dalam rekayasa', $m1['deskripsi_tertinggi']);
     }
 
     public function test_modal_copy_auto_to_manual_works(): void
@@ -446,7 +445,7 @@ class PenilaianRekap9MingguTest extends TestCase
 
         $this->assertEquals('belum_lengkap', $m1['status']);
         $this->assertNull($m1['nilai_akhir']);
-        $this->assertEquals('Nilai belum lengkap, silakan hubungi guru yang bersangkutan.', $m1['deskripsi_tertinggi']);
+        $this->assertEquals('Segera selesaikan nilai Sumatif.', $m1['deskripsi_tertinggi']);
         $this->assertEmpty($m1['deskripsi_terendah']);
     }
 
@@ -522,5 +521,95 @@ class PenilaianRekap9MingguTest extends TestCase
         $na = NilaiAkhir::where('siswa_id', $this->siswa->id)->firstOrFail();
         $this->assertNull($na->getScoreForPeriod('9M1'));
         $this->assertEquals('Nilai belum lengkap, silakan hubungi guru yang bersangkutan.', $na->getDescriptionForPeriod('9M1')['deskripsi_tertinggi']);
+    }
+
+    public function test_narasi_variasi_rentang_skor_tinggi_dan_rendah(): void
+    {
+        $calc = app(\App\Modules\Penilaian\Services\PenilaianScoreCalculator::class);
+
+        $tp1 = new TujuanPembelajaran(['deskripsi' => 'Merancang basis data']);
+        $tp1->id = 1;
+        $tp2 = new TujuanPembelajaran(['deskripsi' => 'Mengimplementasikan query SQL']);
+        $tp2->id = 2;
+        $tp3 = new TujuanPembelajaran(['deskripsi' => 'Mengoptimalkan index tabel']);
+        $tp3->id = 3;
+        $tps = collect([$tp1, $tp2, $tp3]);
+
+        // Skor 95 (Sangat Baik) & 78 (Cukup / Layak)
+        $res = $calc->generateKmNarration([1 => 95, 2 => 85, 3 => 78], $tps, 75);
+        $this->assertStringStartsWith('Menunjukkan penguasaan yang sangat baik dalam', $res['deskripsi_tertinggi']);
+        $this->assertStringContainsString('merancang basis data', $res['deskripsi_tertinggi']);
+        $this->assertStringStartsWith('Perlu peningkatan dan latihan dalam', $res['deskripsi_terendah']);
+        $this->assertStringContainsString('mengoptimalkan index tabel', $res['deskripsi_terendah']);
+
+        // Skor 88 (Baik / Cakap) & 85 (Pemantapan >= 85)
+        $res2 = $calc->generateKmNarration([1 => 88, 2 => 85], $tps, 75);
+        $this->assertStringStartsWith('Menunjukkan penguasaan yang baik dalam', $res2['deskripsi_tertinggi']);
+        $this->assertStringStartsWith('Perlu pemantapan dalam', $res2['deskripsi_terendah']);
+
+        // Skor 76 (Cukup / Layak)
+        $res3 = $calc->generateKmNarration([1 => 76], $tps, 75);
+        $this->assertStringStartsWith('Cukup menguasai dalam', $res3['deskripsi_tertinggi']);
+        $this->assertEmpty($res3['deskripsi_terendah']); // 1 TP tidak memunculkan baris bimbingan kontradiktif
+    }
+
+    public function test_narasi_lebih_dari_tiga_tp_menggabungkan_koma_dan_serta(): void
+    {
+        $calc = app(\App\Modules\Penilaian\Services\PenilaianScoreCalculator::class);
+
+        $tp1 = new TujuanPembelajaran(['deskripsi' => 'Analisis kebutuhan perangkat lunak']);
+        $tp1->id = 1;
+        $tp2 = new TujuanPembelajaran(['deskripsi' => 'Desain arsitektur microservices']);
+        $tp2->id = 2;
+        $tp3 = new TujuanPembelajaran(['deskripsi' => 'Pembuatan RESTful API']);
+        $tp3->id = 3;
+        $tp4 = new TujuanPembelajaran(['deskripsi' => 'Pengujian unit terotomasi']);
+        $tp4->id = 4;
+        $tps = collect([$tp1, $tp2, $tp3, $tp4]);
+
+        // TP 1, 2, 3 bernilai 92 (sama-sama tertinggi)
+        $res = $calc->generateKmNarration([1 => 92, 2 => 92, 3 => 92, 4 => 80], $tps, 75);
+
+        // Menggabungkan 3 TP dengan tanda koma dan 'serta'
+        $this->assertStringContainsString('analisis kebutuhan perangkat lunak, desain arsitektur microservices, serta pembuatan RESTful API', $res['deskripsi_tertinggi']);
+        $this->assertStringContainsString('pengujian unit terotomasi', $res['deskripsi_terendah']);
+    }
+
+    public function test_narasi_seluruh_tp_bernilai_sama_menghasilkan_satu_baris(): void
+    {
+        $calc = app(\App\Modules\Penilaian\Services\PenilaianScoreCalculator::class);
+
+        $tp1 = new TujuanPembelajaran(['deskripsi' => 'Menerapkan logika percabangan']);
+        $tp1->id = 1;
+        $tp2 = new TujuanPembelajaran(['deskripsi' => 'Menerapkan struktur perulangan']);
+        $tp2->id = 2;
+        $tps = collect([$tp1, $tp2]);
+
+        $res = $calc->generateKmNarration([1 => 90, 2 => 90], $tps, 75);
+
+        $this->assertNotEmpty($res['deskripsi_tertinggi']);
+        $this->assertEmpty($res['deskripsi_terendah']);
+        $this->assertStringContainsString('menerapkan logika percabangan serta menerapkan struktur perulangan', $res['deskripsi_tertinggi']);
+    }
+
+    public function test_pesan_segera_selesaikan_nilai_saat_tp_atau_nh_atau_sumatif_kosong(): void
+    {
+        $calc = app(\App\Modules\Penilaian\Services\PenilaianScoreCalculator::class);
+
+        $tp1 = new TujuanPembelajaran(['kode' => 'TP 1', 'deskripsi' => 'Materi 1']);
+        $tp1->id = 1;
+        $tp2 = new TujuanPembelajaran(['kode' => 'TP 2', 'deskripsi' => 'Materi 2']);
+        $tp2->id = 2;
+        $tps = collect([$tp1, $tp2]);
+
+        // TP 1 diisi, tapi TP 2 kosong & Sumatif kosong
+        $res = $calc->calculate9MBlock([1 => 85], 100.0, null, 75, $tps);
+        $this->assertEquals('belum_lengkap', $res['status']);
+        $this->assertEquals('Segera selesaikan nilai TP 2, Sumatif.', $res['deskripsi_tertinggi']);
+
+        // Semua TP diisi, tapi NH kosong
+        $resNh = $calc->calculate9MBlock([1 => 85, 2 => 88], null, 80.0, 75, $tps);
+        $this->assertEquals('belum_lengkap', $resNh['status']);
+        $this->assertEquals('Segera selesaikan nilai NH (Harian).', $resNh['deskripsi_tertinggi']);
     }
 }

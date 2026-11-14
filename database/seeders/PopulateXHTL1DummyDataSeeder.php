@@ -6,6 +6,9 @@ use App\Enums\StatusAbsensi;
 use App\Models\User;
 use App\Modules\Akademik\Models\Jurusan;
 use App\Modules\Akademik\Models\Mapel;
+use App\Modules\Akademik\Models\MapelPilihan;
+use App\Modules\Akademik\Models\MapelPilihanAnggota;
+use App\Modules\Akademik\Models\Rayon;
 use App\Modules\Akademik\Models\Rombel;
 use App\Modules\Akademik\Models\Semester;
 use App\Modules\Akademik\Models\StrukturKurikulum;
@@ -15,12 +18,23 @@ use App\Modules\Ekstrakurikuler\Models\EkstrakurikulerAnggota;
 use App\Modules\Kepegawaian\Models\Pegawai;
 use App\Modules\Kepegawaian\Models\PenugasanMengajar;
 use App\Modules\Kesiswaan\Models\Siswa;
+use App\Modules\Penilaian\Models\MapelPilihanTp;
 use App\Modules\Penilaian\Models\NilaiAkhir;
 use App\Modules\Penilaian\Models\NilaiAsesmenHarian;
 use App\Modules\Penilaian\Models\NilaiFormatif;
+use App\Modules\Penilaian\Models\NilaiHarian;
+use App\Modules\Penilaian\Models\NilaiMapelPilihanAkhir;
+use App\Modules\Penilaian\Models\NilaiMapelPilihanFormatif;
+use App\Modules\Penilaian\Models\NilaiMapelPilihanHarian;
+use App\Modules\Penilaian\Models\NilaiMapelPilihanSumatif;
 use App\Modules\Penilaian\Models\NilaiSumatif;
+use App\Modules\Penilaian\Models\PengaturanPenilaian;
 use App\Modules\Penilaian\Models\TujuanPembelajaran;
+use App\Modules\Penilaian\Services\PenilaianScoreCalculator;
 use App\Modules\Rapor\Models\CatatanWaliKelas;
+use App\Modules\SeniBudaya\Models\SeniBudaya;
+use App\Modules\SeniBudaya\Models\SeniBudayaAnggota;
+use App\Modules\SeniBudaya\Models\SeniBudayaTp;
 use App\Modules\Sistem\Models\PeriodeRapor;
 use Carbon\CarbonPeriod;
 use Illuminate\Database\Seeder;
@@ -31,10 +45,10 @@ class PopulateXHTL1DummyDataSeeder extends Seeder
 {
     public function run(): void
     {
-        $this->command->info('Memulai pengisian data dummy Nilai & Absensi Rombel X HTL 1 (2025/2026 Ganjil & Genap)...');
+        $this->command->info('Memulai pengisian data dummy Nilai & Absensi Rombel X HTL 1...');
 
         // 1. Validasi Target Tahun Ajaran, Semester, dan Rombel
-        $ta = TahunAjaran::where('nama', '2025/2026')->firstOrFail();
+        $ta = TahunAjaran::where('is_active', true)->first() ?? TahunAjaran::firstOrFail();
         $semGanjil = Semester::where('tahun_ajaran_id', $ta->id)->where('semester', 'ganjil')->firstOrFail();
         $semGenap = Semester::where('tahun_ajaran_id', $ta->id)->where('semester', 'genap')->firstOrFail();
 
@@ -45,16 +59,15 @@ class PopulateXHTL1DummyDataSeeder extends Seeder
         $siswas = Siswa::inRombel($rombel->id)->orderBy('id')->get();
         if ($siswas->isEmpty()) {
             $this->command->error('Tidak ada siswa di rombel X HTL 1!');
-
             return;
         }
 
-        // Pastikan seluruh 19 siswa terikat langsung ke X HTL 1
+        // Pastikan seluruh siswa terikat langsung ke X HTL 1
         foreach ($siswas as $s) {
             $s->update(['rombel_id' => $rombel->id]);
         }
 
-        $this->command->info("Rombel: {$rombel->nama} (ID: {$rombel->id}) | Jumlah Siswa: {$siswas->count()}");
+        $this->command->info("Rombel: {$rombel->nama} (ID: {$rombel->id}) | Tahun Ajaran: {$ta->nama} | Jumlah Siswa: {$siswas->count()}");
 
         // 2. Setup Wali Kelas: Dewi Anggraeni, S.Tr.Par. (guru Perhotelan)
         $dewiPegawai = Pegawai::where('nama_lengkap', 'like', '%Dewi Anggraeni%')->first();
@@ -88,9 +101,9 @@ class PopulateXHTL1DummyDataSeeder extends Seeder
                 'kode' => 'GANJIL-PTS',
                 'nama' => 'Rapor Penilaian Tengah Semester Ganjil',
                 'sebutan' => '9 Minggu ke-1',
-                'tanggal_mulai' => '2025-07-14',
-                'tanggal_selesai' => '2025-09-20',
-                'tanggal_bagi' => '2025-09-26',
+                'tanggal_mulai' => '2026-07-14',
+                'tanggal_selesai' => '2026-09-20',
+                'tanggal_bagi' => '2026-09-26',
                 'tempat' => 'Garut',
                 'is_active' => false,
                 'urutan' => 1,
@@ -100,9 +113,9 @@ class PopulateXHTL1DummyDataSeeder extends Seeder
                 'kode' => 'GANJIL-PAS',
                 'nama' => 'Rapor Penilaian Akhir Semester Ganjil',
                 'sebutan' => '9 Minggu ke-2',
-                'tanggal_mulai' => '2025-09-22',
-                'tanggal_selesai' => '2025-12-13',
-                'tanggal_bagi' => '2025-12-19',
+                'tanggal_mulai' => '2026-09-22',
+                'tanggal_selesai' => '2026-12-13',
+                'tanggal_bagi' => '2026-12-19',
                 'tempat' => 'Garut',
                 'is_active' => true,
                 'urutan' => 2,
@@ -112,9 +125,9 @@ class PopulateXHTL1DummyDataSeeder extends Seeder
                 'kode' => 'GENAP-PTS',
                 'nama' => 'Rapor Penilaian Tengah Semester Genap',
                 'sebutan' => '9 Minggu ke-3',
-                'tanggal_mulai' => '2026-01-05',
-                'tanggal_selesai' => '2026-03-21',
-                'tanggal_bagi' => '2026-03-27',
+                'tanggal_mulai' => '2027-01-05',
+                'tanggal_selesai' => '2027-03-20',
+                'tanggal_bagi' => '2027-03-26',
                 'tempat' => 'Garut',
                 'is_active' => false,
                 'urutan' => 3,
@@ -124,27 +137,42 @@ class PopulateXHTL1DummyDataSeeder extends Seeder
                 'kode' => 'GENAP-PAS',
                 'nama' => 'Rapor Penilaian Akhir Semester Genap',
                 'sebutan' => '9 Minggu ke-4',
-                'tanggal_mulai' => '2026-03-23',
-                'tanggal_selesai' => '2026-06-13',
-                'tanggal_bagi' => '2026-06-19',
+                'tanggal_mulai' => '2027-03-22',
+                'tanggal_selesai' => '2027-06-12',
+                'tanggal_bagi' => '2027-06-18',
                 'tempat' => 'Garut',
                 'is_active' => false,
                 'urutan' => 4,
             ],
         ];
 
+        $createdPeriodes = [];
         foreach ($periodeData as $p) {
-            PeriodeRapor::updateOrCreate(
+            $createdPeriodes[$p['kode']] = PeriodeRapor::updateOrCreate(
                 ['tahun_ajaran_id' => $ta->id, 'kode' => $p['kode']],
                 $p
             );
         }
 
-        // 4. Konfigurasi Mapel & Guru Pengampu untuk X HTL 1
+        // Pastikan pembimbing rayon terisi untuk rayon siswa X HTL 1
+        $rayonIds = $siswas->pluck('rayon_id')->filter()->unique();
+        $adminUser = User::whereHas('roles', fn ($q) => $q->where('name', 'Super Admin'))->first() ?? User::first();
+        $anyPegawaiUsers = User::whereHas('pegawai')->pluck('id');
+        $userPool = $anyPegawaiUsers->isNotEmpty() ? $anyPegawaiUsers : collect([$adminUser->id]);
+
+        foreach ($rayonIds as $rIdx => $rId) {
+            $rayon = Rayon::find($rId);
+            if ($rayon && ! $rayon->pembimbing_id) {
+                $assignedUserId = $userPool[$rIdx % $userPool->count()] ?? $adminUser->id;
+                $rayon->update(['pembimbing_id' => $assignedUserId]);
+            }
+        }
+
+        // 4. Konfigurasi Mapel & Guru Pengampu untuk X HTL 1 (Sesuai Kurikulum Merdeka)
         $mapelGuruConfig = [
             [
-                'nama_mapel' => 'Pendidikan Agama dan Budi Pekerti',
-                'guru_query' => 'M. Ridwan',
+                'nama_mapel' => 'Pendidikan Agama Islam dan Budi Pekerti',
+                'guru_query' => 'Arif Hidayat',
                 'jp' => 3,
                 'tps_ganjil' => [
                     ['kode' => 'TP 1', 'deskripsi' => 'Memahami ayat Al-Qur\'an tentang toleransi, moderasi, dan persaudaraan sesama manusia'],
@@ -159,7 +187,7 @@ class PopulateXHTL1DummyDataSeeder extends Seeder
             ],
             [
                 'nama_mapel' => 'Pendidikan Pancasila',
-                'guru_query' => 'Yanti Sumiati',
+                'guru_query' => 'Annisa Nurul Huda',
                 'jp' => 2,
                 'tps_ganjil' => [
                     ['kode' => 'TP 1', 'deskripsi' => 'Menganalisis kedudukan Pancasila sebagai pandangan hidup dan ideologi terbuka bangsa'],
@@ -174,7 +202,7 @@ class PopulateXHTL1DummyDataSeeder extends Seeder
             ],
             [
                 'nama_mapel' => 'Bahasa Indonesia',
-                'guru_query' => 'Asep Gunawan',
+                'guru_query' => 'Intan Mutiara Tsani',
                 'jp' => 4,
                 'tps_ganjil' => [
                     ['kode' => 'TP 1', 'deskripsi' => 'Menganalisis isi, struktur, dan kaidah kebahasaan teks laporan hasil observasi (LHO)'],
@@ -188,9 +216,9 @@ class PopulateXHTL1DummyDataSeeder extends Seeder
                 ],
             ],
             [
-                'nama_mapel' => 'Pendidikan Jasmani, Olahraga, dan Kesehatan',
-                'guru_query' => 'Budi Santoso',
-                'jp' => 3,
+                'nama_mapel' => 'Pendidikan Jasmani, Olahraga dan Kesehatan',
+                'guru_query' => 'Arie Maulana',
+                'jp' => 2,
                 'tps_ganjil' => [
                     ['kode' => 'TP 1', 'deskripsi' => 'Mempraktikkan gerak spesifik passing bawah, passing atas, dan servis permainan bola voli'],
                     ['kode' => 'TP 2', 'deskripsi' => 'Melakukan rangkaian gerak dasar senam lantai roll depan dan lenting tubuh'],
@@ -203,8 +231,8 @@ class PopulateXHTL1DummyDataSeeder extends Seeder
                 ],
             ],
             [
-                'nama_mapel' => 'Sejarah',
-                'guru_query' => 'Fajar Nugraha',
+                'nama_mapel' => 'Sejarah Indonesia',
+                'guru_query' => 'Jenal Migdad',
                 'jp' => 2,
                 'tps_ganjil' => [
                     ['kode' => 'TP 1', 'deskripsi' => 'Memahami konsep dasar ilmu sejarah, cara berpikir diakronis dan sinkronis'],
@@ -218,23 +246,8 @@ class PopulateXHTL1DummyDataSeeder extends Seeder
                 ],
             ],
             [
-                'nama_mapel' => 'Bahasa Inggris',
-                'guru_query' => 'Sarah Lestari',
-                'jp' => 3,
-                'tps_ganjil' => [
-                    ['kode' => 'TP 1', 'deskripsi' => 'Identify context, main ideas, and detailed information in oral descriptive texts of tourist attractions'],
-                    ['kode' => 'TP 2', 'deskripsi' => 'Communicate intentions and future travel arrangements using appropriate grammatical structures'],
-                    ['kode' => 'TP 3', 'deskripsi' => 'Analyze character traits and moral lessons in legendary folklore reading passages'],
-                ],
-                'tps_genap' => [
-                    ['kode' => 'TP 4', 'deskripsi' => 'Apply polite hospitality expressions in hotel guest welcoming and service requests'],
-                    ['kode' => 'TP 5', 'deskripsi' => 'Produce concise procedure texts explaining hotel housekeeping and front desk standard operations'],
-                    ['kode' => 'TP 6', 'deskripsi' => 'Deliver persuasive oral presentations promoting regional tourism and culinary destinations'],
-                ],
-            ],
-            [
                 'nama_mapel' => 'Matematika',
-                'guru_query' => 'Rina Marlina',
+                'guru_query' => 'Melinda Arista Yusuf',
                 'jp' => 4,
                 'tps_ganjil' => [
                     ['kode' => 'TP 1', 'deskripsi' => 'Menerapkan sifat eksponen dan logaritma dalam perhitungan model matematis'],
@@ -249,7 +262,7 @@ class PopulateXHTL1DummyDataSeeder extends Seeder
             ],
             [
                 'nama_mapel' => 'Informatika',
-                'guru_query' => 'Beni Iskandar',
+                'guru_query' => 'Agustian Hardi',
                 'jp' => 3,
                 'tps_ganjil' => [
                     ['kode' => 'TP 1', 'deskripsi' => 'Menerapkan computational thinking untuk merancang solusi masalah algoritma komputasi'],
@@ -263,7 +276,22 @@ class PopulateXHTL1DummyDataSeeder extends Seeder
                 ],
             ],
             [
-                'nama_mapel' => 'Dasar-dasar Kejuruan Perhotelan',
+                'nama_mapel' => 'Progek Ilmu Pengetahuan Alam dan Sosial',
+                'guru_query' => 'Kunedi',
+                'jp' => 4,
+                'tps_ganjil' => [
+                    ['kode' => 'TP 1', 'deskripsi' => 'Menjelaskan fenomena zat dan perubahannya serta pemanfaatannya dalam kehidupan sehari-hari'],
+                    ['kode' => 'TP 2', 'deskripsi' => 'Menganalisis interaksi keruangan dan konektivitas antar ruang dan waktu dalam ekosistem'],
+                    ['kode' => 'TP 3', 'deskripsi' => 'Menerapkan prinsip pelestarian lingkungan dan mitigasi perubahan iklim di sekitar sekolah'],
+                ],
+                'tps_genap' => [
+                    ['kode' => 'TP 4', 'deskripsi' => 'Menganalisis dinamika kependudukan dan dampaknya terhadap pembangunan berkelanjutan'],
+                    ['kode' => 'TP 5', 'deskripsi' => 'Merancang penyelidikan ilmiah sederhana tentang pengolahan limbah ramah lingkungan'],
+                    ['kode' => 'TP 6', 'deskripsi' => 'Memahami pengaruh revolusi industri dan perkembangan teknologi terhadap perilaku sosial'],
+                ],
+            ],
+            [
+                'nama_mapel' => 'Dasar Program Keahlian Perhotelan',
                 'guru_query' => 'Dewi Anggraeni',
                 'jp' => 12,
                 'tps_ganjil' => [
@@ -278,8 +306,23 @@ class PopulateXHTL1DummyDataSeeder extends Seeder
                 ],
             ],
             [
+                'nama_mapel' => 'Bahasa Inggris',
+                'guru_query' => 'Putri Aulia Dalillah',
+                'jp' => 3,
+                'tps_ganjil' => [
+                    ['kode' => 'TP 1', 'deskripsi' => 'Identify context, main ideas, and detailed information in oral descriptive texts of tourist attractions'],
+                    ['kode' => 'TP 2', 'deskripsi' => 'Communicate intentions and future travel arrangements using appropriate grammatical structures'],
+                    ['kode' => 'TP 3', 'deskripsi' => 'Analyze character traits and moral lessons in legendary folklore reading passages'],
+                ],
+                'tps_genap' => [
+                    ['kode' => 'TP 4', 'deskripsi' => 'Apply polite hospitality expressions in hotel guest welcoming and service requests'],
+                    ['kode' => 'TP 5', 'deskripsi' => 'Produce concise procedure texts explaining hotel housekeeping and front desk standard operations'],
+                    ['kode' => 'TP 6', 'deskripsi' => 'Deliver persuasive oral presentations promoting regional tourism and culinary destinations'],
+                ],
+            ],
+            [
                 'nama_mapel' => 'Bahasa Sunda',
-                'guru_query' => 'Cecep Supriatna',
+                'guru_query' => 'Muhamad Nurjalil',
                 'jp' => 2,
                 'tps_ganjil' => [
                     ['kode' => 'TP 1', 'deskripsi' => 'Nalarapkeun tatakrama undak-usuk basa Sunda luyu jeung situasi komunikasi sapopoe'],
@@ -292,24 +335,9 @@ class PopulateXHTL1DummyDataSeeder extends Seeder
                     ['kode' => 'TP 6', 'deskripsi' => 'Nulis sajak atawa ngarang pupuh Sunda anu merenah dumasar aturan guru lagu jeung wilangan'],
                 ],
             ],
-            [
-                'nama_mapel' => 'Koding dan Kecerdasan Artificial',
-                'guru_query' => 'Ilham Maulana',
-                'jp' => 2,
-                'tps_ganjil' => [
-                    ['kode' => 'TP 1', 'deskripsi' => 'Memahami logika logika algoritma dasar, flowchart perancangan, dan pseudocode solusi program'],
-                    ['kode' => 'TP 2', 'deskripsi' => 'Mempraktikkan struktur dasar koding (variabel, tipe data, kondisi percabangan, dan loop)'],
-                    ['kode' => 'TP 3', 'deskripsi' => 'Memahami konsep dasar Kecerdasan Buatan (Artificial Intelligence) dan contoh penerapannya'],
-                ],
-                'tps_genap' => [
-                    ['kode' => 'TP 4', 'deskripsi' => 'Membangun aplikasi koding terapan berbasis Python untuk perhitungan otomatisasi layanan'],
-                    ['kode' => 'TP 5', 'deskripsi' => 'Menerapkan prompt engineering yang efektif dalam memanfaatkan generative AI secara etis'],
-                    ['kode' => 'TP 6', 'deskripsi' => 'Menyelesaikan mini-project koding solusi digital untuk penanganan data reservasi tamu'],
-                ],
-            ],
         ];
 
-        // Ensure Struktur Kurikulum for all these mapel exist for Tingkat X Jurusan 4
+        // Ensure Struktur Kurikulum for all these mapel exist
         foreach ($mapelGuruConfig as $cfg) {
             $mapel = Mapel::where('nama', $cfg['nama_mapel'])->first();
             if ($mapel) {
@@ -329,23 +357,68 @@ class PopulateXHTL1DummyDataSeeder extends Seeder
             }
         }
 
-        // Ambil User Admin untuk authoring absen
-        $adminUser = User::whereHas('roles', fn ($q) => $q->where('name', 'Super Admin'))->first() ?? User::first();
-
-        // Profil Siswa (Variasi Kemampuan untuk nilai yang realistis)
-        // Skor dasar dari 80 s.d. 95
+        // Profil Siswa (Kemampuan untuk nilai yang realistis dan kompeten)
         $siswaProfiles = [];
         foreach ($siswas as $idx => $s) {
-            // Distribusi: sebagian siswa pintar (88-95), sebagian menengah (82-87), sebagian cukup (76-81)
             $tier = $idx % 5;
             $baseScore = match ($tier) {
-                0 => 91, // Bintang kelas
-                1 => 87, // Sangat baik
-                2 => 84, // Baik
-                3 => 81, // Cukup
-                4 => 78, // Perlu dorongan
+                0 => 92, // Bintang kelas
+                1 => 88, // Sangat baik
+                2 => 85, // Baik
+                3 => 82, // Cukup baik
+                4 => 79, // Cukup
             };
             $siswaProfiles[$s->id] = $baseScore;
+        }
+
+        $calc = new PenilaianScoreCalculator();
+        $settings = PengaturanPenilaian::getActive();
+
+        // 5. Ekstrakurikuler: Pastikan ada master dan keanggotaan
+        $ekskulMasterData = [
+            ['nama' => 'Pramuka (Wajib)', 'is_wajib' => true, 'hari_latihan' => 'Jumat'],
+            ['nama' => 'Palang Merah Remaja (PMR)', 'is_wajib' => false, 'hari_latihan' => 'Sabtu'],
+            ['nama' => 'Futsal Club', 'is_wajib' => false, 'hari_latihan' => 'Kamis'],
+            ['nama' => 'English Club', 'is_wajib' => false, 'hari_latihan' => 'Selasa'],
+            ['nama' => 'Rohis & Seni Baca Quran', 'is_wajib' => false, 'hari_latihan' => 'Rabu'],
+        ];
+        foreach ($ekskulMasterData as $emd) {
+            Ekstrakurikuler::firstOrCreate(['nama' => $emd['nama']], [
+                'is_active' => true,
+                'is_wajib' => $emd['is_wajib'],
+                'hari_latihan' => $emd['hari_latihan'],
+                'bobot_presensi' => 40,
+                'bobot_penilaian' => 60,
+                'threshold_a' => 88,
+                'threshold_b' => 78,
+                'threshold_c' => 70,
+                'deskripsi' => 'Pengembangan minat bakat siswa',
+            ]);
+        }
+        $allEkskuls = Ekstrakurikuler::where('is_active', true)->get();
+
+        // 6. Seni Budaya: Pastikan cabang dan TP ada
+        $seniCabangs = SeniBudaya::where('is_active', true)->get();
+        if ($seniCabangs->isEmpty()) {
+            SeniBudaya::create([
+                'kode' => 'TARI',
+                'nama' => 'Tari Tradisional',
+                'kkm' => 75,
+                'bobot_presensi' => 30,
+                'bobot_penilaian' => 70,
+                'hari_latihan' => 'Rabu',
+                'is_active' => true,
+            ]);
+            SeniBudaya::create([
+                'kode' => 'MUSIK',
+                'nama' => 'Musik Modern',
+                'kkm' => 75,
+                'bobot_presensi' => 30,
+                'bobot_penilaian' => 70,
+                'hari_latihan' => 'Rabu',
+                'is_active' => true,
+            ]);
+            $seniCabangs = SeniBudaya::where('is_active', true)->get();
         }
 
         $semesters = [
@@ -353,21 +426,24 @@ class PopulateXHTL1DummyDataSeeder extends Seeder
             'genap' => $semGenap,
         ];
 
-        // 5. Looping Setiap Semester
+        // 7. Looping Setiap Semester
         foreach ($semesters as $semKey => $sem) {
-            $this->command->info(PHP_EOL.'>>> Memproses Semester '.strtoupper($semKey)." (ID: {$sem->id}) <<<");
+            $this->command->info(PHP_EOL . ">>> Memproses Semester " . strtoupper($semKey) . " (ID: {$sem->id}) <<<");
+
+            $b1Key = $semKey === 'ganjil' ? '9M1' : '9M3';
+            $b2Key = $semKey === 'ganjil' ? '9M2' : '9M4';
 
             // Tanggal Pertemuan Mapel (12 pertemuan per semester)
             $meetingDates = $semKey === 'ganjil'
                 ? [
-                    '2025-08-04', '2025-08-11', '2025-08-18', '2025-08-25',
-                    '2025-09-01', '2025-09-08', '2025-09-15', '2025-09-29',
-                    '2025-10-06', '2025-10-20', '2025-10-27', '2025-11-10',
+                    '2026-08-03', '2026-08-10', '2026-08-17', '2026-08-24',
+                    '2026-08-31', '2026-09-07', '2026-09-14', '2026-09-28',
+                    '2026-10-05', '2026-10-19', '2026-10-26', '2026-11-09',
                 ]
                 : [
-                    '2026-01-12', '2026-01-19', '2026-01-26', '2026-02-02',
-                    '2026-02-09', '2026-02-23', '2026-03-02', '2026-03-09',
-                    '2026-04-06', '2026-04-13', '2026-04-20', '2026-05-04',
+                    '2027-01-11', '2027-01-18', '2027-01-25', '2027-02-01',
+                    '2027-02-08', '2027-02-22', '2027-03-01', '2027-03-08',
+                    '2027-04-05', '2027-04-12', '2027-04-19', '2027-05-03',
                 ];
 
             foreach ($mapelGuruConfig as $cfg) {
@@ -379,7 +455,7 @@ class PopulateXHTL1DummyDataSeeder extends Seeder
                 $guru = Pegawai::where('nama_lengkap', 'like', "%{$cfg['guru_query']}%")->first()
                     ?? Pegawai::first();
 
-                // 5a. Buat / Update Penugasan Mengajar
+                // 7a. Buat / Update Penugasan Mengajar
                 $pm = PenugasanMengajar::updateOrCreate(
                     [
                         'semester_id' => $sem->id,
@@ -393,11 +469,13 @@ class PopulateXHTL1DummyDataSeeder extends Seeder
                     ]
                 );
 
-                // 5b. Buat / Update Tujuan Pembelajaran (TP)
+                // 7b. Buat / Update Tujuan Pembelajaran (TP)
                 $tpList = $semKey === 'ganjil' ? $cfg['tps_ganjil'] : $cfg['tps_genap'];
                 $createdTps = [];
                 foreach ($tpList as $idx => $tData) {
-                    $ahCode = $semKey === 'ganjil' ? 'AH '.($idx + 1) : 'AH '.($idx + 5);
+                    $ahCode = $semKey === 'ganjil' ? 'AH ' . ($idx + 1) : 'AH ' . ($idx + 5);
+                    $targetP = $semKey === 'ganjil' ? ($idx < 2 ? '9M1' : '9M2') : ($idx < 2 ? '9M3' : '9M4');
+
                     $tp = TujuanPembelajaran::updateOrCreate(
                         [
                             'penugasan_mengajar_id' => $pm->id,
@@ -406,23 +484,28 @@ class PopulateXHTL1DummyDataSeeder extends Seeder
                         [
                             'deskripsi' => $tData['deskripsi'],
                             'alokasi_ah' => $ahCode,
+                            'target_periode' => $targetP,
                             'is_active' => true,
+                            'urutan' => $idx + 1,
                         ]
                     );
                     $createdTps[] = $tp;
                 }
 
-                // 5c. Buat Nilai Formatif, Sumatif (STS & SAS), dan Nilai Akhir untuk setiap Siswa
+                $tpsBlock1 = collect($createdTps)->filter(fn ($t) => $t->target_periode === $b1Key);
+                $tpsBlock2 = collect($createdTps)->filter(fn ($t) => $t->target_periode === $b2Key);
+                $kkm = (float) ($mapel->kkm_default ?? 75);
+
+                // 7c. Buat Nilai Formatif, NilaiHarian, Sumatif (STS & SAS), dan Nilai Akhir
                 foreach ($siswas as $siswa) {
                     $base = $siswaProfiles[$siswa->id];
-                    // Tambah sedikit variasi per mapel
-                    $mapelOffset = (($siswa->id + $mapel->id) % 7) - 3; // -3 to +3
-                    $studentSkill = max(75, min(97, $base + $mapelOffset));
+                    $mapelOffset = (($siswa->id + $mapel->id) % 7) - 3;
+                    $studentSkill = max(76, min(97, $base + $mapelOffset));
 
                     $tpScores = [];
                     foreach ($createdTps as $tpIdx => $tp) {
-                        $tpOffset = (($siswa->id + $tpIdx * 3) % 5) - 2; // -2 to +2
-                        $score = max(74, min(98, $studentSkill + $tpOffset));
+                        $tpOffset = (($siswa->id + $tpIdx * 3) % 5) - 2;
+                        $score = max(76, min(98, $studentSkill + $tpOffset));
                         $tpScores[$tp->id] = $score;
 
                         NilaiFormatif::updateOrCreate(
@@ -430,9 +513,7 @@ class PopulateXHTL1DummyDataSeeder extends Seeder
                                 'siswa_id' => $siswa->id,
                                 'tujuan_pembelajaran_id' => $tp->id,
                             ],
-                            [
-                                'nilai' => $score,
-                            ]
+                            ['nilai' => $score]
                         );
 
                         if ($tp->alokasi_ah) {
@@ -442,16 +523,27 @@ class PopulateXHTL1DummyDataSeeder extends Seeder
                                     'penugasan_mengajar_id' => $pm->id,
                                     'kode_ah' => $tp->alokasi_ah,
                                 ],
-                                [
-                                    'nilai' => $score,
-                                ]
+                                ['nilai' => $score]
                             );
                         }
                     }
 
+                    // Nilai Harian (Presensi/Harian) untuk Blok 1 & Blok 2
+                    $nh1Score = max(85, min(100, 95 + (($siswa->id % 5) - 2)));
+                    $nh2Score = max(85, min(100, 96 + (($siswa->id % 4) - 2)));
+
+                    NilaiHarian::updateOrCreate(
+                        ['siswa_id' => $siswa->id, 'penugasan_mengajar_id' => $pm->id, 'target_periode' => $b1Key],
+                        ['nilai' => $nh1Score]
+                    );
+                    NilaiHarian::updateOrCreate(
+                        ['siswa_id' => $siswa->id, 'penugasan_mengajar_id' => $pm->id, 'target_periode' => $b2Key],
+                        ['nilai' => $nh2Score]
+                    );
+
                     // Sumatif STS & SAS
-                    $stsScore = max(74, min(98, $studentSkill + (($siswa->id % 4) - 2)));
-                    $sasScore = max(75, min(98, $studentSkill + ((($siswa->id + 2) % 4) - 2)));
+                    $stsScore = max(76, min(98, $studentSkill + (($siswa->id % 4) - 2)));
+                    $sasScore = max(76, min(98, $studentSkill + ((($siswa->id + 2) % 4) - 2)));
 
                     NilaiSumatif::updateOrCreate(
                         [
@@ -464,23 +556,35 @@ class PopulateXHTL1DummyDataSeeder extends Seeder
                         ]
                     );
 
-                    // Nilai Akhir Calculation
+                    // Evaluasi Blok 1 & Blok 2 untuk data_9m
+                    $resBlock1 = $calc->calculate9MBlock(
+                        $tpScores,
+                        $nh1Score,
+                        $stsScore,
+                        $kkm,
+                        $tpsBlock1,
+                        null,
+                        $settings
+                    );
+
+                    $resBlock2 = $calc->calculate9MBlock(
+                        $tpScores,
+                        $nh2Score,
+                        $sasScore,
+                        $kkm,
+                        $tpsBlock2,
+                        null,
+                        $settings
+                    );
+
+                    $data9m = [
+                        $b1Key => $resBlock1,
+                        $b2Key => $resBlock2,
+                    ];
+
+                    $semResult = $calc->calculateSemester($resBlock1, $resBlock2, $kkm, $settings);
+
                     $avgFormatif = count($tpScores) > 0 ? array_sum($tpScores) / count($tpScores) : $studentSkill;
-                    $finalScore = round(($avgFormatif * 0.5) + ($stsScore * 0.25) + ($sasScore * 0.25));
-
-                    // TP Tertinggi & Terendah
-                    $highestTpId = array_keys($tpScores, max($tpScores))[0] ?? null;
-                    $lowestTpId = array_keys($tpScores, min($tpScores))[0] ?? null;
-
-                    $highestTp = collect($createdTps)->firstWhere('id', $highestTpId);
-                    $lowestTp = collect($createdTps)->firstWhere('id', $lowestTpId);
-
-                    $descTinggi = $highestTp
-                        ? 'Menunjukkan penguasaan yang sangat baik dalam '.lcfirst($highestTp->deskripsi).'.'
-                        : '';
-                    $descRendah = ($lowestTp && $lowestTpId !== $highestTpId && $tpScores[$lowestTpId] < 85)
-                        ? 'Perlu bimbingan dan penguatan dalam '.lcfirst($lowestTp->deskripsi).'.'
-                        : '';
 
                     NilaiAkhir::updateOrCreate(
                         [
@@ -489,20 +593,25 @@ class PopulateXHTL1DummyDataSeeder extends Seeder
                         ],
                         [
                             'rata_formatif' => round($avgFormatif, 2),
+                            'rata_tp' => $resBlock2['rata_tp'] ?? $resBlock1['rata_tp'],
+                            'nh' => $nh2Score,
+                            'sumatif' => $sasScore,
                             'sts' => $stsScore,
                             'sas' => $sasScore,
-                            'nilai_akhir' => $finalScore,
-                            'deskripsi_tertinggi' => $descTinggi,
-                            'deskripsi_terendah' => $descRendah,
+                            'nilai_akhir' => $semResult['nilai_akhir'] ?? round(($avgFormatif * 0.5) + ($stsScore * 0.25) + ($sasScore * 0.25)),
+                            'predikat' => $semResult['predikat'] ?? $calc->resolvePredikat($semResult['nilai_akhir'] ?? 85, $kkm, $settings),
+                            'status' => $semResult['status'] ?? 'kompeten',
+                            'deskripsi_tertinggi' => $resBlock2['deskripsi_tertinggi'] ?: $resBlock1['deskripsi_tertinggi'],
+                            'deskripsi_terendah' => $resBlock2['deskripsi_terendah'] ?: $resBlock1['deskripsi_terendah'],
+                            'data_9m' => $data9m,
                         ]
                     );
                 }
 
-                // 5d. Buat Absensi Mapel (12 pertemuan untuk setiap siswa)
+                // 7d. Absensi Mapel
                 $absensiInserts = [];
                 foreach ($meetingDates as $dateIdx => $mDate) {
                     foreach ($siswas as $sIdx => $siswa) {
-                        // Pola absensi: 95% Hadir, occasional Sakit/Izin/Dispen
                         $hash = ($siswa->id * 17 + $dateIdx * 13 + $mapel->id * 7);
                         $status = StatusAbsensi::HADIR->value;
                         $ket = null;
@@ -531,7 +640,6 @@ class PopulateXHTL1DummyDataSeeder extends Seeder
                     }
                 }
 
-                // Chunk insert absensi mapel
                 foreach (array_chunk($absensiInserts, 100) as $chunk) {
                     DB::table('absensi_mapels')->upsert(
                         $chunk,
@@ -541,10 +649,10 @@ class PopulateXHTL1DummyDataSeeder extends Seeder
                 }
             }
 
-            // 6. Absensi Harian (Hari Efektif Sekolah Mon-Fri)
+            // 8. Absensi Harian (Hari Efektif Sekolah Mon-Fri)
             $harianDates = $semKey === 'ganjil'
-                ? CarbonPeriod::create('2025-07-21', '2025-12-05')
-                : CarbonPeriod::create('2026-01-05', '2026-05-29');
+                ? CarbonPeriod::create('2026-07-20', '2026-12-04')
+                : CarbonPeriod::create('2027-01-04', '2027-05-28');
 
             $harianInserts = [];
             foreach ($harianDates as $carbonDate) {
@@ -558,10 +666,10 @@ class PopulateXHTL1DummyDataSeeder extends Seeder
                     $status = StatusAbsensi::HADIR->value;
                     $ket = null;
 
-                    if ($daySeed % 83 === 0) {
+                    if ($daySeed % 79 === 0) {
                         $status = StatusAbsensi::SAKIT->value;
-                        $ket = 'Sakit flu';
-                    } elseif ($daySeed % 97 === 0) {
+                        $ket = 'Sakit flu & demam';
+                    } elseif ($daySeed % 89 === 0) {
                         $status = StatusAbsensi::IZIN->value;
                         $ket = 'Izin acara keluarga';
                     }
@@ -588,7 +696,7 @@ class PopulateXHTL1DummyDataSeeder extends Seeder
                 );
             }
 
-            // 7. Catatan Wali Kelas untuk setiap siswa
+            // 9. Catatan Wali Kelas (Umum & Per Periode)
             $catatanTemplatesGanjil = [
                 'Pertahankan prestasi belajar dan keaktifanmu di kelas. Terus asah kompetensi dasar perhotelan dan kedisiplinan diri.',
                 'Menunjukkan sikap santun dan etos kerja hospitality yang sangat baik. Tingkatkan kepercayaan diri dalam berbahasa asing.',
@@ -607,42 +715,243 @@ class PopulateXHTL1DummyDataSeeder extends Seeder
 
             $catatanTemplates = $semKey === 'ganjil' ? $catatanTemplatesGanjil : $catatanTemplatesGenap;
 
+            $p1 = $semKey === 'ganjil' ? ($createdPeriodes['GANJIL-PTS'] ?? null) : ($createdPeriodes['GENAP-PTS'] ?? null);
+            $p2 = $semKey === 'ganjil' ? ($createdPeriodes['GANJIL-PAS'] ?? null) : ($createdPeriodes['GENAP-PAS'] ?? null);
+
             foreach ($siswas as $sIdx => $siswa) {
                 $text = $catatanTemplates[$sIdx % count($catatanTemplates)];
+                // Catatan semester umum
                 CatatanWaliKelas::updateOrCreate(
+                    ['siswa_id' => $siswa->id, 'semester_id' => $sem->id, 'periode_rapor_id' => null],
+                    ['catatan' => $text]
+                );
+
+                // Catatan per periode
+                if ($p1) {
+                    CatatanWaliKelas::updateOrCreate(
+                        ['siswa_id' => $siswa->id, 'semester_id' => $sem->id, 'periode_rapor_id' => $p1->id],
+                        ['catatan' => $text . ' (Evaluasi Tengah Semester)']
+                    );
+                }
+                if ($p2) {
+                    CatatanWaliKelas::updateOrCreate(
+                        ['siswa_id' => $siswa->id, 'semester_id' => $sem->id, 'periode_rapor_id' => $p2->id],
+                        ['catatan' => $text . ' (Evaluasi Akhir Semester)']
+                    );
+                }
+            }
+
+            // 10. Ekstrakurikuler untuk setiap siswa (1-2 ekskul per siswa)
+            foreach ($siswas as $sIdx => $siswa) {
+                $primaryEkskul = $allEkskuls[$sIdx % $allEkskuls->count()];
+                EkstrakurikulerAnggota::updateOrCreate(
                     [
+                        'ekstrakurikuler_id' => $primaryEkskul->id,
                         'siswa_id' => $siswa->id,
                         'semester_id' => $sem->id,
                     ],
                     [
-                        'catatan' => $text,
+                        'nilai_angka' => 88 + ($sIdx % 8),
+                        'nilai_huruf' => 'A',
+                        'deskripsi' => "Sangat aktif, berdedikasi tinggi, dan menunjukkan kemampuan kerja sama yang hebat dalam kegiatan {$primaryEkskul->nama}.",
+                        'status_keanggotaan' => 'aktif',
                     ]
                 );
-            }
 
-            // 8. Ekstrakurikuler untuk setiap siswa
-            $ekskuls = Ekstrakurikuler::all();
-            if ($ekskuls->isNotEmpty()) {
-                foreach ($siswas as $sIdx => $siswa) {
-                    $primaryEkskul = $ekskuls[$sIdx % $ekskuls->count()];
+                // Tambah ekskul wajib Pramuka jika belum
+                $pramuka = $allEkskuls->firstWhere('is_wajib', true);
+                if ($pramuka && $pramuka->id !== $primaryEkskul->id) {
                     EkstrakurikulerAnggota::updateOrCreate(
                         [
-                            'ekstrakurikuler_id' => $primaryEkskul->id,
+                            'ekstrakurikuler_id' => $pramuka->id,
                             'siswa_id' => $siswa->id,
                             'semester_id' => $sem->id,
                         ],
                         [
-                            'nilai_angka' => 88 + ($sIdx % 8),
+                            'nilai_angka' => 86 + (($sIdx + 1) % 6),
                             'nilai_huruf' => 'A',
-                            'deskripsi' => "Sangat aktif, berdedikasi tinggi, dan menunjukkan kemampuan kerja sama yang hebat dalam kegiatan {$primaryEkskul->nama}.",
+                            'deskripsi' => 'Disiplin dan aktif mengikuti seluruh kegiatan kepramukaan dengan penuh tanggung jawab.',
+                            'status_keanggotaan' => 'aktif',
                         ]
                     );
                 }
             }
 
-            $this->command->info('Selesai memproses Semester '.strtoupper($semKey).'.');
+            // 11. Seni Budaya: Daftarkan seluruh siswa ke salah satu cabang Seni Budaya
+            foreach ($siswas as $sIdx => $siswa) {
+                $cabang = $seniCabangs[$sIdx % $seniCabangs->count()];
+
+                // Pastikan TP Seni Budaya ada
+                $sbTp = SeniBudayaTp::firstOrCreate(
+                    [
+                        'seni_budaya_id' => $cabang->id,
+                        'semester_id' => $sem->id,
+                        'kode' => 'TP 1',
+                    ],
+                    [
+                        'deskripsi' => 'Mengekspresikan gagasan dan karya seni budaya dengan memperhatikan estetika dan teknik dasar.',
+                        'target_asesmen' => 'sts',
+                        'is_active' => true,
+                    ]
+                );
+
+                $sbSts = 85 + ($sIdx % 10);
+                $sbSas = 87 + (($sIdx + 2) % 9);
+
+                SeniBudayaAnggota::updateOrCreate(
+                    [
+                        'siswa_id' => $siswa->id,
+                        'semester_id' => $sem->id,
+                    ],
+                    [
+                        'seni_budaya_id' => $cabang->id,
+                        'sts_1' => $sbSts,
+                        'nilai_akhir_sts_1' => $sbSts,
+                        'sas' => $sbSas,
+                        'nilai_akhir_sas' => $sbSas,
+                        'sts_2' => $sbSts,
+                        'nilai_akhir_sts_2' => $sbSts,
+                        'sat' => $sbSas,
+                        'nilai_akhir_sat' => $sbSas,
+                        'nilai_presensi' => 100,
+                        'nilai_akhir' => round(($sbSts * 0.3) + ($sbSas * 0.4) + (100 * 0.3)),
+                        'nilai_huruf' => 'A',
+                        'status_keanggotaan' => 'aktif',
+                        'deskripsi_tertinggi' => 'Menunjukkan penguasaan yang sangat baik dalam berkarya dan mengapresiasi ' . $cabang->nama . '.',
+                        'deskripsi_terendah' => '',
+                    ]
+                );
+            }
+
+            // 12. Mapel Pilihan (Koding dan Kecerdasan Artifisial)
+            $mapilKka = MapelPilihan::where('kode', 'KKA')->first();
+            if ($mapilKka) {
+                $mapilTpsData = $semKey === 'ganjil' ? [
+                    ['kode' => 'TP 1', 'deskripsi' => 'Memahami logika algoritma dasar, flowchart perancangan, dan pseudocode solusi program', 'target' => '9M1', 'ah' => 'AH 1'],
+                    ['kode' => 'TP 2', 'deskripsi' => 'Mempraktikkan struktur dasar koding Python (variabel, tipe data, kondisional, dan loop)', 'target' => '9M1', 'ah' => 'AH 2'],
+                    ['kode' => 'TP 3', 'deskripsi' => 'Memahami konsep dasar Kecerdasan Buatan (Artificial Intelligence) dan prompt engineering', 'target' => '9M2', 'ah' => 'AH 3'],
+                ] : [
+                    ['kode' => 'TP 4', 'deskripsi' => 'Membangun aplikasi terapan koding terintegrasi modul AI untuk otomasi pelayanan perhotelan', 'target' => '9M3', 'ah' => 'AH 5'],
+                    ['kode' => 'TP 5', 'deskripsi' => 'Menyelesaikan mini-project koding solusi digital untuk penanganan reservasi dan data tamu', 'target' => '9M4', 'ah' => 'AH 7'],
+                ];
+
+                $createdMapilTps = [];
+                foreach ($mapilTpsData as $tIdx => $tData) {
+                    $tp = MapelPilihanTp::updateOrCreate(
+                        [
+                            'mapel_pilihan_id' => $mapilKka->id,
+                            'semester_id' => $sem->id,
+                            'kode_tp' => $tData['kode'],
+                        ],
+                        [
+                            'deskripsi_tp' => $tData['deskripsi'],
+                            'lingkup_materi' => $tData['deskripsi'],
+                            'kode_ah' => $tData['ah'],
+                            'target_periode' => $tData['target'],
+                            'urutan' => $tIdx + 1,
+                        ]
+                    );
+                    $createdMapilTps[] = $tp;
+                }
+
+                $mapilTpsBlock1 = collect($createdMapilTps)->filter(fn ($t) => $t->target_periode === $b1Key);
+                $mapilTpsBlock2 = collect($createdMapilTps)->filter(fn ($t) => $t->target_periode === $b2Key);
+                $mapilKkm = (float) ($mapilKka->kkm_default ?? 75);
+
+                foreach ($siswas as $sIdx => $siswa) {
+                    // Pastikan anggota aktif
+                    MapelPilihanAnggota::firstOrCreate(
+                        ['mapel_pilihan_id' => $mapilKka->id, 'siswa_id' => $siswa->id],
+                        ['tahun_ajaran_id' => $ta->id, 'status' => 'aktif']
+                    );
+
+                    $base = $siswaProfiles[$siswa->id];
+                    $mapilScores = [];
+                    foreach ($createdMapilTps as $tIdx => $tp) {
+                        $sScore = max(78, min(97, $base + (($siswa->id + $tIdx * 2) % 5) - 2));
+                        $mapilScores[$tp->id] = $sScore;
+
+                        NilaiMapelPilihanFormatif::updateOrCreate(
+                            [
+                                'mapel_pilihan_id' => $mapilKka->id,
+                                'siswa_id' => $siswa->id,
+                                'semester_id' => $sem->id,
+                                'mapel_pilihan_tp_id' => $tp->id,
+                            ],
+                            [
+                                'kode_ah' => $tp->kode_ah,
+                                'nilai' => $sScore,
+                            ]
+                        );
+                    }
+
+                    $mapilNh1 = 95;
+                    $mapilNh2 = 96;
+                    NilaiMapelPilihanHarian::updateOrCreate(
+                        ['mapel_pilihan_id' => $mapilKka->id, 'siswa_id' => $siswa->id, 'target_periode' => $b1Key],
+                        ['nilai' => $mapilNh1]
+                    );
+                    NilaiMapelPilihanHarian::updateOrCreate(
+                        ['mapel_pilihan_id' => $mapilKka->id, 'siswa_id' => $siswa->id, 'target_periode' => $b2Key],
+                        ['nilai' => $mapilNh2]
+                    );
+
+                    $mapilSts = max(78, min(96, $base + (($siswa->id % 4) - 2)));
+                    $mapilSas = max(80, min(97, $base + ((($siswa->id + 1) % 4) - 2)));
+
+                    NilaiMapelPilihanSumatif::updateOrCreate(
+                        ['mapel_pilihan_id' => $mapilKka->id, 'siswa_id' => $siswa->id, 'semester_id' => $sem->id],
+                        [
+                            'sts_1' => $mapilSts,
+                            'sas' => $mapilSas,
+                            'sts_2' => $mapilSts,
+                            'sat' => $mapilSas,
+                        ]
+                    );
+
+                    $resMapilB1 = $calc->calculate9MBlock(
+                        $mapilScores,
+                        $mapilNh1,
+                        $mapilSts,
+                        $mapilKkm,
+                        $mapilTpsBlock1,
+                        null,
+                        $settings
+                    );
+                    $resMapilB2 = $calc->calculate9MBlock(
+                        $mapilScores,
+                        $mapilNh2,
+                        $mapilSas,
+                        $mapilKkm,
+                        $mapilTpsBlock2,
+                        null,
+                        $settings
+                    );
+
+                    $mapilData9m = [
+                        $b1Key => $resMapilB1,
+                        $b2Key => $resMapilB2,
+                    ];
+
+                    $semResMapil = $calc->calculateSemester($resMapilB1, $resMapilB2, $mapilKkm, $settings);
+
+                    NilaiMapelPilihanAkhir::updateOrCreate(
+                        ['mapel_pilihan_id' => $mapilKka->id, 'siswa_id' => $siswa->id, 'semester_id' => $sem->id],
+                        [
+                            'nilai_akhir' => $semResMapil['nilai_akhir'] ?? round(($mapilSts + $mapilSas) / 2),
+                            'predikat' => $semResMapil['predikat'] ?? 'Cakap',
+                            'status' => 'kompeten',
+                            'data_9m' => $mapilData9m,
+                            'deskripsi_tertinggi' => $resMapilB2['deskripsi_tertinggi'] ?: $resMapilB1['deskripsi_tertinggi'],
+                            'deskripsi_terendah' => $resMapilB2['deskripsi_terendah'] ?: $resMapilB1['deskripsi_terendah'],
+                        ]
+                    );
+                }
+            }
+
+            $this->command->info("Selesai memproses Semester " . strtoupper($semKey) . ".");
         }
 
-        $this->command->info(PHP_EOL.'✅ SELURUH DATA DUMMY NILAI & ABSENSI ROMBEL X HTL 1 (GANJIL & GENAP 2025/2026) BERHASIL DIISI!');
+        $this->command->info(PHP_EOL . '✅ SELURUH DATA DUMMY NILAI & ABSENSI ROMBEL X HTL 1 BERHASIL DIISI!');
     }
 }

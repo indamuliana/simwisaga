@@ -12,5 +12,5 @@ Route::prefix('kepegawaian')->name('kepegawaian.')->group(function () {
     Route::get('/pegawai/create', PegawaiCreate::class)->name('pegawai.create');
     Route::get('/pegawai/{id}', PegawaiDetail::class)->name('pegawai.show');
     Route::get('/pegawai/{id}/edit', PegawaiEdit::class)->name('pegawai.edit');
-    Route::get('/penugasan', PenugasanMengajarIndex::class)->name('penugasan');
+    Route::get('/penugasan', fn () => redirect()->route('akademik.penugasan'))->name('penugasan');
 });

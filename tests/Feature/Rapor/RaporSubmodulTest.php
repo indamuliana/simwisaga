@@ -2,7 +2,9 @@
 
 namespace Tests\Feature\Rapor;
 
+use App\Enums\StatusAbsensi;
 use App\Models\User;
+use App\Modules\Absensi\Models\AbsensiHarian;
 use App\Modules\Akademik\Models\Jurusan;
 use App\Modules\Akademik\Models\Mapel;
 use App\Modules\Akademik\Models\Rayon;
@@ -19,6 +21,7 @@ use App\Modules\Rapor\Livewire\CatatanWaliKelasIndex;
 use App\Modules\Rapor\Livewire\RaporPemerintahIndex;
 use App\Modules\Rapor\Livewire\RaporWikramaIndex;
 use App\Modules\Rapor\Models\CatatanWaliKelas;
+use App\Modules\Rapor\Services\RaporScoreService;
 use App\Modules\SeniBudaya\Models\SeniBudaya;
 use App\Modules\SeniBudaya\Models\SeniBudayaAnggota;
 use App\Modules\Sistem\Models\PeriodeRapor;
@@ -356,6 +359,51 @@ class RaporSubmodulTest extends TestCase
             ->set('selectedPeriodeId', $this->periode9M1->id)
             ->call('openPreview', $this->siswa1->id)
             ->assertSee('Nilai belum lengkap, silakan hubungi guru yang bersangkutan.');
+    }
+
+    public function test_rapor_wikrama_rekap_absen_includes_formatted_dates_and_table_layout(): void
+    {
+        // 1. Buat data absensi: Sakit 1 hari, Izin 2 hari
+        AbsensiHarian::create([
+            'siswa_id' => $this->siswa1->id,
+            'rombel_id' => $this->rombel->id,
+            'semester_id' => $this->semGanjil->id,
+            'tanggal' => '2026-07-12',
+            'status' => StatusAbsensi::SAKIT,
+        ]);
+        AbsensiHarian::create([
+            'siswa_id' => $this->siswa1->id,
+            'rombel_id' => $this->rombel->id,
+            'semester_id' => $this->semGanjil->id,
+            'tanggal' => '2026-08-05',
+            'status' => StatusAbsensi::IZIN,
+        ]);
+        AbsensiHarian::create([
+            'siswa_id' => $this->siswa1->id,
+            'rombel_id' => $this->rombel->id,
+            'semester_id' => $this->semGanjil->id,
+            'tanggal' => '2026-08-06',
+            'status' => StatusAbsensi::IZIN,
+        ]);
+
+        $service = app(RaporScoreService::class);
+        $rekap = $service->getRekapAbsen($this->siswa1->id, $this->semGanjil->id, $this->periode9M1);
+
+        $this->assertEquals(1, $rekap['sakit']);
+        $this->assertEquals('12/07/26', $rekap['sakit_dates']);
+        $this->assertEquals(2, $rekap['izin']);
+        $this->assertEquals('05/08/26, 06/08/26', $rekap['izin_dates']);
+        $this->assertEquals(0, $rekap['alpa']);
+        $this->assertEquals('-', $rekap['alpa_dates']);
+
+        // 2. Uji cetak PDF Rapor Wikrama
+        $this->actingAs($this->admin);
+        $response = $this->get(route('rapor.cetak.wikrama', [
+            'siswa_id' => $this->siswa1->id,
+            'periode_id' => $this->periode9M1->id,
+        ]));
+
+        $response->assertOk();
     }
 }
 

@@ -646,7 +646,7 @@
                                         ⚠️ Nilai belum lengkap
                                     </div>
                                     <div class="text-[10px] mt-0.5 text-amber-700 dark:text-amber-300/90 leading-tight">
-                                        Silakan hubungi guru yang bersangkutan.
+                                        {{ !empty($d['deskripsi_tertinggi']) ? $d['deskripsi_tertinggi'] : 'Silakan hubungi guru yang bersangkutan.' }}
                                     </div>
                                 </div>
                             @elseif($status === 'belum_kompeten')
