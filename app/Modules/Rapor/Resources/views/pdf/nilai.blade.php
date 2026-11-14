@@ -47,7 +47,7 @@
 
 	<table class="info-table">
 		<tr>
-			<td width="15%">Nama Peserta Didik</td><td width="2%">:</td><td width="40%">{{ $siswa->nama }}</td>
+			<td width="15%">Nama</td><td width="2%">:</td><td width="40%">{{ $siswa->nama }}</td>
 			<td width="15%">Kelas</td><td width="2%">:</td><td width="26%">{{ $siswa->rombel->nama }}</td>
 		</tr>
 		<tr>
