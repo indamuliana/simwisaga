@@ -1,28 +1,28 @@
 <div>
-    <div class="mb-6 flex flex-col sm:flex-row sm:items-center sm:justify-between gap-4">
+    <div class="mb-4 flex flex-col sm:flex-row sm:items-center sm:justify-between gap-3">
         <div>
-            <h1 class="text-2xl font-bold text-text-main">Data Rombel</h1>
-            <p class="text-sm text-text-secondary">Rekapitulasi jumlah siswa per rombongan belajar</p>
+            <h2 class="text-base font-bold text-text-main">Data Rombel</h2>
+            <p class="text-xs text-text-secondary">Rekapitulasi jumlah siswa per rombongan belajar</p>
         </div>
-        <div class="flex flex-col sm:flex-row items-center gap-3">
+        <div class="flex flex-col sm:flex-row items-center gap-2.5 w-full sm:w-auto">
             <div class="w-full sm:w-56">
-                <select wire:model.live="filterTahunAjaran" class="w-full text-sm rounded-md border-border bg-surface text-text-main">
+                <select wire:model.live="filterTahunAjaran" class="w-full text-xs rounded-lg border-border bg-surface text-text-main shadow-xs py-1.5">
                     <option value="">-- Semua Tahun Ajaran --</option>
                     @foreach($tahunAjarans as $ta)
                         <option value="{{ $ta->id }}">{{ $ta->nama }} {{ $ta->is_active ? '(Aktif)' : '' }}</option>
                     @endforeach
                 </select>
             </div>
-            <div class="w-full sm:w-64">
-                <input type="text" wire:model.live.debounce.300ms="search" placeholder="Cari rombel..." class="w-full text-sm rounded-md border-border bg-surface text-text-main">
+            <div class="w-full sm:w-60">
+                <input type="text" wire:model.live.debounce.300ms="search" placeholder="Cari rombel..." class="w-full px-3 py-1.5 text-xs rounded-lg border border-border bg-surface text-text-main focus:border-primary focus:ring-1 focus:ring-primary shadow-xs">
             </div>
         </div>
     </div>
 
-    <div class="bg-surface rounded-lg shadow border border-border">
+    <div class="bg-surface rounded-xl shadow-xs border border-border overflow-hidden">
         <div class="overflow-x-auto">
             <table class="w-full text-left text-sm text-text-secondary">
-                <thead class="bg-surface-hover text-xs uppercase text-text-main bg-surface-hover/50 text-text-secondary">
+                <thead class="bg-surface-hover text-xs uppercase text-text-main">
                     <tr>
                         <x-table.sortable-th field="nama" :sortField="$sortField" :sortDirection="$sortDirection" class="px-4 py-3 font-semibold">Nama Rombel</x-table.sortable-th>
                         <x-table.sortable-th field="tingkat" :sortField="$sortField" :sortDirection="$sortDirection" class="px-4 py-3 font-semibold">Tingkat</x-table.sortable-th>
@@ -34,9 +34,9 @@
                         <th class="px-4 py-3 text-center font-semibold">Aksi</th>
                     </tr>
                 </thead>
-                <tbody class="divide-y divide-gray-200 dark:divide-gray-700">
+                <tbody class="divide-y divide-border">
                     @forelse($rombels as $r)
-                        <tr class="hover:bg-surface-hover dark:hover:bg-gray-700/50">
+                        <tr class="hover:bg-surface-hover/60 transition-colors">
                             <td class="px-4 py-3 font-medium text-text-main">{{ $r->nama }}</td>
                             <td class="px-4 py-3">{{ $r->tingkat }}</td>
                             <td class="px-4 py-3">{{ $r->jurusan?->nama }}</td>
@@ -45,7 +45,7 @@
                             <td class="px-4 py-3 text-center">{{ $r->siswa_l }}</td>
                             <td class="px-4 py-3 text-center">{{ $r->siswa_p }}</td>
                             <td class="px-4 py-3 text-center">
-                                <a href="{{ route('dashboard-data.rombel.students', $r->id) }}" class="btn btn-secondary !py-1 !px-3 !text-xs">Detil</a>
+                                <a href="{{ route('dashboard-data.rombel.students', $r->id) }}" class="btn btn-secondary !py-1 !px-2.5 !text-xs">Detil</a>
                             </td>
                         </tr>
                     @empty
@@ -57,7 +57,7 @@
             </table>
         </div>
         @if($rombels->hasPages())
-            <div class="border-t border-border p-4">
+            <div class="border-t border-border p-3">
                 {{ $rombels->links() }}
             </div>
         @endif

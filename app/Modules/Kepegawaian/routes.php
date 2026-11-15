@@ -5,6 +5,7 @@ use App\Modules\Kepegawaian\Livewire\PegawaiDetail;
 use App\Modules\Kepegawaian\Livewire\PegawaiEdit;
 use App\Modules\Kepegawaian\Livewire\PegawaiIndex;
 use App\Modules\Kepegawaian\Livewire\PenugasanMengajarIndex;
+use App\Modules\Kepegawaian\Livewire\StrukturOrganisasiIndex;
 use Illuminate\Support\Facades\Route;
 
 Route::prefix('kepegawaian')->name('kepegawaian.')->group(function () {
@@ -13,4 +14,7 @@ Route::prefix('kepegawaian')->name('kepegawaian.')->group(function () {
     Route::get('/pegawai/{id}', PegawaiDetail::class)->name('pegawai.show');
     Route::get('/pegawai/{id}/edit', PegawaiEdit::class)->name('pegawai.edit');
     Route::get('/penugasan', fn () => redirect()->route('akademik.penugasan'))->name('penugasan');
+
+    // Struktur Organisasi
+    Route::get('/struktur-organisasi', StrukturOrganisasiIndex::class)->name('struktur-organisasi');
 });

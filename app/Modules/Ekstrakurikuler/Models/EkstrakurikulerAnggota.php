@@ -25,6 +25,7 @@ class EkstrakurikulerAnggota extends Model
         'nilai_angka',
         'nilai_huruf',
         'deskripsi',
+        'evaluations',
     ];
 
     protected $casts = [
@@ -37,6 +38,7 @@ class EkstrakurikulerAnggota extends Model
         'total_hadir' => 'integer',
         'total_pertemuan' => 'integer',
         'persentase_kehadiran' => 'float',
+        'evaluations' => 'array',
     ];
 
     public function ekstrakurikuler()
@@ -67,5 +69,70 @@ class EkstrakurikulerAnggota extends Model
     public function getKeteranganAttribute(): ?string
     {
         return $this->deskripsi;
+    }
+
+    /**
+     * Mengambil evaluasi ekskul terisolasi per periode (STS 1, SAS, STS 2, SAT / 9M1 s/d 9M4)
+     */
+    public function getEvaluationForPeriod(?string $period): ?array
+    {
+        if (empty($period)) {
+            return [
+                'asesmen' => null,
+                'nilai_presensi' => $this->nilai_presensi ?? 100.0,
+                'nilai_akhir' => $this->nilai_angka,
+                'nilai_huruf' => $this->nilai_huruf,
+                'deskripsi' => $this->deskripsi,
+            ];
+        }
+
+        $key = strtoupper(trim($period));
+        $normMap = [
+            '9M1' => 'STS 1',
+            '9M2' => 'SAS',
+            '9M3' => 'STS 2',
+            '9M4' => 'SAT',
+            'STS 1' => 'STS 1',
+            'SAS' => 'SAS',
+            'STS 2' => 'STS 2',
+            'SAT' => 'SAT',
+        ];
+        $target = $normMap[$key] ?? $key;
+
+        $evals = $this->evaluations ?? [];
+        if (isset($evals[$target]) && is_array($evals[$target])) {
+            return $evals[$target];
+        }
+
+        // Fallback ke kolom periode spesifik jika ada
+        $score = match ($target) {
+            'STS 1' => $this->sts_1,
+            'SAS' => $this->sas,
+            'STS 2' => $this->sts_2,
+            'SAT' => $this->sat,
+            default => null,
+        };
+
+        if ($score !== null) {
+            return [
+                'asesmen' => (float) $score,
+                'nilai_presensi' => (float) ($this->nilai_presensi ?? 100.0),
+                'nilai_akhir' => (float) ($this->nilai_angka ?? $score),
+                'nilai_huruf' => $this->nilai_huruf ?? 'Baik',
+                'deskripsi' => $this->deskripsi ?? '',
+            ];
+        }
+
+        if ($this->nilai_angka !== null || $this->nilai_huruf !== null || $this->deskripsi !== null) {
+            return [
+                'asesmen' => null,
+                'nilai_presensi' => (float) ($this->nilai_presensi ?? 100.0),
+                'nilai_akhir' => $this->nilai_angka,
+                'nilai_huruf' => $this->nilai_huruf,
+                'deskripsi' => $this->deskripsi,
+            ];
+        }
+
+        return null;
     }
 }

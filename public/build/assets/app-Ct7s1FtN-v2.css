@@ -5,3 +5,29 @@
 .mutabaah-ayat-grid{display:grid!important;grid-template-columns:repeat(5,minmax(0,1fr))!important;gap:.5rem}
 @media (min-width:640px){.mutabaah-ayat-grid{grid-template-columns:repeat(10,minmax(0,1fr))!important;gap:.375rem}}
 @media (min-width:1024px){.mutabaah-ayat-grid{grid-template-columns:repeat(20,minmax(0,1fr))!important;gap:.375rem}}
+
+/* Brand utility aliases */
+.bg-brand-50{background-color:#eff6ff;}
+.bg-brand-100{background-color:#dbeafe;}
+.bg-brand-500{background-color:#3b82f6;}
+.bg-brand-600{background-color:#2563eb;}
+.bg-brand-700{background-color:#1d4ed8;}
+.bg-brand-500\/5{background-color:rgba(59,130,246,0.05);}
+.bg-brand-500\/10{background-color:rgba(59,130,246,0.1);}
+.bg-brand-500\/20{background-color:rgba(59,130,246,0.2);}
+.bg-brand-500\/30{background-color:rgba(59,130,246,0.3);}
+.border-brand-200{border-color:#bfdbfe;}
+.border-brand-300{border-color:#93c5fd;}
+.border-brand-500{border-color:#3b82f6;}
+.border-brand-500\/20{border-color:rgba(59,130,246,0.2);}
+.border-brand-500\/30{border-color:rgba(59,130,246,0.3);}
+.border-brand-500\/40{border-color:rgba(59,130,246,0.4);}
+.text-brand-300{color:#93c5fd;}
+.text-brand-400{color:#60a5fa;}
+.text-brand-500{color:#3b82f6;}
+.text-brand-600{color:#2563eb;}
+.text-brand-700{color:#1d4ed8;}
+.hover\:bg-brand-100:hover{background-color:#dbeafe;}
+.hover\:bg-brand-700:hover{background-color:#1d4ed8;}
+.hover\:bg-brand-500\/10:hover{background-color:rgba(59,130,246,0.1);}
+.ring-brand-500{--tw-ring-color:#3b82f6;}

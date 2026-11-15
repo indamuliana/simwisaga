@@ -1069,8 +1069,8 @@ class PenilaianInput extends Component
                     'nilai_akhir' => $semResult['nilai_akhir'],
                     'predikat' => $semResult['predikat'],
                     'status' => $semResult['status'],
-                    'deskripsi_tertinggi' => $semResult['nilai_akhir'] === null && !empty($semResult['deskripsi']) ? $semResult['deskripsi'] : ($resBlock2['deskripsi_tertinggi'] ?: $resBlock1['deskripsi_tertinggi']),
-                    'deskripsi_terendah' => $semResult['nilai_akhir'] === null ? '' : ($resBlock2['deskripsi_terendah'] ?: $resBlock1['deskripsi_terendah']),
+                    'deskripsi_tertinggi' => $semResult['deskripsi_tertinggi'] ?? ($resBlock2['deskripsi_tertinggi'] ?: $resBlock1['deskripsi_tertinggi']),
+                    'deskripsi_terendah' => $semResult['deskripsi_terendah'] ?? ($resBlock2['deskripsi_terendah'] ?: $resBlock1['deskripsi_terendah']),
                     'deskripsi_manual' => $resBlock2['deskripsi_manual'] ?: $resBlock1['deskripsi_manual'],
                     'data_9m' => $currentData9m,
                 ]

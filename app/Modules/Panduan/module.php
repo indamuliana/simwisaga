@@ -8,6 +8,7 @@ return [
     'order' => 99, // Urutan paling bawah di sidebar navigasi
     'menu' => [
         ['label' => 'Buku Panduan SIRAGA', 'route' => 'panduan.index', 'permission' => ''],
+        ['label' => 'Rapor Wikrama', 'route' => 'panduan.rapor-wikrama', 'permission' => ''],
     ],
     'permissions' => [],
 ];

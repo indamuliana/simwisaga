@@ -93,16 +93,20 @@ class EkstrakurikulerPenilaian extends Component
 
         $this->nilaiData = [];
         foreach ($anggotas as $a) {
+            $eval = $a->getEvaluationForPeriod($this->activePeriod);
+
             // Ambil asesmen sesuai activePeriod
-            $asesmen = null;
-            if ($this->activePeriod === 'STS 1') {
-                $asesmen = $a->sts_1;
-            } elseif ($this->activePeriod === 'SAS') {
-                $asesmen = $a->sas;
-            } elseif ($this->activePeriod === 'STS 2') {
-                $asesmen = $a->sts_2;
-            } elseif ($this->activePeriod === 'SAT') {
-                $asesmen = $a->sat;
+            $asesmen = $eval['asesmen'] ?? null;
+            if ($asesmen === null) {
+                if ($this->activePeriod === 'STS 1') {
+                    $asesmen = $a->sts_1;
+                } elseif ($this->activePeriod === 'SAS') {
+                    $asesmen = $a->sas;
+                } elseif ($this->activePeriod === 'STS 2') {
+                    $asesmen = $a->sts_2;
+                } elseif ($this->activePeriod === 'SAT') {
+                    $asesmen = $a->sat;
+                }
             }
 
             // Jika belum ada nilai di periode ini tapi sudah ada nilai_angka
@@ -110,17 +114,19 @@ class EkstrakurikulerPenilaian extends Component
                 $asesmen = $a->nilai_angka;
             }
 
-            $presensi = $a->nilai_presensi ?? $a->persentase_kehadiran ?? 100.0;
+            $presensi = $eval['nilai_presensi'] ?? ($a->nilai_presensi ?? $a->persentase_kehadiran ?? 100.0);
 
             // Hitung nilai akhir awal
-            $finalScore = null;
-            $predikat = $a->nilai_huruf ?? '-';
-            $deskripsi = $a->deskripsi ?? '';
+            $finalScore = $eval['nilai_akhir'] ?? null;
+            $predikat = $eval['nilai_huruf'] ?? ($a->nilai_huruf ?? '-');
+            $deskripsi = $eval['deskripsi'] ?? ($a->deskripsi ?? '');
 
-            if ($asesmen !== null) {
+            if ($asesmen !== null && ($finalScore === null || empty($deskripsi))) {
                 $calc = $this->calculateGrade($presensi, (float)$asesmen);
                 $finalScore = $calc['finalScore'];
-                $predikat = $calc['predikat'];
+                if ($predikat === '-' || empty($predikat)) {
+                    $predikat = $calc['predikat'];
+                }
                 if (empty($deskripsi)) {
                     $deskripsi = $calc['deskripsi'];
                 }
@@ -225,10 +231,29 @@ class EkstrakurikulerPenilaian extends Component
             $asesmenFloat = min(100, max(0, (float) $asesmen));
             $calc = $this->calculateGrade((float)$row['nilai_presensi'], $asesmenFloat);
 
+            $anggota = EkstrakurikulerAnggota::where('ekstrakurikuler_id', $this->ekskul_id)
+                ->where('siswa_id', $siswaId)
+                ->where('semester_id', $this->semester_id)
+                ->first();
+
+            if (!$anggota) {
+                continue;
+            }
+
+            $evaluations = $anggota->evaluations ?? [];
+            $evaluations[$this->activePeriod] = [
+                'asesmen' => $asesmenFloat,
+                'nilai_presensi' => (float)$row['nilai_presensi'],
+                'nilai_akhir' => $calc['finalScore'],
+                'nilai_huruf' => $calc['predikat'],
+                'deskripsi' => $row['deskripsi'] ?: $calc['deskripsi'],
+            ];
+
             $updateData = [
                 'nilai_angka' => $calc['finalScore'],
                 'nilai_huruf' => $calc['predikat'],
                 'deskripsi' => $row['deskripsi'] ?: $calc['deskripsi'],
+                'evaluations' => $evaluations,
             ];
 
             // Simpan ke kolom periode spesifik
@@ -242,10 +267,7 @@ class EkstrakurikulerPenilaian extends Component
                 $updateData['sat'] = $asesmenFloat;
             }
 
-            EkstrakurikulerAnggota::where('ekstrakurikuler_id', $this->ekskul_id)
-                ->where('siswa_id', $siswaId)
-                ->where('semester_id', $this->semester_id)
-                ->update($updateData);
+            $anggota->update($updateData);
 
             $savedCount++;
         }

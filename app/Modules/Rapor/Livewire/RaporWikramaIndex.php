@@ -246,7 +246,7 @@ class RaporWikramaIndex extends Component
         $periode = $this->selectedPeriodeId ? PeriodeRapor::find($this->selectedPeriodeId) : null;
         $catatan = $service->getCatatanForSiswa($siswa->id, $semester->id, $this->selectedPeriodeId);
         $rekapAbsen = $service->getRekapAbsen($siswa->id, $semester->id, $periode);
-        $ekskuls = $service->getEkskuls($siswa->id, $semester->id);
+        $ekskuls = $service->getEkskuls($siswa->id, $semester->id, $periodMeta['period_key'] ?? null);
         $prestasis = $service->getPrestasiForSiswa($siswa->id, $semester->id, $this->selectedPeriodeId);
 
         $incompleteCount = $records->where('status', 'belum_lengkap')->count();

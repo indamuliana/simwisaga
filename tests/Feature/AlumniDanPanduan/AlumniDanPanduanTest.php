@@ -100,6 +100,42 @@ class AlumniDanPanduanTest extends TestCase
         $response->assertFileDownloaded();
     }
 
+    public function test_submodul_panduan_rapor_wikrama_dapat_diakses(): void
+    {
+        $this->actingAs($this->admin)
+            ->get(route('panduan.rapor-wikrama'))
+            ->assertOk()
+            ->assertSee('Panduan Rapor Wikrama (9 Minggu)')
+            ->assertSee('1. Konsep &amp; Filosofi Rapor Wikrama', false)
+            ->assertSee('NA = (50% TP) + (30% STS) + (20% NH)', false);
+    }
+
+    public function test_livewire_panduan_rapor_wikrama_interactivity(): void
+    {
+        Livewire::actingAs($this->admin)
+            ->test(\App\Modules\Panduan\Livewire\PanduanRaporWikrama::class)
+            ->assertSee('1. Konsep & Filosofi Rapor Wikrama')
+            ->call('setSection', 'struktur')
+            ->assertSee('2. Struktur & Anatomi Dokumen PDF')
+            ->assertSee('A. Nilai Akademik')
+            ->call('setSection', 'perhitungan')
+            ->assertSee('3. Rumus & Perhitungan Nilai Rapor')
+            ->assertSee('PenilaianScoreCalculator')
+            ->call('setSection', 'aliran-data')
+            ->assertSee('4. Aliran Data & Integrasi Multi-Sumber')
+            ->call('setSection', 'lokasi-pengaturan')
+            ->assertSee('/penilaian/pengaturan')
+            ->assertSee('/rapor/wikrama')
+            ->call('setSection', 'troubleshooting')
+            ->assertSee('6. FAQ & Pemecahan Masalah')
+            ->call('setSection', 'sop')
+            ->assertSee('7. SOP & Alur Kerja 6 Peran')
+            ->assertSee('Matriks RACI')
+            ->call('setSection', 'glosarium')
+            ->assertSee('8. Glosarium Kurikulum Merdeka')
+            ->assertSee('Capaian Pembelajaran');
+    }
+
     public function test_modul_panduan_menampilkan_bab_staf_untuk_admin(): void
     {
         $this->actingAs($this->admin)

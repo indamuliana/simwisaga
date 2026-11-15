@@ -1,14 +1,14 @@
 <div>
     {{-- Header --}}
-    <div class="mb-6 flex flex-col md:flex-row md:items-center md:justify-between gap-4">
+    <div class="mb-5 flex flex-col md:flex-row md:items-center md:justify-between gap-3">
         <div>
-            <h1 class="text-2xl font-bold text-text-main flex items-center gap-2">
+            <h2 class="text-base font-bold text-text-main flex items-center gap-2">
                 <span>Data Sekolah Asal</span>
-            </h1>
-            <p class="text-sm text-text-secondary">Rekapitulasi & analisis feeder siswa berdasarkan sekolah asal</p>
+            </h2>
+            <p class="text-xs text-text-secondary">Rekapitulasi & analisis feeder siswa berdasarkan sekolah asal</p>
         </div>
         <div class="flex items-center gap-3">
-            <button type="button" wire:click="openTopModal" class="btn btn-primary gap-2">
+            <button type="button" wire:click="openTopModal" class="btn btn-primary !py-1.5 !px-3 !text-xs gap-2">
                 <svg xmlns="http://www.w3.org/2000/svg" class="h-4 w-4" fill="none" viewBox="0 0 24 24" stroke="currentColor">
                     <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9 12l2 2 4-4M7.835 4.697a3.42 3.42 0 001.946-.806 3.42 3.42 0 014.438 0 3.42 3.42 0 001.946.806 3.42 3.42 0 013.138 3.138 3.42 3.42 0 00.806 1.946 3.42 3.42 0 010 4.438 3.42 3.42 0 00-.806 1.946 3.42 3.42 0 01-3.138 3.138 3.42 3.42 0 00-1.946.806 3.42 3.42 0 01-4.438 0 3.42 3.42 0 00-1.946-.806 3.42 3.42 0 01-3.138-3.138 3.42 3.42 0 00-.806-1.946 3.42 3.42 0 010-4.438 3.42 3.42 0 00.806-1.946 3.42 3.42 0 013.138-3.138z" />
                 </svg>

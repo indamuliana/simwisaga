@@ -60,7 +60,7 @@ Route::redirect('/rapor', '/rapor/wikrama')->name('rapor.index');
             $groupedAcademic = $service->groupAcademicRecords($records);
             $catatan = $service->getCatatanForSiswa($siswa->id, $semester->id, $periode?->id);
             $rekapAbsen = $service->getRekapAbsen($siswa->id, $semester->id, $periode);
-            $ekskuls = $service->getEkskuls($siswa->id, $semester->id);
+            $ekskuls = $service->getEkskuls($siswa->id, $semester->id, $targetKey);
             $prestasis = $service->getPrestasiForSiswa($siswa->id, $semester->id, $periode?->id);
 
             $studentsData[] = [
@@ -125,7 +125,7 @@ Route::redirect('/rapor', '/rapor/wikrama')->name('rapor.index');
             $groupedAcademic = $service->groupAcademicRecords($records);
             $catatan = $service->getCatatanForSiswa($siswa->id, $semester->id, null);
             $rekapAbsen = $service->getRekapAbsen($siswa->id, $semester->id);
-            $ekskuls = $service->getEkskuls($siswa->id, $semester->id);
+            $ekskuls = $service->getEkskuls($siswa->id, $semester->id, $semester->semester === 'genap' ? 'SAT' : 'SAS');
             $prestasis = $service->getPrestasiForSiswa($siswa->id, $semester->id, null);
 
             $studentsData[] = [
@@ -167,7 +167,7 @@ Route::redirect('/rapor', '/rapor/wikrama')->name('rapor.index');
         $groupedAcademic = $service->groupAcademicRecords($records);
         $catatan = $service->getCatatanForSiswa($siswa->id, $semester->id, $periode?->id);
         $rekapAbsen = $service->getRekapAbsen($siswa->id, $semester->id, $periode);
-        $ekskuls = $service->getEkskuls($siswa->id, $semester->id);
+        $ekskuls = $service->getEkskuls($siswa->id, $semester->id, $targetKey);
         $prestasis = $service->getPrestasiForSiswa($siswa->id, $semester->id, $periode?->id);
 
         $studentsData = [
@@ -208,7 +208,7 @@ Route::redirect('/rapor', '/rapor/wikrama')->name('rapor.index');
         $groupedAcademic = $service->groupAcademicRecords($records);
         $catatan = $service->getCatatanForSiswa($siswa->id, $semester->id, null);
         $rekapAbsen = $service->getRekapAbsen($siswa->id, $semester->id);
-        $ekskuls = $service->getEkskuls($siswa->id, $semester->id);
+        $ekskuls = $service->getEkskuls($siswa->id, $semester->id, $semester->semester === 'genap' ? 'SAT' : 'SAS');
         $prestasis = $service->getPrestasiForSiswa($siswa->id, $semester->id, null);
 
         $studentsData = [

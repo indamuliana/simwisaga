@@ -14,6 +14,8 @@ use App\Modules\Kesiswaan\Models\Siswa;
 use App\Modules\Penilaian\Models\NilaiAkhir;
 use App\Modules\Penilaian\Models\NilaiAsesmenHarian;
 use App\Modules\Penilaian\Models\NilaiFormatif;
+use App\Modules\Penilaian\Models\NilaiHarian;
+use App\Modules\Penilaian\Models\NilaiMapelPilihanHarian;
 use App\Modules\Penilaian\Models\NilaiSumatif;
 use Illuminate\Support\Collection;
 
@@ -64,10 +66,24 @@ class RekapPenilaianService
             ->get()
             ->groupBy('penugasan_mengajar_id');
 
-        // Ambil Asesmen Harian untuk fallback komponen jika NA belum ter-rekap
+        // Ambil Nilai Formatif per TP untuk fallback komponen jika NA belum ter-rekap
+        $formatifRecords = NilaiFormatif::whereIn('siswa_id', $siswaIds)
+            ->whereHas('tujuanPembelajaran', fn($q) => $q->whereIn('penugasan_mengajar_id', $pmIds))
+            ->with('tujuanPembelajaran')
+            ->whereNotNull('nilai')
+            ->get()
+            ->groupBy(fn($item) => $item->tujuanPembelajaran?->penugasan_mengajar_id);
+
+        // Ambil Asesmen Harian untuk backward compatibility
         $ahRecords = NilaiAsesmenHarian::whereIn('penugasan_mengajar_id', $pmIds)
             ->whereIn('siswa_id', $siswaIds)
             ->whereNotNull('nilai')
+            ->get()
+            ->groupBy('penugasan_mengajar_id');
+
+        // Ambil Nilai Harian (NH)
+        $nhRecords = NilaiHarian::whereIn('penugasan_mengajar_id', $pmIds)
+            ->whereIn('siswa_id', $siswaIds)
             ->get()
             ->groupBy('penugasan_mengajar_id');
 
@@ -189,6 +205,11 @@ class RekapPenilaianService
             ->get()
             ->groupBy('mapel_pilihan_id');
 
+        $mapilHarianRecords = NilaiMapelPilihanHarian::where('semester_id', $semester->id)
+            ->whereIn('siswa_id', $siswaIds)
+            ->get()
+            ->groupBy('mapel_pilihan_id');
+
         // Sertakan Mapel Pilihan aktif di Kelompok C (Mata Pelajaran Pilihan)
         foreach ($mapilAnggotas as $mAnggota) {
             $mapil = $mAnggota->mapelPilihan;
@@ -245,9 +266,18 @@ class RekapPenilaianService
                     ? $naRecords[$pmId]->firstWhere('siswa_id', $siswa->id)
                     : null;
 
+                $fList = $pmId && isset($formatifRecords[$pmId])
+                    ? $formatifRecords[$pmId]->where('siswa_id', $siswa->id)
+                    : collect();
+
                 $ahList = $pmId && isset($ahRecords[$pmId])
                     ? $ahRecords[$pmId]->where('siswa_id', $siswa->id)
                     : collect();
+
+                $nhStudent = $pmId && isset($nhRecords[$pmId])
+                    ? $nhRecords[$pmId]->firstWhere('siswa_id', $siswa->id)
+                    : null;
+                $activeNh = $nhStudent && $nhStudent->nilai !== null ? (float) $nhStudent->nilai : $defaultNh;
 
                 $sumatif = $pmId && isset($sumatifRecords[$pmId])
                     ? $sumatifRecords[$pmId]->firstWhere('siswa_id', $siswa->id)
@@ -296,7 +326,11 @@ class RekapPenilaianService
                                 $sts = $sumRec ? (float) ($isGenap ? ($sumRec->sts_2 ?? 0) : ($sumRec->sts_1 ?? 0)) : 0;
                                 $sas = $sumRec ? (float) ($isGenap ? ($sumRec->sat ?? 0) : ($sumRec->sas ?? 0)) : 0;
                                 $sumatifPart = $sas ?: $sts;
-                                $scoreVal = round((($rataFormatif * $bobotTp) + ($sumatifPart * $bobotSts) + ($defaultNh * $bobotNh)) / $totalBobot, 2);
+                                $nhMapilRec = isset($mapilHarianRecords[$mapilId])
+                                    ? $mapilHarianRecords[$mapilId]->firstWhere('siswa_id', $siswa->id)
+                                    : null;
+                                $activeNhMapil = $nhMapilRec && $nhMapilRec->nilai !== null ? (float) $nhMapilRec->nilai : $defaultNh;
+                                $scoreVal = round((($rataFormatif * $bobotTp) + ($sumatifPart * $bobotSts) + ($activeNhMapil * $bobotNh)) / $totalBobot, 2);
                             }
                         }
                     }
@@ -317,12 +351,14 @@ class RekapPenilaianService
                     $rataFormatif = (float) $na->rata_formatif;
                     $sts = !is_null($na->sts) ? (float) $na->sts : null;
                     $sas = !is_null($na->sas) ? (float) $na->sas : null;
-                } elseif ($ahList->isNotEmpty() || $sumatif) {
-                    $rataFormatif = $ahList->isNotEmpty() ? round($ahList->avg('nilai'), 2) : 0;
+                } elseif ($fList->isNotEmpty() || $ahList->isNotEmpty() || $sumatif) {
+                    $rataFormatif = $fList->isNotEmpty() 
+                        ? round($fList->avg('nilai'), 2) 
+                        : ($ahList->isNotEmpty() ? round($ahList->avg('nilai'), 2) : 0);
                     $sts = $sumatif && !is_null($sumatif->sts) ? (float) $sumatif->sts : 0;
                     $sas = $sumatif && !is_null($sumatif->sas) ? (float) $sumatif->sas : 0;
                     $sumatifPart = $sas ?: $sts;
-                    $scoreVal = round((($rataFormatif * $bobotTp) + ($sumatifPart * $bobotSts) + ($defaultNh * $bobotNh)) / $totalBobot, 2);
+                    $scoreVal = round((($rataFormatif * $bobotTp) + ($sumatifPart * $bobotSts) + ($activeNh * $bobotNh)) / $totalBobot, 2);
                 }
 
                 $isBelowKkm = ($scoreVal !== null && $scoreVal < $kkm);

@@ -124,9 +124,15 @@ class PenilaianScoreCalculator
 
         // Check completeness: all defined TPs in this block must be graded, NH must be graded, and STS must be graded
         $missingItems = [];
-        foreach ($tps as $tp) {
-            if (!isset($validTpScores[$tp->id])) {
-                $missingItems[] = $tp->kode ?: ('TP ' . $tp->id);
+        if ($tps->isEmpty()) {
+            if ($bobotTp > 0) {
+                $missingItems[] = 'TP (Tujuan Pembelajaran belum dibuat)';
+            }
+        } else {
+            foreach ($tps as $tp) {
+                if (!isset($validTpScores[$tp->id])) {
+                    $missingItems[] = $tp->kode ?: ('TP ' . $tp->id);
+                }
             }
         }
         if ($nhScore === null || $nhScore === '') {
@@ -181,7 +187,7 @@ class PenilaianScoreCalculator
                 $totalBobot = 100;
             }
 
-            $rawNa = (($rataTp * $bobotTp) + ($numSumatif * $bobotSts) + ($effectiveNh * $bobotNh)) / $totalBobot;
+            $rawNa = ((($rataTp ?? 0) * $bobotTp) + ($numSumatif * $bobotSts) + ($effectiveNh * $bobotNh)) / $totalBobot;
             $nilaiAkhir = round($rawNa, 2);
             $predikat = $this->resolvePredikat($nilaiAkhir, $kkm, $cfg);
 
@@ -380,6 +386,17 @@ class PenilaianScoreCalculator
         $b1Status = $block1['status'] ?? 'belum_ada_nilai';
         $b2Status = $block2['status'] ?? 'belum_ada_nilai';
 
+        if ($b1Status === 'belum_kompeten' || $b2Status === 'belum_kompeten') {
+            return [
+                'status' => 'belum_kompeten',
+                'nilai_akhir' => null,
+                'predikat' => 'Belum Kompeten',
+                'deskripsi' => 'Nilai belum kompeten, silakan hubungi guru yang bersangkutan.',
+                'deskripsi_tertinggi' => 'Nilai belum kompeten, silakan hubungi guru yang bersangkutan.',
+                'deskripsi_terendah' => '',
+            ];
+        }
+
         if ($b1Status === 'belum_lengkap' || $b2Status === 'belum_lengkap') {
             $msg = '';
             if ($b1Status === 'belum_lengkap' && !empty($block1['deskripsi_tertinggi'])) {
@@ -390,20 +407,21 @@ class PenilaianScoreCalculator
                 $msg = 'Nilai belum lengkap, silakan hubungi guru yang bersangkutan.';
             }
 
+            $highFallback = (!empty($block2['deskripsi_tertinggi']) && !str_contains($block2['deskripsi_tertinggi'], 'belum') && !str_contains($block2['deskripsi_tertinggi'], 'Segera'))
+                ? $block2['deskripsi_tertinggi']
+                : ((!empty($block1['deskripsi_tertinggi']) && !str_contains($block1['deskripsi_tertinggi'], 'belum') && !str_contains($block1['deskripsi_tertinggi'], 'Segera')) ? $block1['deskripsi_tertinggi'] : $msg);
+
+            $lowFallback = (!empty($block2['deskripsi_terendah']) && !str_contains($block2['deskripsi_terendah'], 'belum'))
+                ? $block2['deskripsi_terendah']
+                : ((!empty($block1['deskripsi_terendah']) && !str_contains($block1['deskripsi_terendah'], 'belum')) ? $block1['deskripsi_terendah'] : '');
+
             return [
                 'status' => 'belum_lengkap',
                 'nilai_akhir' => null,
                 'predikat' => 'Belum Lengkap',
                 'deskripsi' => $msg,
-            ];
-        }
-
-        if ($b1Status === 'belum_kompeten' || $b2Status === 'belum_kompeten') {
-            return [
-                'status' => 'belum_kompeten',
-                'nilai_akhir' => null,
-                'predikat' => 'Belum Kompeten',
-                'deskripsi' => 'Nilai belum kompeten, silakan hubungi guru yang bersangkutan.',
+                'deskripsi_tertinggi' => $highFallback,
+                'deskripsi_terendah' => $lowFallback,
             ];
         }
 
@@ -424,15 +442,37 @@ class PenilaianScoreCalculator
         $predikat = $this->resolvePredikat($naSemester, $kkm, $settings);
 
         // Descriptions combined
-        $desc1 = $block1['narasi_capaian'] ?? '';
-        $desc2 = $block2['narasi_capaian'] ?? '';
-        $combinedDesc = trim($desc2 ?: $desc1);
+        $desc1 = trim($block1['narasi_capaian'] ?? '');
+        $desc2 = trim($block2['narasi_capaian'] ?? '');
+        if ($desc1 && $desc2) {
+            $combinedDesc = ($desc1 === $desc2) ? $desc1 : $desc1 . ' ' . $desc2;
+        } else {
+            $combinedDesc = $desc2 ?: $desc1;
+        }
+
+        $highest1 = trim($block1['deskripsi_tertinggi'] ?? '');
+        $highest2 = trim($block2['deskripsi_tertinggi'] ?? '');
+        if ($highest1 && $highest2) {
+            $combinedHighest = ($highest1 === $highest2) ? $highest1 : $highest1 . ' ' . $highest2;
+        } else {
+            $combinedHighest = $highest2 ?: $highest1;
+        }
+
+        $lowest1 = trim($block1['deskripsi_terendah'] ?? '');
+        $lowest2 = trim($block2['deskripsi_terendah'] ?? '');
+        if ($lowest1 && $lowest2) {
+            $combinedLowest = ($lowest1 === $lowest2) ? $lowest1 : $lowest1 . ' ' . $lowest2;
+        } else {
+            $combinedLowest = $lowest2 ?: $lowest1;
+        }
 
         return [
             'status' => 'kompeten',
             'nilai_akhir' => $naSemester,
             'predikat' => $predikat,
             'deskripsi' => $combinedDesc,
+            'deskripsi_tertinggi' => $combinedHighest,
+            'deskripsi_terendah' => $combinedLowest,
         ];
     }
 }

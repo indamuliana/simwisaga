@@ -36,7 +36,7 @@
                     @if(!$isSiswaOrOrtu)
                     <!-- Navigasi Staf / Guru / Admin -->
                     <button type="button" wire:click="setChapter('siklus-akademik')"
-                        class="w-full text-left px-3 py-2.5 rounded-xl text-xs font-semibold transition flex items-center justify-between {{ $activeChapter === 'siklus-akademik' ? 'bg-brand-600 text-white shadow-sm' : 'text-text-main hover:bg-surface-hover' }}">
+                        class="w-full text-left px-3 py-2.5 rounded-xl text-xs font-semibold transition flex items-center justify-between {{ $activeChapter === 'siklus-akademik' ? 'bg-blue-600 text-white shadow-sm' : 'text-text-main hover:bg-surface-hover' }}">
                         <div class="flex items-center gap-2.5">
                             <span>🏛️</span>
                             <span>1. Konsep Siklus Akademik</span>
@@ -45,7 +45,7 @@
                     </button>
 
                     <button type="button" wire:click="setChapter('ganti-semester')"
-                        class="w-full text-left px-3 py-2.5 rounded-xl text-xs font-semibold transition flex items-center justify-between {{ $activeChapter === 'ganti-semester' ? 'bg-brand-600 text-white shadow-sm' : 'text-text-main hover:bg-surface-hover' }}">
+                        class="w-full text-left px-3 py-2.5 rounded-xl text-xs font-semibold transition flex items-center justify-between {{ $activeChapter === 'ganti-semester' ? 'bg-blue-600 text-white shadow-sm' : 'text-text-main hover:bg-surface-hover' }}">
                         <div class="flex items-center gap-2.5">
                             <span>⚡</span>
                             <span>2. Pergantian Semester</span>
@@ -54,7 +54,7 @@
                     </button>
 
                     <button type="button" wire:click="setChapter('ganti-tahun-ajaran')"
-                        class="w-full text-left px-3 py-2.5 rounded-xl text-xs font-semibold transition flex items-center justify-between {{ $activeChapter === 'ganti-tahun-ajaran' ? 'bg-brand-600 text-white shadow-sm' : 'text-text-main hover:bg-surface-hover' }}">
+                        class="w-full text-left px-3 py-2.5 rounded-xl text-xs font-semibold transition flex items-center justify-between {{ $activeChapter === 'ganti-tahun-ajaran' ? 'bg-blue-600 text-white shadow-sm' : 'text-text-main hover:bg-surface-hover' }}">
                         <div class="flex items-center gap-2.5">
                             <span>📅</span>
                             <span>3. Pergantian Tahun Ajaran</span>
@@ -63,7 +63,7 @@
                     </button>
 
                     <button type="button" wire:click="setChapter('kenaikan-kelas')"
-                        class="w-full text-left px-3 py-2.5 rounded-xl text-xs font-semibold transition flex items-center justify-between {{ $activeChapter === 'kenaikan-kelas' ? 'bg-brand-600 text-white shadow-sm' : 'text-text-main hover:bg-surface-hover' }}">
+                        class="w-full text-left px-3 py-2.5 rounded-xl text-xs font-semibold transition flex items-center justify-between {{ $activeChapter === 'kenaikan-kelas' ? 'bg-blue-600 text-white shadow-sm' : 'text-text-main hover:bg-surface-hover' }}">
                         <div class="flex items-center gap-2.5">
                             <span>📈</span>
                             <span>4. Kenaikan Kelas &amp; Siswa Tinggal</span>
@@ -72,7 +72,7 @@
                     </button>
 
                     <button type="button" wire:click="setChapter('kelulusan-siswa')"
-                        class="w-full text-left px-3 py-2.5 rounded-xl text-xs font-semibold transition flex items-center justify-between {{ $activeChapter === 'kelulusan-siswa' ? 'bg-brand-600 text-white shadow-sm' : 'text-text-main hover:bg-surface-hover' }}">
+                        class="w-full text-left px-3 py-2.5 rounded-xl text-xs font-semibold transition flex items-center justify-between {{ $activeChapter === 'kelulusan-siswa' ? 'bg-blue-600 text-white shadow-sm' : 'text-text-main hover:bg-surface-hover' }}">
                         <div class="flex items-center gap-2.5">
                             <span>🎓</span>
                             <span>5. Kelulusan Siswa Kelas XII</span>
@@ -81,7 +81,7 @@
                     </button>
 
                     <button type="button" wire:click="setChapter('pengelolaan-alumni')"
-                        class="w-full text-left px-3 py-2.5 rounded-xl text-xs font-semibold transition flex items-center justify-between {{ $activeChapter === 'pengelolaan-alumni' ? 'bg-brand-600 text-white shadow-sm' : 'text-text-main hover:bg-surface-hover' }}">
+                        class="w-full text-left px-3 py-2.5 rounded-xl text-xs font-semibold transition flex items-center justify-between {{ $activeChapter === 'pengelolaan-alumni' ? 'bg-blue-600 text-white shadow-sm' : 'text-text-main hover:bg-surface-hover' }}">
                         <div class="flex items-center gap-2.5">
                             <span>💼</span>
                             <span>6. Pengelolaan Alumni &amp; BMW</span>
@@ -90,17 +90,28 @@
                     </button>
 
                     <button type="button" wire:click="setChapter('faq-troubleshooting')"
-                        class="w-full text-left px-3 py-2.5 rounded-xl text-xs font-semibold transition flex items-center justify-between {{ $activeChapter === 'faq-troubleshooting' ? 'bg-brand-600 text-white shadow-sm' : 'text-text-main hover:bg-surface-hover' }}">
+                        class="w-full text-left px-3 py-2.5 rounded-xl text-xs font-semibold transition flex items-center justify-between {{ $activeChapter === 'faq-troubleshooting' ? 'bg-blue-600 text-white shadow-sm' : 'text-text-main hover:bg-surface-hover' }}">
                         <div class="flex items-center gap-2.5">
                             <span>❓</span>
                             <span>7. FAQ &amp; Troubleshooting</span>
                         </div>
                         <span class="text-[10px] {{ $activeChapter === 'faq-troubleshooting' ? 'text-white/80' : 'text-text-secondary' }}">Bantuan</span>
                     </button>
+
+                    <div class="pt-2">
+                        <a href="{{ route('panduan.rapor-wikrama') }}"
+                            class="w-full text-left px-3 py-2.5 rounded-xl text-xs font-semibold transition flex items-center justify-between text-blue-600 dark:text-blue-400 bg-blue-500/5 hover:bg-blue-500/10 border border-blue-500/20">
+                            <div class="flex items-center gap-2.5">
+                                <span>📄</span>
+                                <span>Panduan Rapor Wikrama</span>
+                            </div>
+                            <span class="text-[10px] font-bold text-blue-600 dark:text-blue-400">&rarr;</span>
+                        </a>
+                    </div>
                     @else
                     <!-- Navigasi Siswa & Orang Tua -->
                     <button type="button" wire:click="setChapter('portal-siswa-ortu')"
-                        class="w-full text-left px-3 py-2.5 rounded-xl text-xs font-semibold transition flex items-center justify-between {{ $activeChapter === 'portal-siswa-ortu' ? 'bg-brand-600 text-white shadow-sm' : 'text-text-main hover:bg-surface-hover' }}">
+                        class="w-full text-left px-3 py-2.5 rounded-xl text-xs font-semibold transition flex items-center justify-between {{ $activeChapter === 'portal-siswa-ortu' ? 'bg-blue-600 text-white shadow-sm' : 'text-text-main hover:bg-surface-hover' }}">
                         <div class="flex items-center gap-2.5">
                             <span>👤</span>
                             <span>1. Panduan Portal Akun Anda</span>
@@ -108,7 +119,7 @@
                     </button>
 
                     <button type="button" wire:click="setChapter('cek-kehadiran')"
-                        class="w-full text-left px-3 py-2.5 rounded-xl text-xs font-semibold transition flex items-center justify-between {{ $activeChapter === 'cek-kehadiran' ? 'bg-brand-600 text-white shadow-sm' : 'text-text-main hover:bg-surface-hover' }}">
+                        class="w-full text-left px-3 py-2.5 rounded-xl text-xs font-semibold transition flex items-center justify-between {{ $activeChapter === 'cek-kehadiran' ? 'bg-blue-600 text-white shadow-sm' : 'text-text-main hover:bg-surface-hover' }}">
                         <div class="flex items-center gap-2.5">
                             <span>📋</span>
                             <span>2. Memeriksa Catatan Kehadiran</span>
@@ -116,7 +127,7 @@
                     </button>
 
                     <button type="button" wire:click="setChapter('unduh-rapor')"
-                        class="w-full text-left px-3 py-2.5 rounded-xl text-xs font-semibold transition flex items-center justify-between {{ $activeChapter === 'unduh-rapor' ? 'bg-brand-600 text-white shadow-sm' : 'text-text-main hover:bg-surface-hover' }}">
+                        class="w-full text-left px-3 py-2.5 rounded-xl text-xs font-semibold transition flex items-center justify-between {{ $activeChapter === 'unduh-rapor' ? 'bg-blue-600 text-white shadow-sm' : 'text-text-main hover:bg-surface-hover' }}">
                         <div class="flex items-center gap-2.5">
                             <span>📄</span>
                             <span>3. Melihat &amp; Cetak e-Rapor</span>
@@ -124,7 +135,7 @@
                     </button>
 
                     <button type="button" wire:click="setChapter('ketentuan-kenaikan-kelulusan')"
-                        class="w-full text-left px-3 py-2.5 rounded-xl text-xs font-semibold transition flex items-center justify-between {{ $activeChapter === 'ketentuan-kenaikan-kelulusan' ? 'bg-brand-600 text-white shadow-sm' : 'text-text-main hover:bg-surface-hover' }}">
+                        class="w-full text-left px-3 py-2.5 rounded-xl text-xs font-semibold transition flex items-center justify-between {{ $activeChapter === 'ketentuan-kenaikan-kelulusan' ? 'bg-blue-600 text-white shadow-sm' : 'text-text-main hover:bg-surface-hover' }}">
                         <div class="flex items-center gap-2.5">
                             <span>🎯</span>
                             <span>4. Kriteria Kenaikan &amp; Kelulusan</span>
@@ -132,7 +143,7 @@
                     </button>
 
                     <button type="button" wire:click="setChapter('tracer-study-alumni')"
-                        class="w-full text-left px-3 py-2.5 rounded-xl text-xs font-semibold transition flex items-center justify-between {{ $activeChapter === 'tracer-study-alumni' ? 'bg-brand-600 text-white shadow-sm' : 'text-text-main hover:bg-surface-hover' }}">
+                        class="w-full text-left px-3 py-2.5 rounded-xl text-xs font-semibold transition flex items-center justify-between {{ $activeChapter === 'tracer-study-alumni' ? 'bg-blue-600 text-white shadow-sm' : 'text-text-main hover:bg-surface-hover' }}">
                         <div class="flex items-center gap-2.5">
                             <span>🎓</span>
                             <span>5. Pemutakhiran Data Tamatan</span>

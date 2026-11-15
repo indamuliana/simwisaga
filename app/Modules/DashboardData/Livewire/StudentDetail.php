@@ -4,6 +4,7 @@ namespace App\Modules\DashboardData\Livewire;
 
 use App\Core\Concerns\GuardsPermission;
 use App\Modules\Akademik\Models\Jurusan;
+use App\Modules\Akademik\Models\Rayon;
 use App\Modules\Akademik\Models\Rombel;
 use App\Modules\Kesiswaan\Models\Program;
 use App\Modules\Kesiswaan\Models\Siswa;
@@ -29,7 +30,22 @@ class StudentDetail extends Component
     {
         $routeName = request()->route()->getName();
         
-        if (str_contains($routeName, 'program')) {
+        if (str_contains($routeName, 'rayon')) {
+            $user = auth()->user();
+            if (!($user && method_exists($user, 'isSuperAdmin') && $user->isSuperAdmin())) {
+                if (!($user && ($user->can('dashboard_data.rayon.lihat') || $user->can('dashboard_data.program.lihat') || $user->can('dashboard_data.dashboard.lihat')))) {
+                    $this->guard('dashboard_data.rayon.lihat');
+                }
+            }
+            $this->type = 'rayon';
+            $this->identifier = (string) $id;
+            if ($id === 'tanpa-rayon' || $id === 'tanpa_rayon' || $id === '0') {
+                $this->entityName = 'Rayon: (Tanpa Rayon)';
+            } else {
+                $rayon = Rayon::findOrFail($id);
+                $this->entityName = 'Rayon: ' . $rayon->nama;
+            }
+        } elseif (str_contains($routeName, 'program')) {
             $this->guard('dashboard_data.program.lihat');
             $this->type = 'program';
             $this->identifier = (string) $id;
@@ -62,9 +78,15 @@ class StudentDetail extends Component
 
     public function render()
     {
-        $query = Siswa::with(['rombel.jurusan', 'program'])->where('is_active', true);
+        $query = Siswa::with(['rombel.jurusan', 'program', 'rayon'])->where('status', 'aktif');
 
-        if ($this->type === 'program') {
+        if ($this->type === 'rayon') {
+            if ($this->identifier === 'tanpa-rayon' || $this->identifier === 'tanpa_rayon' || $this->identifier === '0') {
+                $query->whereNull('rayon_id');
+            } else {
+                $query->where('rayon_id', $this->identifier);
+            }
+        } elseif ($this->type === 'program') {
             $query->where('program_id', $this->identifier);
         } elseif ($this->type === 'jurusan') {
             $query->whereHas('rombel', function ($q) {

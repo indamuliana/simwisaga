@@ -7,6 +7,9 @@ use Livewire\Attributes\Lazy;
 use App\Modules\Kesiswaan\Models\Siswa;
 use App\Modules\Kepegawaian\Models\Pegawai;
 use App\Modules\Absensi\Models\AbsensiHarian;
+use App\Modules\Akademik\Models\PenugasanMengajar;
+use App\Modules\Akademik\Support\AcademicContext;
+use App\Modules\Penilaian\Models\NilaiAkhir;
 use Carbon\Carbon;
 use Illuminate\Support\Facades\DB;
 use App\Enums\StatusAbsensi;
@@ -16,101 +19,186 @@ class ExecutiveSummaryWidget extends Component
 {
     public function render()
     {
-        // 1. Demografi
+        $semester = AcademicContext::currentSemester();
+        $semesterId = $semester?->id;
+        $tahunAjaran = AcademicContext::currentTahunAjaran();
+        $tahunAjaranNama = $tahunAjaran?->nama ?? '-';
+        $semesterNama = $semester ? ucfirst($semester->semester) : '-';
+
+        // 1. Demografi Siswa & GTK
         $siswaLaki = Siswa::where('status', 'aktif')->where('jk', 'L')->count();
         $siswaPerempuan = Siswa::where('status', 'aktif')->where('jk', 'P')->count();
-        $totalGuru = Pegawai::where('is_active', true)->where('jenis_gtk', 'like', '%Guru%')->count();
-        $totalPegawaiNonGuru = Pegawai::where('is_active', true)->where('jenis_gtk', 'not like', '%Guru%')->count();
+        $totalSiswa = $siswaLaki + $siswaPerempuan;
 
-        if ($totalGuru === 0 && $totalPegawaiNonGuru === 0) {
-            $totalGuru = Pegawai::where('is_active', true)->count(); // fallback
+        $totalGuru = Pegawai::where('is_active', true)->where('jenis_gtk', 'like', '%Guru%')->count();
+        $totalTendik = Pegawai::where('is_active', true)->where('jenis_gtk', 'not like', '%Guru%')->count();
+        $totalGTK = $totalGuru + $totalTendik;
+
+        if ($totalGTK === 0) {
+            $totalGTK = Pegawai::where('is_active', true)->count();
+            $totalGuru = $totalGTK;
         }
 
-        // 2. Kehadiran (7 Hari Terakhir)
-        $sevenDaysAgo = Carbon::today()->subDays(6);
-        $absensiRaw = AbsensiHarian::select('tanggal', 'status', DB::raw('count(*) as total'))
-            ->where('tanggal', '>=', $sevenDaysAgo)
+        // 2. Kehadiran Hari Ini (atau Hari Efektif Terakhir yang Tercatat)
+        $todayStr = Carbon::today()->format('Y-m-d');
+        $hasToday = AbsensiHarian::whereDate('tanggal', $todayStr)->exists();
+
+        if ($hasToday) {
+            $targetTanggal = $todayStr;
+            $isToday = true;
+            $tanggalLabel = 'Hari ini (' . Carbon::today()->translatedFormat('d M Y') . ')';
+        } else {
+            $latestRecorded = AbsensiHarian::whereDate('tanggal', '<=', $todayStr)->max('tanggal');
+            $targetTanggal = $latestRecorded ? Carbon::parse($latestRecorded)->format('Y-m-d') : $todayStr;
+            $isToday = false;
+            $tanggalLabel = $latestRecorded ? Carbon::parse($latestRecorded)->translatedFormat('d M Y') : 'Belum Ada Presensi';
+        }
+
+        $absensiTarget = AbsensiHarian::whereDate('tanggal', $targetTanggal)->get();
+        $hadirCount = 0;
+        $sakitCount = 0;
+        $izinCount = 0;
+        $alpaCount = 0;
+
+        foreach ($absensiTarget as $item) {
+            $statusVal = $item->status instanceof StatusAbsensi ? $item->status : StatusAbsensi::tryFrom((string)$item->status);
+            if ($statusVal && $statusVal->isHadirStatistik()) {
+                $hadirCount++;
+            } elseif ($statusVal === StatusAbsensi::SAKIT) {
+                $sakitCount++;
+            } elseif ($statusVal === StatusAbsensi::IZIN) {
+                $izinCount++;
+            } elseif ($statusVal === StatusAbsensi::ALPA) {
+                $alpaCount++;
+            }
+        }
+
+        $totalTargetAbsensi = $hadirCount + $sakitCount + $izinCount + $alpaCount;
+        $persenKehadiran = $totalTargetAbsensi > 0 ? round(($hadirCount / $totalTargetAbsensi) * 100, 1) : 0;
+
+        // 3. Tren Kehadiran (7 Hari Sekolah Efektif Terakhir yang Tercatat)
+        $sevenDates = AbsensiHarian::whereDate('tanggal', '<=', $todayStr)
+            ->distinct()
+            ->orderByDesc('tanggal')
+            ->limit(7)
+            ->pluck('tanggal')
+            ->map(fn($d) => Carbon::parse($d)->format('Y-m-d'))
+            ->reverse()
+            ->values()
+            ->toArray();
+
+        // Fallback jika database belum ada data absensi
+        if (empty($sevenDates)) {
+            for ($i = 6; $i >= 0; $i--) {
+                $sevenDates[] = Carbon::today()->subDays($i)->format('Y-m-d');
+            }
+        }
+
+        $kehadiranRaw = AbsensiHarian::whereIn('tanggal', $sevenDates)
+            ->select('tanggal', 'status', DB::raw('count(*) as total'))
             ->groupBy('tanggal', 'status')
             ->get();
-            
-        $dates = [];
-        for ($i = 6; $i >= 0; $i--) {
-            $dates[] = Carbon::today()->subDays($i)->format('Y-m-d');
-        }
-        
-        $kehadiranData = [
-            'Hadir' => array_fill(0, 7, 0),
-            'Sakit' => array_fill(0, 7, 0),
-            'Izin' => array_fill(0, 7, 0),
-            'Alpa' => array_fill(0, 7, 0),
+
+        $kehadiranSeries = [
+            'Hadir' => array_fill(0, count($sevenDates), 0),
+            'Sakit' => array_fill(0, count($sevenDates), 0),
+            'Izin' => array_fill(0, count($sevenDates), 0),
+            'Alpa' => array_fill(0, count($sevenDates), 0),
         ];
 
-        foreach ($absensiRaw as $abs) {
-            $dateIndex = array_search($abs->tanggal->format('Y-m-d'), $dates);
-            if ($dateIndex !== false) {
-                // Ensure enum resolving if necessary
-                $statusKey = $abs->status instanceof StatusAbsensi ? $abs->status->value : $abs->status;
-                
-                // Map enum values if they differ slightly
-                if (in_array($statusKey, ['Hadir', 'Sakit', 'Izin', 'Alpa'])) {
-                    $kehadiranData[$statusKey][$dateIndex] = (int) $abs->total;
-                } elseif (in_array($statusKey, ['Dispen_CBT_PLH', 'Dispen_CBT_KWH'])) {
-                    $kehadiranData['Hadir'][$dateIndex] += (int) $abs->total; // Dispen counts as Hadir in this summary
+        foreach ($kehadiranRaw as $row) {
+            $dIndex = array_search(Carbon::parse($row->tanggal)->format('Y-m-d'), $sevenDates);
+            if ($dIndex !== false) {
+                $statusVal = $row->status instanceof StatusAbsensi ? $row->status : StatusAbsensi::tryFrom((string)$row->status);
+                if ($statusVal && $statusVal->isHadirStatistik()) {
+                    $kehadiranSeries['Hadir'][$dIndex] += (int) $row->total;
+                } elseif ($statusVal === StatusAbsensi::SAKIT) {
+                    $kehadiranSeries['Sakit'][$dIndex] += (int) $row->total;
+                } elseif ($statusVal === StatusAbsensi::IZIN) {
+                    $kehadiranSeries['Izin'][$dIndex] += (int) $row->total;
+                } elseif ($statusVal === StatusAbsensi::ALPA) {
+                    $kehadiranSeries['Alpa'][$dIndex] += (int) $row->total;
                 }
             }
         }
 
-        // 3. Akademik (Rata-rata Nilai Akhir per Mata Pelajaran - Top 7)
-        $akademikRaw = DB::table('nilai_akhirs')
-            ->join('penugasan_mengajars', 'nilai_akhirs.penugasan_mengajar_id', '=', 'penugasan_mengajars.id')
-            ->join('mapels', 'penugasan_mengajars.mapel_id', '=', 'mapels.id')
-            ->select('mapels.nama as mapel', DB::raw('AVG(nilai_akhirs.nilai_akhir) as rata_rata'))
-            ->groupBy('mapels.id', 'mapels.nama')
-            ->orderByDesc('rata_rata')
-            ->limit(7)
+        $kehadiranCategories = array_map(fn($d) => Carbon::parse($d)->translatedFormat('d M'), $sevenDates);
+
+        // 4. Kesiapan Rapor 9M (Data Nyata Operasional)
+        $penugasans = PenugasanMengajar::with('rombel')
+            ->when($semesterId, fn($q) => $q->where('semester_id', $semesterId))
             ->get();
 
-        $mapelLabels = $akademikRaw->pluck('mapel')->toArray();
-        $mapelScores = $akademikRaw->pluck('rata_rata')->map(fn($v) => round((float)$v, 2))->toArray();
+        $totalPenugasan = $penugasans->count();
+        $penugasanIdsWith9m = NilaiAkhir::whereIn('penugasan_mengajar_id', $penugasans->pluck('id'))
+            ->whereNotNull('data_9m')
+            ->distinct()
+            ->pluck('penugasan_mengajar_id')
+            ->flip();
 
-        // Fallback jika belum ada data nilai
-        if (empty($mapelLabels)) {
-            $mapelLabels = ['Belum ada data'];
-            $mapelScores = [0];
+        $totalTuntas = $penugasanIdsWith9m->count();
+        $persenKesiapan9m = $totalPenugasan > 0 ? round(($totalTuntas / $totalPenugasan) * 100, 1) : 0;
+
+        $rombelGroups = $penugasans->groupBy(fn($p) => $p->rombel?->nama ?? 'Umum')
+            ->map(function ($group, $rombelNama) use ($penugasanIdsWith9m) {
+                $total = $group->count();
+                $tuntas = $group->filter(fn($p) => $penugasanIdsWith9m->has($p->id))->count();
+                $persen = $total > 0 ? round(($tuntas / $total) * 100, 1) : 0;
+                return [
+                    'rombel' => $rombelNama,
+                    'total' => $total,
+                    'tuntas' => $tuntas,
+                    'persen' => $persen,
+                ];
+            })
+            ->sortBy('rombel')
+            ->values();
+
+        $chartRaporCategories = $rombelGroups->pluck('rombel')->toArray();
+        $chartRaporSeries = $rombelGroups->pluck('persen')->toArray();
+        $chartRaporDetails = $rombelGroups->map(fn($r) => $r['tuntas'] . '/' . $r['total'] . ' Mapel')->toArray();
+
+        // Fallback jika belum ada data rombel/penugasan
+        if (empty($chartRaporCategories)) {
+            $chartRaporCategories = ['Semua Rombel'];
+            $chartRaporSeries = [0];
+            $chartRaporDetails = ['0/0 Mapel'];
         }
 
-        // 4. Data Statis (Demo): Bimbingan Konseling
-        $konselingDemo = [
-            'categories' => ['Jul', 'Ags', 'Sep', 'Okt', 'Nov', 'Des'],
-            'series' => [
-                ['name' => 'Pelanggaran', 'data' => [12, 19, 15, 8, 5, 2]],
-                ['name' => 'Prestasi', 'data' => [2, 5, 8, 12, 14, 20]]
-            ]
-        ];
-
-        // 5. Data Statis (Demo): Pembayaran
-        $pembayaranDemo = [
-            'labels' => ['Lunas', 'Belum Lunas', 'Menunggak'],
-            'series' => [65, 25, 10] // Persentase
-        ];
-
         return view('livewire.executive-summary-widget', [
+            'tahunAjaranNama' => $tahunAjaranNama,
+            'semesterNama' => $semesterNama,
             'demografi' => [
+                'totalSiswa' => $totalSiswa,
                 'siswaLaki' => $siswaLaki,
                 'siswaPerempuan' => $siswaPerempuan,
+                'totalGTK' => $totalGTK,
                 'guru' => $totalGuru,
-                'tendik' => $totalPegawaiNonGuru,
+                'tendik' => $totalTendik,
             ],
-            'kehadiran' => [
-                'categories' => array_map(fn($d) => Carbon::parse($d)->translatedFormat('d M'), $dates),
-                'series' => $kehadiranData,
+            'kehadiranHariIni' => [
+                'persen' => $persenKehadiran,
+                'tanggalLabel' => $tanggalLabel,
+                'isToday' => $isToday,
+                'hadir' => $hadirCount,
+                'sakit' => $sakitCount,
+                'izin' => $izinCount,
+                'alpa' => $alpaCount,
+                'total' => $totalTargetAbsensi,
             ],
-            'akademik' => [
-                'categories' => $mapelLabels,
-                'series' => $mapelScores,
+            'kehadiranTren' => [
+                'categories' => $kehadiranCategories,
+                'series' => $kehadiranSeries,
             ],
-            'konselingDemo' => $konselingDemo,
-            'pembayaranDemo' => $pembayaranDemo,
+            'rapor9m' => [
+                'persen' => $persenKesiapan9m,
+                'totalPenugasan' => $totalPenugasan,
+                'totalTuntas' => $totalTuntas,
+                'categories' => $chartRaporCategories,
+                'series' => $chartRaporSeries,
+                'details' => $chartRaporDetails,
+                'rombelGroups' => $rombelGroups,
+            ],
         ]);
     }
 
@@ -118,14 +206,15 @@ class ExecutiveSummaryWidget extends Component
     {
         return <<<'HTML'
         <div class="space-y-6 animate-pulse">
-            <div class="grid grid-cols-1 lg:grid-cols-3 gap-6">
-                <div class="card h-80 bg-surface-hover rounded-xl border border-border"></div>
-                <div class="card h-80 bg-surface-hover rounded-xl border border-border"></div>
-                <div class="card h-80 bg-surface-hover rounded-xl border border-border"></div>
+            <div class="grid grid-cols-2 lg:grid-cols-4 gap-4">
+                <div class="h-28 bg-surface-hover rounded-xl border border-border"></div>
+                <div class="h-28 bg-surface-hover rounded-xl border border-border"></div>
+                <div class="h-28 bg-surface-hover rounded-xl border border-border"></div>
+                <div class="h-28 bg-surface-hover rounded-xl border border-border"></div>
             </div>
-            <div class="grid grid-cols-1 lg:grid-cols-2 gap-6">
-                <div class="card h-80 bg-surface-hover rounded-xl border border-border"></div>
-                <div class="card h-80 bg-surface-hover rounded-xl border border-border"></div>
+            <div class="space-y-6">
+                <div class="h-72 bg-surface-hover rounded-xl border border-border"></div>
+                <div class="h-72 bg-surface-hover rounded-xl border border-border"></div>
             </div>
         </div>
         HTML;

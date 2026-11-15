@@ -887,19 +887,33 @@ class RaporScoreService
     /**
      * Ambil Ekstrakurikuler aktif
      */
-    public function getEkskuls(int $siswaId, int $semesterId): Collection
+    public function getEkskuls(int $siswaId, int $semesterId, ?string $periodKey = null): Collection
     {
-        if (isset($this->cohortCache['ekskul'][$siswaId])) {
-            return $this->cohortCache['ekskul'][$siswaId];
+        $rawList = isset($this->cohortCache['ekskul'][$siswaId])
+            ? $this->cohortCache['ekskul'][$siswaId]
+            : EkstrakurikulerAnggota::with('ekstrakurikuler')
+                ->where('siswa_id', $siswaId)
+                ->where('semester_id', $semesterId)
+                ->where(function ($q) {
+                    $q->whereNull('status_keanggotaan')->orWhere('status_keanggotaan', 'aktif');
+                })
+                ->get();
+
+        if ($periodKey) {
+            return $rawList->map(function ($anggota) use ($periodKey) {
+                $eval = $anggota->getEvaluationForPeriod($periodKey);
+                if ($eval) {
+                    $clone = clone $anggota;
+                    $clone->nilai_angka = $eval['nilai_akhir'] ?? $clone->nilai_angka;
+                    $clone->nilai_huruf = $eval['nilai_huruf'] ?? $clone->nilai_huruf;
+                    $clone->deskripsi = $eval['deskripsi'] ?? $clone->deskripsi;
+                    return $clone;
+                }
+                return $anggota;
+            });
         }
 
-        return EkstrakurikulerAnggota::with('ekstrakurikuler')
-            ->where('siswa_id', $siswaId)
-            ->where('semester_id', $semesterId)
-            ->where(function ($q) {
-                $q->whereNull('status_keanggotaan')->orWhere('status_keanggotaan', 'aktif');
-            })
-            ->get();
+        return $rawList;
     }
 
     /**

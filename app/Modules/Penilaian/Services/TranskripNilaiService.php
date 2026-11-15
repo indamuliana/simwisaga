@@ -35,10 +35,60 @@ class TranskripNilaiService
     }
 
     /**
-     * Menentukan predikat huruf berdasarkan nilai skala 0-100.
+     * Menentukan tingkat siswa (X, XI, XII) untuk suatu semester tertentu berdasarkan riwayat rombel siswa.
+     */
+    public static function resolveTingkatForSemester(int $siswaId, ?\App\Modules\Akademik\Models\Semester $semester, ?Rombel $currentRombel = null): string
+    {
+        if (!$semester) {
+            return $currentRombel?->tingkat ?? 'X';
+        }
+
+        if ($semester->tahun_ajaran_id) {
+            // Cek riwayat kelas dari tabel rombel_siswa
+            $tingkatFromHistory = \Illuminate\Support\Facades\DB::table('rombel_siswa')
+                ->join('rombels', 'rombels.id', '=', 'rombel_siswa.rombel_id')
+                ->where('rombel_siswa.siswa_id', $siswaId)
+                ->where('rombel_siswa.tahun_ajaran_id', $semester->tahun_ajaran_id)
+                ->value('rombels.tingkat');
+
+            if ($tingkatFromHistory) {
+                return strtoupper(trim($tingkatFromHistory));
+            }
+
+            if ($currentRombel && $currentRombel->tahun_ajaran_id == $semester->tahun_ajaran_id) {
+                return strtoupper(trim($currentRombel->tingkat));
+            }
+        }
+
+        return $currentRombel?->tingkat ?? 'X';
+    }
+
+    /**
+     * Menentukan predikat huruf berdasarkan nilai skala 0-100 dan konfigurasi aktif sekolah.
      */
     public static function getPredikat(float $score): string
     {
+        $setting = \App\Modules\Penilaian\Models\PengaturanPenilaian::getActive();
+        if ($setting && !empty($setting->predikat_intervals)) {
+            $intervals = array_values($setting->predikat_intervals);
+            // Cek apakah admin mengonfigurasi huruf eksplisit (A, B, C, D)
+            $hasExplicitLetters = collect($intervals)->contains(function ($item) {
+                return in_array(strtoupper($item['label'] ?? ''), ['A', 'B', 'C', 'D']);
+            });
+
+            if ($hasExplicitLetters) {
+                usort($intervals, fn($a, $b) => ($b['min'] ?? 0) <=> ($a['min'] ?? 0));
+                foreach ($intervals as $interval) {
+                    $min = (float) ($interval['min'] ?? 0);
+                    $max = (float) ($interval['max'] ?? 100);
+                    if ($score >= $min && $score <= $max) {
+                        return strtoupper($interval['label'] ?? 'B');
+                    }
+                }
+            }
+        }
+
+        // Standar baku Transkrip Nilai Akademik Nasional
         if ($score >= 85) {
             return 'A';
         }
@@ -227,17 +277,18 @@ class TranskripNilaiService
         }
 
         // Petakan nilai Seni Budaya ke semester index
-        $currentTingkat = $siswa->rombel?->tingkat ?? 'X';
         $activeSem = \App\Modules\Akademik\Models\Semester::active()->first();
         if ($activeSem) {
-            $semesterIdToIdx[$activeSem->id] ??= self::getSemesterIndex($currentTingkat, $activeSem->semester);
+            $tingkatActive = self::resolveTingkatForSemester($siswaId, $activeSem, $siswa->rombel);
+            $semesterIdToIdx[$activeSem->id] ??= self::getSemesterIndex($tingkatActive, $activeSem->semester);
         }
 
         if ($mapelSeni) {
             foreach ($sbAnggotas as $sb) {
                 $semIdx = $semesterIdToIdx[$sb->semester_id] ?? null;
                 if (!$semIdx && $sb->semester) {
-                    $semIdx = self::getSemesterIndex($currentTingkat, $sb->semester->semester);
+                    $tingkatSb = self::resolveTingkatForSemester($siswaId, $sb->semester, $siswa->rombel);
+                    $semIdx = self::getSemesterIndex($tingkatSb, $sb->semester->semester);
                 }
                 if ($semIdx && $sb->nilai_akhir !== null) {
                     $studentScores[$mapelSeni->id][$semIdx] = (float) $sb->nilai_akhir;
@@ -250,7 +301,8 @@ class TranskripNilaiService
             $mKey = 90000 + $naMapil->mapel_pilihan_id;
             $semIdx = $semesterIdToIdx[$naMapil->semester_id] ?? null;
             if (!$semIdx && $naMapil->semester) {
-                $semIdx = self::getSemesterIndex($currentTingkat, $naMapil->semester->semester);
+                $tingkatMapil = self::resolveTingkatForSemester($siswaId, $naMapil->semester, $siswa->rombel);
+                $semIdx = self::getSemesterIndex($tingkatMapil, $naMapil->semester->semester);
             }
             if ($semIdx && $naMapil->nilai_akhir !== null) {
                 $studentScores[$mKey][$semIdx] = (float) $naMapil->nilai_akhir;
@@ -504,7 +556,8 @@ class TranskripNilaiService
                     continue;
                 }
                 $sName = $sb->semester?->semester ?? 'ganjil';
-                $semIdx = self::getSemesterIndex($tingkat, $sName);
+                $tSb = self::resolveTingkatForSemester($siswa->id, $sb->semester, $siswa->rombel);
+                $semIdx = self::getSemesterIndex($tSb, $sName);
                 $semScores[$semIdx][] = (float) $sb->nilai_akhir;
             }
 
@@ -515,7 +568,8 @@ class TranskripNilaiService
                     continue;
                 }
                 $sName = $naMapil->semester?->semester ?? 'ganjil';
-                $semIdx = self::getSemesterIndex($tingkat, $sName);
+                $tMapil = self::resolveTingkatForSemester($siswa->id, $naMapil->semester, $siswa->rombel);
+                $semIdx = self::getSemesterIndex($tMapil, $sName);
                 $semScores[$semIdx][] = (float) $naMapil->nilai_akhir;
             }
 
@@ -684,7 +738,8 @@ class TranskripNilaiService
                     continue;
                 }
                 $sName = $sb->semester?->semester ?? 'ganjil';
-                $semIdx = self::getSemesterIndex($tingkat, $sName);
+                $tSb = self::resolveTingkatForSemester($sb->siswa_id, $sb->semester, $rombel);
+                $semIdx = self::getSemesterIndex($tSb, $sName);
                 $mapelScores[$mapelSeni->id][$semIdx][] = (float) $sb->nilai_akhir;
             }
         }
@@ -713,7 +768,8 @@ class TranskripNilaiService
                 }
 
                 $sName = $naMapil->semester?->semester ?? 'ganjil';
-                $semIdx = self::getSemesterIndex($tingkat, $sName);
+                $tMapil = self::resolveTingkatForSemester($naMapil->siswa_id, $naMapil->semester, $rombel);
+                $semIdx = self::getSemesterIndex($tMapil, $sName);
                 $mapelScores[$mKey][$semIdx][] = (float) $naMapil->nilai_akhir;
             }
         }
