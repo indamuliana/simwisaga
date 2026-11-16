@@ -1,48 +1,24 @@
-        <!-- ── 12. National Education Report Card (Wikrama Royal Archive) ── -->
-        <section class="py-14 sm:py-20 lg:py-24 bg-[#FAF9F6] text-slate-800 border-t border-slate-200/80 relative overflow-hidden" id="rapor-mutu">
-            <!-- Background Ornaments -->
-            <div class="absolute inset-0 pointer-events-none z-0">
-                <div class="absolute -top-20 left-10 w-80 h-80 bg-blue-100/30 rounded-full blur-3xl"></div>
-                <div class="absolute -bottom-20 right-10 w-80 h-80 bg-amber-100/30 rounded-full blur-3xl"></div>
-            </div>
-
-            <style>
-                .rapor-progress-track {
-                    width: 100%;
-                    background-color: #e2e8f0;
-                    height: 12px;
-                    border-radius: 9999px;
-                    overflow: hidden;
-                    padding: 2px;
-                    box-shadow: inset 0 1px 2px rgba(0, 0, 0, 0.06);
-                }
-                .rapor-progress-fill {
-                    height: 100%;
-                    border-radius: 9999px;
-                    background: linear-gradient(90deg, #00519E 0%, #0284C7 50%, #1F513F 100%);
-                    width: 0%;
-                    transition: width 2.4s cubic-bezier(0.22, 1, 0.36, 1);
-                    box-shadow: 0 1px 4px rgba(0, 81, 158, 0.25);
-                }
-            </style>
+        <!-- ── 12. National Education Report Card (Validasi Mutu Resmi Kemendikdasmen) ── -->
+        <section class="py-16 sm:py-24 bg-[#FAF9F6] text-slate-800 border-t border-slate-200/80 relative overflow-hidden scroll-mt-20" id="rapor-mutu">
+            <span id="suara-komunitas" class="absolute -top-20"></span>
 
             <div class="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 relative z-10">
-                <div class="grid grid-cols-1 lg:grid-cols-12 gap-8 lg:gap-14 items-center">
+                <div class="grid grid-cols-1 lg:grid-cols-12 gap-10 lg:gap-14 items-center">
                     
-                    <!-- Progress Bar Metrics -->
-                    <div class="lg:col-span-6" data-animate="slide-right">
-                        <span class="google-tag google-tag-green shadow-xs">
-                            <span class="w-2 h-2 rounded-full bg-[#1F513F]"></span>
+                    <!-- Progress Bar Metrics (Left: 6 Cols) -->
+                    <div class="lg:col-span-6 text-left" data-animate="fade-up">
+                        <span class="inline-flex items-center gap-2 px-3 py-1 rounded-full text-xs font-semibold bg-[#EBF4FC] text-[#002752] border border-[#002752]/20 mb-3">
+                            <span class="w-1.5 h-1.5 rounded-full bg-[#002752]"></span>
                             <span>{{ $cfg['rapor_mutu']['tag'] ?? 'Rapor Pendidikan Resmi Kemendikdasmen' }}</span>
                         </span>
-                        <h2 class="text-2xl sm:text-4xl md:text-5xl font-extrabold tracking-tight text-slate-900 mt-3 sm:mt-4">
+                        <h2 class="text-2xl sm:text-4xl md:text-5xl font-extrabold tracking-tight text-slate-900 mt-2 leading-tight">
                             {{ $cfg['rapor_mutu']['title'] ?? 'Peringkat 20% Teratas Nasional' }}
                         </h2>
-                        <p class="text-xs text-slate-500 font-semibold mt-2 mb-6 sm:mb-8 font-mono-code">
+                        <p class="text-xs text-slate-500 font-medium mt-2 mb-8 font-mono">
                             *{{ $cfg['rapor_mutu']['source'] ?? 'Validasi Data Resmi: Kemendikdasmen RI (raportpendidikan.kemdikbud.go.id)' }}
                         </p>
 
-                        <!-- High-Contrast Institutional Progress Bars with Dynamic Gradient & Animation -->
+                        <!-- High-Contrast Institutional Progress Bars with Clean Solid Track -->
                         <div class="space-y-5 sm:space-y-6">
                             @foreach($cfg['rapor_mutu']['metrics'] ?? [] as $m)
                             @php
@@ -54,102 +30,48 @@
                             <div>
                                 <div class="flex items-center justify-between gap-3 text-xs sm:text-sm font-bold text-slate-900 mb-2">
                                     <span class="leading-tight">{{ $m['label'] }}</span>
-                                    <span class="text-[#00519E] font-mono-code font-bold shrink-0 text-xs sm:text-sm">
-                                        <span class="rapor-counter-val" data-target="{{ $targetNumber }}">0</span>%@if($suffixText) <span>{{ $suffixText }}</span>@endif
+                                    <span class="text-[#002752] font-mono font-bold shrink-0 text-xs sm:text-sm tabular-nums">
+                                        <span class="rapor-counter-val" data-target="{{ $targetNumber }}">{{ $targetNumber }}</span>%@if($suffixText) <span class="font-normal text-slate-500">{{ str_starts_with($suffixText, '(') ? $suffixText : '(' . $suffixText . ')' }}</span>@endif
                                     </span>
                                 </div>
-                                <div class="rapor-progress-track">
-                                    <div class="rapor-progress-fill" data-progress="{{ $m['value'] }}" style="width: 0%;"></div>
+                                <div class="w-full bg-slate-200/80 h-3 rounded-full overflow-hidden p-0.5 shadow-inner">
+                                    <div class="h-full rounded-full transition-all duration-1000 ease-out" 
+                                         style="width: {{ $m['value'] ?? 75 }}%; background-color: #002752;"></div>
                                 </div>
                             </div>
                             @endforeach
                         </div>
                     </div>
 
-                    <!-- Awards & Accreditations (Card Bento Style) -->
-                    <div class="lg:col-span-6" data-animate="slide-left" data-animate-delay="1">
-                        <div class="card-bento p-6 sm:p-8 bg-white border border-slate-200/90 shadow-[0_10px_30px_-5px_rgba(0,48,95,0.06)]">
-                            <h3 class="text-base sm:text-lg font-bold text-slate-900 mb-5 flex items-center gap-2">
-                                <span class="text-[#F5D84A] font-black text-xl">★</span> 
-                                <span>Pengakuan Mutu &amp; Akreditasi Lembaga</span>
-                            </h3>
+                    <!-- Awards & Accreditations (Card Bento Style - Right: 6 Cols) -->
+                    <div class="lg:col-span-6 text-left" data-animate="fade-up" data-animate-delay="1">
+                        <div class="p-6 sm:p-8 rounded-3xl bg-white border border-slate-200/90 shadow-xs">
+                            <div class="flex items-center gap-2.5 mb-6 pb-4 border-b border-slate-100">
+                                <div class="w-8 h-8 rounded-lg bg-[#EBF4FC] border border-[#002752]/20 flex items-center justify-center text-[#002752] shrink-0">
+                                    <svg class="w-4 h-4" fill="currentColor" viewBox="0 0 20 20">
+                                        <path fill-rule="evenodd" d="M6.267 3.455a3.066 3.066 0 001.745-.723 3.066 3.066 0 013.976 0 3.066 3.066 0 001.745.723 3.066 3.066 0 012.812 2.812c.051.643.304 1.254.723 1.745a3.066 3.066 0 010 3.976 3.066 3.066 0 00-.723 1.745 3.066 3.066 0 01-2.812 2.812 3.066 3.066 0 00-1.745.723 3.066 3.066 0 01-3.976 0 3.066 3.066 0 00-1.745-.723 3.066 3.066 0 01-2.812-2.812 3.066 3.066 0 00-.723-1.745 3.066 3.066 0 010-3.976 3.066 3.066 0 00.723-1.745 3.066 3.066 0 012.812-2.812zm7.44 5.252a1 1 0 00-1.414-1.414L9 10.586 7.707 9.293a1 1 0 00-1.414 1.414l2 2a1 1 0 001.414 0l4-4z" clip-rule="evenodd"/>
+                                    </svg>
+                                </div>
+                                <h3 class="text-base sm:text-lg font-bold text-slate-900 leading-snug">
+                                    Pengakuan Mutu &amp; Akreditasi Lembaga
+                                </h3>
+                            </div>
                             <div class="grid grid-cols-1 sm:grid-cols-2 gap-4">
                                 @foreach($cfg['rapor_mutu']['awards'] ?? [] as $aw)
-                                <div class="p-4 rounded-2xl bg-slate-50/80 border border-slate-200/90 hover:border-[#00519E] transition-colors duration-200">
-                                    <span class="inline-block px-2.5 py-0.5 rounded-full text-[10px] font-bold bg-[#EBF4FC] text-[#00519E] border border-blue-200 mb-1.5">
-                                        {{ $aw['badge'] }}
-                                    </span>
-                                    <h4 class="text-sm font-bold text-slate-900">{{ $aw['title'] }}</h4>
-                                    <p class="text-[11px] text-slate-600 font-normal mt-0.5">{{ $aw['desc'] }}</p>
+                                <div class="p-4.5 rounded-2xl bg-[#FAF9F6] border border-slate-200/80 hover:border-[#002752]/30 transition-all duration-200 flex flex-col justify-between">
+                                    <div>
+                                        <span class="inline-block px-2.5 py-0.5 rounded-full text-[10px] font-bold bg-white text-[#002752] border border-slate-200 mb-2 shadow-2xs">
+                                            {{ $aw['badge'] }}
+                                        </span>
+                                        <h4 class="text-sm font-bold text-slate-900 leading-snug">{{ $aw['title'] }}</h4>
+                                    </div>
+                                    <p class="text-xs text-slate-500 font-normal mt-2 leading-relaxed">{{ $aw['desc'] }}</p>
                                 </div>
                                 @endforeach
                             </div>
                         </div>
                     </div>
+
                 </div>
             </div>
-
-            <script>
-                (function() {
-                    function initRaporMutuAnimation() {
-                        const section = document.getElementById('rapor-mutu');
-                        if (!section) return;
-
-                        const bars = section.querySelectorAll('.rapor-progress-fill');
-                        const counters = section.querySelectorAll('.rapor-counter-val');
-                        let hasAnimated = false;
-
-                        function triggerProgressAnimation() {
-                            if (hasAnimated) return;
-                            hasAnimated = true;
-
-                            // 1. Animate Width Bar
-                            bars.forEach(function(bar) {
-                                const target = bar.getAttribute('data-progress') || '0';
-                                bar.style.width = target + '%';
-                            });
-
-                            // 2. Animate Counter Number
-                            const duration = 2400;
-                            const startTime = performance.now();
-
-                            function stepCounter(currentTime) {
-                                const elapsed = currentTime - startTime;
-                                const progress = Math.min(elapsed / duration, 1);
-                                const ease = 1 - Math.pow(1 - progress, 3); // cubic ease-out
-
-                                counters.forEach(function(counter) {
-                                    const target = parseInt(counter.getAttribute('data-target') || '0', 10);
-                                    counter.textContent = Math.round(ease * target);
-                                });
-
-                                if (progress < 1) {
-                                    requestAnimationFrame(stepCounter);
-                                }
-                            }
-                            requestAnimationFrame(stepCounter);
-                        }
-
-                        if ('IntersectionObserver' in window) {
-                            const observer = new IntersectionObserver(function(entries) {
-                                entries.forEach(function(entry) {
-                                    if (entry.isIntersecting) {
-                                        triggerProgressAnimation();
-                                        observer.unobserve(entry.target);
-                                    }
-                                });
-                            }, { threshold: 0.15, rootMargin: '0px 0px -50px 0px' });
-                            observer.observe(section);
-                        } else {
-                            triggerProgressAnimation();
-                        }
-                    }
-
-                    if (document.readyState === 'loading') {
-                        document.addEventListener('DOMContentLoaded', initRaporMutuAnimation);
-                    } else {
-                        initRaporMutuAnimation();
-                    }
-                })();
-            </script>
         </section>

@@ -1,334 +1,474 @@
-        @php
-            $rawHeroSlides = $cfg['hero']['slides'] ?? [];
-            $activeSlides = array_values(array_filter($rawHeroSlides, function($s) {
-                return !isset($s['is_active']) || (bool)$s['is_active'] === true;
-            }));
-            if (empty($activeSlides)) {
-                $activeSlides = $rawHeroSlides;
+@php
+    $heroCfg = $cfg['hero'] ?? [];
+    $rawSlides = $heroCfg['slides'] ?? [];
+    $slides = array_values(array_filter($rawSlides, fn($s) => !isset($s['is_active']) || (bool)$s['is_active'] === true));
+    
+    // Fallback jika belum ada slide terkonfigurasi di database WebSetting
+    if (empty($slides)) {
+        $slides = [
+            [
+                'id' => 'spmb',
+                'tab_name' => 'Brosur & SPMB',
+                'badge' => 'SPMB 2026/2027 Gelombang 1',
+                'title' => 'Penerimaan Peserta Didik Baru Resmi Dibuka',
+                'desc' => 'Tersedia Beasiswa Orang Tua Asuh, Beasiswa Ikatan Dinas Tahfidz, dan Beasiswa Prestasi Akademik/Non-Akademik.',
+                'media_type' => 'video_upload',
+                'image' => 'images/web/campus-environment.jpg',
+                'video_url' => 'storage/web/hero/RUE3ztebwBxCLNLCxYBSvNEffodlND19aFsFF1NI.mp4',
+                'poster' => 'images/web/campus-environment.jpg',
+                'cta_text' => 'Unduh Brosur Lengkap',
+                'cta_url' => 'http://brosur.smkwikrama1garut.sch.id/',
+                'cta_target' => '_blank',
+            ],
+            [
+                'id' => 'tech',
+                'tab_name' => 'PPLG & AI',
+                'badge' => 'Software & AI Studio',
+                'title' => 'Pengembangan Perangkat Lunak & Gim',
+                'desc' => 'Praktik langsung Machine Learning, Web Fullstack, Flutter Mobile, Database Architecture, dan UI/UX modern di lab canggih.',
+                'media_type' => 'image',
+                'image' => 'images/web/hero-pplg.jpg',
+                'video_url' => '',
+                'poster' => 'images/web/hero-pplg.jpg',
+                'cta_text' => 'Pelajari Kurikulum PPLG',
+                'cta_url' => '#jurusan',
+                'cta_target' => '_self',
+            ],
+            [
+                'id' => 'tjkt',
+                'tab_name' => 'TJKT & Siber',
+                'badge' => 'MikroTik & Huawei Academy',
+                'title' => 'Teknik Jaringan Komputer & Telekomunikasi',
+                'desc' => 'Penguasaan infrastruktur fiber optik, server Linux cloud, keamanan siber (Cybersecurity), dan sertifikasi MTCNA.',
+                'media_type' => 'image',
+                'image' => 'images/web/hero-tjkt.jpg',
+                'video_url' => '',
+                'poster' => 'images/web/hero-tjkt.jpg',
+                'cta_text' => 'Pelajari Kurikulum TJKT',
+                'cta_url' => '#jurusan',
+                'cta_target' => '_self',
+            ],
+            [
+                'id' => 'bisnis',
+                'tab_name' => 'Bisnis Digital',
+                'badge' => 'Studio Live Commerce',
+                'title' => 'Pemasaran & Bisnis Digital (PMN)',
+                'desc' => 'Strategi penjualan e-commerce, live commerce streamer, Google/Meta Ads, content creator, dan unit usaha WikraMart.',
+                'media_type' => 'image',
+                'image' => 'images/web/hero-pmn.jpg',
+                'video_url' => '',
+                'poster' => 'images/web/hero-pmn.jpg',
+                'cta_text' => 'Lihat Studio Live Commerce',
+                'cta_url' => '#jurusan',
+                'cta_target' => '_self',
+            ],
+            [
+                'id' => 'hotel',
+                'tab_name' => 'Perhotelan',
+                'badge' => 'Hospitality Bintang 5',
+                'title' => 'Perhotelan & Barista Internasional (HTL)',
+                'desc' => 'Standar pelayanan hotel bintang 5, operasional front office, mock-up suite room, banquet, barista profesional, dan table manner.',
+                'media_type' => 'image',
+                'image' => 'images/web/hero-htl.png',
+                'video_url' => '',
+                'poster' => 'images/web/hero-htl.png',
+                'cta_text' => 'Lihat Fasilitas Hotel',
+                'cta_url' => '#jurusan',
+                'cta_target' => '_self',
+            ],
+        ];
+    }
+
+    $sliderDelay = max(3, min(30, (int)($heroCfg['slider_delay'] ?? 6)));
+    $sliderAutoplay = !empty($heroCfg['slider_autoplay']);
+    $overlayOpacity = isset($heroCfg['overlay_opacity']) ? max(0, min(100, (int)$heroCfg['overlay_opacity'])) / 100 : 0.65;
+    $imageBrightness = isset($heroCfg['image_brightness']) ? max(10, min(100, (int)$heroCfg['image_brightness'])) / 100 : 0.55;
+@endphp
+
+        <!-- ── Self-Contained Hero CSS Styles ── -->
+        <style>
+            @keyframes kenBurnsSlow {
+                0% { transform: scale(1) translate(0, 0); }
+                50% { transform: scale(1.08) translate(-1%, -1%); }
+                100% { transform: scale(1) translate(0, 0); }
             }
-            $sliderDelay = isset($cfg['hero']['slider_delay']) ? max(3, min(30, (int)$cfg['hero']['slider_delay'])) : 6;
-            $sliderAutoplay = isset($cfg['hero']['slider_autoplay']) ? (bool)$cfg['hero']['slider_autoplay'] : true;
-        @endphp
+            .animate-ken-burns {
+                animation: kenBurnsSlow 20s ease-in-out infinite alternate;
+            }
+            .btn-jis-gold {
+                background-color: #F9D900;
+                color: #002752 !important;
+                font-weight: 700;
+                border-radius: 9999px;
+                padding: 0.75rem 1.75rem;
+                transition: transform 0.2s cubic-bezier(0.16, 1, 0.3, 1), background-color 0.2s, box-shadow 0.2s;
+                display: inline-flex;
+                align-items: center;
+                justify-content: center;
+                gap: 0.5rem;
+                box-shadow: 0 4px 14px rgba(249, 217, 0, 0.35);
+                text-decoration: none;
+                cursor: pointer;
+                border: 1px solid #E2B714;
+            }
+            .btn-jis-gold:hover {
+                background-color: #E2B714;
+                transform: translateY(-2px);
+                box-shadow: 0 6px 18px rgba(249, 217, 0, 0.45);
+            }
+            .btn-jis-ghost {
+                background: rgba(255, 255, 255, 0.12);
+                color: #FFFFFF !important;
+                border: 1.5px solid rgba(255, 255, 255, 0.75);
+                font-weight: 600;
+                border-radius: 9999px;
+                padding: 0.75rem 1.75rem;
+                transition: transform 0.2s cubic-bezier(0.16, 1, 0.3, 1), background-color 0.2s, border-color 0.2s;
+                display: inline-flex;
+                align-items: center;
+                justify-content: center;
+                gap: 0.5rem;
+                backdrop-filter: blur(8px);
+                -webkit-backdrop-filter: blur(8px);
+                text-decoration: none;
+                cursor: pointer;
+            }
+            .btn-jis-ghost:hover {
+                background: rgba(255, 255, 255, 0.25);
+                border-color: #FFFFFF;
+                transform: translateY(-2px);
+            }
+            .no-scrollbar::-webkit-scrollbar {
+                display: none;
+            }
+            .no-scrollbar {
+                -ms-overflow-style: none;
+                scrollbar-width: none;
+            }
+        </style>
 
-        <!-- ── 1. Hero Section: Cinematic JIS-Style Full-Bleed Slider ── -->
-        <section class="relative flex flex-col justify-end overflow-hidden bg-slate-950 text-white w-full select-none min-h-screen pt-24 sm:pt-28 lg:pt-0" 
-                 id="beranda" 
-                 style="min-height: 100vh; min-height: 100dvh; min-height: 100svh; background-color: #020617;"
+        <!-- ── Babak 1: Cinematic Full-Bleed Video & Media Slider (Tata Letak Sesuai Gambar Referensi) ── -->
+        <section class="relative min-h-screen flex items-end justify-start overflow-hidden bg-slate-950 text-white w-full select-none" 
+                 id="beranda"
+                 style="min-height: 100vh; min-height: 100dvh;"
                  x-data="{
-                     slidesCount: {{ count($activeSlides) }},
-                     activeIdx: 0,
-                     sliderDelay: {{ $sliderDelay * 1000 }},
-                     autoplayEnabled: {{ $sliderAutoplay ? 'true' : 'false' }},
+                     currentSlide: 0,
+                     totalSlides: {{ count($slides) }},
+                     autoplay: {{ $sliderAutoplay ? 'true' : 'false' }},
+                     defaultDelay: {{ $sliderDelay * 1000 }},
                      timer: null,
-
-                     touchStartX: 0,
-                     handleTouchStart(e) {
-                         if (e.changedTouches && e.changedTouches.length > 0) {
-                             this.touchStartX = e.changedTouches[0].screenX;
-                         }
-                     },
-                     handleTouchEnd(e) {
-                         if (!e.changedTouches || e.changedTouches.length === 0) return;
-                         const diff = this.touchStartX - e.changedTouches[0].screenX;
-                         if (Math.abs(diff) > 40) {
-                             if (diff > 0) this.nextSlide();
-                             else this.prevSlide();
-                         }
-                     },
-
+                     progressTimer: null,
+                     progressWidth: 0,
+                     isHovered: false,
                      init() {
-                         this.handleSlideChange();
+                         this.setupSlide();
                      },
-
-                     goToSlide(idx) {
-                         if (this.slidesCount <= 1) return;
-                         this.activeIdx = ((idx % this.slidesCount) + this.slidesCount) % this.slidesCount;
-                         this.handleSlideChange();
-                     },
-
-                     nextSlide() {
-                         this.goToSlide(this.activeIdx + 1);
-                     },
-
-                     prevSlide() {
-                         this.goToSlide(this.activeIdx - 1);
-                     },
-
-                     stopTimer() {
-                         if (this.timer) {
-                             clearTimeout(this.timer);
-                             this.timer = null;
-                         }
-                     },
-
-                     startTimer() {
-                         this.stopTimer();
-                         if (!this.autoplayEnabled || this.slidesCount <= 1) return;
-                         this.timer = setTimeout(() => {
-                             this.nextSlide();
-                         }, this.sliderDelay);
-                     },
-
-                     onVideoEnded(slideIdx) {
-                         if (this.activeIdx === slideIdx && this.autoplayEnabled) {
-                             this.nextSlide();
-                         }
-                     },
-
-                     onVideoError(slideIdx) {
-                         if (this.activeIdx === slideIdx) {
-                             this.startTimer();
-                         }
-                     },
-
-                     handleSlideChange() {
-                         this.stopTimer();
-                         
+                     setupSlide() {
+                         this.stopTimers();
+                         this.progressWidth = 0;
                          this.$nextTick(() => {
-                             // Hentikan video lain yang tidak sedang aktif
-                             const allVideos = this.$el.querySelectorAll('video');
-                             allVideos.forEach(v => {
-                                 const vIdx = parseInt(v.getAttribute('data-slide'));
-                                 if (vIdx !== this.activeIdx) {
-                                     try {
-                                         v.pause();
-                                     } catch(e) {}
+                             const vids = this.$el.querySelectorAll('video');
+                             let isCurrentVideo = false;
+
+                             vids.forEach((v) => {
+                                 const sIdx = parseInt(v.dataset.slideIndex ?? -1);
+                                 v.muted = true;
+                                 if (sIdx === this.currentSlide) {
+                                     isCurrentVideo = true;
+                                     v.currentTime = 0;
+
+                                     if (!v.dataset.hasListeners) {
+                                         v.dataset.hasListeners = 'true';
+                                         v.addEventListener('ended', () => {
+                                             if (this.currentSlide === sIdx && this.autoplay && !this.isHovered) {
+                                                 this.next();
+                                             }
+                                         });
+                                         v.addEventListener('timeupdate', () => {
+                                             if (this.currentSlide === sIdx && v.duration) {
+                                                 this.progressWidth = Math.min(100, (v.currentTime / v.duration) * 100);
+                                                 // Deteksi bila mendekati akhir durasi
+                                                 if (this.autoplay && !this.isHovered && v.currentTime >= (v.duration - 0.25)) {
+                                                     this.next();
+                                                 }
+                                             }
+                                         });
+                                         v.addEventListener('error', () => {
+                                             if (this.currentSlide === sIdx) {
+                                                 this.startImageAutoplay();
+                                             }
+                                         });
+                                     }
+
+                                     const playPromise = v.play();
+                                     if (playPromise !== undefined) {
+                                         playPromise.catch(() => {
+                                             this.startImageAutoplay();
+                                         });
+                                     }
+                                 } else {
+                                     v.pause();
                                  }
                              });
 
-                             if (!this.autoplayEnabled || this.slidesCount <= 1) return;
-
-                             // Cek apakah slide aktif adalah video
-                             const activeVideo = this.$el.querySelector(`video[data-slide='${this.activeIdx}']`);
-                             if (activeVideo) {
-                                 try {
-                                     activeVideo.currentTime = 0;
-                                     const playPromise = activeVideo.play();
-                                     if (playPromise !== undefined) {
-                                         playPromise.catch(() => {
-                                             // Fallback jika browser memblokir autoplay
-                                             this.startTimer();
-                                         });
-                                     }
-                                 } catch(e) {
-                                     this.startTimer();
-                                     return;
-                                 }
-
-                                 // Fallback safety timeout jika event ended terlewat
-                                 const setSafetyTimeout = () => {
-                                     const dur = activeVideo.duration;
-                                     if (dur && !isNaN(dur) && isFinite(dur) && dur > 0) {
-                                         this.timer = setTimeout(() => {
-                                             if (this.activeIdx === parseInt(activeVideo.getAttribute('data-slide'))) {
-                                                 this.nextSlide();
-                                             }
-                                         }, Math.ceil((dur + 0.6) * 1000));
-                                     }
-                                 };
-
-                                 if (activeVideo.readyState >= 1) {
-                                     setSafetyTimeout();
-                                 } else {
-                                     activeVideo.addEventListener('loadedmetadata', setSafetyTimeout, { once: true });
-                                     // Fallback 25s jika metadata tidak selesai dimuat
-                                     this.timer = setTimeout(() => {
-                                         this.nextSlide();
-                                     }, 25000);
-                                 }
-                             } else {
-                                 // Slide gambar: waktu tayang persis sesuai slider_delay yang diatur di admin
-                                 this.startTimer();
+                             // Jika slide aktif berupa gambar, jalankan timer default
+                             if (!isCurrentVideo && this.autoplay && this.totalSlides > 1) {
+                                 this.startImageAutoplay();
                              }
                          });
+                     },
+                     startImageAutoplay() {
+                         this.stopTimers();
+                         if (!this.autoplay || this.isHovered) return;
+                         this.progressWidth = 0;
+                         const step = 50;
+                         const inc = (step / this.defaultDelay) * 100;
+                         this.progressTimer = setInterval(() => {
+                             if (!this.isHovered) {
+                                 this.progressWidth = Math.min(100, this.progressWidth + inc);
+                             }
+                         }, step);
+                         this.timer = setInterval(() => {
+                             if (!this.isHovered) {
+                                 this.next();
+                             }
+                         }, this.defaultDelay);
+                     },
+                     stopTimers() {
+                         if (this.timer) { clearInterval(this.timer); this.timer = null; }
+                         if (this.progressTimer) { clearInterval(this.progressTimer); this.progressTimer = null; }
+                     },
+                     next() {
+                         this.currentSlide = (this.currentSlide + 1) % this.totalSlides;
+                         this.setupSlide();
+                     },
+                     prev() {
+                         this.currentSlide = (this.currentSlide - 1 + this.totalSlides) % this.totalSlides;
+                         this.setupSlide();
+                     },
+                     goTo(idx) {
+                         this.currentSlide = idx;
+                         this.setupSlide();
+                     },
+                     onMouseEnter() {
+                         this.isHovered = true;
+                     },
+                     onMouseLeave() {
+                         this.isHovered = false;
+                         const curVid = this.$el.querySelector(`video[data-slide-index='${this.currentSlide}']`);
+                         if (!curVid) {
+                             this.startImageAutoplay();
+                         } else {
+                             if (curVid.ended) {
+                                 this.next();
+                             }
+                         }
                      }
                  }"
-                 x-init="init()"
-                 @touchstart.passive="handleTouchStart($event)"
-                 @touchend.passive="handleTouchEnd($event)">
-
-            <!-- ── Background Slider Canvas: Cinematic Zoom & Grow Pan & Fade ── -->
-            <div class="absolute inset-0 z-0 pointer-events-none overflow-hidden" style="background-color: #0F172A;">
-                @foreach($activeSlides as $idx => $slide)
-                <div class="absolute inset-0 transition-opacity duration-1000 ease-in-out {{ $idx === 0 ? 'opacity-100 z-10 pointer-events-auto' : 'opacity-0 z-0 pointer-events-none' }}"
-                     :class="activeIdx === {{ $idx }} 
-                         ? 'opacity-100 z-10 pointer-events-auto' 
-                         : 'opacity-0 z-0 pointer-events-none'">
+                 @mouseenter="onMouseEnter()"
+                 @mouseleave="onMouseLeave()"
+                 aria-label="Hero Slider Media Kampus">
+            
+            <!-- ── Layer 1: Background Media Stack (Image & Muted Video) ── -->
+            <div class="absolute inset-0 z-0 overflow-hidden pointer-events-none">
+                @foreach($slides as $index => $slide)
+                @php
+                    $isSlideVideo = in_array($slide['media_type'] ?? 'image', ['video_upload', 'video_url']) && !empty($slide['video_url']);
+                    $videoSrc = $isSlideVideo 
+                        ? (class_exists(\App\Modules\AdministrasiWeb\Models\WebSetting::class)
+                            ? \App\Modules\AdministrasiWeb\Models\WebSetting::resolveImageUrl($slide['video_url'])
+                            : (str_starts_with($slide['video_url'], 'http') || str_starts_with($slide['video_url'], '/') ? $slide['video_url'] : asset('storage/' . $slide['video_url'])))
+                        : '';
+                    $posterSrc = class_exists(\App\Modules\AdministrasiWeb\Models\WebSetting::class)
+                        ? \App\Modules\AdministrasiWeb\Models\WebSetting::resolveImageUrl($slide['poster'] ?? ($slide['image'] ?? 'images/web/campus-environment.jpg'))
+                        : asset('images/web/campus-environment.jpg');
+                    $imageSrc = class_exists(\App\Modules\AdministrasiWeb\Models\WebSetting::class)
+                        ? \App\Modules\AdministrasiWeb\Models\WebSetting::resolveImageUrl($slide['image'] ?? 'images/web/campus-environment.jpg')
+                        : asset('images/web/campus-environment.jpg');
+                @endphp
+                <div x-show="currentSlide === {{ $index }}" 
+                     x-cloak
+                     x-transition:enter="transition-opacity duration-1000 ease-in-out"
+                     x-transition:enter-start="opacity-0"
+                     x-transition:enter-end="opacity-100"
+                     x-transition:leave="transition-opacity duration-1000 ease-in-out absolute inset-0"
+                     x-transition:leave-start="opacity-100"
+                     x-transition:leave-end="opacity-0"
+                     class="absolute inset-0 w-full h-full">
                     
-                    @php
-                        $isVid = in_array($slide['media_type'] ?? 'image', ['video_upload', 'video_url']) && !empty($slide['video_url']);
-                        $videoSrc = !empty($slide['video_url']) 
-                            ? (class_exists(\App\Modules\AdministrasiWeb\Models\WebSetting::class) 
-                                ? \App\Modules\AdministrasiWeb\Models\WebSetting::resolveImageUrl($slide['video_url']) 
-                                : (str_starts_with($slide['video_url'], 'http') || str_starts_with($slide['video_url'], '/') ? $slide['video_url'] : asset('storage/' . $slide['video_url']))) 
-                            : '';
-                        $posterPath = $slide['poster'] ?? ($slide['image'] ?? 'images/web/campus-environment.jpg');
-                        $posterUrl = class_exists(\App\Modules\AdministrasiWeb\Models\WebSetting::class)
-                            ? \App\Modules\AdministrasiWeb\Models\WebSetting::resolveImageUrl($posterPath, 'images/web/campus-environment.jpg')
-                            : asset('images/web/campus-environment.jpg');
-                        $imgPath = $slide['image'] ?? 'images/web/campus-environment.jpg';
-                        $imgUrl = class_exists(\App\Modules\AdministrasiWeb\Models\WebSetting::class)
-                            ? \App\Modules\AdministrasiWeb\Models\WebSetting::resolveImageUrl($imgPath, 'images/web/campus-environment.jpg')
-                            : asset('images/web/campus-environment.jpg');
-                        $globalDim = isset($cfg['hero']['image_brightness']) ? (int)$cfg['hero']['image_brightness'] : (isset($slide['dimming']) ? (int)$slide['dimming'] : 40);
-                        $globalOver = isset($cfg['hero']['overlay_opacity']) ? (int)$cfg['hero']['overlay_opacity'] : (isset($slide['overlay_opacity']) ? (int)$slide['overlay_opacity'] : 70);
-                        $sDim = number_format($globalDim / 100, 2, '.', '');
-                        $sOver = number_format($globalOver / 100, 2, '.', '');
-                    @endphp
-
-                    @if($isVid && !empty($videoSrc))
-                        <video class="w-full h-full object-cover object-center hero-media-scale"
-                               :class="activeIdx === {{ $idx }} ? 'scale-110' : 'scale-100'"
+                    @if($isSlideVideo)
+                        <!-- Video Latar Otomatis Berputar Tanpa Suara (Muted) Mengikuti Durasi Alami -->
+                        <video id="hero-slide-vid-{{ $index }}"
+                               data-slide-index="{{ $index }}"
+                               class="w-full h-full object-cover" 
                                autoplay 
                                muted 
                                playsinline 
-                               preload="auto"
-                               poster="{{ $posterUrl }}"
-                               data-slide="{{ $idx }}"
-                               x-ref="slideVideo{{ $idx }}"
-                               x-on:ended="onVideoEnded({{ $idx }})"
-                               x-on:timeupdate="if (autoplayEnabled && $el.duration && $el.currentTime >= ($el.duration - 0.25)) { onVideoEnded({{ $idx }}); }"
-                               x-on:error="onVideoError({{ $idx }})"
-                               style="filter: brightness({{ $sDim }}) contrast(1.12);">
-                            @if(str_ends_with(strtolower($videoSrc), '.webm'))
-                                <source src="{{ $videoSrc }}" type="video/webm">
-                            @elseif(str_ends_with(strtolower($videoSrc), '.mov'))
-                                <source src="{{ $videoSrc }}" type="video/quicktime">
-                            @else
-                                <source src="{{ $videoSrc }}" type="video/mp4">
-                            @endif
+                               webkit-playsinline 
+                               preload="auto" 
+                               poster="{{ $posterSrc }}"
+                               style="filter: brightness({{ $imageBrightness }}) contrast(1.1);">
+                            <source src="{{ $videoSrc }}" type="video/mp4">
+                            <!-- Fallback Image jika browser memblokir video -->
+                            <img src="{{ $posterSrc }}" alt="{{ $slide['title'] ?? 'SMK Wikrama 1 Garut' }}" class="w-full h-full object-cover">
                         </video>
                     @else
-                        <img src="{{ $imgUrl }}" 
-                             alt="{{ $slide['title'] ?? 'SMK Wikrama 1 Garut' }}" 
-                             class="w-full h-full object-cover object-center hero-media-scale"
-                             :class="activeIdx === {{ $idx }} ? 'scale-110' : 'scale-100'"
-                             @if($idx === 0) fetchpriority="high" @else loading="lazy" decoding="async" @endif
-                             style="filter: brightness({{ $sDim }}) contrast(1.12);">
+                        <!-- Foto Resolusi Tinggi dengan Efek Ken Burns Slow Zoom -->
+                        <img src="{{ $imageSrc }}" 
+                             alt="{{ $slide['title'] ?? 'Kampus SMK Wikrama 1 Garut' }}" 
+                             class="w-full h-full object-cover animate-ken-burns origin-center"
+                             loading="{{ $index === 0 ? 'eager' : 'lazy' }}"
+                             style="filter: brightness({{ $imageBrightness }}) contrast(1.15);">
                     @endif
 
-                    <!-- Dynamic Dark Overlay with Directional Gradient (Modern Navy Slate Vignette) -->
-                    <div class="absolute inset-0"
-                         style="background: linear-gradient(to top, rgba(15, 23, 42, 0.95) 0%, rgba(15, 23, 42, {{ $sOver }}) 40%, rgba(15, 23, 42, {{ max(0.15, (float)$sOver - 0.35) }}) 100%), linear-gradient(to right, rgba(15, 23, 42, 0.80) 0%, transparent 60%);"></div>
-
-                    <!-- Ambient Glow Effect per slide (Royal Navy & Luminous Gold) -->
-                    <div class="absolute -top-32 -right-20 w-[600px] h-[600px] bg-gradient-to-br from-[#00519E]/20 via-[#00305F]/15 to-transparent rounded-full blur-3xl pointer-events-none"></div>
-                    <div class="absolute top-1/2 -left-28 w-[500px] h-[500px] bg-gradient-to-tr from-[#00519E]/20 via-[#F5D84A]/10 to-transparent rounded-full blur-3xl pointer-events-none"></div>
                 </div>
                 @endforeach
+
+                <!-- ── Dynamic Asymmetric Cinematic Overlay: Bebaskan Area Tengah & Kanan Video (70% Terbuka) ── -->
+                <!-- Gradasi Gelap Khusus di Sisi Kiri (Memastikan Keterbacaan Teks Tanpa Menghalangi Video Tengah/Kanan) -->
+                <div class="absolute inset-y-0 left-0 w-full sm:w-4/5 lg:w-3/5 bg-gradient-to-r from-slate-950/95 via-slate-950/65 to-transparent pointer-events-none z-1"></div>
+                
+                <!-- Lapisan Kontras Global Halus (Terkoneksi ke Web-Admin) -->
+                <div class="absolute inset-0 pointer-events-none transition-colors duration-500 z-1" 
+                     style="background-color: rgba(2, 6, 23, {{ $overlayOpacity * 0.4 }});"></div>
+
+                <!-- Gradasi Puncak (Untuk Kontras Header Transparan) -->
+                <div class="absolute top-0 inset-x-0 h-36 bg-gradient-to-b from-black/85 via-black/35 to-transparent pointer-events-none z-1"></div>
+
+                <!-- Gradasi Dasar Sinematik (Mulus ke Konten Selanjutnya Tanpa Gelombang Putih) -->
+                <div class="absolute bottom-0 inset-x-0 h-32 bg-gradient-to-t from-slate-950/95 via-slate-950/60 to-transparent pointer-events-none z-1"></div>
             </div>
 
-            <!-- ── Bottom Content Area: JIS Reference Layout (Floating Position & Silky Smooth Slide) ── -->
-            <div class="relative z-20 w-full pb-14 sm:pb-24 lg:pb-28 mb-2 sm:mb-8 lg:mb-12 pt-4 sm:pt-6">
-                <div class="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
+            <!-- ── Layer 2: Main Slider Typography & Call-To-Actions (Bottom-Left Composition) ── -->
+            <div class="relative z-10 w-full max-w-4xl px-6 sm:px-12 lg:px-16 pt-36 pb-20 sm:pb-24 text-left">
+                
+                <!-- Slider Category Tabs (Menyatu di Atas Judul di Kluster Kiri-Bawah Sesuai Gambar) -->
+                @if(count($slides) > 1)
+                <div class="flex items-center gap-2 mb-4 overflow-x-auto no-scrollbar py-1" data-animate="fade-up">
+                    @foreach($slides as $i => $s)
+                    @php
+                        $isTabVideo = in_array($s['media_type'] ?? 'image', ['video_upload', 'video_url']) && !empty($s['video_url']);
+                    @endphp
+                    <button type="button" 
+                            @click="goTo({{ $i }})"
+                            class="px-3.5 py-1.5 rounded-full text-xs font-bold transition-all duration-300 flex items-center gap-1.5 cursor-pointer whitespace-nowrap shadow-sm"
+                            :class="currentSlide === {{ $i }} ? 'bg-[#F9D900] text-[#002752] scale-105 shadow-md font-extrabold' : 'bg-black/40 hover:bg-black/60 text-white/90 border border-white/20 backdrop-blur-md'">
+                        @if($isTabVideo)
+                            <svg class="w-3.5 h-3.5" :class="currentSlide === {{ $i }} ? 'text-[#002752]' : 'text-[#F9D900]'" fill="currentColor" viewBox="0 0 24 24">
+                                <path d="M8 5v14l11-7z"/>
+                            </svg>
+                        @endif
+                        <span>{{ $s['tab_name'] ?? ('Slide ' . ($i + 1)) }}</span>
+                    </button>
+                    @endforeach
+                </div>
+                @endif
+
+                <!-- Slide Content Carousel -->
+                @foreach($slides as $index => $slide)
+                <div x-show="currentSlide === {{ $index }}" 
+                     x-cloak
+                     x-transition:enter="transition ease-out duration-700 delay-100"
+                     x-transition:enter-start="opacity-0 translate-y-3"
+                     x-transition:enter-end="opacity-100 translate-y-0"
+                     x-transition:leave="transition ease-in duration-300 absolute inset-x-0"
+                     x-transition:leave-start="opacity-100 translate-y-0"
+                     x-transition:leave-end="opacity-0 -translate-y-3"
+                     class="w-full space-y-4">
                     
-                    <!-- Navigation Arrows (Both on the Left) & Slide Counter & Progress Track -->
-                    <div class="flex items-center justify-between pb-3.5 sm:pb-4 text-xs font-mono-code font-bold tracking-wider text-white/70">
-                        <div class="flex items-center gap-2.5 sm:gap-3.5">
-                            <!-- Nav Arrows Group (Left & Right Together on the Left) -->
-                            <div class="flex items-center gap-1.5 sm:gap-2">
-                                <button type="button" 
-                                        @click.prevent.stop="prevSlide()" 
-                                        class="w-8 h-8 sm:w-10 sm:h-10 rounded-full border border-white/30 bg-slate-950/60 hover:bg-[#00519E] hover:text-white hover:border-[#00519E] active:scale-95 text-white backdrop-blur-md flex items-center justify-center transition-all duration-200 shadow-md group cursor-pointer"
-                                        aria-label="Slide Sebelumnya"
-                                        title="Slide Sebelumnya"
-                                        data-cursor="PREV">
-                                    <svg class="w-4 h-4 sm:w-5 sm:h-5 transition-transform duration-200 group-hover:-translate-x-0.5" fill="none" viewBox="0 0 24 24" stroke="currentColor">
-                                        <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2.5" d="M15 19l-7-7 7-7" />
-                                    </svg>
-                                </button>
-                                <button type="button" 
-                                        @click.prevent.stop="nextSlide()" 
-                                        class="w-8 h-8 sm:w-10 sm:h-10 rounded-full border border-white/30 bg-slate-950/60 hover:bg-[#00519E] hover:text-white hover:border-[#00519E] active:scale-95 text-white backdrop-blur-md flex items-center justify-center transition-all duration-200 shadow-md group cursor-pointer"
-                                        aria-label="Slide Berikutnya"
-                                        title="Slide Berikutnya"
-                                        data-cursor="NEXT">
-                                    <svg class="w-4 h-4 sm:w-5 sm:h-5 transition-transform duration-200 group-hover:translate-x-0.5" fill="none" viewBox="0 0 24 24" stroke="currentColor">
-                                        <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2.5" d="M9 5l7 7-7 7" />
-                                    </svg>
-                                </button>
-                            </div>
-
-                            <!-- Slide Number Counter (e.g. 01 / 05) -->
-                            <div class="flex items-center gap-1.5 pl-0.5 sm:pl-1">
-                                <span class="text-[#F5D84A] font-extrabold" x-text="String(activeIdx + 1).padStart(2, '0')">01</span>
-                                <span class="text-white/40">/</span>
-                                <span class="text-white/80" x-text="String(slidesCount).padStart(2, '0')">{{ sprintf('%02d', count($activeSlides)) }}</span>
-                            </div>
-                        </div>
-
-                        <!-- Progress Track Dots -->
-                        <div class="flex items-center gap-1.5">
-                            @foreach($activeSlides as $sIdx => $sItem)
-                            <button type="button" 
-                                    @click="goToSlide({{ $sIdx }})"
-                                    class="h-1 rounded-full transition-all duration-300 cursor-pointer"
-                                    :class="activeIdx === {{ $sIdx }} ? 'w-7 sm:w-8 bg-[#F5D84A]' : 'w-2 bg-white/30 hover:bg-white/60'"
-                                    title="Slide {{ $sIdx + 1 }}"></button>
-                            @endforeach
-                        </div>
+                    <!-- Badge Tag Legalitas/Slide (Dark Frosted Glass Sesuai Gambar) -->
+                    <div class="inline-flex items-center gap-2 px-3.5 py-1.5 rounded-full text-xs font-semibold bg-white/10 backdrop-blur-md border border-white/20 text-white shadow-md">
+                        <span class="w-2 h-2 rounded-full bg-[#F9D900] shadow-[0_0_8px_#F9D900]"></span>
+                        <span class="tracking-wide">{{ $slide['badge'] ?? 'SPMB 2026/2027 Gelombang 1' }}</span>
                     </div>
 
-                    <!-- Hairline Divider -->
-                    <div class="border-t border-white/20 w-full pt-5 sm:pt-8">
-                        <div class="grid grid-cols-1 items-center [&>*]:col-start-1 [&>*]:row-start-1 relative w-full">
-                            @foreach($activeSlides as $idx => $slide)
-                            <div class="w-full transition-all duration-500"
-                                 style="grid-area: 1 / 1 / 2 / 2;"
-                                 x-show="activeIdx === {{ $idx }}"
-                                 x-transition:enter="transition ease-out duration-500"
-                                 x-transition:enter-start="opacity-0 translate-y-2"
-                                 x-transition:enter-end="opacity-100 translate-y-0"
-                                 {{ $idx !== 0 ? 'x-cloak' : '' }}>
-                                 
-                                <div class="grid grid-cols-1 lg:grid-cols-12 gap-5 lg:gap-8 items-center text-center lg:text-left">
-                                    <!-- Col 1: Main Title (Left) - Silky Smooth Rise -->
-                                    <div class="lg:col-span-5 transition-all duration-600 ease-out"
-                                         :class="activeIdx === {{ $idx }} ? 'opacity-100 translate-y-0' : 'opacity-0 translate-y-4'">
-                                        <div class="inline-flex items-center gap-2 px-3 py-1 rounded-full bg-white/15 border border-white/25 text-[#F5D84A] text-[10px] sm:text-xs font-bold uppercase tracking-wider mb-2.5 backdrop-blur-xs mx-auto lg:mx-0">
-                                            <span class="w-1.5 h-1.5 rounded-full bg-[#F5D84A] animate-pulse"></span>
-                                            <span>{{ !empty($slide['badge']) ? $slide['badge'] : 'Learning in Indonesia to be Best for the World' }}</span>
-                                        </div>
-                                        <h1 class="text-xl sm:text-3xl lg:text-5xl font-extrabold text-white tracking-tight leading-[1.18] break-words drop-shadow-[0_2px_8px_rgba(0,0,0,0.6)]">
-                                            {{ $slide['title'] }}
-                                        </h1>
-                                    </div>
+                    <!-- Grand Headline Dinamis dari Pengaturan Web-Admin -->
+                    <h1 class="text-3xl sm:text-5xl lg:text-6xl font-extrabold tracking-tight text-white leading-[1.12] drop-shadow-xl max-w-2xl">
+                        {{ $slide['title'] ?? 'Penerimaan Peserta Didik Baru Resmi Dibuka' }}
+                    </h1>
 
-                                    <!-- Col 2: Description (Middle) - Staggered Silky Smooth Rise -->
-                                    <div class="lg:col-span-4 transition-all duration-600 ease-out delay-75"
-                                         :class="activeIdx === {{ $idx }} ? 'opacity-100 translate-y-0' : 'opacity-0 translate-y-4'">
-                                        <p class="text-slate-200 text-xs sm:text-sm lg:text-base leading-relaxed font-normal drop-shadow-[0_1px_4px_rgba(0,0,0,0.6)] max-w-lg mx-auto lg:mx-0">
-                                            {{ $slide['desc'] }}
-                                        </p>
-                                    </div>
+                    <!-- Deskripsi Slide Dinamis -->
+                    <p class="text-sm sm:text-base md:text-lg text-slate-200 leading-relaxed font-normal max-w-xl drop-shadow-md">
+                        {{ $slide['desc'] ?? 'Tersedia Beasiswa Orang Tua Asuh, Beasiswa Ikatan Dinas Tahfidz, dan Beasiswa Prestasi Akademik/Non-Akademik.' }}
+                    </p>
 
-                                    <!-- Col 3: CTA Button (Right) - JIS Sun Gold Action -->
-                                    <div class="lg:col-span-3 flex justify-center lg:justify-end items-center transition-all duration-500 ease-out delay-150 pt-1 lg:pt-0"
-                                         :class="activeIdx === {{ $idx }} ? 'opacity-100 translate-y-0 scale-100' : 'opacity-0 translate-y-3 scale-95'">
-                                        <a href="{{ $slide['cta_url'] ?? '#' }}" 
-                                           target="{{ $slide['cta_target'] ?? '_self' }}" 
-                                           rel="{{ ($slide['cta_target'] ?? '_self') === '_blank' ? 'noopener noreferrer' : '' }}"
-                                           class="btn-jis-pill-gold !py-2.5 sm:!py-3.5 !px-5 sm:!px-8 text-xs sm:text-sm font-bold shadow-2xl hover:scale-105 active:scale-95 transition-all duration-300 inline-flex items-center gap-2 cursor-pointer group/btn"
-                                           data-cursor="EXPLORE">
-                                            <span>{{ $slide['cta_text'] ?? 'Pelajari Selengkapnya' }}</span>
-                                            <span class="text-base font-bold group-hover/btn:translate-x-1.5 transition-transform">&rarr;</span>
-                                        </a>
-                                    </div>
-                                </div>
+                    <!-- Tombol Aksi (Kuning Emas Solid + Kaca Ghost Melengkung Sesuai Gambar) -->
+                    <div class="pt-2 flex flex-wrap items-center gap-3 sm:gap-4">
+                        <a href="{{ $slide['cta_url'] ?? 'http://brosur.smkwikrama1garut.sch.id/' }}" 
+                           target="{{ $slide['cta_target'] ?? '_blank' }}" 
+                           rel="{{ ($slide['cta_target'] ?? '_blank') === '_blank' ? 'noopener noreferrer' : '' }}" 
+                           class="btn-jis-gold text-sm sm:text-base font-bold shadow-xl group">
+                            <span>{{ $slide['cta_text'] ?? 'Unduh Brosur Lengkap' }}</span>
+                            <span class="group-hover:translate-x-1 transition-transform">&rarr;</span>
+                        </a>
 
-                            </div>
-                            @endforeach
-                        </div>
+                        <a href="#filosofi" 
+                           class="btn-jis-ghost text-sm sm:text-base font-semibold group">
+                            <span>Jelajahi Profil &amp; Nilai</span>
+                            <svg class="w-4 h-4 group-hover:translate-y-0.5 transition-transform text-white/80" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                                <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2.5" d="M19 9l-7 7-7-7" />
+                            </svg>
+                        </a>
                     </div>
 
                 </div>
+                @endforeach
+
             </div>
 
-            <!-- ── Organic Wave SVG Divider into #filosofi (#FFFFFF) ── -->
-            <div class="absolute bottom-0 inset-x-0 w-full overflow-hidden leading-none z-10 pointer-events-none">
-                <svg class="relative block w-full h-8 sm:h-14 lg:h-16 text-white" viewBox="0 0 1200 120" preserveAspectRatio="none" fill="currentColor">
-                    <path d="M0,0 C150,90 350,-40 500,45 C650,130 900,10 1200,50 L1200,120 L0,120 Z"></path>
-                </svg>
+            <!-- ── Navigation Arrow Controls (Left & Right Screen Edges) ── -->
+            @if(count($slides) > 1)
+            <div class="absolute inset-y-0 left-3 sm:left-6 flex items-center z-20 pointer-events-none">
+                <button type="button" 
+                        @click="prev()"
+                        class="w-10 h-10 sm:w-12 sm:h-12 rounded-full bg-black/30 hover:bg-black/60 text-white border border-white/20 backdrop-blur-md flex items-center justify-center transition-all hover:scale-110 active:scale-95 cursor-pointer pointer-events-auto shadow-lg"
+                        aria-label="Slide Sebelumnya">
+                    <svg class="w-5 h-5 sm:w-6 sm:h-6" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                        <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2.5" d="M15 19l-7-7 7-7" />
+                    </svg>
+                </button>
             </div>
+
+            <div class="absolute inset-y-0 right-3 sm:right-6 flex items-center z-20 pointer-events-none">
+                <button type="button" 
+                        @click="next()"
+                        class="w-10 h-10 sm:w-12 sm:h-12 rounded-full bg-black/30 hover:bg-black/60 text-white border border-white/20 backdrop-blur-md flex items-center justify-center transition-all hover:scale-110 active:scale-95 cursor-pointer pointer-events-auto shadow-lg"
+                        aria-label="Slide Berikutnya">
+                    <svg class="w-5 h-5 sm:w-6 sm:h-6" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                        <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2.5" d="M9 5l7 7-7 7" />
+                    </svg>
+                </button>
+            </div>
+            @endif
+
+            <!-- ── Bottom Slide Progress Indicator & Scroll Down Chevron ── -->
+            <div class="absolute bottom-4 sm:bottom-6 inset-x-0 flex items-center justify-between px-6 sm:px-12 lg:px-16 pointer-events-none z-20">
+                @if(count($slides) > 1)
+                <!-- Slide Dots with Active Progress Timer (Sinkron dengan Waktu Riil Video / Gambar) -->
+                <div class="flex items-center gap-2 pointer-events-auto bg-black/40 px-3 py-1.5 rounded-full border border-white/15 backdrop-blur-md">
+                    @foreach($slides as $idx => $s)
+                    <button type="button" 
+                            @click="goTo({{ $idx }})"
+                            class="relative h-2 rounded-full transition-all duration-300 overflow-hidden cursor-pointer"
+                            :class="currentSlide === {{ $idx }} ? 'w-8 bg-white/40' : 'w-2 bg-white/30 hover:bg-white/60'"
+                            title="Buka Slide {{ $idx + 1 }}">
+                        <div x-show="currentSlide === {{ $idx }}" 
+                             class="h-full bg-[#F9D900] transition-all duration-75"
+                             :style="`width: ${progressWidth}%`"></div>
+                    </button>
+                    @endforeach
+                </div>
+                @else
+                <div></div>
+                @endif
+
+                <!-- Animated Bouncing Down Chevron pointing to #filosofi -->
+                <a href="#filosofi" class="pointer-events-auto p-2 text-white/70 hover:text-white transition-colors animate-bounce flex items-center gap-1.5 text-xs font-semibold" aria-label="Scroll ke konten berikutnya">
+                    <span class="hidden sm:inline">Jelajahi</span>
+                    <svg class="w-4 h-4" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                        <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2.5" d="M19 14l-7 7m0 0l-7-7m7 7V3" />
+                    </svg>
+                </a>
+            </div>
+
         </section>
-

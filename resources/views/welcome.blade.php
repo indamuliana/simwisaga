@@ -726,49 +726,6 @@
             box-shadow: 0 10px 24px rgba(0, 81, 158, 0.15) !important;
         }
 
-        /* ── JIS Signature Floating Quick-Action Dock (Desktop XL+) ── */
-        .hp-sticky-dock { display: none !important; }
-        @media (min-width: 1280px) {
-            .hp-sticky-dock {
-                position: fixed;
-                right: 0;
-                top: 50%;
-                transform: translateY(-50%);
-                z-index: 45;
-                display: flex !important;
-                flex-direction: column;
-                gap: 8px;
-            }
-        }
-        .hp-sticky-btn {
-            display: flex;
-            align-items: center;
-            gap: 12px;
-            background: var(--wikrama-navy);
-            color: #FFFFFF;
-            padding: 11px 18px;
-            border-top-left-radius: 9999px;
-            border-bottom-left-radius: 9999px;
-            box-shadow: -4px 6px 20px rgba(0, 48, 95, 0.25);
-            font-size: 0.75rem;
-            font-weight: 700;
-            text-decoration: none;
-            transition: transform 0.3s var(--ease-editorial), background-color 0.25s, box-shadow 0.3s;
-            transform: translateX(calc(100% - 46px));
-        }
-        .hp-sticky-btn:hover {
-            transform: translateX(0);
-            background: var(--wikrama-navy-dark);
-            box-shadow: -8px 10px 28px rgba(0, 48, 95, 0.38);
-        }
-        .hp-sticky-btn.highlight {
-            background: var(--wikrama-gold);
-            color: #00305F;
-        }
-        .hp-sticky-btn.highlight:hover {
-            background: var(--wikrama-gold-hover);
-            color: #002244;
-        }
 
         /* ── Natural Spring Scroll-Reveal Animations ── */
         [data-animate] {

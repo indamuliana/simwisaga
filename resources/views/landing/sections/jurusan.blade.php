@@ -60,10 +60,6 @@
                 
                 <!-- Section Header (Editorial, Tenang & Berwibawa) -->
                 <div class="max-w-3xl mb-12 sm:mb-16 text-left" data-animate="fade-up">
-                    <span class="inline-flex items-center gap-2 px-3 py-1 rounded-full text-xs font-semibold bg-[#EBF4FC] text-[#002752] border border-[#002752]/20 mb-3">
-                        <span class="w-1.5 h-1.5 rounded-full bg-[#002752]"></span>
-                        <span>Program Keahlian Terakreditasi Unggul</span>
-                    </span>
                     <h2 class="text-2xl sm:text-4xl md:text-5xl font-extrabold tracking-tight text-slate-900 leading-tight">
                         4 Pilihan Karir Masa Depan di Wikrama
                     </h2>
@@ -91,24 +87,15 @@
                             </div>
                         </div>
 
-                        <!-- Ikon Frosted Glass Melayang di Pojok Kanan Atas (Kontras Tinggi dengan Dark Glass) -->
-                        <div class="absolute top-5 right-5 z-20 pointer-events-none">
-                            <div class="w-10 h-10 rounded-full bg-slate-950/50 backdrop-blur-md border border-white/30 flex items-center justify-center text-white shadow-md group-hover:bg-slate-950/70 transition-all">
-                                {!! $dept['icon_svg'] !!}
-                            </div>
-                        </div>
 
                         <!-- Konten Kartu di Bagian Bawah (Sesuai Hirarki Referensi Gambar) -->
                         <div class="relative z-10 flex flex-col justify-end space-y-3.5 text-left w-full mt-auto">
                             
-                            <!-- Baris Judul & Badge Kode Jurusan / Akreditasi -->
-                            <div class="flex items-start justify-between gap-2.5">
+                            <!-- Baris Judul Jurusan -->
+                            <div>
                                 <h3 class="text-xl sm:text-2xl font-extrabold text-white leading-tight tracking-tight">
                                     {{ $dept['name'] }}
                                 </h3>
-                                <div class="shrink-0 px-2.5 py-1 rounded-full bg-white/20 backdrop-blur-md border border-white/25 text-white text-xs font-mono font-bold shadow-xs">
-                                    {{ $dept['code'] }} &bull; A
-                                </div>
                             </div>
 
                             <!-- Deskripsi Singkat 2-3 Baris Tenang & Nyaman Dibaca -->
@@ -116,26 +103,11 @@
                                 {{ $dept['desc'] }}
                             </p>
 
-                            <!-- 3 Lencana Pill Kaca Frosted (Rating, Fokus, Lisensi) -->
-                            <div class="flex flex-wrap items-center gap-1.5 pt-0.5">
-                                <span class="inline-flex items-center gap-1 px-2.5 py-1 rounded-full bg-white/15 backdrop-blur-sm border border-white/20 text-[11px] font-medium text-white/95">
-                                    <svg class="w-3 h-3 text-[#F9D900]" fill="currentColor" viewBox="0 0 20 20">
-                                        <path d="M9.049 2.927c.3-.921 1.603-.921 1.902 0l1.07 3.292a1 1 0 00.95.69h3.462c.969 0 1.371 1.24.588 1.81l-2.8 2.034a1 1 0 00-.364 1.118l1.07 3.292c.3.921-.755 1.688-1.54 1.118l-2.8-2.034a1 1 0 00-1.175 0l-2.8 2.034c-.784.57-1.838-.197-1.539-1.118l1.07-3.292a1 1 0 00-.364-1.118L2.98 8.72c-.783-.57-.38-1.81.588-1.81h3.461a1 1 0 00.951-.69l1.07-3.292z"/>
-                                    </svg>
-                                    <span>{{ $dept['tag_rating'] }}</span>
-                                </span>
-                                <span class="px-2.5 py-1 rounded-full bg-white/15 backdrop-blur-sm border border-white/20 text-[11px] font-medium text-white/95">
-                                    {{ $dept['tag_focus'] }}
-                                </span>
-                                <span class="px-2.5 py-1 rounded-full bg-white/15 backdrop-blur-sm border border-white/20 text-[11px] font-medium text-white/95">
-                                    {{ $dept['tag_cert'] }}
-                                </span>
-                            </div>
-
-                            <!-- Tombol Putih Penuh ("Book now" Style -> "Lihat Detail Jurusan") -->
+                            <!-- Tombol Solid Google Primary Blue ("Lihat Detail Jurusan") -->
                             <div class="pt-2">
                                 <a href="{{ $dept['url'] }}" 
-                                   class="w-full py-3 px-4 rounded-full bg-white text-slate-900 text-xs sm:text-sm font-bold text-center block shadow-md hover:bg-slate-100 hover:shadow-lg hover:scale-[1.02] active:scale-[0.98] transition-all">
+                                   style="background-color: #1A73E8;"
+                                   class="w-full py-3 px-4 rounded-full text-white text-xs sm:text-sm font-bold text-center block shadow-md hover:bg-[#1557B0] hover:shadow-lg hover:scale-[1.02] active:scale-[0.98] transition-all">
                                     Lihat Detail Jurusan
                                 </a>
                             </div>

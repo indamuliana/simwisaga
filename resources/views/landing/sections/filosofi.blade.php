@@ -1,91 +1,50 @@
         <!-- ── 2. "Welcome to Wikrama" Signature Manifesto & Link & Match BMW Section ── -->
-        <section class="pt-0 pb-6 sm:pb-8 lg:pb-10 relative overflow-hidden bg-white text-slate-800" id="filosofi">
+        <section class="py-16 sm:py-20 relative overflow-hidden bg-white text-slate-800 border-b border-slate-200/80 scroll-mt-20" id="filosofi">
             
-            <!-- ── JIS Animated SVG Botanical Vine Divider ── -->
-            <div class="relative w-full overflow-hidden py-4 sm:py-6 flex justify-center items-center pointer-events-none">
-                <svg class="jis-vine-svg w-full max-w-4xl h-16 sm:h-20" viewBox="0 0 1000 120" fill="none" xmlns="http://www.w3.org/2000/svg">
-                    <!-- Main Vine Stem -->
-                    <path class="jis-vine-path" 
-                          d="M0,60 Q250,15 500,60 T1000,60" 
-                          stroke="#1F513F"
-                          stroke-width="2.5" 
-                          stroke-linecap="round" 
-                          stroke-dasharray="1200" 
-                          stroke-dashoffset="1200" />
-                    <!-- Tropical Leaves & Gold Accents -->
-                    <path class="jis-vine-leaf"
-                          d="M250,35 C240,15 270,10 275,30 C275,45 255,45 250,35 Z" 
-                          fill="rgba(31, 81, 63, 0.2)"
-                          stroke="#1F513F"
-                          stroke-width="1.5" />
-                    <path class="jis-vine-leaf"
-                          d="M510,50 C525,30 550,40 545,55 C538,70 515,65 510,50 Z" 
-                          fill="rgba(245, 216, 74, 0.35)"
-                          stroke="#E2B714"
-                          stroke-width="1.5" />
-                    <path class="jis-vine-leaf"
-                          d="M750,45 C735,25 765,20 770,40 C770,55 755,55 750,45 Z" 
-                          fill="rgba(31, 81, 63, 0.2)"
-                          stroke="#1F513F"
-                          stroke-width="1.5" />
-                </svg>
-            </div>
-
-            <!-- Background Atmospheric Ornaments (Crisp White + Subtle Navy & Forest Accents) -->
-            <div class="absolute inset-0 z-0 pointer-events-none">
-                <div class="absolute top-10 right-1/4 w-96 h-96 bg-blue-100/30 rounded-full blur-3xl"></div>
-                <div class="absolute bottom-0 left-1/4 w-96 h-96 bg-emerald-100/25 rounded-full blur-3xl"></div>
-                <!-- Subtle dotted pattern -->
-                <div class="absolute inset-0 bg-[radial-gradient(#E2E8F0_1px,transparent_1px)] [background-size:28px_28px] opacity-50"></div>
-            </div>
-
-            <div class="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 text-center relative z-10" data-animate>
-                <!-- ── Manifesto Pendidikan Wikrama (Floating Pure White Card + JIS Navy Accent) ── -->
-                <div class="relative p-6 sm:p-9 lg:p-10 rounded-3xl bg-white border border-slate-200/90 border-t-4 border-t-[#00519E] text-center w-full max-w-4xl mx-auto shadow-[0_12px_36px_-8px_rgba(0,48,95,0.06)] overflow-hidden group">
-                    <!-- Subtle Watermark Quote Icon Ornament -->
-                    <div class="absolute -top-4 -right-2 w-24 h-24 text-blue-900/5 pointer-events-none select-none font-serif text-8xl font-black">
-                        &rdquo;
-                    </div>
-
+            <div class="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 text-center relative z-10" data-animate="fade-up">
+                
+                <!-- ── Manifesto Pendidikan Wikrama (Dignified Architectural Plate) ── -->
+                <div class="relative p-6 sm:p-10 lg:p-12 rounded-3xl bg-[#FAF9F6] border border-slate-200/90 text-center w-full max-w-4xl mx-auto shadow-xs overflow-hidden">
+                    
                     <!-- Header Pill Badge -->
-                    <div class="inline-flex items-center gap-2 px-3.5 py-1.5 rounded-full bg-[#EBF4FC] border border-blue-200 text-[#00519E] text-[11px] sm:text-xs font-bold uppercase tracking-wider mb-5 mx-auto">
-                        <span class="w-2 h-2 rounded-full bg-[#00519E] animate-ping"></span>
+                    <div class="inline-flex items-center gap-2 px-3.5 py-1.5 rounded-full bg-white border border-slate-200 text-[#002752] text-xs font-semibold mb-6 mx-auto shadow-2xs">
+                        <span class="w-1.5 h-1.5 rounded-full bg-[#002752]"></span>
                         <span>{{ $cfg['welcome']['tag'] ?? 'Manifesto Pendidikan Wikrama' }}</span>
                     </div>
 
-                    <!-- Core Quote Text (Sedang, Proporsional, Nyaman Dibaca - Rata Tengah) -->
-                    <blockquote class="font-manifesto italic text-base sm:text-xl md:text-2xl lg:text-[1.65rem] text-[#00305F] leading-relaxed font-semibold tracking-tight max-w-3xl mx-auto text-center">
+                    <!-- Core Quote Text (Tenang, Proporsional, Nyaman Dibaca) -->
+                    <blockquote class="text-lg sm:text-2xl md:text-[1.65rem] text-[#002752] leading-relaxed font-bold tracking-tight max-w-3xl mx-auto text-center">
                         &ldquo;{{ $cfg['welcome']['quote'] ?? 'Di SMK Wikrama 1 Garut, kami mempersiapkan anak bangsa dari berbagai daerah untuk menjadi yang terbaik dalam keahlian yang mereka tekuni, sekaligus menjadi pribadi yang membawa kemaslahatan terbaik bagi keluarga, masyarakat, dan masa depan peradaban.' }}&rdquo;
                     </blockquote>
 
-                    <!-- Author & Institutional Signature (Rata Tengah di Mobile) -->
-                    <div class="mt-6 sm:mt-8 pt-5 border-t border-slate-100 flex flex-col sm:flex-row items-center justify-between gap-4 max-w-3xl mx-auto text-center sm:text-left">
-                        <div class="flex flex-col sm:flex-row items-center gap-3.5 text-center sm:text-left">
-                            <div class="w-10 h-10 rounded-full bg-[#EBF4FC] border border-blue-200 flex items-center justify-center text-[#00519E] font-bold text-sm shrink-0 shadow-xs">
-                                <svg class="w-5 h-5 text-[#00519E]" fill="none" viewBox="0 0 24 24" stroke="currentColor">
-                                    <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 14l9-5-9-5-9 5 9 5z" />
-                                    <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 14l6.16-3.422a12.083 12.083 0 01.665 6.479A11.952 11.952 0 0012 20.055a11.952 11.952 0 00-6.824-2.998 12.078 12.078 0 01.665-6.479L12 14z" />
-                                </svg>
+                    <!-- Author & Institutional Signature -->
+                    <div class="mt-8 pt-6 border-t border-slate-200/80 flex flex-col sm:flex-row items-center justify-between gap-4 max-w-3xl mx-auto text-center sm:text-left">
+                        <div class="flex items-center gap-4 text-left">
+                            <div class="w-12 h-12 rounded-full overflow-hidden bg-slate-100 border border-slate-200 shrink-0 shadow-xs">
+                                <img src="{{ asset('images/landing/kepala-sekolah-kunedi.png') }}" 
+                                     alt="Kunedi, S.Si." 
+                                     class="w-full h-full object-cover object-top"
+                                     onerror="this.src='{{ asset('images/web/profile-leader.png') }}'">
                             </div>
-                            <div class="text-center sm:text-left">
+                            <div>
                                 <span class="text-slate-900 font-bold text-sm sm:text-base tracking-wide block leading-tight">
                                     {{ $cfg['welcome']['author'] ?? 'Kunedi, S.Si. — Kepala SMK Wikrama 1 Garut' }}
                                 </span>
                                 <span class="text-slate-500 text-xs font-medium block mt-0.5">Pemimpin Lembaga &bull; SMK Wikrama 1 Garut</span>
                             </div>
                         </div>
-                        <span class="text-[11px] font-bold text-[#1F513F] bg-[#E8F3EE] px-4 py-1.5 rounded-full border border-emerald-300/40 shrink-0 mx-auto sm:mx-0">
+                        <span class="text-xs font-bold text-[#002752] bg-white px-4 py-1.5 rounded-full border border-slate-200/80 shrink-0 shadow-2xs">
                             Piagam Integritas Karakter
                         </span>
                     </div>
                 </div>
 
                 <!-- ── Link & Match Industri • BMW (Bekerja, Melanjutkan, Wirausaha) ── -->
-                <div class="mt-8 sm:mt-10 pt-6 border-t border-slate-200/80 w-full" data-animate>
+                <div class="mt-12 pt-8 border-t border-slate-200/80 w-full" data-animate="fade-up">
                     @if(!empty(trim($cfg['mitra']['tag'] ?? '')))
-                    <div class="text-center mb-3 sm:mb-4">
-                        <span class="google-tag google-tag-blue mb-1 shadow-xs">
-                            <span class="w-2 h-2 rounded-full bg-[#00519E]"></span>
+                    <div class="text-center mb-4">
+                        <span class="inline-flex items-center gap-2 px-3 py-1 rounded-full text-xs font-semibold bg-[#FAF9F6] text-slate-700 border border-slate-200">
+                            <span class="w-1.5 h-1.5 rounded-full bg-[#002752]"></span>
                             <span>{{ $cfg['mitra']['tag'] }}</span>
                         </span>
                     </div>
@@ -118,7 +77,7 @@
                                     title="{{ $mName }}">
                                     <img src="{{ $mImg }}" 
                                          alt="{{ $mName }}" 
-                                         class="partner-logo-img"
+                                         class="partner-logo-img h-8 sm:h-9 w-auto object-contain grayscale hover:grayscale-0 opacity-70 hover:opacity-100 transition-all duration-300"
                                          loading="lazy"
                                          decoding="async">
                                     <!-- Tooltip Hover -->
@@ -144,7 +103,7 @@
                                     title="{{ $mName }}">
                                     <img src="{{ $mImg }}" 
                                          alt="{{ $mName }}" 
-                                         class="partner-logo-img"
+                                         class="partner-logo-img h-8 sm:h-9 w-auto object-contain grayscale hover:grayscale-0 opacity-70 hover:opacity-100 transition-all duration-300"
                                          loading="lazy"
                                          decoding="async">
                                     <!-- Tooltip Hover -->
