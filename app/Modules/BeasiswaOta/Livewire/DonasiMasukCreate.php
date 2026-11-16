@@ -124,13 +124,16 @@ class DonasiMasukCreate extends Component
     }
 
     /**
-     * Dapatkan daftar bulan yang sudah dibayar oleh donatur pada tahun ajaran tertentu.
+     * Dapatkan daftar bulan yang sudah dibayar oleh donatur pada tahun ajaran tertentu (dan pos kelompok jika diberikan).
      */
-    public static function getPaidMonthsForDonatur(int $donaturId, ?int $tahunAjaranId = null): array
+    public static function getPaidMonthsForDonatur(int $donaturId, ?int $tahunAjaranId = null, ?int $kelompokId = null): array
     {
         $query = DonasiMasuk::where('donatur_id', $donaturId);
         if ($tahunAjaranId) {
             $query->where('tahun_ajaran_id', $tahunAjaranId);
+        }
+        if ($kelompokId !== null) {
+            $query->where('kelompok_id', $kelompokId);
         }
         $donasis = $query->whereNotNull('periode_bulan')->get(['periode_bulan']);
 
@@ -142,7 +145,7 @@ class DonasiMasukCreate extends Component
                 }
             }
         }
-        return array_unique($paid);
+        return array_values(array_unique($paid));
     }
 
     /**
@@ -220,7 +223,7 @@ class DonasiMasukCreate extends Component
 
         if ($this->modeDonasi === 'perorangan') {
             if ($this->donaturId) {
-                $this->paidMonthsPerorangan = self::getPaidMonthsForDonatur($this->donaturId, $this->tahunAjaranId);
+                $this->paidMonthsPerorangan = self::getPaidMonthsForDonatur($this->donaturId, $this->tahunAjaranId, $this->kelompokId);
                 $this->selectedBulanPerorangan = [];
                 if ($this->komitmenBulananPerorangan > 0) {
                     $this->nominal = $this->komitmenBulananPerorangan;
@@ -229,7 +232,7 @@ class DonasiMasukCreate extends Component
         } else {
             // Mode Kelompok: update paid months untuk semua anggota
             foreach ($this->anggotaItems as $idx => $item) {
-                $paid = self::getPaidMonthsForDonatur($item['donatur_id'], $this->tahunAjaranId);
+                $paid = self::getPaidMonthsForDonatur($item['donatur_id'], $this->tahunAjaranId, $this->kelompokKolektifId);
                 $this->anggotaItems[$idx]['paid_bulan'] = $paid;
                 $this->anggotaItems[$idx]['selected_bulan'] = [];
                 $this->anggotaItems[$idx]['nominal'] = (int) ($item['nominal_komitmen'] ?? 0);
@@ -244,19 +247,42 @@ class DonasiMasukCreate extends Component
         $this->komitmenBulananPerorangan = 0;
 
         if ($this->donaturId) {
-            $donatur = Donatur::with('kelompoks')->find($this->donaturId);
+            $donatur = Donatur::with(['kelompoks', 'kelompokAnggotas'])->find($this->donaturId);
             if ($donatur && $donatur->tipe === 'rutin' && $donatur->kelompoks->isNotEmpty()) {
-                $this->kelompokId = $donatur->kelompoks->first()->id;
-                $anggota = $donatur->kelompokAnggotas()->where('kelompok_id', $this->kelompokId)->first();
+                if (!$this->kelompokId || !$donatur->kelompoks->contains('id', $this->kelompokId)) {
+                    $this->kelompokId = $donatur->kelompoks->first()->id;
+                }
+                $anggota = $donatur->kelompokAnggotas->where('kelompok_id', $this->kelompokId)->first();
                 if ($anggota) {
                     $this->komitmenBulananPerorangan = (float) $anggota->nominal_komitmen;
                     $this->nominal = (int) $this->komitmenBulananPerorangan;
                 }
-                $this->paidMonthsPerorangan = self::getPaidMonthsForDonatur($this->donaturId, $this->tahunAjaranId);
+                $this->paidMonthsPerorangan = self::getPaidMonthsForDonatur($this->donaturId, $this->tahunAjaranId, $this->kelompokId);
             } else {
                 $this->kelompokId = null;
                 $this->nominal = '';
             }
+        }
+    }
+
+    public function updatedKelompokId()
+    {
+        $this->selectedBulanPerorangan = [];
+        $this->paidMonthsPerorangan = [];
+        $this->komitmenBulananPerorangan = 0;
+
+        if ($this->donaturId && $this->kelompokId) {
+            $donatur = Donatur::with('kelompokAnggotas')->find($this->donaturId);
+            $anggota = $donatur?->kelompokAnggotas->where('kelompok_id', $this->kelompokId)->first();
+            if ($anggota) {
+                $this->komitmenBulananPerorangan = (float) $anggota->nominal_komitmen;
+                $this->nominal = (int) $this->komitmenBulananPerorangan;
+                $this->paidMonthsPerorangan = self::getPaidMonthsForDonatur($this->donaturId, $this->tahunAjaranId, $this->kelompokId);
+            } else {
+                $this->nominal = '';
+            }
+        } elseif ($this->donaturId) {
+            $this->nominal = '';
         }
     }
 
@@ -343,7 +369,7 @@ class DonasiMasukCreate extends Component
 
         // Siapkan daftar anggota kelompok dengan komitmen bulanan & status riwayat bulan
         foreach ($kelompok->anggotaKelompok as $ang) {
-            $paid = self::getPaidMonthsForDonatur($ang->donatur_id, $this->tahunAjaranId);
+            $paid = self::getPaidMonthsForDonatur($ang->donatur_id, $this->tahunAjaranId, $kelompok->id);
             $komitmen = (float) $ang->nominal_komitmen;
 
             $this->anggotaItems[] = [

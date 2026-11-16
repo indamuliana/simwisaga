@@ -89,16 +89,19 @@
                     <label class="block text-xs font-bold text-text-secondary uppercase mb-1">
                         Pos Kas / Kelompok Penerima
                     </label>
-                    <select wire:model="kelompokId" class="select select-bordered w-full text-sm">
+                    <select wire:model.live="kelompokId" class="select select-bordered w-full text-sm font-semibold">
                         <option value="">-- Kas Bebas / Insidental --</option>
                         @foreach($kelompoks as $klp)
+                            @php
+                                $isMember = $donaturId && $klp->anggotaKelompok->contains('donatur_id', $donaturId);
+                            @endphp
                             <option value="{{ $klp->id }}">
-                                {{ $klp->nama_kelompok }} ({{ $klp->kode_kelompok }})
+                                {{ $klp->nama_kelompok }} ({{ $klp->kode_kelompok }}){{ $isMember ? ' ★ Terdaftar' : '' }}
                             </option>
                         @endforeach
                     </select>
                     <span class="text-[11px] text-text-secondary mt-1 block">
-                        Jika donatur rutin kelompok, otomatis dialokasikan ke kas kelompok terkait.
+                        Jika donatur rutin terdaftar di beberapa kelompok, pilih kelompok yang dituju agar status lunas tercatat per kelompok.
                     </span>
                 </div>
             </div>
