@@ -11,6 +11,7 @@ use App\Modules\BeasiswaOta\Models\Kelompok;
 use App\Modules\BeasiswaOta\Models\SiswaPenerima;
 use App\Modules\BeasiswaOta\Services\OtaKasService;
 use App\Modules\Kesiswaan\Models\Siswa;
+use Illuminate\Support\Facades\DB;
 use Livewire\Component;
 use Livewire\WithPagination;
 
@@ -28,7 +29,7 @@ class PenyaluranIndex extends Component
     public string $rutinCatatan = '';
     public array $rutinDetails = [];
     public float $rutinTotalAlokasi = 0;
-    public float $rutinSurplus = 0;
+    public float|int|string $rutinSurplus = 0;
 
     // Form Alokasi Insidental Fleksibel
     public ?int $insidentalSiswaId = null;
@@ -146,9 +147,12 @@ class PenyaluranIndex extends Component
         }
         $this->rutinTotalAlokasi = $total;
 
+        // Surplus TIDAK otomatis ditarik. Dana sisa mengendap aman di kas kelompok untuk semester berikutnya.
+        $surplusClean = (float) preg_replace('/[^\d]/', '', (string) $this->rutinSurplus);
         if ($this->rutinKelompokId) {
             $saldoKas = OtaKasService::getSaldoKelompok($this->rutinKelompokId);
-            $this->rutinSurplus = max(0, $saldoKas - $total);
+            $maxSurplus = max(0, $saldoKas - $total);
+            $this->rutinSurplus = min($surplusClean, $maxSurplus);
         } else {
             $this->rutinSurplus = 0;
         }
@@ -170,10 +174,11 @@ class PenyaluranIndex extends Component
         }
 
         $saldoKas = OtaKasService::getSaldoKelompok($kelompok->id);
-        $totalDibutuhkan = $this->rutinTotalAlokasi + $this->rutinSurplus;
+        $surplusNominal = (float) preg_replace('/[^\d]/', '', (string) $this->rutinSurplus);
+        $totalDibutuhkan = $this->rutinTotalAlokasi + $surplusNominal;
 
-        if ($saldoKas < $this->rutinTotalAlokasi) {
-            session()->flash('error_rutin', 'Saldo kas kelompok tidak mencukupi untuk alokasi yang dipilih (Saldo: Rp ' . number_format($saldoKas, 0, ',', '.') . ', Dibutuhkan: Rp ' . number_format($this->rutinTotalAlokasi, 0, ',', '.') . ').');
+        if ($saldoKas < $totalDibutuhkan) {
+            session()->flash('error_rutin', 'Saldo kas kelompok tidak mencukupi untuk alokasi yang dipilih (Saldo: Rp ' . number_format($saldoKas, 0, ',', '.') . ', Dibutuhkan: Rp ' . number_format($totalDibutuhkan, 0, ',', '.') . ').');
             return;
         }
 
@@ -188,7 +193,7 @@ class PenyaluranIndex extends Component
             siswa: $kelompok->siswaPenerima->siswa,
             details: $selectedDetails,
             totalNominal: $this->rutinTotalAlokasi,
-            surplusDialihkan: $this->rutinSurplus,
+            surplusDialihkan: $surplusNominal,
             tanggal: $this->rutinTanggal,
             semesterId: $this->rutinSemesterId,
             tahunAjaranId: $this->rutinTahunAjaranId,
@@ -311,15 +316,18 @@ class PenyaluranIndex extends Component
             return;
         }
 
-        KasMutasi::where('referensi_tipe', 'alokasi')
-            ->where('referensi_id', $alokasi->id)
-            ->delete();
+        DB::transaction(function () use ($alokasi) {
+            KasMutasi::where('referensi_tipe', 'alokasi')
+                ->where('referensi_id', $alokasi->id)
+                ->delete();
 
-        KasMutasi::where('referensi_tipe', 'surplus_transfer')
-            ->where('referensi_id', $alokasi->id)
-            ->delete();
+            KasMutasi::where('referensi_tipe', 'surplus_transfer')
+                ->where('referensi_id', $alokasi->id)
+                ->delete();
 
-        $alokasi->delete();
+            $alokasi->delete();
+        });
+
         session()->flash('message', 'Catatan penyaluran berhasil dibatalkan dan kas telah dikembalikan.');
     }
 

@@ -174,16 +174,27 @@
                                 <strong class="text-text-main text-sm">Rp {{ number_format($rutinTotalAlokasi, 0, ',', '.') }}</strong>
                             </div>
 
-                            @if($rutinSurplus > 0)
-                                <div class="flex justify-between p-2 bg-amber-50 dark:bg-amber-950/40 border border-amber-200 dark:border-amber-800 rounded-lg text-amber-900 dark:text-amber-200">
-                                    <span>Surplus Kelompok (Dipindahkan ke Kas Insidental):</span>
-                                    <strong class="font-bold">+Rp {{ number_format($rutinSurplus, 0, ',', '.') }}</strong>
+                            @php
+                                $sisaSaldoKas = max(0, $saldoKelompok - $rutinTotalAlokasi - (float) $rutinSurplus);
+                            @endphp
+                            <div class="flex justify-between p-2 bg-emerald-50 dark:bg-emerald-950/40 border border-emerald-200 dark:border-emerald-800 rounded-lg text-emerald-800 dark:text-emerald-200">
+                                <span>Sisa Saldo Kelompok (Tersimpan untuk Semester Depan):</span>
+                                <strong class="font-bold">Rp {{ number_format($sisaSaldoKas, 0, ',', '.') }}</strong>
+                            </div>
+
+                            @if($saldoKelompok > $rutinTotalAlokasi)
+                                <div class="pt-2 border-t border-border/60">
+                                    <label class="block text-[11px] text-text-secondary mb-1">
+                                        Pengalihan Surplus ke Kas Insidental (Opsional):
+                                    </label>
+                                    <input type="number" wire:model.live.debounce.300ms="rutinSurplus" wire:keyup="calculateRutinTotal" class="input input-bordered input-xs w-full text-right font-bold text-amber-600" placeholder="0">
+                                    <span class="text-[10px] text-text-secondary">Biarkan 0 agar saldo sisa tetap aman mengendap untuk iuran semester berikutnya.</span>
                                 </div>
                             @endif
 
                             <div class="flex justify-between border-t border-border pt-2 font-bold">
                                 <span>Total Kas Kelompok Terpotong:</span>
-                                <span class="text-primary text-sm">Rp {{ number_format($rutinTotalAlokasi + $rutinSurplus, 0, ',', '.') }}</span>
+                                <span class="text-primary text-sm">Rp {{ number_format($rutinTotalAlokasi + (float) $rutinSurplus, 0, ',', '.') }}</span>
                             </div>
                         </div>
                     </div>

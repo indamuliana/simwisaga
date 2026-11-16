@@ -69,11 +69,18 @@ class Kelompok extends Model implements Auditable
 
     public function getTotalKomitmenAttribute(): float
     {
-        return (float) $this->anggotaKelompok()->sum('nominal_komitmen');
+        return $this->relationLoaded('anggotaKelompok')
+            ? (float) $this->anggotaKelompok->sum('nominal_komitmen')
+            : (float) $this->anggotaKelompok()->sum('nominal_komitmen');
     }
 
     public function getSaldoKasAttribute(): float
     {
+        if ($this->relationLoaded('kasMutasis')) {
+            $masuk = (float) $this->kasMutasis->where('tipe', 'masuk')->sum('nominal');
+            $keluar = (float) $this->kasMutasis->where('tipe', 'keluar')->sum('nominal');
+            return $masuk - $keluar;
+        }
         $masuk = (float) $this->kasMutasis()->where('tipe', 'masuk')->sum('nominal');
         $keluar = (float) $this->kasMutasis()->where('tipe', 'keluar')->sum('nominal');
         return $masuk - $keluar;
@@ -81,6 +88,8 @@ class Kelompok extends Model implements Auditable
 
     public function getTotalTerkumpulAttribute(): float
     {
-        return (float) $this->donasiMasuks()->sum('nominal');
+        return $this->relationLoaded('donasiMasuks')
+            ? (float) $this->donasiMasuks->sum('nominal')
+            : (float) $this->donasiMasuks()->sum('nominal');
     }
 }

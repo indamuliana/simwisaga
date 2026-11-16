@@ -10,6 +10,7 @@ use App\Modules\BeasiswaOta\Models\Kelompok;
 use App\Modules\BeasiswaOta\Models\KelompokAnggota;
 use App\Modules\BeasiswaOta\Models\OtaSetting;
 use App\Modules\BeasiswaOta\Services\OtaExcelService;
+use Illuminate\Support\Facades\DB;
 use Livewire\Component;
 use Livewire\WithFileUploads;
 use Livewire\WithPagination;
@@ -485,8 +486,21 @@ class DonaturKelompokIndex extends Component
             return;
         }
 
+        $kelompoks = Kelompok::withCount(['donasiMasuks', 'alokasis'])
+            ->whereIn('id', $this->selectedKelompokIds)
+            ->get();
+
+        $hasHistory = $kelompoks->contains(fn($k) => $k->donasi_masuks_count > 0 || $k->alokasis_count > 0);
+        if ($hasHistory) {
+            session()->flash('error', 'Beberapa kelompok terpilih tidak dapat dihapus karena sudah memiliki riwayat donasi atau penyaluran beasiswa.');
+            return;
+        }
+
         $count = count($this->selectedKelompokIds);
-        Kelompok::whereIn('id', $this->selectedKelompokIds)->delete();
+        DB::transaction(function () {
+            Kelompok::whereIn('id', $this->selectedKelompokIds)->delete();
+        });
+
         $this->selectedKelompokIds = [];
         $this->selectAllKelompok = false;
 
@@ -496,13 +510,7 @@ class DonaturKelompokIndex extends Component
     public function deleteAllKelompok()
     {
         $this->guard('beasiswa_ota.kelola');
-
-        $count = Kelompok::count();
-        Kelompok::query()->delete();
-        $this->selectedKelompokIds = [];
-        $this->selectAllKelompok = false;
-
-        session()->flash('message', "Seluruh ({$count}) kelompok donatur berhasil dihapus bersih.");
+        session()->flash('error', 'Aksi hapus seluruh kelompok dinonaktifkan demi menjaga integritas data keuangan.');
     }
 
     // --- Bulk Action Donatur ---
@@ -525,14 +533,21 @@ class DonaturKelompokIndex extends Component
             return;
         }
 
+        $donaturs = Donatur::withCount('donasiMasuks')
+            ->whereIn('id', $this->selectedDonaturIds)
+            ->get();
+
+        $hasDonasi = $donaturs->contains(fn($d) => $d->donasi_masuks_count > 0);
+        if ($hasDonasi) {
+            session()->flash('error', 'Beberapa donatur terpilih tidak dapat dihapus karena memiliki riwayat donasi tercatat.');
+            return;
+        }
+
         $count = count($this->selectedDonaturIds);
+        DB::transaction(function () {
+            Donatur::whereIn('id', $this->selectedDonaturIds)->delete();
+        });
 
-        // Hapus donasi dan mutasi kas terkait
-        $donasiIds = DonasiMasuk::whereIn('donatur_id', $this->selectedDonaturIds)->pluck('id');
-        KasMutasi::where('referensi_tipe', 'donasi')->whereIn('referensi_id', $donasiIds)->delete();
-        DonasiMasuk::whereIn('id', $donasiIds)->delete();
-
-        Donatur::whereIn('id', $this->selectedDonaturIds)->delete();
         $this->selectedDonaturIds = [];
         $this->selectAllDonatur = false;
 
@@ -542,19 +557,7 @@ class DonaturKelompokIndex extends Component
     public function deleteAllDonatur()
     {
         $this->guard('beasiswa_ota.kelola');
-
-        $count = Donatur::count();
-
-        // Hapus donasi dan mutasi kas terkait
-        $donasiIds = DonasiMasuk::pluck('id');
-        KasMutasi::where('referensi_tipe', 'donasi')->whereIn('referensi_id', $donasiIds)->delete();
-        DonasiMasuk::query()->delete();
-
-        Donatur::query()->delete();
-        $this->selectedDonaturIds = [];
-        $this->selectAllDonatur = false;
-
-        session()->flash('message', "Seluruh ({$count}) donatur berhasil dihapus bersih.");
+        session()->flash('error', 'Aksi hapus seluruh donatur dinonaktifkan demi menjaga integritas data keuangan.');
     }
 
     public function render()

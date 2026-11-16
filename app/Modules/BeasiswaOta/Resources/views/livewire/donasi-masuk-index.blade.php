@@ -151,18 +151,20 @@
                             </td>
                             <td class="py-3.5 px-4 text-center">
                                 <div class="flex items-center justify-center gap-1">
-                                    <button wire:confirm="Hapus catatan transaksi donasi ini? Kas mutasi akan otomatis disesuaikan." 
-                                            wire:click="delete({{ $d->id }})" 
-                                            title="Hapus Transaksi"
-                                            class="text-rose-500 hover:text-rose-700 p-1">
-                                        <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M19 7l-.867 12.142A2 2 0 0116.138 21H7.862a2 2 0 01-1.995-1.858L5 7m5 4v6m4-6v6m1-10V4a1 1 0 00-1-1h-4a1 1 0 00-1 1v3M4 7h16"/></svg>
-                                    </button>
                                     @if($d->is_kolektif && $d->batch_kode)
-                                        <button wire:confirm="PERINGATAN: Hapus SELURUH donasi dalam setoran kolektif batch {{ $d->batch_kode }} ini?" 
+                                        <button wire:confirm="PERINGATAN: Batalkan dan hapus SELURUH donasi dalam setoran kolektif batch {{ $d->batch_kode }} ini?" 
                                                 wire:click="deleteBatch('{{ $d->batch_kode }}')" 
-                                                title="Hapus Seluruh Batch Kolektif"
-                                                class="text-xs text-rose-600 hover:underline ml-1">
-                                            (Batal Batch)
+                                                title="Batalkan Seluruh Batch Kolektif"
+                                                class="btn btn-xs btn-outline border-rose-200 text-rose-600 hover:bg-rose-50 flex items-center gap-1">
+                                            <svg class="w-3.5 h-3.5" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M19 7l-.867 12.142A2 2 0 0116.138 21H7.862a2 2 0 01-1.995-1.858L5 7m5 4v6m4-6v6m1-10V4a1 1 0 00-1-1h-4a1 1 0 00-1 1v3M4 7h16"/></svg>
+                                            Batal Batch
+                                        </button>
+                                    @else
+                                        <button wire:confirm="Hapus catatan transaksi donasi ini? Kas mutasi akan otomatis disesuaikan." 
+                                                wire:click="delete({{ $d->id }})" 
+                                                title="Hapus Transaksi"
+                                                class="text-rose-500 hover:text-rose-700 p-1">
+                                            <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M19 7l-.867 12.142A2 2 0 0116.138 21H7.862a2 2 0 01-1.995-1.858L5 7m5 4v6m4-6v6m1-10V4a1 1 0 00-1-1h-4a1 1 0 00-1 1v3M4 7h16"/></svg>
                                         </button>
                                     @endif
                                 </div>

@@ -46,6 +46,8 @@ class Donatur extends Model implements Auditable
 
     public function getTotalDonasiAttribute(): float
     {
-        return (float) $this->donasiMasuks()->sum('nominal');
+        return $this->relationLoaded('donasiMasuks')
+            ? (float) $this->donasiMasuks->sum('nominal')
+            : (float) $this->donasiMasuks()->sum('nominal');
     }
 }

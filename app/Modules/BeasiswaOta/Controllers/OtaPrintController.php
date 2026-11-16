@@ -126,7 +126,7 @@ class OtaPrintController extends Controller
         if ($bendaharaNama === '') {
             $bendaharaNama = 'Bendahara Program OTA';
         }
-        $kepsekNama = $school?->kepala_sekolah ?? OtaSetting::get('kepsek_nama', 'Kepala Sekolah');
+        $kepsekNama = $school?->kepala_sekolah_nama ?? OtaSetting::get('kepsek_nama', 'Kepala Sekolah');
         $terbilang = OtaDocumentService::terbilang((float) $alokasi->total_nominal) . ' Rupiah';
 
         return view('beasiswaota::public.verifikasi-penyaluran', compact(
@@ -152,7 +152,7 @@ class OtaPrintController extends Controller
             $donasi->id
         );
 
-        $kepsekNama = $school?->kepala_sekolah ?? OtaSetting::get('kepsek_nama', 'Kepala Sekolah');
+        $kepsekNama = $school?->kepala_sekolah_nama ?? OtaSetting::get('kepsek_nama', 'Kepala Sekolah');
         $ketuaOtaNama = OtaSetting::get('ketua_ota_nama', 'Koordinator OTA');
 
         return view('beasiswaota::public.verifikasi-sertifikat', compact(

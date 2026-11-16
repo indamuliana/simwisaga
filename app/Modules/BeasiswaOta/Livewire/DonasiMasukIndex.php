@@ -9,6 +9,7 @@ use App\Modules\BeasiswaOta\Models\Donatur;
 use App\Modules\BeasiswaOta\Models\KasMutasi;
 use App\Modules\BeasiswaOta\Models\Kelompok;
 use App\Modules\BeasiswaOta\Services\OtaKasService;
+use Illuminate\Support\Facades\DB;
 use Livewire\Component;
 use Livewire\WithPagination;
 
@@ -24,9 +25,14 @@ class DonasiMasukIndex extends Component
 
     public function delete(int $id)
     {
-        $this->guard('ota.donasi.hapus');
+        $this->guard('beasiswa_ota.kelola');
 
         $donasi = DonasiMasuk::findOrFail($id);
+
+        if ($donasi->is_kolektif) {
+            session()->flash('error', 'Donasi kolektif tidak dapat dihapus satuan per anggota karena tercatat dalam satu transaksi batch kelompok. Gunakan tombol Batal Batch.');
+            return;
+        }
 
         $posKas = ($donasi->tipe_donatur === 'rutin' && $donasi->kelompok_id) ? 'kelompok' : 'insidental';
         $currentSaldo = $posKas === 'kelompok'
@@ -38,23 +44,17 @@ class DonasiMasukIndex extends Component
             return;
         }
 
-        // Hapus mutasi kas terkait
-        KasMutasi::where(function ($q) use ($donasi) {
-            $q->where('referensi_tipe', 'donasi')->where('referensi_id', $donasi->id);
-            if ($donasi->is_kolektif) {
-                $q->orWhere(function ($sq) use ($donasi) {
-                    $sq->where('referensi_tipe', 'donasi_kolektif')->where('referensi_id', $donasi->id);
-                });
-            }
-        })->delete();
+        DB::transaction(function () use ($donasi) {
+            KasMutasi::where('referensi_tipe', 'donasi')->where('referensi_id', $donasi->id)->delete();
+            $donasi->delete();
+        });
 
-        $donasi->delete();
         session()->flash('message', 'Catatan donasi berhasil dihapus.');
     }
 
     public function deleteBatch(string $batchKode)
     {
-        $this->guard('ota.donasi.hapus');
+        $this->guard('beasiswa_ota.kelola');
 
         $donasis = DonasiMasuk::where('batch_kode', $batchKode)->get();
         if ($donasis->isEmpty()) {
@@ -68,11 +68,13 @@ class DonasiMasukIndex extends Component
             return;
         }
 
-        $ids = $donasis->pluck('id');
-        KasMutasi::where('referensi_tipe', 'donasi_kolektif')->whereIn('referensi_id', $ids)->delete();
-        KasMutasi::where('referensi_tipe', 'donasi')->whereIn('referensi_id', $ids)->delete();
+        DB::transaction(function () use ($donasis, $batchKode) {
+            $ids = $donasis->pluck('id');
+            KasMutasi::where('referensi_tipe', 'donasi_kolektif')->whereIn('referensi_id', $ids)->delete();
+            KasMutasi::where('referensi_tipe', 'donasi')->whereIn('referensi_id', $ids)->delete();
 
-        DonasiMasuk::where('batch_kode', $batchKode)->delete();
+            DonasiMasuk::where('batch_kode', $batchKode)->delete();
+        });
 
         session()->flash('message', "Seluruh transaksi setoran kolektif (Batch {$batchKode}) berhasil dibatalkan dan dihapus.");
     }

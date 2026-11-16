@@ -241,7 +241,7 @@ class PenerimaBeasiswaIndex extends Component
 
     public function save()
     {
-        $this->guard($this->penerimaId ? 'ota.penerima.edit' : 'ota.penerima.tambah');
+        $this->guard('beasiswa_ota.kelola');
 
         // 1. Bersihkan semua angka sebelum divalidasi dan disimpan
         foreach ($this->komponens as $idx => $kmp) {
@@ -329,7 +329,7 @@ class PenerimaBeasiswaIndex extends Component
 
     public function delete(int $id)
     {
-        $this->guard('ota.penerima.hapus');
+        $this->guard('beasiswa_ota.kelola');
 
         $p = SiswaPenerima::findOrFail($id);
         $p->delete();

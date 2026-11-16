@@ -24,7 +24,7 @@ class OtaDashboard extends Component
         $totalKelompok = Kelompok::where('is_aktif', true)->count();
         $totalSiswaPenerima = SiswaPenerima::where('status', 'aktif')->count();
 
-        $kelompoks = Kelompok::with(['donaturs', 'siswaPenerima.siswa.rombel'])
+        $kelompoks = Kelompok::with(['donaturs', 'siswaPenerima.siswa.rombel', 'anggotaKelompok', 'kasMutasis'])
             ->where('is_aktif', true)
             ->get();
 
