@@ -164,6 +164,21 @@ class Siswa extends Model implements Auditable
         return $this->hasOne(Alumni::class);
     }
 
+    public function tagihans(): HasMany
+    {
+        return $this->hasMany(\App\Modules\Keuangan\Models\Tagihan::class, 'siswa_id');
+    }
+
+    public function transaksis(): HasMany
+    {
+        return $this->hasMany(\App\Modules\Keuangan\Models\Transaksi::class, 'siswa_id');
+    }
+
+    public function alumniTunggakan(): HasOne
+    {
+        return $this->hasOne(\App\Modules\Keuangan\Models\AlumniTunggakan::class, 'siswa_id');
+    }
+
     public function customKelompoks(): BelongsToMany
     {
         return $this->belongsToMany(

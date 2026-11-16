@@ -118,6 +118,11 @@ class ModuleRegistry
             'icon'  => 'moon',
             'order' => 40,
         ],
+        'KEUANGAN' => [
+            'label' => 'KEUANGAN',
+            'icon'  => 'banknotes',
+            'order' => 45,
+        ],
         'KEPEGAWAIAN & SDM' => [
             'label' => 'KEPEGAWAIAN & SDM',
             'icon'  => 'badge-check',
@@ -160,6 +165,8 @@ class ModuleRegistry
 
         'Kepesantrenan'      => 'KEPESANTRENAN',
         'BeasiswaOta'        => 'KEPESANTRENAN',
+
+        'Keuangan'           => 'KEUANGAN',
 
         'Kepegawaian'        => 'KEPEGAWAIAN & SDM',
 

@@ -4,6 +4,7 @@ use App\Modules\PortalSiswa\Livewire\BeasiswaSiswa;
 use App\Modules\PortalSiswa\Livewire\BerandaSiswa;
 use App\Modules\PortalSiswa\Livewire\KehadiranSiswa;
 use App\Modules\PortalSiswa\Livewire\KepesantrenanSiswa;
+use App\Modules\PortalSiswa\Livewire\KeuanganOrtu;
 use App\Modules\PortalSiswa\Livewire\NilaiRaporSiswa;
 use App\Modules\PortalSiswa\Livewire\PrestasiSiswa;
 use App\Modules\PortalSiswa\Livewire\ProfilSiswa;
@@ -19,4 +20,5 @@ Route::prefix('portal-siswa')->group(function () {
     Route::get('/prestasi', PrestasiSiswa::class)->name('portal-siswa.prestasi');
     Route::get('/beasiswa', BeasiswaSiswa::class)->name('portal-siswa.beasiswa');
     Route::get('/kepesantrenan', KepesantrenanSiswa::class)->name('portal-siswa.kepesantrenan');
+    Route::get('/keuangan', KeuanganOrtu::class)->name('portal-siswa.keuangan');
 });

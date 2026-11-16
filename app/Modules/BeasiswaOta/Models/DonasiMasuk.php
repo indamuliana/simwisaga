@@ -5,6 +5,8 @@ namespace App\Modules\BeasiswaOta\Models;
 use App\Models\User;
 use Illuminate\Database\Eloquent\Model;
 use Illuminate\Database\Eloquent\Relations\BelongsTo;
+use Illuminate\Support\Carbon;
+use Illuminate\Support\Facades\DB;
 use OwenIt\Auditing\Contracts\Auditable;
 
 class DonasiMasuk extends Model implements Auditable
@@ -45,13 +47,46 @@ class DonasiMasuk extends Model implements Auditable
 
         static::creating(function ($model) {
             if (empty($model->nomor_transaksi)) {
-                $datePrefix = date('Ym');
-                $count = static::whereYear('tanggal_donasi', date('Y'))
-                    ->whereMonth('tanggal_donasi', date('m'))
-                    ->count() + 1;
-                $model->nomor_transaksi = sprintf('OTA-IN-%s-%04d', $datePrefix, $count);
+                $model->nomor_transaksi = static::generateNomorTransaksi(
+                    $model->tanggal_donasi ? (string) $model->tanggal_donasi : null
+                );
             }
         });
+    }
+
+    public static function generateNomorTransaksi(?string $tanggalDonasi = null): string
+    {
+        $date = $tanggalDonasi ? Carbon::parse($tanggalDonasi) : now();
+        $datePrefix = $date->format('Ym');
+        $prefix = "OTA-IN-{$datePrefix}-";
+
+        $query = static::where('nomor_transaksi', 'like', "{$prefix}%");
+        if (DB::transactionLevel() > 0) {
+            $query->lockForUpdate();
+        }
+
+        $existingNumbers = $query->pluck('nomor_transaksi');
+
+        $maxNum = 0;
+        foreach ($existingNumbers as $no) {
+            $parts = explode('-', (string) $no);
+            $val = (int) end($parts);
+            if ($val > $maxNum) {
+                $maxNum = $val;
+            }
+        }
+
+        $nextNum = $maxNum + 1;
+
+        do {
+            $candidate = sprintf('%s%04d', $prefix, $nextNum);
+            $exists = static::where('nomor_transaksi', $candidate)->exists();
+            if ($exists) {
+                $nextNum++;
+            }
+        } while ($exists);
+
+        return $candidate;
     }
 
     public function donatur(): BelongsTo

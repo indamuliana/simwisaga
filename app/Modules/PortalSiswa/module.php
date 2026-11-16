@@ -47,6 +47,11 @@ return [
             'route' => 'portal-siswa.kepesantrenan',
             'permission' => 'portal_siswa.agenda.lihat',
         ],
+        [
+            'label' => 'Keuangan & Tagihan (Ortu)',
+            'route' => 'portal-siswa.keuangan',
+            'permission' => 'keuangan.ortu',
+        ],
     ],
     'permissions' => [
         'portal_siswa.agenda' => [

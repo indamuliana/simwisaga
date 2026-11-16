@@ -9,6 +9,8 @@ use App\Modules\Kesiswaan\Models\Siswa;
 use Illuminate\Database\Eloquent\Model;
 use Illuminate\Database\Eloquent\Relations\BelongsTo;
 use Illuminate\Database\Eloquent\Relations\HasMany;
+use Illuminate\Support\Carbon;
+use Illuminate\Support\Facades\DB;
 use OwenIt\Auditing\Contracts\Auditable;
 
 class Alokasi extends Model implements Auditable
@@ -43,13 +45,46 @@ class Alokasi extends Model implements Auditable
 
         static::creating(function ($model) {
             if (empty($model->nomor_kwitansi)) {
-                $datePrefix = date('Ym');
-                $count = static::whereYear('tanggal_alokasi', date('Y'))
-                    ->whereMonth('tanggal_alokasi', date('m'))
-                    ->count() + 1;
-                $model->nomor_kwitansi = sprintf('OTA-KW-%s-%04d', $datePrefix, $count);
+                $model->nomor_kwitansi = static::generateNomorKwitansi(
+                    $model->tanggal_alokasi ? (string) $model->tanggal_alokasi : null
+                );
             }
         });
+    }
+
+    public static function generateNomorKwitansi(?string $tanggalAlokasi = null): string
+    {
+        $date = $tanggalAlokasi ? Carbon::parse($tanggalAlokasi) : now();
+        $datePrefix = $date->format('Ym');
+        $prefix = "OTA-KW-{$datePrefix}-";
+
+        $query = static::where('nomor_kwitansi', 'like', "{$prefix}%");
+        if (DB::transactionLevel() > 0) {
+            $query->lockForUpdate();
+        }
+
+        $existingNumbers = $query->pluck('nomor_kwitansi');
+
+        $maxNum = 0;
+        foreach ($existingNumbers as $no) {
+            $parts = explode('-', (string) $no);
+            $val = (int) end($parts);
+            if ($val > $maxNum) {
+                $maxNum = $val;
+            }
+        }
+
+        $nextNum = $maxNum + 1;
+
+        do {
+            $candidate = sprintf('%s%04d', $prefix, $nextNum);
+            $exists = static::where('nomor_kwitansi', $candidate)->exists();
+            if ($exists) {
+                $nextNum++;
+            }
+        } while ($exists);
+
+        return $candidate;
     }
 
     public function kelompok(): BelongsTo

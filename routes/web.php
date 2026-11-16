@@ -74,6 +74,12 @@ Route::get('/beasiswa-ota/verifikasi-sertifikat/{donasiId}', [\App\Modules\Beasi
 Route::get('/v/ota-sertifikat/{donasiId}', [\App\Modules\BeasiswaOta\Controllers\OtaPrintController::class, 'verifikasiSertifikat'])
     ->name('beasiswa-ota.v-sertifikat');
 
+// Halaman Publik: Verifikasi Kwitansi Pembayaran Siswa (Akses via Scan QR Code)
+Route::get('/verifikasi/kwitansi/{kodeVerifikasi}', [\App\Modules\Keuangan\Controllers\KeuanganPublicVerificationController::class, 'verifikasi'])
+    ->name('keuangan.verifikasi-kwitansi');
+Route::get('/v/kwt/{kodeVerifikasi}', [\App\Modules\Keuangan\Controllers\KeuanganPublicVerificationController::class, 'verifikasi'])
+    ->name('keuangan.v-kwitansi');
+
 Route::middleware('guest')->group(function () {
     Route::get('/login', Login::class)->name('login');
 });
