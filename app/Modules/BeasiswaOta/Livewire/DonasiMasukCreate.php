@@ -40,13 +40,20 @@ class DonasiMasukCreate extends Component
     public array $anggotaItems = [];
     public bool $selectAllAnggotaKolektif = true;
 
-    public function mount()
+    public function mount(?int $kelompok_id = null)
     {
         $this->tanggalDonasi = now()->toDateString();
         $this->tanggalDonasiKolektif = now()->toDateString();
 
         $activeTa = TahunAjaran::active()->first() ?? TahunAjaran::latest('id')->first();
         $this->tahunAjaranId = $activeTa?->id;
+
+        $targetKelompokId = $kelompok_id ?: (request()->has('kelompok_id') ? (int) request('kelompok_id') : null);
+        if ($targetKelompokId) {
+            $this->modeDonasi = 'kelompok';
+            $this->kelompokKolektifId = $targetKelompokId;
+            $this->updatedKelompokKolektifId();
+        }
     }
 
     public static function cleanNominal(mixed $val): float

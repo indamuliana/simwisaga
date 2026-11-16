@@ -502,4 +502,192 @@ class OtaExcelService
             'anggota_added' => $anggotaAdded,
         ];
     }
+
+    /**
+     * Export rekapitulasi monitoring donasi masuk per kelompok ke Spreadsheet.
+     */
+    public static function exportRekapMonitoringKelompok(?int $tahunAjaranId = null): Spreadsheet
+    {
+        $ta = $tahunAjaranId ? \App\Modules\Akademik\Models\TahunAjaran::find($tahunAjaranId) : \App\Modules\Akademik\Models\TahunAjaran::active()->first();
+        $taName = $ta ? $ta->nama : 'Semua Periode';
+
+        $spreadsheet = new Spreadsheet();
+        $sheet = $spreadsheet->getActiveSheet();
+        $sheet->setTitle('Rekap Kelompok OTA');
+
+        // Judul Laporan
+        $sheet->setCellValue('A1', "REKAPITULASI MONITORING DONASI MASUK PER KELOMPOK (OTA)");
+        $sheet->setCellValue('A2', "Tahun Ajaran: {$taName} | Dicetak: " . now()->translatedFormat('d F Y H:i'));
+        $sheet->getStyle('A1')->getFont()->setBold(true)->setSize(14);
+        $sheet->getStyle('A2')->getFont()->setSize(10)->setItalic(true);
+
+        // Header Table
+        $headers = [
+            'A4' => 'No',
+            'B4' => 'Kode',
+            'C4' => 'Nama Kelompok',
+            'D4' => 'Koordinator / PIC',
+            'E4' => 'No. Telepon Koordinator',
+            'F4' => 'Siswa Binaan',
+            'G4' => 'Jumlah Donatur',
+            'H4' => 'Komitmen Bulanan (Rp)',
+            'I4' => 'Target Kebutuhan (Rp)',
+            'J4' => 'Total Donasi Masuk (Rp)',
+            'K4' => 'Saldo Kas Saat Ini (Rp)',
+            'L4' => 'Setoran Terakhir',
+            'M4' => 'Progres Capaian',
+        ];
+
+        foreach ($headers as $cell => $text) {
+            $sheet->setCellValue($cell, $text);
+        }
+
+        $sheet->getStyle('A4:M4')->applyFromArray([
+            'font' => ['bold' => true, 'color' => ['rgb' => 'FFFFFF']],
+            'fill' => [
+                'fillType' => Fill::FILL_SOLID,
+                'startColor' => ['rgb' => '1E3A8A'],
+            ],
+            'alignment' => [
+                'horizontal' => Alignment::HORIZONTAL_CENTER,
+                'vertical' => Alignment::VERTICAL_CENTER,
+                'wrapText' => true,
+            ],
+        ]);
+        $sheet->getRowDimension(4)->setRowHeight(28);
+
+        $kelompoks = Kelompok::with([
+            'anggotaKelompok.donatur',
+            'siswaPenerima.siswa.rombel',
+            'donasiMasuks' => function ($q) use ($tahunAjaranId) {
+                if ($tahunAjaranId) {
+                    $q->where('tahun_ajaran_id', $tahunAjaranId);
+                }
+            },
+            'kasMutasis',
+        ])->where('is_aktif', true)->orderBy('nama_kelompok')->get();
+
+        $row = 5;
+        $no = 1;
+        $grandTotalKomitmen = 0;
+        $grandTotalTarget = 0;
+        $grandTotalMasuk = 0;
+        $grandTotalSaldo = 0;
+
+        foreach ($kelompoks as $k) {
+            $target = (float) $k->target_nominal;
+            $komitmen = (float) $k->total_komitmen;
+            $totalMasuk = (float) $k->donasiMasuks->sum('nominal');
+            $saldoKas = (float) $k->saldo_kas;
+            $siswa = $k->siswaPenerima?->siswa;
+            $siswaText = $siswa ? "{$siswa->nama} ({$siswa->rombel?->nama})" : 'Belum Dipetakan';
+
+            $lastDonasi = $k->donasiMasuks()->latest('tanggal_donasi')->latest('id')->first();
+            $lastDonasiText = $lastDonasi
+                ? $lastDonasi->tanggal_donasi->format('d/m/Y') . ' (Rp ' . number_format($lastDonasi->nominal, 0, ',', '.') . ')'
+                : '-';
+
+            $persen = $target > 0 ? round(($totalMasuk / $target) * 100, 1) : 0;
+
+            $sheet->setCellValue("A{$row}", $no++);
+            $sheet->setCellValue("B{$row}", $k->kode_kelompok);
+            $sheet->setCellValue("C{$row}", $k->nama_kelompok);
+            $sheet->setCellValue("D{$row}", $k->koordinator_nama ?: ($k->koordinator?->nama ?: '-'));
+            $sheet->setCellValue("E{$row}", $k->koordinator_telepon ?: '-');
+            $sheet->setCellValue("F{$row}", $siswaText);
+            $sheet->setCellValue("G{$row}", $k->anggotaKelompok->count());
+            $sheet->setCellValue("H{$row}", $komitmen);
+            $sheet->setCellValue("I{$row}", $target);
+            $sheet->setCellValue("J{$row}", $totalMasuk);
+            $sheet->setCellValue("K{$row}", $saldoKas);
+            $sheet->setCellValue("L{$row}", $lastDonasiText);
+            $sheet->setCellValue("M{$row}", "{$persen}%");
+
+            $grandTotalKomitmen += $komitmen;
+            $grandTotalTarget += $target;
+            $grandTotalMasuk += $totalMasuk;
+            $grandTotalSaldo += $saldoKas;
+
+            $row++;
+        }
+
+        // Baris Kas Bebas (Insidental)
+        $insidentalQuery = \App\Modules\BeasiswaOta\Models\DonasiMasuk::whereNull('kelompok_id');
+        if ($tahunAjaranId) {
+            $insidentalQuery->where('tahun_ajaran_id', $tahunAjaranId);
+        }
+        $totalMasukInsidental = (float) $insidentalQuery->sum('nominal');
+        $saldoInsidental = OtaKasService::getSaldoInsidental();
+        $lastInsidental = \App\Modules\BeasiswaOta\Models\DonasiMasuk::whereNull('kelompok_id')->latest('tanggal_donasi')->first();
+        $lastInsidentalText = $lastInsidental
+            ? $lastInsidental->tanggal_donasi->format('d/m/Y') . ' (Rp ' . number_format($lastInsidental->nominal, 0, ',', '.') . ')'
+            : '-';
+
+        $sheet->setCellValue("A{$row}", $no++);
+        $sheet->setCellValue("B{$row}", "KAS-BEBAS");
+        $sheet->setCellValue("C{$row}", "Kas Bebas (Donasi Insidental Non-Kelompok)");
+        $sheet->setCellValue("D{$row}", "Pengelola OTA");
+        $sheet->setCellValue("E{$row}", "-");
+        $sheet->setCellValue("F{$row}", "Umum / Darurat");
+        $sheet->setCellValue("G{$row}", "-");
+        $sheet->setCellValue("H{$row}", 0);
+        $sheet->setCellValue("I{$row}", 0);
+        $sheet->setCellValue("J{$row}", $totalMasukInsidental);
+        $sheet->setCellValue("K{$row}", $saldoInsidental);
+        $sheet->setCellValue("L{$row}", $lastInsidentalText);
+        $sheet->setCellValue("M{$row}", "-");
+
+        $sheet->getStyle("A{$row}:M{$row}")->applyFromArray([
+            'fill' => [
+                'fillType' => Fill::FILL_SOLID,
+                'startColor' => ['rgb' => 'FEF3C7'], // Amber light
+            ],
+            'font' => ['italic' => true],
+        ]);
+
+        $grandTotalMasuk += $totalMasukInsidental;
+        $grandTotalSaldo += $saldoInsidental;
+        $row++;
+
+        // Baris Grand Total
+        $sheet->setCellValue("A{$row}", "TOTAL KESELURUHAN");
+        $sheet->mergeCells("A{$row}:G{$row}");
+        $sheet->setCellValue("H{$row}", $grandTotalKomitmen);
+        $sheet->setCellValue("I{$row}", $grandTotalTarget);
+        $sheet->setCellValue("J{$row}", $grandTotalMasuk);
+        $sheet->setCellValue("K{$row}", $grandTotalSaldo);
+        $sheet->setCellValue("L{$row}", "");
+        $sheet->setCellValue("M{$row}", "");
+
+        $sheet->getStyle("A{$row}:M{$row}")->applyFromArray([
+            'font' => ['bold' => true, 'color' => ['rgb' => 'FFFFFF']],
+            'fill' => [
+                'fillType' => Fill::FILL_SOLID,
+                'startColor' => ['rgb' => '0F172A'],
+            ],
+        ]);
+
+        // Format Angka Rupiah
+        $sheet->getStyle("H5:K{$row}")->getNumberFormat()->setFormatCode('#,##0');
+
+        // Border & Alignment
+        $sheet->getStyle("A4:M{$row}")->applyFromArray([
+            'borders' => [
+                'allBorders' => [
+                    'borderStyle' => Border::BORDER_THIN,
+                    'color' => ['rgb' => 'CBD5E1'],
+                ],
+            ],
+        ]);
+        $sheet->getStyle("A5:B{$row}")->getAlignment()->setHorizontal(Alignment::HORIZONTAL_CENTER);
+        $sheet->getStyle("G5:G{$row}")->getAlignment()->setHorizontal(Alignment::HORIZONTAL_CENTER);
+        $sheet->getStyle("L5:M{$row}")->getAlignment()->setHorizontal(Alignment::HORIZONTAL_CENTER);
+
+        // Auto width
+        foreach (range('A', 'M') as $col) {
+            $sheet->getColumnDimension($col)->setAutoSize(true);
+        }
+
+        return $spreadsheet;
+    }
 }
