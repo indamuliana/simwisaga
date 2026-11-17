@@ -9,6 +9,7 @@ use App\Modules\AnalitikSpmb\Models\SpmbMasterSmp;
 use App\Modules\AnalitikSpmb\Models\SpmbSekolahAsal;
 use App\Modules\AnalitikSpmb\Models\SpmbSekolahAsalAlias;
 use App\Modules\Kesiswaan\Models\Siswa;
+use App\Modules\Kesiswaan\Services\PemetaanAlamatService;
 use Illuminate\Support\Collection;
 use Illuminate\Support\Facades\DB;
 use Illuminate\Support\Facades\Schema;
@@ -78,6 +79,8 @@ class SpmbWilayahService
             ->get()
             ->groupBy(fn ($item) => strtolower(trim($item->kecamatan)));
 
+        $pemetaanService = app(PemetaanAlamatService::class);
+
         foreach ($siswas as $siswa) {
             $rawKecamatan = trim((string) $siswa->kecamatan);
             $rawAlamat = trim((string) $siswa->alamat);
@@ -121,7 +124,22 @@ class SpmbWilayahService
                 continue;
             }
 
-            // 2. Deteksi Dalam Negeri
+            // 2. Harmonisasi dengan Master Kemendagri (Pemetaan Alamat Siswa):
+            // Jika data domisili siswa SUDAH VALID sesuai Master Kemendagri, JANGAN PERNAH DIUBAH / DITIMPA!
+            $analysis = $pemetaanService->analyzeSiswa($siswa);
+            if (! $analysis['is_anomali']) {
+                continue;
+            }
+
+            // 3. Jika terdeteksi anomali namun ada rekomendasi pasti/tinggi dari Master Kemendagri (berdasarkan kelurahan/kecamatan),
+            // perbarui langsung sesuai Kemendagri agar tidak memunculkan anomali di pemetaan alamat.
+            if (in_array($analysis['confidence'], ['pasti', 'tinggi']) && ! empty($analysis['suggested'])) {
+                $pemetaanService->applySuggestion($siswa, $analysis['suggested']);
+                $updatedDomestic++;
+                continue;
+            }
+
+            // 4. Deteksi Fallback untuk Siswa yang datanya belum lengkap / tidak cocok di Master Kemendagri
             $needsUpdate = false;
             $updates = [
                 'negara' => $siswa->negara ?: 'Indonesia',
@@ -135,30 +153,7 @@ class SpmbWilayahService
                 $needsUpdate = true;
             }
 
-            // A. Cari dari Sekolah Asal yang sudah dipetakan
-            $matchedMaster = $aliasMap[strtolower($rawSekolah)] ?? null;
-            if ($matchedMaster) {
-                $stdMasterKab = $this->standardizeKabupatenKotaName($matchedMaster->kabupaten_kota, $cleanedKecamatan, $rawSekolah);
-                if (empty($siswa->kabupaten_kota) || $siswa->kabupaten_kota === 'Garut' || ($stdMasterKab && $siswa->kabupaten_kota !== $stdMasterKab)) {
-                    if (! empty($stdMasterKab)) {
-                        $updates['kabupaten_kota'] = $stdMasterKab;
-                        $needsUpdate = true;
-                    }
-                }
-
-                if (empty($siswa->provinsi)) {
-                    $updates['provinsi'] = $matchedMaster->masterSmp?->provinsi ?: 'Jawa Barat';
-                    $needsUpdate = true;
-                }
-
-                if (empty($cleanedKecamatan) && ! empty($matchedMaster->kecamatan)) {
-                    $updates['kecamatan'] = $matchedMaster->kecamatan;
-                    $cleanedKecamatan = $matchedMaster->kecamatan;
-                    $needsUpdate = true;
-                }
-            }
-
-            // B. Jika Kab/Kota atau Provinsi masih kosong, cari dari Master SMP via Kecamatan
+            // A. Jika Kab/Kota atau Provinsi masih kosong, cari dari Master SMP via Kecamatan
             if ((empty($siswa->kabupaten_kota) || empty($siswa->provinsi)) && ! empty($cleanedKecamatan)) {
                 $kecMatches = $kecamatanMasterMap->get(strtolower($cleanedKecamatan));
                 if ($kecMatches && $kecMatches->count() === 1) {
@@ -174,6 +169,30 @@ class SpmbWilayahService
                 }
             }
 
+            // B. JIKA KABUPATEN MASIH KOSONG, cari dari Sekolah Asal sebagai fallback terakhir.
+            // CATATAN: JANGAN PERNAH menimpa kabupaten_kota domisili siswa yang sudah terisi dengan kabupaten sekolah asal!
+            if (empty($siswa->kabupaten_kota) || $siswa->kabupaten_kota === 'Garut') {
+                $matchedMaster = $aliasMap[strtolower($rawSekolah)] ?? null;
+                if ($matchedMaster) {
+                    $stdMasterKab = $this->standardizeKabupatenKotaName($matchedMaster->kabupaten_kota, $cleanedKecamatan, $rawSekolah);
+                    if (! empty($stdMasterKab)) {
+                        $updates['kabupaten_kota'] = $stdMasterKab;
+                        $needsUpdate = true;
+                    }
+
+                    if (empty($siswa->provinsi)) {
+                        $updates['provinsi'] = $matchedMaster->masterSmp?->provinsi ?: 'Jawa Barat';
+                        $needsUpdate = true;
+                    }
+
+                    if (empty($cleanedKecamatan) && ! empty($matchedMaster->kecamatan)) {
+                        $updates['kecamatan'] = $matchedMaster->kecamatan;
+                        $cleanedKecamatan = $matchedMaster->kecamatan;
+                        $needsUpdate = true;
+                    }
+                }
+            }
+
             // C. Standarisasikan jika kabupaten_kota siswa masih mentah (misal 'Garut' atau 'Bogor' ambigu)
             $currentKab = $updates['kabupaten_kota'] ?? $siswa->kabupaten_kota;
             if (! empty($currentKab)) {
@@ -184,7 +203,7 @@ class SpmbWilayahService
                 }
             }
 
-            // Fallback default untuk daerah Garut jika terbukti sekolah asalnya di Garut
+            // Fallback default untuk daerah Garut jika terbukti sekolah asalnya di Garut dan kabupaten_kota benar-benar kosong
             if (empty($siswa->kabupaten_kota) && (str_contains(strtolower($rawAlamat), 'garut') || str_contains(strtolower($rawSekolah), 'garut'))) {
                 $updates['kabupaten_kota'] = 'Kab. Garut';
                 $updates['provinsi'] = 'Jawa Barat';

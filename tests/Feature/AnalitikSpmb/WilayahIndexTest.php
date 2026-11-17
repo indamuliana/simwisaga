@@ -133,6 +133,43 @@ class WilayahIndexTest extends TestCase
         $this->assertEquals('Tawau', $siswaLN->kabupaten_kota);
     }
 
+    public function test_auto_detect_wilayah_tidak_menimpa_domisili_valid_dengan_sekolah_asal(): void
+    {
+        // Simulasi sekolah asal yang berada di Garut
+        SpmbSekolahAsal::create([
+            'nama_resmi' => 'SMPN 1 GARUT',
+            'kabupaten_kota' => 'Kab. Garut',
+            'provinsi' => 'Jawa Barat',
+        ]);
+
+        // Siswa yang domisili rumahnya di Jakarta Utara tapi sekolah asalnya tercatat di Garut
+        $siswa = Siswa::create([
+            'nama' => 'Raihan Azka Lubis',
+            'nisn' => '12501153',
+            'jk' => 'L',
+            'kelurahan' => 'Semper Barat',
+            'kecamatan' => 'Cilincing',
+            'kabupaten_kota' => 'Kota Administrasi Jakarta Utara',
+            'provinsi' => 'Daerah Khusus Ibukota Jakarta',
+            'negara' => 'Indonesia',
+            'alamat' => 'JL RAYA TUGU NO 09 A',
+            'sekolah_asal' => 'SMPN 1 GARUT',
+            'is_active' => true,
+        ]);
+
+        Livewire::actingAs($this->admin)
+            ->test(WilayahIndex::class)
+            ->call('autoDetectWilayah')
+            ->assertHasNoErrors();
+
+        // Pastikan kabupaten_kota domisili siswa TIDAK tertimpa menjadi Kab. Garut
+        $siswa->refresh();
+        $this->assertEquals('Kota Administrasi Jakarta Utara', $siswa->kabupaten_kota);
+        $this->assertEquals('Daerah Khusus Ibukota Jakarta', $siswa->provinsi);
+        $this->assertEquals('Cilincing', $siswa->kecamatan);
+        $this->assertEquals('Semper Barat', $siswa->kelurahan);
+    }
+
     public function test_filter_cakupan_luar_negeri_dan_dalam_negeri(): void
     {
         Siswa::create([
