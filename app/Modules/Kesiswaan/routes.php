@@ -3,6 +3,7 @@
 use App\Modules\Kesiswaan\Livewire\CetakAbsensi;
 use App\Modules\Kesiswaan\Livewire\KelulusanIndex;
 use App\Modules\Kesiswaan\Livewire\KenaikanKelasIndex;
+use App\Modules\Kesiswaan\Livewire\PemetaanAlamatSiswa;
 use App\Modules\Kesiswaan\Livewire\PlottingProgramMassal;
 use App\Modules\Kesiswaan\Livewire\PlottingRayonMassal;
 use App\Modules\Kesiswaan\Livewire\PlottingRombelMassal;
@@ -23,6 +24,7 @@ Route::prefix('kesiswaan')->name('kesiswaan.')->group(function () {
     Route::get('/cetak-absensi', CetakAbsensi::class)->name('cetak-absensi');
     Route::get('/import-dapodik', SiswaImport::class)->name('import');
     Route::get('/download-custom', SiswaCustomExport::class)->name('download-custom');
+    Route::get('/pemetaan-alamat', PemetaanAlamatSiswa::class)->name('pemetaan-alamat');
     Route::get('/plotting-rombel', PlottingRombelMassal::class)->name('plotting-rombel');
     Route::get('/kenaikan-kelas', KenaikanKelasIndex::class)->name('kenaikan-kelas');
     Route::get('/kelulusan', KelulusanIndex::class)->name('kelulusan');

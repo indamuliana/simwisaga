@@ -15,6 +15,7 @@ return [
         ['label' => 'Kelulusan Siswa', 'route' => 'kesiswaan.kelulusan', 'permission' => 'kesiswaan.siswa.edit'],
         ['label' => 'Plotting Program (Unggulan/Reguler)', 'route' => 'kesiswaan.plotting-program', 'permission' => 'kesiswaan.siswa.edit'],
         ['label' => 'Plotting Rayon Massal', 'route' => 'kesiswaan.plotting-rayon', 'permission' => 'kesiswaan.siswa.edit'],
+        ['label' => 'Pemetaan Alamat Siswa', 'route' => 'kesiswaan.pemetaan-alamat', 'permission' => 'kesiswaan.siswa.edit'],
         ['label' => 'Verifikasi Perbaikan Data', 'route' => 'kesiswaan.verifikasi-perbaikan', 'permission' => 'kesiswaan.siswa.edit'],
     ],
     'permissions' => [
