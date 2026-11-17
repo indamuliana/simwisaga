@@ -39,6 +39,8 @@ class SpmbWilayahExporter
             'Total Siswa',
             'L',
             'P',
+            'Ung',
+            'Reg',
         ];
 
         foreach ($jurusans as $j) {
@@ -68,6 +70,8 @@ class SpmbWilayahExporter
                 $item->total_siswa,
                 $item->siswa_l,
                 $item->siswa_p,
+                (int) ($item->program_ung ?? 0),
+                (int) ($item->program_reg ?? 0),
             ];
 
             foreach ($jurusans as $j) {

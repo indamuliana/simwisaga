@@ -3,6 +3,7 @@
 namespace App\Modules\AnalitikSpmb\Services;
 
 use App\Modules\Akademik\Models\Jurusan;
+use App\Modules\Akademik\Models\Program;
 use App\Modules\AnalitikSpmb\Models\MasterWilayah;
 use App\Modules\AnalitikSpmb\Models\SpmbMasterSmp;
 use App\Modules\AnalitikSpmb\Models\SpmbSekolahAsal;
@@ -444,7 +445,18 @@ class SpmbWilayahService
      */
     public function getWilayahAnalytics(array $filters = []): array
     {
-        $jurusans = Jurusan::orderBy('kode')->get();
+        $preferredJurusanOrder = ['TJKT', 'PPLG', 'PMN', 'HTL'];
+        $jurusans = Jurusan::all()->sortBy(function ($j) use ($preferredJurusanOrder) {
+            $idx = array_search($j->kode, $preferredJurusanOrder);
+
+            return $idx !== false ? $idx : 999;
+        })->values();
+
+        $programs = Program::all();
+        $ungProgram = $programs->firstWhere('kode', 'UNG');
+        $regProgram = $programs->firstWhere('kode', 'REG');
+        $ungId = $ungProgram?->id ?? 2;
+        $regId = $regProgram?->id ?? 1;
 
         $siswaQuery = Siswa::query()
             ->leftJoin('rombels', 'siswas.rombel_id', '=', 'rombels.id');
@@ -511,13 +523,15 @@ class SpmbWilayahService
 
         // Kueri Agregasi Per Wilayah (Negara, Provinsi, Kab/Kota, Kecamatan)
         $selects = [
-            DB::raw("COALESCE(NULLIF(siswas.negara, ''), 'Indonesia') as negara"),
-            DB::raw("COALESCE(NULLIF(siswas.provinsi, ''), '[Belum Diset]') as provinsi"),
-            DB::raw("COALESCE(NULLIF(siswas.kabupaten_kota, ''), '[Belum Diset]') as kabupaten_kota"),
-            DB::raw("COALESCE(NULLIF(siswas.kecamatan, ''), '[Belum Diset]') as kecamatan"),
+            DB::raw("COALESCE(NULLIF(TRIM(siswas.negara), ''), 'Indonesia') as negara"),
+            DB::raw("COALESCE(NULLIF(TRIM(siswas.provinsi), ''), '[Belum Diset]') as provinsi"),
+            DB::raw("COALESCE(NULLIF(TRIM(siswas.kabupaten_kota), ''), '[Belum Diset]') as kabupaten_kota"),
+            DB::raw("COALESCE(NULLIF(TRIM(siswas.kecamatan), ''), '[Belum Diset]') as kecamatan"),
             DB::raw('count(siswas.id) as total_siswa'),
             DB::raw('sum(case when siswas.jk = "L" then 1 else 0 end) as siswa_l'),
             DB::raw('sum(case when siswas.jk = "P" then 1 else 0 end) as siswa_p'),
+            DB::raw("sum(case when siswas.program_id = {$ungId} then 1 else 0 end) as program_ung"),
+            DB::raw("sum(case when siswas.program_id = {$regId} then 1 else 0 end) as program_reg"),
         ];
 
         foreach ($jurusans as $j) {
@@ -534,7 +548,7 @@ class SpmbWilayahService
 
         $items = $groupQuery->get();
 
-        // Hitung dominan jurusan & persentase
+        // Hitung dominan jurusan & persentase untuk items flat (dipakai export Excel)
         $items->transform(function ($item) use ($totalSiswa, $jurusans) {
             $dominantName = '-';
             $dominantCount = 0;
@@ -553,12 +567,36 @@ class SpmbWilayahService
             return $item;
         });
 
+        // Kueri Agregasi 5 Tingkat untuk Tree Table (Negara -> Provinsi -> Kab/Kota -> Kecamatan -> Desa/Kelurahan)
+        $treeSelects = [
+            DB::raw("COALESCE(NULLIF(TRIM(siswas.negara), ''), 'Indonesia') as negara"),
+            DB::raw("COALESCE(NULLIF(TRIM(siswas.provinsi), ''), '[Belum Diset]') as provinsi"),
+            DB::raw("COALESCE(NULLIF(TRIM(siswas.kabupaten_kota), ''), '[Belum Diset]') as kabupaten_kota"),
+            DB::raw("COALESCE(NULLIF(TRIM(siswas.kecamatan), ''), '[Belum Diset]') as kecamatan"),
+            DB::raw("COALESCE(NULLIF(TRIM(siswas.kelurahan), ''), '[Belum Diset]') as kelurahan"),
+            DB::raw('count(siswas.id) as total_siswa'),
+            DB::raw('sum(case when siswas.jk = "L" then 1 else 0 end) as siswa_l'),
+            DB::raw('sum(case when siswas.jk = "P" then 1 else 0 end) as siswa_p'),
+            DB::raw("sum(case when siswas.program_id = {$ungId} then 1 else 0 end) as program_ung"),
+            DB::raw("sum(case when siswas.program_id = {$regId} then 1 else 0 end) as program_reg"),
+        ];
+        foreach ($jurusans as $j) {
+            $treeSelects[] = DB::raw("sum(case when rombels.jurusan_id = {$j->id} then 1 else 0 end) as jurusan_{$j->id}");
+        }
+
+        $treeRows = (clone $siswaQuery)
+            ->select($treeSelects)
+            ->groupBy('negara', 'provinsi', 'kabupaten_kota', 'kecamatan', 'kelurahan')
+            ->get();
+
+        $treeData = $this->buildWilayahTree($treeRows, $jurusans, $totalSiswa);
+
         // Top 10 Kabupaten/Kota Leaderboard
         $topKabupatenQuery = (clone $siswaQuery)
             ->select(
-                DB::raw("COALESCE(NULLIF(siswas.kabupaten_kota, ''), '[Belum Diset]') as kab_kota"),
-                DB::raw("COALESCE(NULLIF(siswas.provinsi, ''), '') as prov"),
-                DB::raw("COALESCE(NULLIF(siswas.negara, ''), 'Indonesia') as neg"),
+                DB::raw("COALESCE(NULLIF(TRIM(siswas.kabupaten_kota), ''), '[Belum Diset]') as kab_kota"),
+                DB::raw("COALESCE(NULLIF(TRIM(siswas.provinsi), ''), '') as prov"),
+                DB::raw("COALESCE(NULLIF(TRIM(siswas.negara), ''), 'Indonesia') as neg"),
                 DB::raw('count(siswas.id) as total')
             )
             ->groupBy('kab_kota', 'prov', 'neg')
@@ -566,27 +604,249 @@ class SpmbWilayahService
             ->take(10)
             ->get();
 
-        // Daftar Siswa Luar Negeri
-        $luarNegeriSiswa = (clone $siswaQuery)
-            ->whereNotNull('siswas.negara')
-            ->where('siswas.negara', '!=', 'Indonesia')
-            ->select('siswas.id', 'siswas.nama', 'siswas.nisn', 'siswas.nipd', 'siswas.jk', 'siswas.negara', 'siswas.provinsi', 'siswas.kabupaten_kota', 'siswas.kecamatan', 'siswas.sekolah_asal', 'siswas.alamat')
-            ->orderBy('siswas.negara')
-            ->orderBy('siswas.kabupaten_kota')
-            ->orderBy('siswas.nama')
-            ->get();
+        // Hitung persentase porsi untuk top 10
+        $topKabupatenQuery->transform(function ($item) use ($totalSiswa) {
+            $item->percentage = $totalSiswa > 0 ? round(($item->total / $totalSiswa) * 100, 1) : 0;
+
+            return $item;
+        });
 
         return [
             'items' => $items,
+            'tree' => $treeData,
             'jurusans' => $jurusans,
+            'programs' => $programs,
             'totalSiswa' => $totalSiswa,
             'statNegara' => $statNegara,
             'statProvinsi' => $statProvinsi,
             'statKabupaten' => $statKabupaten,
             'statLuarNegeri' => $statLuarNegeri,
             'topKabupaten' => $topKabupatenQuery,
-            'luarNegeriSiswa' => $luarNegeriSiswa,
+            'luarNegeriSiswa' => collect(),
         ];
+    }
+
+    /**
+     * Susun pohon hirarki bertingkat (Tree) 5 Level:
+     * Negara -> Provinsi -> Kota/Kab -> Kecamatan -> Desa/Kelurahan
+     */
+    protected function buildWilayahTree(Collection $rows, Collection $jurusans, int $totalSiswa): array
+    {
+        $tree = [];
+
+        foreach ($rows as $row) {
+            $neg = $row->negara;
+            $prov = $row->provinsi;
+            $kab = $row->kabupaten_kota;
+            $kec = $row->kecamatan;
+            $kel = $row->kelurahan;
+
+            $negKey = "N:{$neg}";
+            $provKey = "P:{$neg}:{$prov}";
+            $kabKey = "K:{$neg}:{$prov}:{$kab}";
+            $kecKey = "C:{$neg}:{$prov}:{$kab}:{$kec}";
+            $kelKey = "D:{$neg}:{$prov}:{$kab}:{$kec}:{$kel}";
+
+            // 1. Level Negara
+            if (! isset($tree[$negKey])) {
+                $tree[$negKey] = [
+                    'key' => $negKey,
+                    'level' => 'negara',
+                    'name' => $neg,
+                    'label' => $neg,
+                    'negara' => $neg,
+                    'provinsi' => null,
+                    'kabupaten_kota' => null,
+                    'kecamatan' => null,
+                    'kelurahan' => null,
+                    'total_siswa' => 0,
+                    'siswa_l' => 0,
+                    'siswa_p' => 0,
+                    'program_ung' => 0,
+                    'program_reg' => 0,
+                    'jurusan_counts' => [],
+                    'criteria' => ['negara' => $neg],
+                    'children' => [],
+                ];
+            }
+            $tree[$negKey]['total_siswa'] += (int) $row->total_siswa;
+            $tree[$negKey]['siswa_l'] += (int) $row->siswa_l;
+            $tree[$negKey]['siswa_p'] += (int) $row->siswa_p;
+            $tree[$negKey]['program_ung'] += (int) ($row->program_ung ?? 0);
+            $tree[$negKey]['program_reg'] += (int) ($row->program_reg ?? 0);
+            foreach ($jurusans as $j) {
+                $val = (int) ($row->{'jurusan_'.$j->id} ?? 0);
+                $tree[$negKey]['jurusan_counts'][$j->id] = ($tree[$negKey]['jurusan_counts'][$j->id] ?? 0) + $val;
+                $tree[$negKey]['jurusan_counts'][$j->kode] = ($tree[$negKey]['jurusan_counts'][$j->kode] ?? 0) + $val;
+            }
+
+            // 2. Level Provinsi
+            if (! isset($tree[$negKey]['children'][$provKey])) {
+                $tree[$negKey]['children'][$provKey] = [
+                    'key' => $provKey,
+                    'level' => 'provinsi',
+                    'name' => $prov,
+                    'label' => $prov,
+                    'negara' => $neg,
+                    'provinsi' => $prov,
+                    'kabupaten_kota' => null,
+                    'kecamatan' => null,
+                    'kelurahan' => null,
+                    'total_siswa' => 0,
+                    'siswa_l' => 0,
+                    'siswa_p' => 0,
+                    'program_ung' => 0,
+                    'program_reg' => 0,
+                    'jurusan_counts' => [],
+                    'criteria' => ['negara' => $neg, 'provinsi' => $prov],
+                    'children' => [],
+                ];
+            }
+            $tree[$negKey]['children'][$provKey]['total_siswa'] += (int) $row->total_siswa;
+            $tree[$negKey]['children'][$provKey]['siswa_l'] += (int) $row->siswa_l;
+            $tree[$negKey]['children'][$provKey]['siswa_p'] += (int) $row->siswa_p;
+            $tree[$negKey]['children'][$provKey]['program_ung'] += (int) ($row->program_ung ?? 0);
+            $tree[$negKey]['children'][$provKey]['program_reg'] += (int) ($row->program_reg ?? 0);
+            foreach ($jurusans as $j) {
+                $val = (int) ($row->{'jurusan_'.$j->id} ?? 0);
+                $tree[$negKey]['children'][$provKey]['jurusan_counts'][$j->id] = ($tree[$negKey]['children'][$provKey]['jurusan_counts'][$j->id] ?? 0) + $val;
+                $tree[$negKey]['children'][$provKey]['jurusan_counts'][$j->kode] = ($tree[$negKey]['children'][$provKey]['jurusan_counts'][$j->kode] ?? 0) + $val;
+            }
+
+            // 3. Level Kab/Kota
+            if (! isset($tree[$negKey]['children'][$provKey]['children'][$kabKey])) {
+                $tree[$negKey]['children'][$provKey]['children'][$kabKey] = [
+                    'key' => $kabKey,
+                    'level' => 'kabupaten_kota',
+                    'name' => $kab,
+                    'label' => $kab,
+                    'negara' => $neg,
+                    'provinsi' => $prov,
+                    'kabupaten_kota' => $kab,
+                    'kecamatan' => null,
+                    'kelurahan' => null,
+                    'total_siswa' => 0,
+                    'siswa_l' => 0,
+                    'siswa_p' => 0,
+                    'program_ung' => 0,
+                    'program_reg' => 0,
+                    'jurusan_counts' => [],
+                    'criteria' => ['negara' => $neg, 'provinsi' => $prov, 'kabupaten' => $kab],
+                    'children' => [],
+                ];
+            }
+            $tree[$negKey]['children'][$provKey]['children'][$kabKey]['total_siswa'] += (int) $row->total_siswa;
+            $tree[$negKey]['children'][$provKey]['children'][$kabKey]['siswa_l'] += (int) $row->siswa_l;
+            $tree[$negKey]['children'][$provKey]['children'][$kabKey]['siswa_p'] += (int) $row->siswa_p;
+            $tree[$negKey]['children'][$provKey]['children'][$kabKey]['program_ung'] += (int) ($row->program_ung ?? 0);
+            $tree[$negKey]['children'][$provKey]['children'][$kabKey]['program_reg'] += (int) ($row->program_reg ?? 0);
+            foreach ($jurusans as $j) {
+                $val = (int) ($row->{'jurusan_'.$j->id} ?? 0);
+                $tree[$negKey]['children'][$provKey]['children'][$kabKey]['jurusan_counts'][$j->id] = ($tree[$negKey]['children'][$provKey]['children'][$kabKey]['jurusan_counts'][$j->id] ?? 0) + $val;
+                $tree[$negKey]['children'][$provKey]['children'][$kabKey]['jurusan_counts'][$j->kode] = ($tree[$negKey]['children'][$provKey]['children'][$kabKey]['jurusan_counts'][$j->kode] ?? 0) + $val;
+            }
+
+            // 4. Level Kecamatan
+            if (! isset($tree[$negKey]['children'][$provKey]['children'][$kabKey]['children'][$kecKey])) {
+                $tree[$negKey]['children'][$provKey]['children'][$kabKey]['children'][$kecKey] = [
+                    'key' => $kecKey,
+                    'level' => 'kecamatan',
+                    'name' => $kec,
+                    'label' => $kec,
+                    'negara' => $neg,
+                    'provinsi' => $prov,
+                    'kabupaten_kota' => $kab,
+                    'kecamatan' => $kec,
+                    'kelurahan' => null,
+                    'total_siswa' => 0,
+                    'siswa_l' => 0,
+                    'siswa_p' => 0,
+                    'program_ung' => 0,
+                    'program_reg' => 0,
+                    'jurusan_counts' => [],
+                    'criteria' => ['negara' => $neg, 'provinsi' => $prov, 'kabupaten' => $kab, 'kecamatan' => $kec],
+                    'children' => [],
+                ];
+            }
+            $tree[$negKey]['children'][$provKey]['children'][$kabKey]['children'][$kecKey]['total_siswa'] += (int) $row->total_siswa;
+            $tree[$negKey]['children'][$provKey]['children'][$kabKey]['children'][$kecKey]['siswa_l'] += (int) $row->siswa_l;
+            $tree[$negKey]['children'][$provKey]['children'][$kabKey]['children'][$kecKey]['siswa_p'] += (int) $row->siswa_p;
+            $tree[$negKey]['children'][$provKey]['children'][$kabKey]['children'][$kecKey]['program_ung'] += (int) ($row->program_ung ?? 0);
+            $tree[$negKey]['children'][$provKey]['children'][$kabKey]['children'][$kecKey]['program_reg'] += (int) ($row->program_reg ?? 0);
+            foreach ($jurusans as $j) {
+                $val = (int) ($row->{'jurusan_'.$j->id} ?? 0);
+                $tree[$negKey]['children'][$provKey]['children'][$kabKey]['children'][$kecKey]['jurusan_counts'][$j->id] = ($tree[$negKey]['children'][$provKey]['children'][$kabKey]['children'][$kecKey]['jurusan_counts'][$j->id] ?? 0) + $val;
+                $tree[$negKey]['children'][$provKey]['children'][$kabKey]['children'][$kecKey]['jurusan_counts'][$j->kode] = ($tree[$negKey]['children'][$provKey]['children'][$kabKey]['children'][$kecKey]['jurusan_counts'][$j->kode] ?? 0) + $val;
+            }
+
+            // 5. Level Kelurahan / Desa
+            $kelJur = [];
+            foreach ($jurusans as $j) {
+                $val = (int) ($row->{'jurusan_'.$j->id} ?? 0);
+                $kelJur[$j->id] = $val;
+                $kelJur[$j->kode] = $val;
+            }
+            $tree[$negKey]['children'][$provKey]['children'][$kabKey]['children'][$kecKey]['children'][$kelKey] = [
+                'key' => $kelKey,
+                'level' => 'kelurahan',
+                'name' => $kel,
+                'label' => $kel,
+                'negara' => $neg,
+                'provinsi' => $prov,
+                'kabupaten_kota' => $kab,
+                'kecamatan' => $kec,
+                'kelurahan' => $kel,
+                'total_siswa' => (int) $row->total_siswa,
+                'siswa_l' => (int) $row->siswa_l,
+                'siswa_p' => (int) $row->siswa_p,
+                'program_ung' => (int) ($row->program_ung ?? 0),
+                'program_reg' => (int) ($row->program_reg ?? 0),
+                'jurusan_counts' => $kelJur,
+                'criteria' => ['negara' => $neg, 'provinsi' => $prov, 'kabupaten' => $kab, 'kecamatan' => $kec, 'kelurahan' => $kel],
+                'children' => [],
+            ];
+        }
+
+        $calcMeta = function (&$node) use (&$calcMeta, $totalSiswa, $jurusans) {
+            $node['percentage'] = $totalSiswa > 0 ? round(($node['total_siswa'] / $totalSiswa) * 100, 1) : 0;
+            $domName = '-';
+            $domCount = 0;
+            foreach ($jurusans as $j) {
+                $cnt = $node['jurusan_counts'][$j->id] ?? 0;
+                if ($cnt > $domCount) {
+                    $domCount = $cnt;
+                    $domName = $j->kode;
+                }
+            }
+            $node['dominant_jurusan'] = $domName !== '-' ? "{$domName} ({$domCount})" : '-';
+
+            if (! empty($node['children'])) {
+                uasort($node['children'], function ($a, $b) {
+                    if ($b['total_siswa'] === $a['total_siswa']) {
+                        return strcmp($a['name'], $b['name']);
+                    }
+
+                    return $b['total_siswa'] <=> $a['total_siswa'];
+                });
+                foreach ($node['children'] as &$c) {
+                    $calcMeta($c);
+                }
+            }
+        };
+
+        uasort($tree, function ($a, $b) {
+            if ($b['total_siswa'] === $a['total_siswa']) {
+                return strcmp($a['name'], $b['name']);
+            }
+
+            return $b['total_siswa'] <=> $a['total_siswa'];
+        });
+
+        foreach ($tree as &$r) {
+            $calcMeta($r);
+        }
+
+        return $tree;
     }
 
     /**

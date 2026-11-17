@@ -23,8 +23,7 @@ class WilayahIndex extends Component
 {
     use GuardsPermission, WithPagination;
 
-    #[Url(history: true)]
-    public string $activeTab = 'analitik'; // 'analitik' | 'perbaikan'
+    public string $activeTab = 'analitik'; // Deprecated / redirected if 'perbaikan'
 
     #[Url(history: true)]
     public string $search = '';
@@ -55,6 +54,12 @@ class WilayahIndex extends Component
 
     public int $perPage = 25;
 
+    // Toggle Tampilan Tabel Top 10 Feeder Kab / Kota (Default: false / tertutup)
+    public bool $showTopKabupaten = false;
+
+    // Node Tree Wilayah yang sedang di-expand / buka
+    public ?array $expandedNodes = null;
+
     // Slide-over Drawer Siswa
     public bool $showDrawer = false;
 
@@ -69,37 +74,6 @@ class WilayahIndex extends Component
     public string $drawerFilterJurusan = '';
 
     public string $drawerFilterJk = '';
-
-    // Modal Standarisasi Kelompok (Tab Perbaikan)
-    public bool $showEditModal = false;
-
-    public string $editGroupKecamatan = '';
-
-    public string $editGroupKelurahan = '';
-
-    public array $editGroupSiswaIds = [];
-
-    public int $editGroupTotalSiswa = 0;
-
-    public bool $editIsLuarNegeri = false;
-
-    public string $editNegara = 'Indonesia';
-
-    public string $editProvinsi = '';
-
-    public string $editKabupaten = '';
-
-    public string $editKecamatan = '';
-
-    public array $modalPillOptions = [];
-
-    public ?string $modalHint = null;
-
-    public bool $isManualEditProvinsi = false;
-
-    public bool $isManualEditKabupaten = false;
-
-    public bool $isManualEditKecamatan = false;
 
     // Modal Edit Alamat Siswa Perorangan (dari Drawer)
     public bool $showEditAddressModal = false;
@@ -136,14 +110,21 @@ class WilayahIndex extends Component
 
     public array $drawerSiswaIds = [];
 
-    public function updatedActiveTab(): void
+    public function mount()
     {
-        $this->resetPage();
+        $this->guard('analitik_spmb.wilayah.lihat');
+
+        if (request()->query('activeTab') === 'perbaikan') {
+            return redirect()->route('kesiswaan.pemetaan-alamat');
+        }
     }
 
     public function updatedSearch(): void
     {
         $this->resetPage();
+        if (! empty($this->search)) {
+            $this->expandAll();
+        }
     }
 
     public function updatedFilterCakupan(): void
@@ -202,13 +183,86 @@ class WilayahIndex extends Component
             'filterJk',
         ]);
         $this->filterStatus = 'aktif';
+        $this->expandedNodes = null;
         $this->resetPage();
     }
 
-    public function switchTab(string $tab): void
+    /**
+     * Buka / Tutup simpul (node) pada pohon hirarki
+     */
+    public function toggleNode(string $key): void
     {
-        $this->activeTab = in_array($tab, ['analitik', 'perbaikan']) ? $tab : 'analitik';
-        $this->resetPage();
+        if ($this->expandedNodes === null) {
+            $service = app(SpmbWilayahService::class);
+            $analytics = $service->getWilayahAnalytics(array_merge(get_object_vars($this), [
+                'search' => $this->search,
+            ]));
+            $this->expandedNodes = $this->getDefaultExpandedKeys($analytics['tree'] ?? []);
+        }
+
+        if (isset($this->expandedNodes[$key])) {
+            unset($this->expandedNodes[$key]);
+        } else {
+            $this->expandedNodes[$key] = true;
+        }
+    }
+
+    /**
+     * Buka seluruh tingkatan cabang pohon hirarki
+     */
+    public function expandAll(): void
+    {
+        $service = app(SpmbWilayahService::class);
+        $analytics = $service->getWilayahAnalytics(array_merge(get_object_vars($this), [
+            'search' => $this->search,
+        ]));
+
+        $keys = [];
+        $collectKeys = function ($nodes) use (&$collectKeys, &$keys) {
+            foreach ($nodes as $node) {
+                $keys[$node['key']] = true;
+                if (! empty($node['children'])) {
+                    $collectKeys($node['children']);
+                }
+            }
+        };
+        $collectKeys($analytics['tree'] ?? []);
+        $this->expandedNodes = $keys;
+    }
+
+    /**
+     * Tutup seluruh tingkatan cabang pohon hirarki
+     */
+    public function collapseAll(): void
+    {
+        $this->expandedNodes = [];
+    }
+
+    /**
+     * Buka / Tutup tampilan leaderboard Top 10 Kabupaten / Kota Feeder
+     */
+    public function toggleTopKabupaten(): void
+    {
+        $this->showTopKabupaten = ! $this->showTopKabupaten;
+    }
+
+    /**
+     * Kunci default yang terbuka (Negara, Provinsi, dan Kab/Kota)
+     */
+    protected function getDefaultExpandedKeys(array $tree): array
+    {
+        $keys = [];
+        foreach ($tree as $negKey => $neg) {
+            $keys[$negKey] = true;
+            foreach ($neg['children'] as $provKey => $prov) {
+                $keys[$provKey] = true;
+                foreach ($prov['children'] as $kabKey => $kab) {
+                    $keys[$kabKey] = true;
+                }
+            }
+        }
+
+        return $keys;
     }
 
     /**
@@ -225,18 +279,24 @@ class WilayahIndex extends Component
     }
 
     /**
-     * Buka Drawer Slide-over Siswa per Wilayah
+     * Buka Drawer Slide-over Siswa per Wilayah (Tingkat Negara hingga Desa/Kelurahan)
      */
-    public function openDrawer(string $negara, string $provinsi, string $kabupaten, string $kecamatan): void
-    {
-        $this->drawerCriteria = [
+    public function openDrawer(
+        string $negara,
+        ?string $provinsi = null,
+        ?string $kabupaten = null,
+        ?string $kecamatan = null,
+        ?string $kelurahan = null
+    ): void {
+        $this->drawerCriteria = array_filter([
             'negara' => $negara,
             'provinsi' => $provinsi,
             'kabupaten_kota' => $kabupaten,
             'kecamatan' => $kecamatan,
-        ];
+            'kelurahan' => $kelurahan,
+        ], fn ($v) => ! is_null($v) && $v !== '');
 
-        $titleParts = array_filter([$kecamatan, $kabupaten, $provinsi, $negara], fn ($v) => $v && $v !== '[Belum Diset]');
+        $titleParts = array_filter([$kelurahan, $kecamatan, $kabupaten, $provinsi, $negara], fn ($v) => $v && $v !== '[Belum Diset]');
         $this->drawerWilayahTitle = implode(' &bull; ', $titleParts) ?: 'Wilayah Tidak Terdefinisi';
         $this->drawerSearch = '';
         $this->drawerFilterTingkat = '';
@@ -250,166 +310,6 @@ class WilayahIndex extends Component
         $this->showDrawer = false;
         $this->drawerCriteria = [];
         $this->drawerWilayahTitle = '';
-    }
-
-    /**
-     * Buka Modal Edit Kelompok Anomali di Tab Perbaikan
-     */
-    public function openEditGroupModal(string $kecamatan, string $kelurahan, string $siswaIds, int $total): void
-    {
-        $this->guard('analitik_spmb.wilayah.kelola');
-
-        $this->editGroupKecamatan = $kecamatan;
-        $this->editGroupKelurahan = $kelurahan;
-        $this->editGroupSiswaIds = array_filter(explode(',', $siswaIds));
-        $this->editGroupTotalSiswa = $total;
-
-        // Ambil sampel data awal dari siswa pertama
-        $sample = Siswa::find($this->editGroupSiswaIds[0] ?? 0);
-        $isLuar = $sample && $sample->negara && $sample->negara !== 'Indonesia';
-
-        $this->editIsLuarNegeri = (bool) $isLuar;
-        $this->editNegara = $sample?->negara ?: ($isLuar ? 'Malaysia' : 'Indonesia');
-        $this->editProvinsi = $sample?->provinsi ?: ($isLuar ? 'Sabah' : 'Jawa Barat');
-        $this->editKabupaten = $sample?->kabupaten_kota ?: '';
-        $this->editKecamatan = preg_replace('/^kec\.?\s+/i', '', $kecamatan);
-
-        $service = app(SpmbWilayahService::class);
-
-        // Jika kabupaten saat ini adalah 'Garut' atau kosong, standarisasikan jika memungkinkan
-        if (strtolower($this->editKabupaten) === 'garut' || empty($this->editKabupaten)) {
-            $std = $service->standardizeKabupatenKotaName($this->editKabupaten ?: $sample?->kabupaten_kota, $this->editKecamatan, $sample?->sekolah_asal);
-            if ($std) {
-                $this->editKabupaten = $std;
-            }
-        }
-
-        // Ambil opsi pill button dan petunjuk dari Master SMP
-        $dualityInfo = $service->getDualityPillOptions($this->editKecamatan, $this->editKabupaten);
-        $this->modalPillOptions = $dualityInfo['pills'];
-        $this->modalHint = $dualityInfo['hint'];
-
-        // Deteksi mode manual jika nilai awal tidak ada di master
-        $provinces = $service->getProvincesList();
-        $this->isManualEditProvinsi = ! empty($this->editProvinsi) && ! in_array($this->editProvinsi, $provinces, true);
-
-        $kabupatens = $service->getKabupatenList($this->editProvinsi ?: null);
-        $this->isManualEditKabupaten = ! empty($this->editKabupaten) && ! in_array($this->editKabupaten, $kabupatens, true);
-
-        $kecamatans = $service->getKecamatanList($this->editKabupaten ?: null, $this->editProvinsi ?: null);
-        $this->isManualEditKecamatan = ! empty($this->editKecamatan) && ! in_array($this->editKecamatan, $kecamatans, true);
-
-        $this->showEditModal = true;
-    }
-
-    public function selectPillKabupaten(string $val): void
-    {
-        $this->editKabupaten = $val;
-        $this->isManualEditKabupaten = false;
-        if (str_contains($val, 'Bogor') || str_contains($val, 'Bandung') || str_contains($val, 'Garut') || str_contains($val, 'Bekasi') || str_contains($val, 'Cirebon') || str_contains($val, 'Sukabumi') || str_contains($val, 'Tasikmalaya')) {
-            $this->editProvinsi = 'Jawa Barat';
-            $this->editNegara = 'Indonesia';
-            $this->editIsLuarNegeri = false;
-        }
-    }
-
-    public function closeEditModal(): void
-    {
-        $this->showEditModal = false;
-        $this->editGroupSiswaIds = [];
-        $this->modalPillOptions = [];
-        $this->modalHint = null;
-    }
-
-    public function updatedEditIsLuarNegeri($val): void
-    {
-        if ($val) {
-            $this->editNegara = 'Malaysia';
-            $this->editProvinsi = 'Sabah';
-            $this->isManualEditProvinsi = false;
-        } else {
-            $this->editNegara = 'Indonesia';
-            $this->editProvinsi = 'Jawa Barat';
-            $this->isManualEditProvinsi = false;
-        }
-    }
-
-    public function updatedEditProvinsi($val): void
-    {
-        if (! $this->isManualEditProvinsi) {
-            $this->editKabupaten = '';
-            $this->editKecamatan = '';
-        }
-    }
-
-    public function updatedEditKabupaten($val): void
-    {
-        if (! $this->isManualEditKabupaten) {
-            $this->editKecamatan = '';
-            if (empty($this->editProvinsi) && ! empty($val)) {
-                $master = SpmbMasterSmp::where('kabupaten', $val)->whereNotNull('provinsi')->first();
-                if ($master && $master->provinsi) {
-                    $this->editProvinsi = $master->provinsi;
-                }
-            }
-        }
-    }
-
-    public function updatedEditKecamatan($val): void
-    {
-        if (! $this->isManualEditKecamatan) {
-            $cleanVal = preg_replace('/^kec\.?\s+/i', '', trim($val));
-            if ($cleanVal !== $val) {
-                $this->editKecamatan = $cleanVal;
-            }
-        } else {
-            $cleanVal = trim($val);
-        }
-
-        if (! empty($cleanVal)) {
-            $service = app(SpmbWilayahService::class);
-            $resolved = $service->resolveLocationFromKecamatan($cleanVal);
-            if ($resolved) {
-                if (empty($this->editKabupaten) || ! $this->isManualEditKabupaten) {
-                    $this->editKabupaten = $resolved['kabupaten'];
-                }
-                if (empty($this->editProvinsi) || ! $this->isManualEditProvinsi) {
-                    $this->editProvinsi = $resolved['provinsi'];
-                }
-                if (empty($this->editNegara)) {
-                    $this->editNegara = $resolved['negara'];
-                }
-            }
-        }
-    }
-
-    /**
-     * Simpan Standarisasi Wilayah Massal
-     */
-    public function saveStandardizedWilayah(): void
-    {
-        $this->guard('analitik_spmb.wilayah.kelola');
-
-        $this->validate([
-            'editNegara' => 'required|string|max:100',
-            'editProvinsi' => 'required|string|max:100',
-            'editKabupaten' => 'required|string|max:100',
-            'editKecamatan' => 'nullable|string|max:100',
-        ]);
-
-        $service = app(SpmbWilayahService::class);
-        $updated = $service->bulkUpdateWilayah(
-            ['ids' => $this->editGroupSiswaIds],
-            [
-                'negara' => trim($this->editNegara),
-                'provinsi' => trim($this->editProvinsi),
-                'kabupaten_kota' => trim($this->editKabupaten),
-                'kecamatan' => trim($this->editKecamatan),
-            ]
-        );
-
-        $this->closeEditModal();
-        session()->flash('success', "Standarisasi berhasil! {$updated} data siswa diperbarui ke {$this->editKabupaten}, {$this->editProvinsi} ({$this->editNegara}).");
     }
 
     /**
@@ -534,6 +434,10 @@ class WilayahIndex extends Component
         if (! empty($crit['kecamatan']) && $crit['kecamatan'] !== '[Belum Diset]') {
             $this->editAddressKecamatan = preg_replace('/^kec\.?\s+/i', '', trim($crit['kecamatan']));
             $this->isManualAddressKecamatan = false;
+        }
+        if (! empty($crit['kelurahan']) && $crit['kelurahan'] !== '[Belum Diset]') {
+            $this->editAddressKelurahan = preg_replace('/^(desa\/kel\.|desa|kelurahan|kel\.)\s+/i', '', trim($crit['kelurahan']));
+            $this->isManualAddressKelurahan = false;
         }
     }
 
@@ -711,6 +615,14 @@ class WilayahIndex extends Component
             $sQuery->where('siswas.kecamatan', $crit['kecamatan']);
         }
 
+        if (($crit['kelurahan'] ?? '') === '[Belum Diset]') {
+            $sQuery->where(function ($q) {
+                $q->whereNull('siswas.kelurahan')->orWhere('siswas.kelurahan', '');
+            });
+        } elseif (! empty($crit['kelurahan'])) {
+            $sQuery->where('siswas.kelurahan', $crit['kelurahan']);
+        }
+
         // Filter status utama
         if ($this->filterStatus === 'aktif') {
             $sQuery->where('siswas.is_active', true);
@@ -753,36 +665,27 @@ class WilayahIndex extends Component
 
         $wilayahService = app(SpmbWilayahService::class);
         $tahunAjarans = TahunAjaran::orderByDesc('id')->get();
-        $jurusans = Jurusan::orderBy('kode')->get();
 
-        // Data Tab Analitik
-        $analytics = [];
-        $paginatedItems = null;
+        // Data Analitik
+        $analytics = $wilayahService->getWilayahAnalytics(array_merge(get_object_vars($this), [
+            'search' => $this->search,
+        ]));
+        $jurusans = $analytics['jurusans'];
 
-        if ($this->activeTab === 'analitik') {
-            $analytics = $wilayahService->getWilayahAnalytics(array_merge(get_object_vars($this), [
-                'search' => $this->search,
-            ]));
-
-            // Manual pagination untuk tabel analitik
-            $page = LengthAwarePaginator::resolveCurrentPage();
-            $paginatedItems = new LengthAwarePaginator(
-                $analytics['items']->forPage($page, $this->perPage)->values(),
-                $analytics['items']->count(),
-                $this->perPage,
-                $page,
-                ['path' => LengthAwarePaginator::resolveCurrentPath()]
-            );
+        // Inisialisasi status buka/tutup node tree default jika belum di-set
+        if ($this->expandedNodes === null) {
+            $this->expandedNodes = $this->getDefaultExpandedKeys($analytics['tree'] ?? []);
         }
 
-        // Data Tab Perbaikan
-        $anomaliGroups = collect();
-        $totalAnomaliSiswa = 0;
-
-        if ($this->activeTab === 'perbaikan') {
-            $anomaliGroups = $wilayahService->getAnomaliGroups($this->search);
-            $totalAnomaliSiswa = $anomaliGroups->sum('total_siswa');
-        }
+        // Manual pagination untuk tabel analitik
+        $page = LengthAwarePaginator::resolveCurrentPage();
+        $paginatedItems = new LengthAwarePaginator(
+            $analytics['items']->forPage($page, $this->perPage)->values(),
+            $analytics['items']->count(),
+            $this->perPage,
+            $page,
+            ['path' => LengthAwarePaginator::resolveCurrentPath()]
+        );
 
         // Drawer Data Siswa
         $drawerSiswas = collect();
@@ -832,25 +735,11 @@ class WilayahIndex extends Component
             );
         }
 
-        // Pilihan Cascading untuk Modal Standarisasi Kelompok (Tab 2 Perbaikan)
-        $groupProvinceList = [];
-        $groupKabupatenList = [];
-        $groupKecamatanList = [];
-
-        if ($this->showEditModal) {
-            $groupProvinceList = $wilayahService->getProvincesList();
-            $groupKabupatenList = $wilayahService->getKabupatenList($this->editProvinsi ?: null);
-            $groupKecamatanList = $wilayahService->getKecamatanList(
-                $this->editKabupaten ?: null,
-                $this->editProvinsi ?: null
-            );
-        }
-
         return view('analitikspmb::livewire.wilayah-index', [
             'analytics' => $analytics,
+            'tree' => $analytics['tree'] ?? [],
+            'expandedNodes' => $this->expandedNodes ?? [],
             'paginatedItems' => $paginatedItems,
-            'anomaliGroups' => $anomaliGroups,
-            'totalAnomaliSiswa' => $totalAnomaliSiswa,
             'tahunAjarans' => $tahunAjarans,
             'jurusans' => $jurusans,
             'drawerSiswas' => $drawerSiswas,
@@ -863,9 +752,6 @@ class WilayahIndex extends Component
             'addressKabupatenList' => $addressKabupatenList,
             'addressKecamatanList' => $addressKecamatanList,
             'addressDesaList' => $addressDesaList,
-            'groupProvinceList' => $groupProvinceList,
-            'groupKabupatenList' => $groupKabupatenList,
-            'groupKecamatanList' => $groupKecamatanList,
         ]);
     }
 }

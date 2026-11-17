@@ -54,9 +54,16 @@ class WilayahIndexTest extends TestCase
             ->test(WilayahIndex::class)
             ->assertStatus(200)
             ->assertSee('Sebaran Wilayah Asal Siswa')
-            ->assertSee('Analitik Sebaran')
-            ->assertSee('Perbaikan Wilayah')
+            ->assertSee('Pemetaan Alamat (Kesiswaan)')
+            ->assertDontSee('Perbaikan Wilayah & Anomali')
             ->assertSee('Auto-Detect Wilayah');
+    }
+
+    public function test_akses_active_tab_perbaikan_dialihkan_ke_pemetaan_alamat_kesiswaan(): void
+    {
+        $this->actingAs($this->admin)
+            ->get(route('analitik-spmb.wilayah', ['activeTab' => 'perbaikan']))
+            ->assertRedirect(route('kesiswaan.pemetaan-alamat'));
     }
 
     public function test_halaman_sebaran_wilayah_dilarang_untuk_user_tanpa_izin(): void
@@ -155,13 +162,16 @@ class WilayahIndexTest extends TestCase
             'is_active' => true,
         ]);
 
-        // Filter Luar Negeri: hanya Shafiq yang muncul
+        // Filter Luar Negeri: hanya Malaysia/Sabah/Sandakan yang muncul di tree, dan Shafiq terlihat saat buka drawer
         Livewire::actingAs($this->admin)
             ->test(WilayahIndex::class)
             ->set('filterCakupan', 'luar_negeri')
+            ->assertSee('Malaysia')
+            ->assertSee('Sabah')
             ->assertSee('Sandakan')
-            ->assertSee('Mohammad Shafiq')
-            ->assertDontSee('Tarogong Kidul');
+            ->assertDontSee('Tarogong Kidul')
+            ->call('openDrawer', 'Malaysia')
+            ->assertSee('Mohammad Shafiq');
 
         // Filter Dalam Negeri: hanya Budi yang muncul
         Livewire::actingAs($this->admin)
@@ -169,67 +179,9 @@ class WilayahIndexTest extends TestCase
             ->set('filterCakupan', 'dalam_negeri')
             ->assertSee('Tarogong Kidul')
             ->assertSee('Kab. Garut')
-            ->assertDontSee('Mohammad Shafiq');
-    }
-
-    public function test_standarisasi_massal_di_tab_perbaikan(): void
-    {
-        $s1 = Siswa::create([
-            'nama' => 'Siswa Anomali 1',
-            'nisn' => '5555555551',
-            'nipd' => '3001',
-            'jk' => 'L',
-            'kecamatan' => 'Kec. Arso Barat',
-            'kelurahan' => 'Yatuharja',
-            'kabupaten_kota' => null,
-            'provinsi' => null,
-            'negara' => 'Indonesia',
-            'status' => 'aktif',
-            'is_active' => true,
-        ]);
-
-        $s2 = Siswa::create([
-            'nama' => 'Siswa Anomali 2',
-            'nisn' => '5555555552',
-            'nipd' => '3002',
-            'jk' => 'P',
-            'kecamatan' => 'Kec. Arso Barat',
-            'kelurahan' => 'Yatuharja',
-            'kabupaten_kota' => null,
-            'provinsi' => null,
-            'negara' => 'Indonesia',
-            'status' => 'aktif',
-            'is_active' => true,
-        ]);
-
-        Livewire::actingAs($this->admin)
-            ->test(WilayahIndex::class)
-            ->set('activeTab', 'perbaikan')
-            ->assertSee('Kec. Arso Barat')
-            ->assertSee('Yatuharja')
-            ->call('openEditGroupModal', 'Kec. Arso Barat', 'Yatuharja', "{$s1->id},{$s2->id}", 2)
-            ->assertSet('showEditModal', true)
-            ->set('editNegara', 'Indonesia')
-            ->set('editProvinsi', 'Papua')
-            ->set('editKabupaten', 'Kab. Keerom')
-            ->set('editKecamatan', 'Arso Barat')
-            ->call('saveStandardizedWilayah')
-            ->assertHasNoErrors()
-            ->assertSet('showEditModal', false)
-            ->assertSee('Standarisasi berhasil!');
-
-        $s1->refresh();
-        $s2->refresh();
-
-        $this->assertEquals('Indonesia', $s1->negara);
-        $this->assertEquals('Papua', $s1->provinsi);
-        $this->assertEquals('Kab. Keerom', $s1->kabupaten_kota);
-        $this->assertEquals('Arso Barat', $s1->kecamatan);
-
-        $this->assertEquals('Indonesia', $s2->negara);
-        $this->assertEquals('Papua', $s2->provinsi);
-        $this->assertEquals('Kab. Keerom', $s2->kabupaten_kota);
-        $this->assertEquals('Arso Barat', $s2->kecamatan);
+            ->assertDontSee('Mohammad Shafiq')
+            ->call('openDrawer', 'Indonesia', 'Jawa Barat')
+            ->assertSee('Budi Santoso');
     }
 
     public function test_drawer_rincian_siswa_dan_ekspor_excel(): void
@@ -361,48 +313,6 @@ class WilayahIndexTest extends TestCase
         $this->assertEquals('Kota Bogor', $siswaKota->kabupaten_kota);
     }
 
-    public function test_pill_buttons_dan_saran_master_pada_modal_perbaikan_wilayah(): void
-    {
-        SpmbMasterSmp::create([
-            'npsn' => '20200003',
-            'nama' => 'SMP NEGERI 2 BOGOR',
-            'bentuk' => 'SMP',
-            'status' => 'Negeri',
-            'provinsi' => 'Jawa Barat',
-            'kabupaten' => 'Kota Bogor',
-            'kecamatan' => 'Tanah Sareal',
-        ]);
-
-        $siswa = Siswa::create([
-            'nama' => 'Siswa Tanah Sareal',
-            'nisn' => '9999999991',
-            'nipd' => '7001',
-            'jk' => 'L',
-            'kecamatan' => 'Tanah Sareal',
-            'kabupaten_kota' => null,
-            'provinsi' => null,
-            'status' => 'aktif',
-            'is_active' => true,
-        ]);
-
-        Livewire::actingAs($this->admin)
-            ->test(WilayahIndex::class)
-            ->set('activeTab', 'perbaikan')
-            ->call('openEditGroupModal', 'Tanah Sareal', '', (string) $siswa->id, 1)
-            ->assertSet('showEditModal', true)
-            ->assertSee('Kota Bogor')
-            ->assertSee('Kab. Bogor')
-            ->call('selectPillKabupaten', 'Kota Bogor')
-            ->assertSet('editKabupaten', 'Kota Bogor')
-            ->assertSet('editProvinsi', 'Jawa Barat')
-            ->call('saveStandardizedWilayah')
-            ->assertHasNoErrors();
-
-        $siswa->refresh();
-        $this->assertEquals('Kota Bogor', $siswa->kabupaten_kota);
-        $this->assertEquals('Jawa Barat', $siswa->provinsi);
-    }
-
     public function test_edit_alamat_siswa_dari_drawer_dan_simpan_lanjut(): void
     {
         $siswa1 = Siswa::create([
@@ -527,43 +437,6 @@ class WilayahIndexTest extends TestCase
         $this->assertEquals('Desa Maju', $siswa->kelurahan);
     }
 
-    public function test_cascading_dan_smart_fill_pada_modal_standarisasi_kelompok(): void
-    {
-        SpmbMasterSmp::create([
-            'npsn' => '20200002',
-            'nama' => 'SMPN 1 KADUNGORA',
-            'bentuk' => 'SMP',
-            'status' => 'Negeri',
-            'provinsi' => 'Jawa Barat',
-            'kabupaten' => 'Kab. Garut',
-            'kecamatan' => 'Kadungora',
-            'kelurahan' => 'Karangtengah',
-        ]);
-
-        $siswa = Siswa::create([
-            'nama' => 'Siswa Kadungora',
-            'nisn' => '99990002',
-            'nipd' => '9002',
-            'jk' => 'L',
-            'kecamatan' => 'Kadungora',
-            'status' => 'aktif',
-            'is_active' => true,
-        ]);
-
-        Livewire::actingAs($this->admin)
-            ->test(WilayahIndex::class)
-            ->call('openEditGroupModal', 'Kadungora', '', (string) $siswa->id, 1)
-            ->assertSet('showEditModal', true)
-            // Uji Smart Upward Fill dari Kecamatan di Tab 2
-            ->set('editKecamatan', 'Kadungora')
-            ->assertSet('editKabupaten', 'Kab. Garut')
-            ->assertSet('editProvinsi', 'Jawa Barat')
-            // Uji Cascading Reset pada Tab 2
-            ->set('editProvinsi', 'DKI Jakarta')
-            ->assertSet('editKabupaten', '')
-            ->assertSet('editKecamatan', '');
-    }
-
     public function test_master_wilayah_nasional_kemendagri_terintegrasi_dengan_service(): void
     {
         // Masukkan sampel data hirarki Kemendagri
@@ -585,5 +458,205 @@ class WilayahIndexTest extends TestCase
         $this->assertNotNull($resolved);
         $this->assertEquals('Kab. Tegal', $resolved['kabupaten']);
         $this->assertEquals('Jawa Tengah', $resolved['provinsi']);
+    }
+
+    public function test_tree_hirarki_expand_collapse_dan_toggle(): void
+    {
+        Siswa::create([
+            'nama' => 'Siswa Bandung',
+            'nisn' => '7770001',
+            'nipd' => '7001',
+            'jk' => 'L',
+            'negara' => 'Indonesia',
+            'provinsi' => 'Jawa Barat',
+            'kabupaten_kota' => 'Kota Bandung',
+            'kecamatan' => 'Coblong',
+            'kelurahan' => 'Dago',
+            'status' => 'aktif',
+            'is_active' => true,
+        ]);
+
+        $test = Livewire::actingAs($this->admin)
+            ->test(WilayahIndex::class)
+            ->assertSee('Tabel Hirarki Sebaran Wilayah Asal Siswa')
+            ->assertSee('Indonesia')
+            ->assertSee('Jawa Barat')
+            ->assertSee('Kota Bandung');
+
+        // Test collapse all: anak-cabang tertutup
+        $test->call('collapseAll')
+            ->assertSet('expandedNodes', [])
+            ->assertDontSee('Coblong');
+
+        // Test expand all: semua terbuka sampai level desa
+        $test->call('expandAll')
+            ->assertSee('Coblong')
+            ->assertSee('Dago');
+
+        // Test toggle node spesifik
+        $test->call('toggleNode', 'C:Indonesia:Jawa Barat:Kota Bandung:Coblong')
+            ->assertDontSee('Dago');
+    }
+
+    public function test_drawer_multi_level_negara_provinsi_kabupaten_kecamatan_desa(): void
+    {
+        $siswaIndo = Siswa::create([
+            'nama' => 'Siswa Garut Kota',
+            'nisn' => '7770002',
+            'nipd' => '7002',
+            'jk' => 'L',
+            'negara' => 'Indonesia',
+            'provinsi' => 'Jawa Barat',
+            'kabupaten_kota' => 'Kab. Garut',
+            'kecamatan' => 'Garut Kota',
+            'kelurahan' => 'Kota Kulon',
+            'status' => 'aktif',
+            'is_active' => true,
+        ]);
+
+        $siswaLN = Siswa::create([
+            'nama' => 'Siswa Tawau Sabah',
+            'nisn' => '7770003',
+            'nipd' => '7003',
+            'jk' => 'P',
+            'negara' => 'Malaysia',
+            'provinsi' => 'Sabah',
+            'kabupaten_kota' => 'Tawau',
+            'kecamatan' => 'Tawau',
+            'kelurahan' => 'Ladang Sahabat',
+            'status' => 'aktif',
+            'is_active' => true,
+        ]);
+
+        $lw = Livewire::actingAs($this->admin)->test(WilayahIndex::class);
+
+        // 1. Drawer level Negara (Malaysia) -> menampilkan siswa Tawau
+        $lw->call('openDrawer', 'Malaysia')
+            ->assertSet('showDrawer', true)
+            ->assertSee('Siswa Tawau Sabah')
+            ->assertDontSee('Siswa Garut Kota');
+
+        // 2. Drawer level Provinsi (Jawa Barat) -> menampilkan siswa Garut
+        $lw->call('openDrawer', 'Indonesia', 'Jawa Barat')
+            ->assertSee('Siswa Garut Kota')
+            ->assertDontSee('Siswa Tawau Sabah');
+
+        // 3. Drawer level Kabupaten (Kab. Garut)
+        $lw->call('openDrawer', 'Indonesia', 'Jawa Barat', 'Kab. Garut')
+            ->assertSee('Siswa Garut Kota');
+
+        // 4. Drawer level Kecamatan (Garut Kota)
+        $lw->call('openDrawer', 'Indonesia', 'Jawa Barat', 'Kab. Garut', 'Garut Kota')
+            ->assertSee('Siswa Garut Kota');
+
+        // 5. Drawer level Desa (Kota Kulon)
+        $lw->call('openDrawer', 'Indonesia', 'Jawa Barat', 'Kab. Garut', 'Garut Kota', 'Kota Kulon')
+            ->assertSee('Siswa Garut Kota');
+    }
+
+    public function test_pivot_table_hirarki_dengan_kolom_program_dan_jurusan(): void
+    {
+        $this->actingAs($this->admin);
+
+        $tjktRombel = Rombel::whereHas('jurusan', fn ($q) => $q->where('kode', 'TJKT'))->first();
+        $pplgRombel = Rombel::whereHas('jurusan', fn ($q) => $q->where('kode', 'PPLG'))->first();
+
+        // Buat siswa di Garut Kota dengan program Unggulan dan Reguler
+        Siswa::create([
+            'nama' => 'Siswa Unggulan TJKT',
+            'nisn' => '99001122',
+            'jk' => 'L',
+            'rombel_id' => $tjktRombel?->id,
+            'program_id' => 2, // UNG
+            'negara' => 'Indonesia',
+            'provinsi' => 'Jawa Barat',
+            'kabupaten_kota' => 'Kab. Garut',
+            'kecamatan' => 'Garut Kota',
+            'kelurahan' => 'Kota Kulon',
+            'is_active' => true,
+        ]);
+
+        Siswa::create([
+            'nama' => 'Siswa Reguler PPLG',
+            'nisn' => '99001123',
+            'jk' => 'P',
+            'rombel_id' => $pplgRombel?->id,
+            'program_id' => 1, // REG
+            'negara' => 'Indonesia',
+            'provinsi' => 'Jawa Barat',
+            'kabupaten_kota' => 'Kab. Garut',
+            'kecamatan' => 'Garut Kota',
+            'kelurahan' => 'Kota Kulon',
+            'is_active' => true,
+        ]);
+
+        // Verifikasi Service agregasi
+        $service = app(SpmbWilayahService::class);
+        $analytics = $service->getWilayahAnalytics();
+        $tree = $analytics['tree'];
+
+        $this->assertArrayHasKey('N:Indonesia', $tree);
+        $indo = $tree['N:Indonesia'];
+        $this->assertEquals(2, $indo['total_siswa']);
+        $this->assertEquals(1, $indo['siswa_l']);
+        $this->assertEquals(1, $indo['siswa_p']);
+        $this->assertEquals(1, $indo['program_ung']);
+        $this->assertEquals(1, $indo['program_reg']);
+        $this->assertEquals(1, $indo['jurusan_counts']['TJKT']);
+        $this->assertEquals(1, $indo['jurusan_counts']['PPLG']);
+        $this->assertEquals(0, $indo['jurusan_counts']['HTL']);
+
+        // Verifikasi Livewire Render dengan Header Baru & Shading Pivot (setelah expandAll)
+        Livewire::test(WilayahIndex::class)
+            ->assertSee('Wilayah asal siswa')
+            ->assertSee('Total Siswa')
+            ->assertSee('Ung')
+            ->assertSee('Reg')
+            ->assertSee('TJKT')
+            ->assertSee('PPLG')
+            ->assertSee('PMN')
+            ->assertSee('HTL')
+            ->assertSee('Porsi (%)')
+            ->assertSee('Negara')
+            ->assertSee('Provinsi')
+            ->assertSee('Kab/Kota')
+            ->call('expandAll')
+            ->assertSee('Kecamatan')
+            ->assertSee('Desa')
+            ->assertSee('Kota Kulon');
+    }
+
+    public function test_top_10_kabupaten_feeder_bisa_di_toggle_dan_default_tertutup(): void
+    {
+        Siswa::create([
+            'nama' => 'Siswa Garut',
+            'nisn' => '99009988',
+            'jk' => 'L',
+            'negara' => 'Indonesia',
+            'provinsi' => 'Jawa Barat',
+            'kabupaten_kota' => 'Kab. Garut',
+            'kecamatan' => 'Tarogong Kaler',
+            'kelurahan' => 'Pasawahan',
+            'is_active' => true,
+        ]);
+
+        Livewire::actingAs($this->admin)
+            ->test(WilayahIndex::class)
+            // Assert default tertutup (showTopKabupaten = false)
+            ->assertSet('showTopKabupaten', false)
+            ->assertSee('Top 10 Kabupaten / Kota Feeder')
+            ->assertSee('Tampilkan')
+            ->assertDontSee('Porsi kontribusi')
+            // Toggle buka
+            ->call('toggleTopKabupaten')
+            ->assertSet('showTopKabupaten', true)
+            ->assertSee('Sembunyikan')
+            ->assertSee('Porsi kontribusi')
+            ->assertSee('Peringkat')
+            // Toggle tutup kembali
+            ->call('toggleTopKabupaten')
+            ->assertSet('showTopKabupaten', false)
+            ->assertSee('Tampilkan')
+            ->assertDontSee('Porsi kontribusi');
     }
 }
