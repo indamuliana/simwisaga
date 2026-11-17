@@ -44,6 +44,8 @@ class PlottingRayonMassal extends Component
     // Import Excel Modal
     public bool $showImportModal = false;
 
+    public string $importMode = 'single'; // 'single' (1 Rayon) atau 'multi' (Multi Rayon dari file)
+
     public ?int $importTargetRayonId = null;
 
     public $fileExcel = null;
@@ -341,6 +343,11 @@ class PlottingRayonMassal extends Component
         $this->showImportModal = true;
     }
 
+    public function updatedImportMode(): void
+    {
+        $this->reset(['fileExcel', 'importResult']);
+    }
+
     public function closeImportModal(): void
     {
         $this->reset(['fileExcel', 'importResult']);
@@ -352,13 +359,24 @@ class PlottingRayonMassal extends Component
         $this->guard('kesiswaan.siswa.lihat');
         $service = new PlottingRayonExcelService;
 
-        if ($type === 'prefill') {
-            $siswas = $this->getQuery()->with(['rombel', 'rayon'])->orderBy('kecamatan')->orderBy('kelurahan')->orderBy('nama')->get();
-            $spreadsheet = $service->generateTemplatePrefill($siswas);
-            $filename = 'Template_Plotting_Rayon_Filtered_'.date('Ymd_His').'.xlsx';
+        if ($this->importMode === 'multi') {
+            if ($type === 'prefill') {
+                $siswas = $this->getQuery()->with(['rombel', 'rayon'])->orderBy('kecamatan')->orderBy('kelurahan')->orderBy('nama')->get();
+                $spreadsheet = $service->generateTemplateMultiRayon('prefill', $siswas);
+                $filename = 'Template_Plotting_Multi_Rayon_Filtered_'.date('Ymd_His').'.xlsx';
+            } else {
+                $spreadsheet = $service->generateTemplateMultiRayon('kosong');
+                $filename = 'Template_Plotting_Multi_Rayon_Kosong.xlsx';
+            }
         } else {
-            $spreadsheet = $service->generateTemplateKosong();
-            $filename = 'Template_Plotting_Rayon_Kosong.xlsx';
+            if ($type === 'prefill') {
+                $siswas = $this->getQuery()->with(['rombel', 'rayon'])->orderBy('kecamatan')->orderBy('kelurahan')->orderBy('nama')->get();
+                $spreadsheet = $service->generateTemplatePrefill($siswas);
+                $filename = 'Template_Plotting_Rayon_Filtered_'.date('Ymd_His').'.xlsx';
+            } else {
+                $spreadsheet = $service->generateTemplateKosong();
+                $filename = 'Template_Plotting_Rayon_Kosong.xlsx';
+            }
         }
 
         return response()->streamDownload(function () use ($spreadsheet) {
@@ -374,26 +392,44 @@ class PlottingRayonMassal extends Component
     {
         $this->guard('kesiswaan.siswa.edit');
 
-        $this->validate([
-            'importTargetRayonId' => ['required', 'exists:rayons,id'],
-            'fileExcel' => ['required', 'file', 'mimes:xlsx,xls,csv', 'max:10240'],
-        ], [
-            'importTargetRayonId.required' => 'Pilih rayon tujuan terlebih dahulu.',
-            'importTargetRayonId.exists' => 'Rayon tujuan tidak valid.',
-            'fileExcel.required' => 'Unggah berkas Excel terlebih dahulu.',
-            'fileExcel.mimes' => 'Berkas harus berformat .xlsx, .xls, atau .csv.',
-        ]);
-
         $service = new PlottingRayonExcelService;
-        $path = $this->fileExcel->getRealPath();
 
-        $result = $service->importAndPlot($path, (int) $this->importTargetRayonId);
-        $this->importResult = $result;
+        if ($this->importMode === 'multi') {
+            $this->validate([
+                'fileExcel' => ['required', 'file', 'mimes:xlsx,xls,csv', 'max:10240'],
+            ], [
+                'fileExcel.required' => 'Unggah berkas Excel terlebih dahulu.',
+                'fileExcel.mimes' => 'Berkas harus berformat .xlsx, .xls, atau .csv.',
+            ]);
 
-        $this->reset('fileExcel');
+            $path = $this->fileExcel->getRealPath();
+            $result = $service->importAndPlotMultiRayon($path);
+            $this->importResult = $result;
+            $this->reset('fileExcel');
 
-        if ($result['updated_count'] > 0) {
-            session()->flash('status', "Berhasil! {$result['updated_count']} siswa dialokasikan ke Rayon {$result['rayon_nama']}.");
+            if ($result['updated_count'] > 0) {
+                $totalRayon = count($result['per_rayon_counts']);
+                session()->flash('status', "Berhasil! {$result['updated_count']} siswa berhasil dialokasikan ke {$totalRayon} rayon.");
+            }
+        } else {
+            $this->validate([
+                'importTargetRayonId' => ['required', 'exists:rayons,id'],
+                'fileExcel' => ['required', 'file', 'mimes:xlsx,xls,csv', 'max:10240'],
+            ], [
+                'importTargetRayonId.required' => 'Pilih rayon tujuan terlebih dahulu.',
+                'importTargetRayonId.exists' => 'Rayon tujuan tidak valid.',
+                'fileExcel.required' => 'Unggah berkas Excel terlebih dahulu.',
+                'fileExcel.mimes' => 'Berkas harus berformat .xlsx, .xls, atau .csv.',
+            ]);
+
+            $path = $this->fileExcel->getRealPath();
+            $result = $service->importAndPlot($path, (int) $this->importTargetRayonId);
+            $this->importResult = $result;
+            $this->reset('fileExcel');
+
+            if ($result['updated_count'] > 0) {
+                session()->flash('status', "Berhasil! {$result['updated_count']} siswa dialokasikan ke Rayon {$result['rayon_nama']}.");
+            }
         }
     }
 

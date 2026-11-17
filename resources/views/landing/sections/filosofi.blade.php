@@ -20,15 +20,22 @@
                     <!-- Author & Institutional Signature -->
                     <div class="mt-8 pt-6 border-t border-slate-200/80 flex flex-col sm:flex-row items-center justify-between gap-4 max-w-3xl mx-auto text-center sm:text-left">
                         <div class="flex items-center gap-4 text-left">
+                            @php
+                                $principalImgPath = $cfg['principal']['image'] ?? null;
+                                $principalImgUrl = class_exists(\App\Modules\AdministrasiWeb\Models\WebSetting::class)
+                                    ? \App\Modules\AdministrasiWeb\Models\WebSetting::resolveImageUrl($principalImgPath, 'images/landing/kepala-sekolah-kunedi.png')
+                                    : asset('images/landing/kepala-sekolah-kunedi.png');
+                                $principalName = !empty($cfg['principal']['name']) ? $cfg['principal']['name'] : 'Kunedi, S.Si.';
+                            @endphp
                             <div class="w-12 h-12 rounded-full overflow-hidden bg-slate-100 border border-slate-200 shrink-0 shadow-xs">
-                                <img src="{{ asset('images/landing/kepala-sekolah-kunedi.png') }}" 
-                                     alt="Kunedi, S.Si." 
+                                <img src="{{ $principalImgUrl }}" 
+                                     alt="{{ $principalName }}" 
                                      class="w-full h-full object-cover object-top"
-                                     onerror="this.src='{{ asset('images/web/profile-leader.png') }}'">
+                                     onerror="this.src='{{ asset('images/landing/kepala-sekolah-kunedi.png') }}'">
                             </div>
                             <div>
                                 <span class="text-slate-900 font-bold text-sm sm:text-base tracking-wide block leading-tight">
-                                    {{ $cfg['welcome']['author'] ?? 'Kunedi, S.Si. — Kepala SMK Wikrama 1 Garut' }}
+                                    {{ $cfg['welcome']['author'] ?? ($principalName . ' — Kepala SMK Wikrama 1 Garut') }}
                                 </span>
                                 <span class="text-slate-500 text-xs font-medium block mt-0.5">Pemimpin Lembaga &bull; SMK Wikrama 1 Garut</span>
                             </div>

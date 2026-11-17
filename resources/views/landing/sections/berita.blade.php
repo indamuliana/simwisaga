@@ -1,18 +1,26 @@
         <!-- ── Babak 6: Campus Gazette (Warta Sekolah & Agenda Akademik Berdampingan) ── -->
         @php
             $dbArticles = class_exists(\App\Modules\AdministrasiWeb\Models\WebArticle::class)
-                ? \App\Modules\AdministrasiWeb\Models\WebArticle::with('category')->published()->latest('published_at')->limit(3)->get()
+                ? \Illuminate\Support\Facades\Cache::remember('landing.latest_articles', 300, function () {
+                    return \App\Modules\AdministrasiWeb\Models\WebArticle::with('category')
+                        ->published()
+                        ->latest('published_at')
+                        ->limit(3)
+                        ->get();
+                })
                 : collect();
             
             $articles = $dbArticles->isNotEmpty() ? $dbArticles : collect($cfg['berita'] ?? [])->take(3);
             
             $dbAgendas = class_exists(\App\Modules\KalenderPendidikan\Models\KalenderAgenda::class)
-                ? \App\Modules\KalenderPendidikan\Models\KalenderAgenda::with('kategori')
-                    ->where('status', 'publik')
-                    ->where('tgl_selesai', '>=', now()->toDateString())
-                    ->orderBy('tgl_mulai')
-                    ->limit(3)
-                    ->get()
+                ? \Illuminate\Support\Facades\Cache::remember('landing.latest_agendas', 300, function () {
+                    return \App\Modules\KalenderPendidikan\Models\KalenderAgenda::with('kategori')
+                        ->where('status', 'publik')
+                        ->where('tgl_selesai', '>=', now()->toDateString())
+                        ->orderBy('tgl_mulai')
+                        ->limit(3)
+                        ->get();
+                })
                 : collect();
             $agendaFallbackItems = array_slice($cfg['agenda']['items'] ?? [], 0, 3);
         @endphp

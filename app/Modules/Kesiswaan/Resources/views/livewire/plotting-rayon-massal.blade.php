@@ -185,7 +185,31 @@
 
             <!-- Modal Body -->
             <div class="p-6 space-y-5 text-sm">
-                <!-- Langkah 1: Pilih Rayon Tujuan -->
+                <!-- Pilihan Mode Import -->
+                <div class="space-y-1.5">
+                    <label class="block text-xs font-bold uppercase tracking-wider text-text-main">
+                        Metode Import Plotting <span class="text-rose-500">*</span>
+                    </label>
+                    <div class="grid grid-cols-1 sm:grid-cols-2 gap-2.5">
+                        <label class="relative flex items-start p-3 rounded-xl border cursor-pointer transition select-none {{ $importMode === 'single' ? 'border-primary bg-primary/5 dark:bg-primary/10 shadow-xs' : 'border-border bg-surface hover:bg-surface-hover' }}">
+                            <input type="radio" wire:model.live="importMode" value="single" class="mt-0.5 text-primary focus:ring-primary">
+                            <div class="ml-2.5">
+                                <span class="block text-xs font-bold text-text-main">Satu Rayon Tujuan</span>
+                                <span class="block text-[11px] text-text-secondary mt-0.5">Pilih 1 rayon di form, semua siswa di berkas dialokasikan ke rayon tersebut.</span>
+                            </div>
+                        </label>
+                        <label class="relative flex items-start p-3 rounded-xl border cursor-pointer transition select-none {{ $importMode === 'multi' ? 'border-primary bg-primary/5 dark:bg-primary/10 shadow-xs' : 'border-border bg-surface hover:bg-surface-hover' }}">
+                            <input type="radio" wire:model.live="importMode" value="multi" class="mt-0.5 text-primary focus:ring-primary">
+                            <div class="ml-2.5">
+                                <span class="block text-xs font-bold text-text-main">Multi-Rayon Langsung</span>
+                                <span class="block text-[11px] text-text-secondary mt-0.5">Satu berkas banyak rayon sekaligus (Kolom A: NIS, Kolom B: Nama Rayon).</span>
+                            </div>
+                        </label>
+                    </div>
+                </div>
+
+                <!-- Langkah 1: Pilih Rayon Tujuan (Hanya untuk Satu Rayon) -->
+                @if($importMode === 'single')
                 <div class="space-y-1.5">
                     <label class="block text-xs font-bold uppercase tracking-wider text-text-main">
                         1. Pilih Rayon Tujuan <span class="text-rose-500">*</span>
@@ -200,15 +224,28 @@
                         <p class="text-xs text-rose-500 mt-1">{{ $message }}</p>
                     @enderror
                 </div>
+                @endif
 
-                <!-- Langkah 2: Unduh Template -->
+                <!-- Langkah Unduh Template -->
                 <div class="p-4 bg-slate-50 dark:bg-slate-800/40 rounded-xl border border-slate-200 dark:border-slate-700/60 space-y-2">
                     <div class="flex items-center justify-between">
-                        <span class="text-xs font-bold uppercase tracking-wider text-text-main">2. Unduh Format Template</span>
-                        <span class="text-[11px] text-text-secondary">Kolom wajib: <b>Kolom A (NIS)</b></span>
+                        <span class="text-xs font-bold uppercase tracking-wider text-text-main">
+                            {{ $importMode === 'single' ? '2. Unduh Format Template' : '1. Unduh Format Template Multi-Rayon' }}
+                        </span>
+                        <span class="text-[11px] text-text-secondary">
+                            @if($importMode === 'single')
+                                Kolom wajib: <b>Kolom A (NIS)</b>
+                            @else
+                                Kolom wajib: <b>Kolom A (NIS)</b> & <b>Kolom B (Rayon)</b>
+                            @endif
+                        </span>
                     </div>
                     <p class="text-xs text-text-secondary">
-                        Sistem mencocokkan data secara ketat berdasarkan <b>NIS (NIPD)</b> siswa. Anda dapat memilih template kosong atau yang sudah terisi otomatis sesuai filter wilayah/rombel aktif saat ini.
+                        @if($importMode === 'single')
+                            Sistem mencocokkan data secara ketat berdasarkan <b>NIS (NIPD)</b> siswa. Anda dapat memilih template kosong atau yang sudah terisi otomatis sesuai filter wilayah/rombel aktif saat ini.
+                        @else
+                            Format Multi-Rayon mendukung alokasi ke banyak rayon sekaligus dalam 1 berkas. Di dalam berkas template tersedia sheet <b>"Daftar Rayon Tersedia"</b> sebagai panduan nama resmi rayon.
+                        @endif
                     </p>
                     <div class="flex flex-wrap items-center gap-2 pt-1">
                         <button type="button" wire:click="downloadTemplate('kosong')" class="px-3 py-1.5 text-xs font-semibold rounded-md border border-slate-300 dark:border-slate-600 bg-surface hover:bg-surface-hover text-text-main shadow-2xs transition cursor-pointer">
@@ -220,10 +257,10 @@
                     </div>
                 </div>
 
-                <!-- Langkah 3: Unggah Berkas -->
+                <!-- Langkah Unggah Berkas -->
                 <div class="space-y-1.5">
                     <label class="block text-xs font-bold uppercase tracking-wider text-text-main">
-                        3. Unggah Berkas Excel (.xlsx, .xls, .csv) <span class="text-rose-500">*</span>
+                        {{ $importMode === 'single' ? '3. Unggah Berkas Excel (.xlsx, .xls, .csv)' : '2. Unggah Berkas Excel (.xlsx, .xls, .csv)' }} <span class="text-rose-500">*</span>
                     </label>
                     <input type="file" wire:model="fileExcel" accept=".xlsx,.xls,.csv" class="file-input">
                     
@@ -242,27 +279,82 @@
 
                 <!-- Ringkasan Hasil Import -->
                 @if($importResult)
-                    <div class="p-4 rounded-xl border {{ $importResult['updated_count'] > 0 ? 'bg-emerald-50 dark:bg-emerald-950/40 border-emerald-200 dark:border-emerald-800' : 'bg-amber-50 dark:bg-amber-950/40 border-amber-200 dark:border-amber-800' }} space-y-2">
-                        <div class="flex items-center justify-between">
-                            <span class="text-xs font-bold uppercase tracking-wider {{ $importResult['updated_count'] > 0 ? 'text-emerald-800 dark:text-emerald-300' : 'text-amber-800 dark:text-amber-300' }}">
-                                Hasil Import Terakhir:
-                            </span>
-                            <span class="text-xs font-mono font-bold">Total NIS: {{ $importResult['total_nis'] }}</span>
-                        </div>
-                        <p class="text-xs text-text-main">
-                            &bull; <b>{{ $importResult['updated_count'] }}</b> siswa berhasil dialokasikan ke Rayon <b>{{ $importResult['rayon_nama'] }}</b>.
-                        </p>
-                        @if(!empty($importResult['unmatched_nis']))
-                            <div class="pt-2 border-t border-amber-200 dark:border-amber-800/80">
-                                <p class="text-xs text-rose-600 dark:text-rose-400 font-semibold mb-1">
-                                    ⚠️ {{ count($importResult['unmatched_nis']) }} NIS tidak ditemukan di sistem:
-                                </p>
-                                <div class="max-h-24 overflow-y-auto p-2 bg-surface rounded border border-border text-[11px] font-mono text-text-secondary">
-                                    {{ implode(', ', $importResult['unmatched_nis']) }}
-                                </div>
+                    @if(($importResult['mode'] ?? 'single') === 'multi')
+                        <div class="p-4 rounded-xl border {{ $importResult['updated_count'] > 0 ? 'bg-emerald-50 dark:bg-emerald-950/40 border-emerald-200 dark:border-emerald-800' : 'bg-amber-50 dark:bg-amber-950/40 border-amber-200 dark:border-amber-800' }} space-y-3">
+                            <div class="flex items-center justify-between">
+                                <span class="text-xs font-bold uppercase tracking-wider {{ $importResult['updated_count'] > 0 ? 'text-emerald-800 dark:text-emerald-300' : 'text-amber-800 dark:text-amber-300' }}">
+                                    Hasil Import Multi-Rayon:
+                                </span>
+                                <span class="text-xs font-mono font-bold">Total Baris: {{ $importResult['total_rows'] }}</span>
                             </div>
-                        @endif
-                    </div>
+                            <p class="text-xs text-text-main">
+                                &bull; <b>{{ $importResult['updated_count'] }}</b> siswa berhasil dialokasikan ke <b>{{ count($importResult['per_rayon_counts']) }}</b> rayon.
+                            </p>
+
+                            @if(!empty($importResult['per_rayon_counts']))
+                                <div class="pt-2 border-t border-emerald-200 dark:border-emerald-800/80">
+                                    <p class="text-xs font-bold text-text-main mb-1.5">Distribusi Per Rayon:</p>
+                                    <div class="flex flex-wrap gap-1.5">
+                                        @foreach($importResult['per_rayon_counts'] as $rayonNama => $c)
+                                            <span class="inline-flex items-center gap-1 px-2 py-0.5 rounded text-[11px] font-semibold bg-emerald-100 text-emerald-800 dark:bg-emerald-900/60 dark:text-emerald-200">
+                                                <span>{{ $rayonNama }}:</span>
+                                                <span class="font-bold">{{ $c }}</span>
+                                            </span>
+                                        @endforeach
+                                    </div>
+                                </div>
+                            @endif
+
+                            @if(!empty($importResult['invalid_rayons']))
+                                <div class="pt-2 border-t border-amber-200 dark:border-amber-800/80">
+                                    <p class="text-xs text-amber-700 dark:text-amber-400 font-semibold mb-1">
+                                        ⚠️ {{ count($importResult['invalid_rayons']) }} baris gagal karena Rayon tidak valid:
+                                    </p>
+                                    <div class="max-h-24 overflow-y-auto p-2 bg-surface rounded border border-border text-[11px] font-mono text-text-secondary space-y-0.5">
+                                        @foreach(array_slice($importResult['invalid_rayons'], 0, 10) as $inv)
+                                            <div>NIS <b>{{ $inv['nis'] }}</b>: Rayon "<em>{{ $inv['rayon'] }}</em>" ({{ $inv['alasan'] }})</div>
+                                        @endforeach
+                                        @if(count($importResult['invalid_rayons']) > 10)
+                                            <div class="text-[10px] text-text-secondary italic">...dan {{ count($importResult['invalid_rayons']) - 10 }} lainnya.</div>
+                                        @endif
+                                    </div>
+                                </div>
+                            @endif
+
+                            @if(!empty($importResult['unmatched_nis']))
+                                <div class="pt-2 border-t border-amber-200 dark:border-amber-800/80">
+                                    <p class="text-xs text-rose-600 dark:text-rose-400 font-semibold mb-1">
+                                        ⚠️ {{ count($importResult['unmatched_nis']) }} NIS tidak ditemukan di sistem:
+                                    </p>
+                                    <div class="max-h-24 overflow-y-auto p-2 bg-surface rounded border border-border text-[11px] font-mono text-text-secondary">
+                                        {{ implode(', ', $importResult['unmatched_nis']) }}
+                                    </div>
+                                </div>
+                            @endif
+                        </div>
+                    @else
+                        <div class="p-4 rounded-xl border {{ $importResult['updated_count'] > 0 ? 'bg-emerald-50 dark:bg-emerald-950/40 border-emerald-200 dark:border-emerald-800' : 'bg-amber-50 dark:bg-amber-950/40 border-amber-200 dark:border-amber-800' }} space-y-2">
+                            <div class="flex items-center justify-between">
+                                <span class="text-xs font-bold uppercase tracking-wider {{ $importResult['updated_count'] > 0 ? 'text-emerald-800 dark:text-emerald-300' : 'text-amber-800 dark:text-amber-300' }}">
+                                    Hasil Import Terakhir:
+                                </span>
+                                <span class="text-xs font-mono font-bold">Total NIS: {{ $importResult['total_nis'] }}</span>
+                            </div>
+                            <p class="text-xs text-text-main">
+                                &bull; <b>{{ $importResult['updated_count'] }}</b> siswa berhasil dialokasikan ke Rayon <b>{{ $importResult['rayon_nama'] }}</b>.
+                            </p>
+                            @if(!empty($importResult['unmatched_nis']))
+                                <div class="pt-2 border-t border-amber-200 dark:border-amber-800/80">
+                                    <p class="text-xs text-rose-600 dark:text-rose-400 font-semibold mb-1">
+                                        ⚠️ {{ count($importResult['unmatched_nis']) }} NIS tidak ditemukan di sistem:
+                                    </p>
+                                    <div class="max-h-24 overflow-y-auto p-2 bg-surface rounded border border-border text-[11px] font-mono text-text-secondary">
+                                        {{ implode(', ', $importResult['unmatched_nis']) }}
+                                    </div>
+                                </div>
+                            @endif
+                        </div>
+                    @endif
                 @endif
             </div>
 

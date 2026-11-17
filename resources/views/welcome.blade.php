@@ -787,13 +787,6 @@
             transform: translateX(4px);
         }
 
-        /* ── SVG Botanical Vine Line Drawing ── */
-        .jis-vine-path {
-            stroke-dasharray: 1200;
-            stroke-dashoffset: 1200;
-            transition: stroke-dashoffset 0.1s linear;
-        }
-
         /* ── Instant Vanilla Scroll Fallback for Solid Header Contrast ── */
         #main-nav-container.is-scrolled {
             background-color: rgba(255, 255, 255, 0.98) !important;
