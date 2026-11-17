@@ -36,7 +36,7 @@ class MasterWilayahSeeder extends Seeder
             $line = trim(gzgets($gz));
             if (preg_match("/^\('([0-9.]+)',\s*'(.*)'\)[,;]?$/", $line, $m)) {
                 $kode = $m[1];
-                $nama = str_replace("''", "'", $m[2]);
+                $nama = trim(str_replace("''", "'", $m[2]));
                 $dots = substr_count($kode, '.');
                 $level = $dots + 1;
                 $parent = $dots > 0 ? substr($kode, 0, strrpos($kode, '.')) : null;
@@ -44,6 +44,7 @@ class MasterWilayahSeeder extends Seeder
                 if ($level === 2) {
                     $nama = preg_replace('/^Kabupaten\s+/i', 'Kab. ', $nama);
                 }
+                $nama = trim($nama);
 
                 $chunk[] = [
                     'kode' => $kode,

@@ -148,6 +148,45 @@ class PemetaanAlamatSiswaTest extends TestCase
         $this->assertEquals('Tawau', $analysis['suggested']['kabupaten_kota']);
     }
 
+    public function test_service_handles_trailing_whitespace_in_master_wilayah_cleanly(): void
+    {
+        // Simulasi master wilayah dengan trailing space (seperti Jakarta Utara)
+        MasterWilayah::firstOrCreate(['kode' => '31.72'], [
+            'nama' => 'Kota Administrasi Jakarta Utara ', // Trailing space
+            'level' => 2,
+            'parent_kode' => '31',
+        ]);
+        MasterWilayah::firstOrCreate(['kode' => '31.72.01'], [
+            'nama' => 'Cilincing',
+            'level' => 3,
+            'parent_kode' => '31.72',
+        ]);
+        MasterWilayah::firstOrCreate(['kode' => '31.72.01.1001'], [
+            'nama' => 'Semper Barat',
+            'level' => 4,
+            'parent_kode' => '31.72.01',
+        ]);
+
+        $siswa = Siswa::create([
+            'nama' => 'Raihan Azka Lubis',
+            'nipd' => '12501153',
+            'nisn' => '1250115301',
+            'status' => 'aktif',
+            'kelurahan' => 'Semper Barat',
+            'kecamatan' => 'Cilincing',
+            'kabupaten_kota' => 'Kota Administrasi Jakarta Utara',
+            'provinsi' => 'Daerah Khusus Ibukota Jakarta',
+        ]);
+
+        $service = new PemetaanAlamatService();
+        $analysis = $service->analyzeSiswa($siswa);
+
+        $this->assertEquals('sudah_valid', $analysis['status']);
+        $this->assertFalse($analysis['is_anomali']);
+        $this->assertEmpty($analysis['issues']);
+        $this->assertEquals('Kota Administrasi Jakarta Utara', $analysis['suggested']['kabupaten_kota']);
+    }
+
     public function test_livewire_can_apply_single_suggestion(): void
     {
         $siswa = Siswa::create([

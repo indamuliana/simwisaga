@@ -179,10 +179,10 @@ class PemetaanAlamatService
                     $provParent = $kabParent ? MasterWilayah::where('kode', $kabParent->parent_kode)->first() : null;
 
                     if ($kabParent && $provParent) {
-                        $suggestedKel = $km->nama;
-                        $suggestedKec = $kecParent->nama;
-                        $suggestedKab = $kabParent->nama;
-                        $suggestedProv = $provParent->nama;
+                        $suggestedKel = trim((string) $km->nama);
+                        $suggestedKec = trim((string) $kecParent->nama);
+                        $suggestedKab = trim((string) $kabParent->nama);
+                        $suggestedProv = trim((string) $provParent->nama);
                         $confidence = 'pasti';
                         $matchedMaster = true;
                         break;
@@ -217,18 +217,18 @@ class PemetaanAlamatService
                 $provParent = $kabParent ? MasterWilayah::where('kode', $kabParent->parent_kode)->first() : null;
 
                 if ($kabParent && $provParent) {
-                    $suggestedKec = $prioritizedKec->nama;
-                    $suggestedKab = $kabParent->nama;
-                    $suggestedProv = $provParent->nama;
+                    $suggestedKec = trim((string) $prioritizedKec->nama);
+                    $suggestedKab = trim((string) $kabParent->nama);
+                    $suggestedProv = trim((string) $provParent->nama);
                     $confidence = ($confidence === 'pasti') ? 'pasti' : 'tinggi';
                     $matchedMaster = true;
                 }
             }
         }
 
-        // Cek Ketidaksinkronan Kabupaten
+        // Cek Ketidaksinkronan Kabupaten (dengan normalisasi dan trim ketat)
         $isKabMismatch = false;
-        if (! empty($stdKab) && ! empty($suggestedKab) && strcasecmp($stdKab, $suggestedKab) !== 0) {
+        if (! empty($stdKab) && ! empty($suggestedKab) && strcasecmp(trim($stdKab), trim($suggestedKab)) !== 0) {
             $isKabMismatch = true;
             $issues[] = "Kabupaten tidak sinkron: saat ini '{$rawKabupaten}', berdasarkan Master Kemendagri adalah '{$suggestedKab}'.";
         }
@@ -290,11 +290,11 @@ class PemetaanAlamatService
         }
 
         return (bool) $siswa->update([
-            'kelurahan' => $data['kelurahan'] ?? $siswa->kelurahan,
-            'kecamatan' => $data['kecamatan'] ?? $siswa->kecamatan,
-            'kabupaten_kota' => $data['kabupaten_kota'] ?? $siswa->kabupaten_kota,
-            'provinsi' => $data['provinsi'] ?? $siswa->provinsi,
-            'negara' => $data['negara'] ?? ($siswa->negara ?: 'Indonesia'),
+            'kelurahan' => isset($data['kelurahan']) ? trim((string) $data['kelurahan']) : $siswa->kelurahan,
+            'kecamatan' => isset($data['kecamatan']) ? trim((string) $data['kecamatan']) : $siswa->kecamatan,
+            'kabupaten_kota' => isset($data['kabupaten_kota']) ? trim((string) $data['kabupaten_kota']) : $siswa->kabupaten_kota,
+            'provinsi' => isset($data['provinsi']) ? trim((string) $data['provinsi']) : $siswa->provinsi,
+            'negara' => isset($data['negara']) ? trim((string) $data['negara']) : ($siswa->negara ?: 'Indonesia'),
         ]);
     }
 
@@ -331,6 +331,7 @@ class PemetaanAlamatService
         return MasterWilayah::where('level', 1)
             ->orderBy('nama')
             ->pluck('nama')
+            ->map(fn ($v) => trim((string) $v))
             ->toArray();
     }
 
@@ -343,6 +344,7 @@ class PemetaanAlamatService
             return MasterWilayah::where('level', 2)
                 ->orderBy('nama')
                 ->pluck('nama')
+                ->map(fn ($v) => trim((string) $v))
                 ->toArray();
         }
 
@@ -355,6 +357,7 @@ class PemetaanAlamatService
             ->where('parent_kode', $prov->kode)
             ->orderBy('nama')
             ->pluck('nama')
+            ->map(fn ($v) => trim((string) $v))
             ->toArray();
     }
 
@@ -384,6 +387,7 @@ class PemetaanAlamatService
             ->where('parent_kode', $kab->kode)
             ->orderBy('nama')
             ->pluck('nama')
+            ->map(fn ($v) => trim((string) $v))
             ->toArray();
     }
 
@@ -413,6 +417,7 @@ class PemetaanAlamatService
             ->where('parent_kode', $kec->kode)
             ->orderBy('nama')
             ->pluck('nama')
+            ->map(fn ($v) => trim((string) $v))
             ->toArray();
     }
 }

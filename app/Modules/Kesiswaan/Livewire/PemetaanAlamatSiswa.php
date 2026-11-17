@@ -233,16 +233,16 @@ class PemetaanAlamatSiswa extends Component
         }
 
         $siswa->update([
-            'negara' => $this->manualNegara ?: 'Indonesia',
-            'provinsi' => $this->manualProvinsi ?: null,
-            'kabupaten_kota' => $this->manualKabupaten ?: null,
-            'kecamatan' => $this->manualKecamatan ?: null,
-            'kelurahan' => $this->manualKelurahan ?: null,
-            'alamat' => $this->manualAlamat ?: null,
-            'rt' => $this->manualRt ?: null,
-            'rw' => $this->manualRw ?: null,
-            'dusun' => $this->manualDusun ?: null,
-            'kode_pos' => $this->manualKodePos ?: null,
+            'negara' => trim($this->manualNegara ?: 'Indonesia'),
+            'provinsi' => $this->manualProvinsi ? trim($this->manualProvinsi) : null,
+            'kabupaten_kota' => $this->manualKabupaten ? trim($this->manualKabupaten) : null,
+            'kecamatan' => $this->manualKecamatan ? trim($this->manualKecamatan) : null,
+            'kelurahan' => $this->manualKelurahan ? trim($this->manualKelurahan) : null,
+            'alamat' => $this->manualAlamat ? trim($this->manualAlamat) : null,
+            'rt' => $this->manualRt ? trim($this->manualRt) : null,
+            'rw' => $this->manualRw ? trim($this->manualRw) : null,
+            'dusun' => $this->manualDusun ? trim($this->manualDusun) : null,
+            'kode_pos' => $this->manualKodePos ? trim($this->manualKodePos) : null,
         ]);
 
         $this->closeManualModal();
