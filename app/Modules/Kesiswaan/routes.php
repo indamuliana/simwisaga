@@ -7,6 +7,7 @@ use App\Modules\Kesiswaan\Livewire\PlottingProgramMassal;
 use App\Modules\Kesiswaan\Livewire\PlottingRayonMassal;
 use App\Modules\Kesiswaan\Livewire\PlottingRombelMassal;
 use App\Modules\Kesiswaan\Livewire\SiswaCreate;
+use App\Modules\Kesiswaan\Livewire\SiswaCustomExport;
 use App\Modules\Kesiswaan\Livewire\SiswaDetail;
 use App\Modules\Kesiswaan\Livewire\SiswaEdit;
 use App\Modules\Kesiswaan\Livewire\SiswaImport;
@@ -21,6 +22,7 @@ Route::prefix('kesiswaan')->name('kesiswaan.')->group(function () {
     Route::get('/siswa/{id}/edit', SiswaEdit::class)->name('siswa.edit');
     Route::get('/cetak-absensi', CetakAbsensi::class)->name('cetak-absensi');
     Route::get('/import-dapodik', SiswaImport::class)->name('import');
+    Route::get('/download-custom', SiswaCustomExport::class)->name('download-custom');
     Route::get('/plotting-rombel', PlottingRombelMassal::class)->name('plotting-rombel');
     Route::get('/kenaikan-kelas', KenaikanKelasIndex::class)->name('kenaikan-kelas');
     Route::get('/kelulusan', KelulusanIndex::class)->name('kelulusan');

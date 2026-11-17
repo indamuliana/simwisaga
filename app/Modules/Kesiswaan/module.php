@@ -7,6 +7,7 @@ return [
     'order' => 40,
     'menu' => [
         ['label' => 'Data Siswa', 'route' => 'kesiswaan.siswa', 'permission' => 'kesiswaan.siswa.lihat'],
+        ['label' => 'Unduh Data Kustom', 'route' => 'kesiswaan.download-custom', 'permission' => 'kesiswaan.siswa.lihat'],
         ['label' => 'Cetak Absensi', 'route' => 'kesiswaan.cetak-absensi', 'permission' => 'kesiswaan.siswa.lihat'],
         ['label' => 'Import & Export DAPODIK', 'route' => 'kesiswaan.import', 'permission' => 'kesiswaan.siswa.tambah'],
         ['label' => 'Plotting Rombel (Kelas)', 'route' => 'kesiswaan.plotting-rombel', 'permission' => 'kesiswaan.siswa.edit'],
