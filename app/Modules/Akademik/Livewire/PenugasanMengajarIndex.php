@@ -13,22 +13,27 @@ use App\Modules\Akademik\Models\StrukturKurikulum;
 use App\Modules\Akademik\Models\TahunAjaran;
 use App\Modules\Akademik\Support\AcademicContext;
 use App\Modules\Kepegawaian\Models\Pegawai;
+use Illuminate\Pagination\LengthAwarePaginator;
 use Illuminate\Support\Facades\DB;
 use Livewire\Attributes\Layout;
 use Livewire\Attributes\Title;
 use Livewire\Component;
+use Livewire\WithPagination;
 
 #[Layout('components.layouts.app')]
 #[Title('Penugasan Mengajar')]
 class PenugasanMengajarIndex extends Component
 {
-    use GuardsPermission;
+    use GuardsPermission, WithPagination;
+
+    // View Mode Tabs: 'guru' (Rekap Beban per Guru) | 'rinci' (Daftar Rinci Flat Table)
+    public string $activeTab = 'guru';
 
     public bool $showModal = false;
 
     public ?int $penugasanId = null;
 
-    // Filters
+    // Filters & Search
     public ?int $filterTahunAjaran = null;
 
     public ?string $filterSemester = null; // null = semua, 'ganjil', 'genap'
@@ -36,6 +41,23 @@ class PenugasanMengajarIndex extends Component
     public ?int $filterPegawai = null;
 
     public ?int $filterRombel = null;
+
+    public ?int $filterJurusan = null;
+
+    public ?string $filterTingkat = null; // null, 'X', 'XI', 'XII'
+
+    public string $search = '';
+
+    // Sorting
+    public string $sortGuruBy = 'nama'; // 'nama', 'jp_desc', 'jp_asc'
+
+    public string $sortRinciBy = 'pegawai'; // 'pegawai', 'rombel', 'mapel', 'jp_desc'
+
+    // Pagination
+    public int $perPage = 25; // 25, 50, -1 (semua)
+
+    // Accordion state in Tab Guru
+    public array $expandedGurus = [];
 
     // Form fields for Create (Bulk / Multi-Rombel)
     public ?int $tahun_ajaran_id = null;
@@ -92,7 +114,92 @@ class PenugasanMengajarIndex extends Component
         $this->filterSemester = request()->query('filterSemester') ? (string) request()->query('filterSemester') : null;
         $this->filterRombel = request()->query('filterRombel') ? (int) request()->query('filterRombel') : null;
         $this->filterPegawai = request()->query('filterPegawai') ? (int) request()->query('filterPegawai') : null;
+        $this->filterJurusan = request()->query('filterJurusan') ? (int) request()->query('filterJurusan') : null;
+        $this->filterTingkat = request()->query('filterTingkat') ? (string) request()->query('filterTingkat') : null;
+        if (request()->query('tab') && in_array(request()->query('tab'), ['guru', 'rinci'], true)) {
+            $this->activeTab = request()->query('tab');
+        }
         $this->tahun_ajaran_id = $this->filterTahunAjaran;
+    }
+
+    public function setActiveTab(string $tab): void
+    {
+        if (in_array($tab, ['guru', 'rinci'], true)) {
+            $this->activeTab = $tab;
+            $this->resetPage();
+        }
+    }
+
+    public function toggleExpandGuru(int $pegawaiId): void
+    {
+        if (in_array($pegawaiId, $this->expandedGurus, true)) {
+            $this->expandedGurus = array_values(array_diff($this->expandedGurus, [$pegawaiId]));
+        } else {
+            $this->expandedGurus[] = $pegawaiId;
+        }
+    }
+
+    public function expandAllGurus(array $allIds): void
+    {
+        $this->expandedGurus = array_map('intval', $allIds);
+    }
+
+    public function collapseAllGurus(): void
+    {
+        $this->expandedGurus = [];
+    }
+
+    public function resetFilters(): void
+    {
+        $this->search = '';
+        $this->filterSemester = null;
+        $this->filterPegawai = null;
+        $this->filterRombel = null;
+        $this->filterJurusan = null;
+        $this->filterTingkat = null;
+        $this->resetPage();
+        $this->selectedPenugasanIds = [];
+    }
+
+    public function createForGuru(int $pegawaiId): void
+    {
+        $this->create();
+        $this->pegawai_id = $pegawaiId;
+    }
+
+    public function updatedSearch(): void
+    {
+        $this->resetPage();
+        $this->selectedPenugasanIds = [];
+    }
+
+    public function updatedFilterJurusan(): void
+    {
+        $this->filterRombel = null;
+        $this->resetPage();
+        $this->selectedPenugasanIds = [];
+    }
+
+    public function updatedFilterTingkat(): void
+    {
+        $this->filterRombel = null;
+        $this->resetPage();
+        $this->selectedPenugasanIds = [];
+    }
+
+    public function updatedPerPage(): void
+    {
+        $this->resetPage();
+    }
+
+    public function updatedSortGuruBy(): void
+    {
+        $this->resetPage();
+    }
+
+    public function updatedSortRinciBy(): void
+    {
+        $this->resetPage();
     }
 
     public function updatedMapelId(): void
@@ -692,6 +799,28 @@ class PenugasanMengajarIndex extends Component
         if ($this->filterRombel) {
             $query->where('rombel_id', $this->filterRombel);
         }
+        if ($this->filterJurusan) {
+            $query->whereHas('rombel', fn ($q) => $q->where('jurusan_id', $this->filterJurusan));
+        }
+        if ($this->filterTingkat) {
+            $query->whereHas('rombel', fn ($q) => $q->where('tingkat', $this->filterTingkat));
+        }
+        if (! empty(trim($this->search))) {
+            $searchTerm = '%' . trim($this->search) . '%';
+            $query->where(function ($q) use ($searchTerm) {
+                $q->whereHas('pegawai', function ($qp) use ($searchTerm) {
+                    $qp->where('nama_lengkap', 'like', $searchTerm)
+                        ->orWhere('nip', 'like', $searchTerm);
+                })
+                ->orWhereHas('mapel', function ($qm) use ($searchTerm) {
+                    $qm->where('nama', 'like', $searchTerm)
+                        ->orWhere('kode', 'like', $searchTerm);
+                })
+                ->orWhereHas('rombel', function ($qr) use ($searchTerm) {
+                    $qr->where('nama', 'like', $searchTerm);
+                });
+            });
+        }
 
         return $query;
     }
@@ -701,20 +830,7 @@ class PenugasanMengajarIndex extends Component
         $this->guard('akademik.penugasan.cetak');
 
         $ta = TahunAjaran::find($this->filterTahunAjaran) ?? AcademicContext::currentTahunAjaran();
-        $query = PenugasanMengajar::with(['semester.tahunAjaran', 'pegawai', 'rombel', 'mapel']);
-
-        if ($this->filterTahunAjaran) {
-            $query->whereHas('semester', fn ($q) => $q->where('tahun_ajaran_id', $this->filterTahunAjaran));
-        }
-        if ($this->filterSemester) {
-            $query->whereHas('semester', fn ($q) => $q->where('semester', $this->filterSemester));
-        }
-        if ($this->filterPegawai) {
-            $query->where('pegawai_id', $this->filterPegawai);
-        }
-        if ($this->filterRombel) {
-            $query->where('rombel_id', $this->filterRombel);
-        }
+        $query = $this->getFilteredPenugasanQuery()->with(['semester.tahunAjaran', 'pegawai', 'rombel', 'mapel']);
 
         $assignments = $query->get()->groupBy('pegawai_id');
 
@@ -742,11 +858,21 @@ class PenugasanMengajarIndex extends Component
             $no++;
         }
 
-        $subtitle = 'Tahun Ajaran '.($ta?->nama ?? '');
+        $subtitle = 'Tahun Ajaran ' . ($ta?->nama ?? '');
         if ($this->filterSemester) {
-            $subtitle .= ' Semester '.ucfirst($this->filterSemester);
+            $subtitle .= ' Semester ' . ucfirst($this->filterSemester);
         } else {
             $subtitle .= ' (Semua Semester)';
+        }
+
+        if ($this->filterJurusan) {
+            $jurusanModel = Jurusan::find($this->filterJurusan);
+            if ($jurusanModel) {
+                $subtitle .= ' | Jurusan ' . $jurusanModel->kode;
+            }
+        }
+        if ($this->filterTingkat) {
+            $subtitle .= ' | Tingkat ' . $this->filterTingkat;
         }
 
         $html = "
@@ -786,21 +912,218 @@ class PenugasanMengajarIndex extends Component
 
     public function render()
     {
-        $query = $this->getFilteredPenugasanQuery()
-            ->with(['semester.tahunAjaran', 'pegawai', 'mapel', 'rombel']);
+        $allPenugasans = $this->getFilteredPenugasanQuery()
+            ->with(['semester.tahunAjaran', 'pegawai', 'mapel.kelompokMapel', 'rombel.jurusan'])
+            ->get();
 
-        $penugasans = $query->orderBy('pegawai_id')->get();
-        $totalJp = $penugasans->sum('jp');
+        $totalJp = (int) $allPenugasans->sum('jp');
+        $totalPenugasanCount = $allPenugasans->count();
+        $totalGuruBertugasCount = $allPenugasans->pluck('pegawai_id')->filter()->unique()->count();
 
-        $visibleIds = $penugasans->pluck('id')->map(fn ($id) => (int) $id)->toArray();
+        // Deteksi Team Teaching (Mapel & Rombel sama di Semester yang sama)
+        $teamTeachingGroups = $allPenugasans->groupBy(function ($item) {
+            return $item->semester_id . '_' . $item->mapel_id . '_' . $item->rombel_id;
+        });
+
+        $teamTeachingItemCount = $allPenugasans->filter(function ($item) use ($teamTeachingGroups) {
+            $key = $item->semester_id . '_' . $item->mapel_id . '_' . $item->rombel_id;
+            return $teamTeachingGroups->get($key, collect())->count() > 1;
+        })->count();
+
+        // Batch Query Struktur Kurikulum Target JP
+        $kurikulumMap = [];
+        $taIds = $allPenugasans->pluck('semester.tahun_ajaran_id')->filter()->unique()->values();
+        $jurusanIds = $allPenugasans->pluck('rombel.jurusan_id')->filter()->unique()->values();
+        $tingkats = $allPenugasans->pluck('rombel.tingkat')->filter()->unique()->values();
+        $mapelIds = $allPenugasans->pluck('mapel_id')->filter()->unique()->values();
+
+        if ($taIds->isNotEmpty() && $mapelIds->isNotEmpty()) {
+            $kurikulums = StrukturKurikulum::whereIn('tahun_ajaran_id', $taIds)
+                ->whereIn('jurusan_id', $jurusanIds)
+                ->whereIn('tingkat', $tingkats)
+                ->whereIn('mapel_id', $mapelIds)
+                ->get();
+
+            foreach ($kurikulums as $k) {
+                $kurikulumMap[$k->tahun_ajaran_id . '_' . $k->jurusan_id . '_' . $k->tingkat . '_' . $k->mapel_id] = [
+                    'jp_ganjil' => (int) $k->jp_ganjil,
+                    'jp_genap' => (int) $k->jp_genap,
+                ];
+            }
+        }
+
+        // --- TAB 1: DATA REKAP BEBAN PER GURU ---
+        $groupedByGuru = $allPenugasans->groupBy('pegawai_id');
+        $guruCards = [];
+
+        foreach ($groupedByGuru as $pegawaiId => $assignments) {
+            $pegawai = $assignments->first()->pegawai;
+            if (! $pegawai) {
+                continue;
+            }
+            $totalJpGuru = (int) $assignments->sum('jp');
+
+            if ($totalJpGuru < 18) {
+                $bebanStatus = 'kurang';
+                $bebanLabel = 'Beban Kurang (< 18 JP)';
+                $bebanBadgeClass = 'bg-amber-50 text-amber-700 dark:bg-amber-950/50 dark:text-amber-300 border-amber-200 dark:border-amber-800';
+            } elseif ($totalJpGuru <= 24) {
+                $bebanStatus = 'ideal';
+                $bebanLabel = 'Standar / Ideal (18-24 JP)';
+                $bebanBadgeClass = 'bg-emerald-50 text-emerald-700 dark:bg-emerald-950/50 dark:text-emerald-300 border-emerald-200 dark:border-emerald-800';
+            } else {
+                $bebanStatus = 'lebih';
+                $bebanLabel = 'Beban Lebih (> 24 JP)';
+                $bebanBadgeClass = 'bg-purple-50 text-purple-700 dark:bg-purple-950/50 dark:text-purple-300 border-purple-200 dark:border-purple-800';
+            }
+
+            $detailList = [];
+            foreach ($assignments as $a) {
+                $ttKey = $a->semester_id . '_' . $a->mapel_id . '_' . $a->rombel_id;
+                $ttGroup = $teamTeachingGroups->get($ttKey, collect());
+                $isTeam = $ttGroup->count() > 1;
+                $partners = $isTeam ? $ttGroup->where('id', '!=', $a->id)->map(fn ($pt) => [
+                    'id' => $pt->id,
+                    'nama' => $pt->pegawai?->nama_gelar ?: ($pt->pegawai?->nama_lengkap ?: 'Guru Mitra'),
+                    'jp' => (int) $pt->jp,
+                ])->values()->toArray() : [];
+
+                $kKey = $a->semester?->tahun_ajaran_id . '_' . $a->rombel?->jurusan_id . '_' . $a->rombel?->tingkat . '_' . $a->mapel_id;
+                $semStr = $a->semester?->semester;
+                $targetJp = isset($kurikulumMap[$kKey]) ? ($semStr === 'genap' ? $kurikulumMap[$kKey]['jp_genap'] : $kurikulumMap[$kKey]['jp_ganjil']) : null;
+
+                $detailList[] = [
+                    'id' => $a->id,
+                    'mapel_id' => $a->mapel_id,
+                    'mapel_nama' => $a->mapel?->nama,
+                    'mapel_kode' => $a->mapel?->kode,
+                    'kelompok' => $a->mapel?->kelompok_label,
+                    'rombel_id' => $a->rombel_id,
+                    'rombel_nama' => $a->rombel?->nama,
+                    'jurusan_kode' => $a->rombel?->jurusan?->kode,
+                    'tingkat' => $a->rombel?->tingkat,
+                    'tahun_ajaran' => $a->semester?->tahunAjaran?->nama,
+                    'semester_type' => $a->semester?->semester,
+                    'jp' => (int) $a->jp,
+                    'target_jp' => $targetJp,
+                    'is_team' => $isTeam,
+                    'team_total_jp' => (int) $ttGroup->sum('jp'),
+                    'partners' => $partners,
+                ];
+            }
+
+            $uniqueRombels = $assignments->pluck('rombel_id')->unique()->count();
+            $uniqueMapels = $assignments->pluck('mapel_id')->unique()->count();
+            $teamTeachingCount = collect($detailList)->where('is_team', true)->count();
+
+            $guruCards[] = [
+                'pegawai_id' => $pegawai->id,
+                'nama' => $pegawai->nama_gelar ?: $pegawai->nama_lengkap,
+                'nip' => $pegawai->nip ?: '-',
+                'jenis_kelamin' => $pegawai->jenis_kelamin,
+                'total_jp' => $totalJpGuru,
+                'beban_status' => $bebanStatus,
+                'beban_label' => $bebanLabel,
+                'beban_badge_class' => $bebanBadgeClass,
+                'unique_rombels' => $uniqueRombels,
+                'unique_mapels' => $uniqueMapels,
+                'team_teaching_count' => $teamTeachingCount,
+                'assignments' => $detailList,
+            ];
+        }
+
+        // Sorting Tab Guru
+        if ($this->sortGuruBy === 'jp_desc') {
+            usort($guruCards, fn ($a, $b) => $b['total_jp'] <=> $a['total_jp'] ?: strcasecmp($a['nama'], $b['nama']));
+        } elseif ($this->sortGuruBy === 'jp_asc') {
+            usort($guruCards, fn ($a, $b) => $a['total_jp'] <=> $b['total_jp'] ?: strcasecmp($a['nama'], $b['nama']));
+        } else {
+            usort($guruCards, fn ($a, $b) => strcasecmp($a['nama'], $b['nama']));
+        }
+
+        // Pagination Tab Guru
+        $page = $this->getPage();
+        $totalGuruCards = count($guruCards);
+        $perPageVal = $this->perPage > 0 ? $this->perPage : max($totalGuruCards, 1);
+        $slicedGuruCards = array_slice($guruCards, ($page - 1) * $perPageVal, $perPageVal);
+        $paginatedGuruCards = new LengthAwarePaginator(
+            $slicedGuruCards,
+            $totalGuruCards,
+            $perPageVal,
+            $page,
+            ['path' => request()->url(), 'query' => request()->query()]
+        );
+
+        // --- TAB 2: DATA DAFTAR RINCI (FLAT TABLE) ---
+        $enrichedPenugasans = $allPenugasans->map(function ($p) use ($teamTeachingGroups, $kurikulumMap, $groupedByGuru) {
+            $ttKey = $p->semester_id . '_' . $p->mapel_id . '_' . $p->rombel_id;
+            $ttGroup = $teamTeachingGroups->get($ttKey, collect());
+            $isTeam = $ttGroup->count() > 1;
+            $partners = $isTeam ? $ttGroup->where('id', '!=', $p->id)->map(fn ($pt) => [
+                'id' => $pt->id,
+                'nama' => $pt->pegawai?->nama_gelar ?: ($pt->pegawai?->nama_lengkap ?: 'Guru Mitra'),
+                'jp' => (int) $pt->jp,
+            ])->values()->toArray() : [];
+
+            $kKey = $p->semester?->tahun_ajaran_id . '_' . $p->rombel?->jurusan_id . '_' . $p->rombel?->tingkat . '_' . $p->mapel_id;
+            $semStr = $p->semester?->semester;
+            $targetJp = isset($kurikulumMap[$kKey]) ? ($semStr === 'genap' ? $kurikulumMap[$kKey]['jp_genap'] : $kurikulumMap[$kKey]['jp_ganjil']) : null;
+
+            $guruTotalJp = $groupedByGuru->has($p->pegawai_id) ? (int) $groupedByGuru->get($p->pegawai_id)->sum('jp') : (int) $p->jp;
+
+            $p->is_team_teaching = $isTeam;
+            $p->team_partners = $partners;
+            $p->team_total_jp = (int) $ttGroup->sum('jp');
+            $p->curriculum_target_jp = $targetJp;
+            $p->guru_total_jp = $guruTotalJp;
+
+            return $p;
+        });
+
+        // Sorting Tab Rinci
+        if ($this->sortRinciBy === 'rombel') {
+            $enrichedPenugasans = $enrichedPenugasans->sortBy(fn ($p) => $p->rombel?->nama);
+        } elseif ($this->sortRinciBy === 'mapel') {
+            $enrichedPenugasans = $enrichedPenugasans->sortBy(fn ($p) => $p->mapel?->nama);
+        } elseif ($this->sortRinciBy === 'jp_desc') {
+            $enrichedPenugasans = $enrichedPenugasans->sortByDesc('jp');
+        } else {
+            $enrichedPenugasans = $enrichedPenugasans->sortBy(fn ($p) => $p->pegawai?->nama_gelar ?: $p->pegawai?->nama_lengkap);
+        }
+
+        // Pagination Tab Rinci
+        $totalPenugasan = $enrichedPenugasans->count();
+        $rinciPerPageVal = $this->perPage > 0 ? $this->perPage : max($totalPenugasan, 1);
+        $slicedPenugasans = $enrichedPenugasans->slice(($page - 1) * $rinciPerPageVal, $rinciPerPageVal)->values();
+        $paginatedPenugasans = new LengthAwarePaginator(
+            $slicedPenugasans,
+            $totalPenugasan,
+            $rinciPerPageVal,
+            $page,
+            ['path' => request()->url(), 'query' => request()->query()]
+        );
+
+        $visibleIds = $slicedPenugasans->pluck('id')->map(fn ($id) => (int) $id)->toArray();
         $currentSelected = array_map('intval', $this->selectedPenugasanIds);
         $isAllSelected = count($visibleIds) > 0 && count(array_intersect($currentSelected, $visibleIds)) === count($visibleIds);
 
+        // Filter collections
         $tahunAjarans = TahunAjaran::with('semesters')->orderByDesc('id')->get();
         $semesters = Semester::with('tahunAjaran')->orderByDesc('tahun_ajaran_id')->get();
+        $jurusans = Jurusan::where('is_active', true)->orderBy('kode')->get();
         $gurus = Pegawai::where('jenis_gtk', 'guru')->where('is_active', true)->orderBy('nama_lengkap')->get();
-        
-        $rombels = Rombel::with('jurusan')->orderBy('tingkat')->orderBy('nama')->get();
+
+        $rombelQuery = Rombel::with('jurusan');
+        if ($this->filterTahunAjaran) {
+            $rombelQuery->where('tahun_ajaran_id', $this->filterTahunAjaran);
+        }
+        if ($this->filterJurusan) {
+            $rombelQuery->where('jurusan_id', $this->filterJurusan);
+        }
+        if ($this->filterTingkat) {
+            $rombelQuery->where('tingkat', $this->filterTingkat);
+        }
+        $rombels = $rombelQuery->orderBy('tingkat')->orderBy('nama')->get();
 
         $allowedRombels = $this->getAllowedRombels();
         $rombelsByTingkat = $allowedRombels->groupBy('tingkat');
@@ -817,10 +1140,15 @@ class PenugasanMengajarIndex extends Component
             ->get();
 
         return view('akademik::livewire.penugasan-mengajar-index', [
-            'penugasans' => $penugasans,
+            'penugasans' => $paginatedPenugasans,
+            'paginatedGuruCards' => $paginatedGuruCards,
             'totalJp' => $totalJp,
+            'totalPenugasanCount' => $totalPenugasanCount,
+            'totalGuruBertugasCount' => $totalGuruBertugasCount,
+            'teamTeachingItemCount' => $teamTeachingItemCount,
             'tahunAjarans' => $tahunAjarans,
             'semesters' => $semesters,
+            'jurusans' => $jurusans,
             'gurus' => $gurus,
             'rombels' => $rombels,
             'rombelsByTingkat' => $rombelsByTingkat,

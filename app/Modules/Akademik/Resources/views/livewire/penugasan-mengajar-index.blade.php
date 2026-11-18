@@ -46,152 +46,485 @@
     @endif
 
     <!-- Selector / Filter Bar -->
-    <div class="p-4 card grid grid-cols-1 sm:grid-cols-4 gap-4">
-        <div>
-            <label class="block text-xs font-semibold text-text-secondary uppercase tracking-wider mb-1">Tahun Ajaran</label>
-            <select wire:model.live="filterTahunAjaran" class="w-full text-xs rounded-lg border-border bg-surface text-text-main focus:border-primary focus:ring-1 focus:ring-primary">
-                <option value="">-- Semua Tahun Ajaran --</option>
-                @foreach($tahunAjarans as $ta)
-                    <option value="{{ $ta->id }}">{{ $ta->nama }} {{ $ta->is_active ? '(Aktif)' : '' }}</option>
-                @endforeach
-            </select>
+    <div class="card p-4 space-y-4">
+        <!-- Row 1: Search & Core Filters -->
+        <div class="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-5 gap-3">
+            <div class="lg:col-span-2 relative">
+                <label class="block text-xs font-semibold text-text-secondary uppercase tracking-wider mb-1">Cari Guru / Mapel</label>
+                <div class="relative">
+                    <input type="text"
+                           wire:model.live.debounce.300ms="search"
+                           placeholder="Cari nama guru, NIP, atau mapel..."
+                           class="w-full pl-9 pr-8 text-xs rounded-lg border-border bg-surface text-text-main focus:border-primary focus:ring-1 focus:ring-primary">
+                    <div class="absolute inset-y-0 left-0 pl-3 flex items-center pointer-events-none text-text-muted">
+                        <svg class="w-4 h-4" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M21 21l-6-6m2-5a7 7 0 11-14 0 7 7 0 0114 0z" />
+                        </svg>
+                    </div>
+                    @if($search)
+                        <button type="button" wire:click="$set('search', '')" class="absolute inset-y-0 right-0 pr-2.5 flex items-center text-text-muted hover:text-text-main text-xs">
+                            &times;
+                        </button>
+                    @endif
+                </div>
+            </div>
+            <div>
+                <label class="block text-xs font-semibold text-text-secondary uppercase tracking-wider mb-1">Tahun Ajaran</label>
+                <select wire:model.live="filterTahunAjaran" class="w-full text-xs rounded-lg border-border bg-surface text-text-main focus:border-primary focus:ring-1 focus:ring-primary">
+                    <option value="">-- Semua Tahun Ajaran --</option>
+                    @foreach($tahunAjarans as $ta)
+                        <option value="{{ $ta->id }}">{{ $ta->nama }} {{ $ta->is_active ? '(Aktif)' : '' }}</option>
+                    @endforeach
+                </select>
+            </div>
+            <div>
+                <label class="block text-xs font-semibold text-text-secondary uppercase tracking-wider mb-1">Semester</label>
+                <select wire:model.live="filterSemester" class="w-full text-xs rounded-lg border-border bg-surface text-text-main focus:border-primary focus:ring-1 focus:ring-primary">
+                    <option value="">-- Semua Semester --</option>
+                    <option value="ganjil">Semester Ganjil</option>
+                    <option value="genap">Semester Genap</option>
+                </select>
+            </div>
+            <div>
+                <label class="block text-xs font-semibold text-text-secondary uppercase tracking-wider mb-1">Jurusan</label>
+                <select wire:model.live="filterJurusan" class="w-full text-xs rounded-lg border-border bg-surface text-text-main focus:border-primary focus:ring-1 focus:ring-primary">
+                    <option value="">-- Semua Jurusan --</option>
+                    @foreach($jurusans as $j)
+                        <option value="{{ $j->id }}">{{ $j->kode }} - {{ $j->nama }}</option>
+                    @endforeach
+                </select>
+            </div>
         </div>
-        <div>
-            <label class="block text-xs font-semibold text-text-secondary uppercase tracking-wider mb-1">Semester</label>
-            <select wire:model.live="filterSemester" class="w-full text-xs rounded-lg border-border bg-surface text-text-main focus:border-primary focus:ring-1 focus:ring-primary">
-                <option value="">-- Semua Semester --</option>
-                <option value="ganjil">Semester Ganjil</option>
-                <option value="genap">Semester Genap</option>
-            </select>
-        </div>
-        <div>
-            <label class="block text-xs font-semibold text-text-secondary uppercase tracking-wider mb-1">Filter Guru</label>
-            <select wire:model.live="filterPegawai" class="w-full text-xs rounded-lg border-border bg-surface text-text-main focus:border-primary focus:ring-1 focus:ring-primary">
-                <option value="">-- Semua Guru --</option>
-                @foreach($gurus as $g)
-                    <option value="{{ $g->id }}">{{ $g->nama_gelar }}</option>
-                @endforeach
-            </select>
-        </div>
-        <div>
-            <label class="block text-xs font-semibold text-text-secondary uppercase tracking-wider mb-1">Filter Rombel</label>
-            <select wire:model.live="filterRombel" class="w-full text-xs rounded-lg border-border bg-surface text-text-main focus:border-primary focus:ring-1 focus:ring-primary">
-                <option value="">-- Semua Rombel --</option>
-                @foreach($rombels as $r)
-                    <option value="{{ $r->id }}">{{ $r->nama }}</option>
-                @endforeach
-            </select>
+
+        <!-- Row 2: Secondary Filters & Sorting -->
+        <div class="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-5 gap-3 pt-2 border-t border-border/60">
+            <div>
+                <label class="block text-xs font-semibold text-text-secondary uppercase tracking-wider mb-1">Tingkat Kelas</label>
+                <select wire:model.live="filterTingkat" class="w-full text-xs rounded-lg border-border bg-surface text-text-main focus:border-primary focus:ring-1 focus:ring-primary">
+                    <option value="">-- Semua Tingkat --</option>
+                    <option value="X">Kelas X</option>
+                    <option value="XI">Kelas XI</option>
+                    <option value="XII">Kelas XII</option>
+                </select>
+            </div>
+            <div>
+                <label class="block text-xs font-semibold text-text-secondary uppercase tracking-wider mb-1">Filter Guru</label>
+                <select wire:model.live="filterPegawai" class="w-full text-xs rounded-lg border-border bg-surface text-text-main focus:border-primary focus:ring-1 focus:ring-primary">
+                    <option value="">-- Semua Guru --</option>
+                    @foreach($gurus as $g)
+                        <option value="{{ $g->id }}">{{ $g->nama_gelar }}</option>
+                    @endforeach
+                </select>
+            </div>
+            <div>
+                <label class="block text-xs font-semibold text-text-secondary uppercase tracking-wider mb-1">Filter Rombel</label>
+                <select wire:model.live="filterRombel" class="w-full text-xs rounded-lg border-border bg-surface text-text-main focus:border-primary focus:ring-1 focus:ring-primary">
+                    <option value="">-- Semua Rombel --</option>
+                    @foreach($rombels as $r)
+                        <option value="{{ $r->id }}">{{ $r->nama }}</option>
+                    @endforeach
+                </select>
+            </div>
+            <div>
+                <label class="block text-xs font-semibold text-text-secondary uppercase tracking-wider mb-1">Urutan Data</label>
+                @if($activeTab === 'guru')
+                    <select wire:model.live="sortGuruBy" class="w-full text-xs rounded-lg border-border bg-surface text-text-main focus:border-primary focus:ring-1 focus:ring-primary">
+                        <option value="nama">Nama Guru (A - Z)</option>
+                        <option value="jp_desc">Beban JP Tertinggi (Desc)</option>
+                        <option value="jp_asc">Beban JP Terendah (Asc)</option>
+                    </select>
+                @else
+                    <select wire:model.live="sortRinciBy" class="w-full text-xs rounded-lg border-border bg-surface text-text-main focus:border-primary focus:ring-1 focus:ring-primary">
+                        <option value="pegawai">Nama Guru (A - Z)</option>
+                        <option value="rombel">Rombel / Kelas</option>
+                        <option value="mapel">Mata Pelajaran</option>
+                        <option value="jp_desc">Beban JP Tertinggi</option>
+                    </select>
+                @endif
+            </div>
+            <div class="flex items-end gap-2">
+                <div class="flex-1">
+                    <label class="block text-xs font-semibold text-text-secondary uppercase tracking-wider mb-1">Per Halaman</label>
+                    <select wire:model.live="perPage" class="w-full text-xs rounded-lg border-border bg-surface text-text-main focus:border-primary focus:ring-1 focus:ring-primary">
+                        <option value="25">25 Baris</option>
+                        <option value="50">50 Baris</option>
+                        <option value="-1">Semua Data</option>
+                    </select>
+                </div>
+                @if($search || $filterSemester || $filterPegawai || $filterRombel || $filterJurusan || $filterTingkat)
+                    <button type="button" 
+                            wire:click="resetFilters" 
+                            class="px-2.5 py-2 text-xs rounded-lg border border-border text-text-secondary hover:text-text-main hover:bg-surface-hover transition shrink-0"
+                            title="Reset Filter">
+                        <svg class="w-4 h-4" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M4 4v5h.582m15.356 2A8.001 8.001 0 004.582 9m0 0H9m11 11v-5h-.581m0 0a8.003 8.003 0 01-15.357-2m15.357 2H15" />
+                        </svg>
+                    </button>
+                @endif
+            </div>
         </div>
     </div>
 
-    <!-- Table Card -->
-    <div class="card p-0 overflow-hidden">
-        <div class="px-6 py-4 bg-surface-hover/50 bg-surface/40 border-b border-border flex flex-col sm:flex-row justify-between items-start sm:items-center gap-2">
-            <div>
-                <span class="text-sm font-bold text-text-main">Daftar Alokasi Penugasan Mengajar</span>
-                <span class="text-xs text-text-secondary ml-2">({{ $penugasans->count() }} alokasi terdaftar)</span>
-            </div>
-            <span class="text-xs font-semibold text-primary dark:text-indigo-400 bg-indigo-50 dark:bg-indigo-950/50 px-3 py-1 rounded-full border border-indigo-200 dark:border-indigo-800">
-                Total Alokasi: {{ $totalJp }} JP
-            </span>
+    <!-- Mode Tab Navigation -->
+    <div class="flex flex-col sm:flex-row items-stretch sm:items-center justify-between gap-3">
+        <div class="inline-flex p-1 bg-surface-hover/80 rounded-xl border border-border max-w-md">
+            <button type="button"
+                    wire:click="setActiveTab('guru')"
+                    class="flex items-center justify-center gap-2 px-4 py-2 text-xs font-bold rounded-lg transition {{ $activeTab === 'guru' ? 'bg-primary text-white shadow-xs' : 'text-text-secondary hover:text-text-main' }}">
+                <svg class="w-4 h-4" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                    <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M16 7a4 4 0 11-8 0 4 4 0 018 0zM12 14a7 7 0 00-7 7h14a7 7 0 00-7-7z" />
+                </svg>
+                <span>Rekap Beban per Guru</span>
+                <span class="inline-flex items-center justify-center px-1.5 py-0.5 rounded-full text-[10px] {{ $activeTab === 'guru' ? 'bg-white/20 text-white' : 'bg-surface text-text-secondary border border-border' }}">
+                    {{ $paginatedGuruCards->total() }}
+                </span>
+            </button>
+            <button type="button"
+                    wire:click="setActiveTab('rinci')"
+                    class="flex items-center justify-center gap-2 px-4 py-2 text-xs font-bold rounded-lg transition {{ $activeTab === 'rinci' ? 'bg-primary text-white shadow-xs' : 'text-text-secondary hover:text-text-main' }}">
+                <svg class="w-4 h-4" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                    <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M3 10h18M3 14h18m-9-4v8m-7 0h14a2 2 0 002-2V8a2 2 0 00-2-2H5a2 2 0 00-2 2v8a2 2 0 002 2z" />
+                </svg>
+                <span>Daftar Rinci Penugasan</span>
+                <span class="inline-flex items-center justify-center px-1.5 py-0.5 rounded-full text-[10px] {{ $activeTab === 'rinci' ? 'bg-white/20 text-white' : 'bg-surface text-text-secondary border border-border' }}">
+                    {{ $totalPenugasanCount }}
+                </span>
+            </button>
         </div>
 
-        <!-- Bulk Selection Action Bar -->
-        @if(count($selectedPenugasanIds) > 0)
-            <div class="px-5 py-2.5 bg-indigo-50/80 dark:bg-indigo-950/40 border-b border-indigo-100 dark:border-indigo-900/60 flex flex-wrap items-center justify-between gap-3 animate-in fade-in duration-200">
-                <div class="flex items-center gap-2">
-                    <span class="inline-flex items-center justify-center min-w-5 h-5 px-1.5 rounded-full bg-indigo-600 text-white text-[11px] font-bold">
-                        {{ count($selectedPenugasanIds) }}
-                    </span>
-                    <span class="text-xs font-semibold text-indigo-950 dark:text-indigo-200">
-                        penugasan dipilih
-                    </span>
-                    <button type="button" wire:click="cancelSelection" class="text-xs text-text-muted hover:text-text-main underline decoration-dotted ml-2">
-                        Batalkan pilihan
-                    </button>
-                </div>
-                @can('akademik.penugasan.hapus')
-                    <button type="button" wire:click="promptBulkDelete" class="inline-flex items-center gap-1.5 px-3 py-1.5 rounded-lg bg-rose-600 hover:bg-rose-700 text-white text-xs font-semibold shadow-xs transition cursor-pointer">
-                        <svg class="w-3.5 h-3.5" fill="none" viewBox="0 0 24 24" stroke="currentColor">
-                            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M19 7l-.867 12.142A2 2 0 0116.138 21H7.862a2 2 0 01-1.995-1.858L5 7m5 4v6m4-6v6m1-10V4a1 1 0 00-1-1h-4a1 1 0 00-1 1v3M4 7h16" />
-                        </svg>
-                        Hapus Terpilih ({{ count($selectedPenugasanIds) }})
-                    </button>
-                @endcan
+        <!-- Quick Info / Expansion Controls for Tab Guru -->
+        @if($activeTab === 'guru' && $paginatedGuruCards->isNotEmpty())
+            <div class="flex items-center gap-2">
+                <button type="button" 
+                        wire:click="expandAllGurus({{ json_encode(collect($paginatedGuruCards->items())->pluck('pegawai_id')->toArray()) }})"
+                        class="px-2.5 py-1 text-[11px] font-medium rounded-lg text-text-secondary hover:text-text-main hover:bg-surface-hover transition border border-border/80">
+                    Buka Semua Rincian
+                </button>
+                <button type="button" 
+                        wire:click="collapseAllGurus"
+                        class="px-2.5 py-1 text-[11px] font-medium rounded-lg text-text-secondary hover:text-text-main hover:bg-surface-hover transition border border-border/80">
+                    Tutup Semua
+                </button>
             </div>
         @endif
+    </div>
 
-        <div class="overflow-x-auto">
-            <table class="min-w-full divide-y divide-slate-200 dark:divide-slate-800 text-left text-xs">
-                <thead class="bg-surface-hover/80 text-text-secondary font-medium">
-                    <tr>
-                        <th class="w-10 px-4 py-3 text-center">
-                            <input type="checkbox" wire:click="toggleSelectAll" {{ $isAllSelected ? 'checked' : '' }} class="rounded border-border text-primary focus:ring-primary h-4 w-4 cursor-pointer" title="Pilih Semua">
-                        </th>
-                        <th class="px-5 py-3">Guru Pengampu</th>
-                        <th class="px-5 py-3">Mata Pelajaran</th>
-                        <th class="px-5 py-3">Rombel & Jurusan</th>
-                        <th class="px-5 py-3">Periode Semester</th>
-                        <th class="px-5 py-3 text-center">Beban (JP)</th>
-                        <th class="px-5 py-3 text-right">Aksi</th>
-                    </tr>
-                </thead>
-                <tbody class="divide-y divide-slate-200 dark:divide-slate-800 text-text-main">
-                    @forelse($penugasans as $p)
-                        <tr class="hover:bg-surface-hover/40 transition {{ in_array($p->id, $selectedPenugasanIds) ? 'bg-indigo-50/40 dark:bg-indigo-950/20' : '' }}">
-                            <td class="w-10 px-4 py-3.5 text-center">
-                                <input type="checkbox" wire:model.live="selectedPenugasanIds" value="{{ $p->id }}" class="rounded border-border text-primary focus:ring-primary h-4 w-4 cursor-pointer">
-                            </td>
-                            <td class="px-5 py-3.5">
-                                <div class="font-bold text-text-main">{{ $p->pegawai?->nama_gelar }}</div>
-                                <div class="text-[11px] text-text-muted font-mono mt-0.5">NIP: {{ $p->pegawai?->nip ?? '-' }}</div>
-                            </td>
-                            <td class="px-5 py-3.5">
-                                <div class="font-medium text-text-main">{{ $p->mapel?->nama }}</div>
-                                <div class="text-[11px] text-primary dark:text-indigo-400 font-mono mt-0.5">
-                                    {{ $p->mapel?->kode }} ({{ $p->mapel?->kelompok_label }})
-                                </div>
-                            </td>
-                            <td class="px-5 py-3.5">
-                                <div class="flex items-center gap-1.5">
-                                    <span class="inline-flex items-center px-2 py-0.5 rounded text-[11px] font-bold bg-indigo-50 text-indigo-700 dark:bg-indigo-950/60 dark:text-indigo-300 border border-indigo-200 dark:border-indigo-800">
-                                        {{ $p->rombel?->nama }}
-                                    </span>
-                                    @if($p->rombel?->jurusan)
-                                        <span class="text-[10px] text-text-muted font-medium">({{ $p->rombel->jurusan->kode }})</span>
-                                    @endif
-                                </div>
-                            </td>
-                            <td class="px-5 py-3.5">
-                                <div class="font-medium text-text-main">{{ $p->semester?->tahunAjaran?->nama }}</div>
-                                <span class="inline-flex items-center px-1.5 py-0.5 rounded text-[10px] font-medium mt-0.5 {{ $p->semester?->semester === 'ganjil' ? 'bg-blue-50 text-blue-700 dark:bg-blue-950/60 dark:text-blue-300' : 'bg-purple-50 text-purple-700 dark:bg-purple-950/60 dark:text-purple-300' }}">
-                                    Semester {{ ucfirst($p->semester?->semester ?? '') }}
-                                </span>
-                            </td>
-                            <td class="px-5 py-3.5 text-center font-bold text-text-main text-xs">
-                                <span class="px-2 py-1 rounded bg-slate-100 dark:bg-slate-800 border border-border">
-                                    {{ $p->jp }} JP
-                                </span>
-                            </td>
-                            <td class="px-5 py-3.5 text-right space-x-2">
-                                @can('akademik.penugasan.edit')
-                                    <button wire:click="edit({{ $p->id }})" class="text-xs font-semibold text-primary hover:text-indigo-800 dark:text-indigo-400">Edit</button>
-                                @endcan
-                                @can('akademik.penugasan.hapus')
-                                    <button wire:click="promptDelete({{ $p->id }})" class="text-xs font-semibold text-rose-600 hover:text-rose-800 dark:text-rose-400">Hapus</button>
-                                @endcan
-                            </td>
-                        </tr>
-                    @empty
-                        <tr>
-                            <td colspan="7" class="px-5 py-8 text-center text-text-muted">
-                                Tidak ada penugasan mengajar yang cocok dengan filter yang dipilih.
-                            </td>
-                        </tr>
-                    @endforelse
-                </tbody>
-            </table>
+    <!-- Content Card -->
+    <div class="card p-0 overflow-hidden">
+        <!-- Card Header with Badges -->
+        <div class="px-6 py-4 bg-surface-hover/50 bg-surface/40 border-b border-border flex flex-col lg:flex-row justify-between items-start lg:items-center gap-3">
+            <div>
+                <span class="text-sm font-bold text-text-main">
+                    {{ $activeTab === 'guru' ? 'Distribusi Beban Jam Mengajar per Guru' : 'Daftar Alokasi Penugasan Mengajar' }}
+                </span>
+                <span class="text-xs text-text-secondary ml-2">
+                    ({{ $activeTab === 'guru' ? $paginatedGuruCards->total() . ' guru terdaftar' : $totalPenugasanCount . ' alokasi terdaftar' }})
+                </span>
+            </div>
+            <div class="flex flex-wrap items-center gap-2">
+                <span class="text-xs font-semibold text-primary dark:text-indigo-400 bg-indigo-50 dark:bg-indigo-950/50 px-3 py-1 rounded-full border border-indigo-200 dark:border-indigo-800">
+                    Total Beban: <strong>{{ $totalJp }} JP</strong>
+                </span>
+                <span class="text-xs font-semibold text-emerald-700 dark:text-emerald-300 bg-emerald-50 dark:bg-emerald-950/50 px-3 py-1 rounded-full border border-emerald-200 dark:border-emerald-800">
+                    Guru Bertugas: <strong>{{ $totalGuruBertugasCount }} Guru</strong>
+                </span>
+                @if($teamTeachingItemCount > 0)
+                    <span class="text-xs font-semibold text-purple-700 dark:text-purple-300 bg-purple-50 dark:bg-purple-950/50 px-3 py-1 rounded-full border border-purple-200 dark:border-purple-800">
+                        Team Teaching: <strong>{{ $teamTeachingItemCount }} Alokasi</strong>
+                    </span>
+                @endif
+            </div>
         </div>
+
+        @if($activeTab === 'rinci')
+            <!-- Bulk Selection Action Bar -->
+            @if(count($selectedPenugasanIds) > 0)
+                <div class="px-5 py-2.5 bg-indigo-50/80 dark:bg-indigo-950/40 border-b border-indigo-100 dark:border-indigo-900/60 flex flex-wrap items-center justify-between gap-3 animate-in fade-in duration-200">
+                    <div class="flex items-center gap-2">
+                        <span class="inline-flex items-center justify-center min-w-5 h-5 px-1.5 rounded-full bg-indigo-600 text-white text-[11px] font-bold">
+                            {{ count($selectedPenugasanIds) }}
+                        </span>
+                        <span class="text-xs font-semibold text-indigo-950 dark:text-indigo-200">
+                            penugasan dipilih
+                        </span>
+                        <button type="button" wire:click="cancelSelection" class="text-xs text-text-muted hover:text-text-main underline decoration-dotted ml-2">
+                            Batalkan pilihan
+                        </button>
+                    </div>
+                    @can('akademik.penugasan.hapus')
+                        <button type="button" wire:click="promptBulkDelete" class="inline-flex items-center gap-1.5 px-3 py-1.5 rounded-lg bg-rose-600 hover:bg-rose-700 text-white text-xs font-semibold shadow-xs transition cursor-pointer">
+                            <svg class="w-3.5 h-3.5" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                                <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M19 7l-.867 12.142A2 2 0 0116.138 21H7.862a2 2 0 01-1.995-1.858L5 7m5 4v6m4-6v6m1-10V4a1 1 0 00-1-1h-4a1 1 0 00-1 1v3M4 7h16" />
+                            </svg>
+                            Hapus Terpilih ({{ count($selectedPenugasanIds) }})
+                        </button>
+                    @endcan
+                </div>
+            @endif
+
+            <!-- TAB 2 TABLE: FLAT TABLE -->
+            <div class="overflow-x-auto">
+                <table class="min-w-full divide-y divide-slate-200 dark:divide-slate-800 text-left text-xs">
+                    <thead class="bg-surface-hover/80 text-text-secondary font-medium">
+                        <tr>
+                            <th class="w-10 px-4 py-3 text-center">
+                                <input type="checkbox" wire:click="toggleSelectAll" {{ $isAllSelected ? 'checked' : '' }} class="rounded border-border text-primary focus:ring-primary h-4 w-4 cursor-pointer" title="Pilih Semua">
+                            </th>
+                            <th class="px-5 py-3">Guru Pengampu</th>
+                            <th class="px-5 py-3">Mata Pelajaran</th>
+                            <th class="px-5 py-3">Rombel & Jurusan</th>
+                            <th class="px-5 py-3">Kesesuaian Kurikulum & Model</th>
+                            <th class="px-5 py-3">Periode Semester</th>
+                            <th class="px-5 py-3 text-center">Beban (JP)</th>
+                            <th class="px-5 py-3 text-right">Aksi</th>
+                        </tr>
+                    </thead>
+                    <tbody class="divide-y divide-slate-200 dark:divide-slate-800 text-text-main">
+                        @forelse($penugasans as $p)
+                            <tr class="hover:bg-surface-hover/40 transition {{ in_array($p->id, $selectedPenugasanIds) ? 'bg-indigo-50/40 dark:bg-indigo-950/20' : '' }}">
+                                <td class="w-10 px-4 py-3.5 text-center">
+                                    <input type="checkbox" wire:model.live="selectedPenugasanIds" value="{{ $p->id }}" class="rounded border-border text-primary focus:ring-primary h-4 w-4 cursor-pointer">
+                                </td>
+                                <td class="px-5 py-3.5">
+                                    <div class="font-bold text-text-main">{{ $p->pegawai?->nama_gelar }}</div>
+                                    <div class="flex items-center gap-2 mt-0.5">
+                                        <span class="text-[11px] text-text-muted font-mono">NIP: {{ $p->pegawai?->nip ?? '-' }}</span>
+                                        <span class="inline-flex items-center px-1.5 py-0.5 rounded text-[10px] font-semibold bg-surface-hover text-text-secondary border border-border/80">
+                                            Total: {{ $p->guru_total_jp }} JP
+                                        </span>
+                                    </div>
+                                </td>
+                                <td class="px-5 py-3.5">
+                                    <div class="font-medium text-text-main">{{ $p->mapel?->nama }}</div>
+                                    <div class="text-[11px] text-primary dark:text-indigo-400 font-mono mt-0.5">
+                                        {{ $p->mapel?->kode }} ({{ $p->mapel?->kelompok_label }})
+                                    </div>
+                                </td>
+                                <td class="px-5 py-3.5">
+                                    <div class="flex items-center gap-1.5">
+                                        <span class="inline-flex items-center px-2 py-0.5 rounded text-[11px] font-bold bg-indigo-50 text-indigo-700 dark:bg-indigo-950/60 dark:text-indigo-300 border border-indigo-200 dark:border-indigo-800">
+                                            {{ $p->rombel?->nama }}
+                                        </span>
+                                        @if($p->rombel?->jurusan)
+                                            <span class="text-[10px] text-text-muted font-medium">({{ $p->rombel->jurusan->kode }})</span>
+                                        @endif
+                                    </div>
+                                </td>
+                                <td class="px-5 py-3.5">
+                                    <div class="space-y-1">
+                                        @if($p->curriculum_target_jp)
+                                            <div class="text-[11px] text-text-secondary">
+                                                Kurikulum: <strong class="text-text-main">{{ $p->curriculum_target_jp }} JP</strong>
+                                            </div>
+                                        @endif
+                                        @if($p->is_team_teaching)
+                                            <div class="flex items-center gap-1">
+                                                <span class="inline-flex items-center px-1.5 py-0.5 rounded text-[10px] font-semibold bg-purple-50 text-purple-700 dark:bg-purple-950/60 dark:text-purple-300 border border-purple-200 dark:border-purple-800">
+                                                    Team Teaching ({{ $p->team_total_jp }} JP)
+                                                </span>
+                                            </div>
+                                            <div class="text-[11px] text-text-muted">
+                                                Mitra:
+                                                @foreach($p->team_partners as $pt)
+                                                    <span class="font-medium text-text-main">{{ $pt['nama'] }} ({{ $pt['jp'] }} JP)</span>{{ !$loop->last ? ', ' : '' }}
+                                                @endforeach
+                                            </div>
+                                        @else
+                                            <span class="text-[11px] text-text-muted font-medium">✓ Mandiri</span>
+                                        @endif
+                                    </div>
+                                </td>
+                                <td class="px-5 py-3.5">
+                                    <div class="font-medium text-text-main">{{ $p->semester?->tahunAjaran?->nama }}</div>
+                                    <span class="inline-flex items-center px-1.5 py-0.5 rounded text-[10px] font-medium mt-0.5 {{ $p->semester?->semester === 'ganjil' ? 'bg-blue-50 text-blue-700 dark:bg-blue-950/60 dark:text-blue-300' : 'bg-purple-50 text-purple-700 dark:bg-purple-950/60 dark:text-purple-300' }}">
+                                        Semester {{ ucfirst($p->semester?->semester ?? '') }}
+                                    </span>
+                                </td>
+                                <td class="px-5 py-3.5 text-center font-bold text-text-main text-xs">
+                                    <span class="px-2 py-1 rounded bg-slate-100 dark:bg-slate-800 border border-border">
+                                        {{ $p->jp }} JP
+                                    </span>
+                                </td>
+                                <td class="px-5 py-3.5 text-right space-x-2">
+                                    @can('akademik.penugasan.edit')
+                                        <button wire:click="edit({{ $p->id }})" class="text-xs font-semibold text-primary hover:text-indigo-800 dark:text-indigo-400">Edit</button>
+                                    @endcan
+                                    @can('akademik.penugasan.hapus')
+                                        <button wire:click="promptDelete({{ $p->id }})" class="text-xs font-semibold text-rose-600 hover:text-rose-800 dark:text-rose-400">Hapus</button>
+                                    @endcan
+                                </td>
+                            </tr>
+                        @empty
+                            <tr>
+                                <td colspan="8" class="px-5 py-8 text-center text-text-muted">
+                                    Tidak ada penugasan mengajar yang cocok dengan filter yang dipilih.
+                                </td>
+                            </tr>
+                        @endforelse
+                    </tbody>
+                </table>
+            </div>
+
+            <!-- Tab 2 Pagination -->
+            @if($penugasans->hasPages())
+                <div class="p-4 border-t border-border">
+                    {{ $penugasans->links() }}
+                </div>
+            @endif
+
+        @else
+            <!-- TAB 1: REKAP BEBAN PER GURU -->
+            <div class="divide-y divide-slate-200 dark:divide-slate-800">
+                @forelse($paginatedGuruCards as $g)
+                    <div class="p-4 sm:p-5 hover:bg-surface-hover/30 transition space-y-3">
+                        <!-- Guru Header Card -->
+                        <div class="flex flex-col sm:flex-row sm:items-center justify-between gap-3">
+                            <div class="flex items-start gap-3">
+                                <div class="w-10 h-10 rounded-xl bg-primary/10 text-primary flex items-center justify-center font-bold text-sm shrink-0 border border-primary/20">
+                                    {{ strtoupper(substr($g['nama'], 0, 2)) }}
+                                </div>
+                                <div>
+                                    <div class="flex flex-wrap items-center gap-2">
+                                        <h3 class="font-bold text-sm text-text-main">{{ $g['nama'] }}</h3>
+                                        <span class="inline-flex items-center px-2 py-0.5 rounded text-[10px] font-semibold border {{ $g['beban_badge_class'] }}">
+                                            {{ $g['beban_label'] }}
+                                        </span>
+                                    </div>
+                                    <div class="flex flex-wrap items-center gap-x-3 gap-y-1 text-xs text-text-secondary mt-1">
+                                        <span class="font-mono text-text-muted">NIP: {{ $g['nip'] }}</span>
+                                        <span class="text-text-muted">•</span>
+                                        <span>{{ $g['unique_rombels'] }} Rombel</span>
+                                        <span class="text-text-muted">•</span>
+                                        <span>{{ $g['unique_mapels'] }} Mapel</span>
+                                        @if($g['team_teaching_count'] > 0)
+                                            <span class="text-text-muted">•</span>
+                                            <span class="text-purple-600 dark:text-purple-400 font-medium">{{ $g['team_teaching_count'] }} Team Teaching</span>
+                                        @endif
+                                    </div>
+                                </div>
+                            </div>
+
+                            <div class="flex items-center justify-between sm:justify-end gap-3 shrink-0">
+                                <div class="text-left sm:text-right">
+                                    <div class="text-[10px] text-text-secondary uppercase tracking-wider font-semibold">Total Beban</div>
+                                    <div class="text-base font-black text-primary dark:text-indigo-400 font-mono">
+                                        {{ $g['total_jp'] }} <span class="text-xs font-semibold text-text-secondary">JP</span>
+                                    </div>
+                                </div>
+                                <div class="flex items-center gap-1.5">
+                                    @can('akademik.penugasan.tambah')
+                                        <button type="button" 
+                                                wire:click="createForGuru({{ $g['pegawai_id'] }})"
+                                                class="btn btn-xs btn-outline border-border hover:bg-surface-hover text-text-main flex items-center gap-1 shadow-2xs">
+                                            <span>+</span> Tugaskan
+                                        </button>
+                                    @endcan
+                                    <button type="button"
+                                            wire:click="toggleExpandGuru({{ $g['pegawai_id'] }})"
+                                            class="btn btn-xs {{ in_array($g['pegawai_id'], $expandedGurus, true) ? 'bg-surface-hover text-text-main border-border' : 'btn-outline border-border text-text-secondary hover:text-text-main' }} flex items-center gap-1">
+                                        <span>{{ in_array($g['pegawai_id'], $expandedGurus, true) ? 'Tutup' : 'Rincian' }}</span>
+                                        <svg class="w-3 h-3 transform transition-transform {{ in_array($g['pegawai_id'], $expandedGurus, true) ? 'rotate-180' : '' }}" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                                            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M19 9l-7 7-7-7" />
+                                        </svg>
+                                    </button>
+                                </div>
+                            </div>
+                        </div>
+
+                        <!-- Accordion Sub-table for this Guru -->
+                        @if(in_array($g['pegawai_id'], $expandedGurus, true))
+                            <div class="pt-3 border-t border-border/60 overflow-x-auto animate-in fade-in duration-150">
+                                <table class="min-w-full divide-y divide-slate-200 dark:divide-slate-800 text-left text-xs bg-surface-hover/20 rounded-xl overflow-hidden border border-border/80">
+                                    <thead class="bg-surface-hover/60 text-text-secondary font-medium">
+                                        <tr>
+                                            <th class="px-4 py-2.5">Mata Pelajaran</th>
+                                            <th class="px-4 py-2.5">Rombel & Jurusan</th>
+                                            <th class="px-4 py-2.5">Semester</th>
+                                            <th class="px-4 py-2.5 text-center">Beban Guru</th>
+                                            <th class="px-4 py-2.5">Model Mengajar & Kurikulum</th>
+                                            <th class="px-4 py-2.5 text-right">Aksi</th>
+                                        </tr>
+                                    </thead>
+                                    <tbody class="divide-y divide-slate-200 dark:divide-slate-800 text-text-main">
+                                        @foreach($g['assignments'] as $it)
+                                            <tr class="hover:bg-surface-hover/50 transition">
+                                                <td class="px-4 py-2.5">
+                                                    <div class="font-bold text-text-main">{{ $it['mapel_nama'] }}</div>
+                                                    <div class="text-[11px] text-text-muted font-mono">
+                                                        {{ $it['mapel_kode'] }} ({{ $it['kelompok'] }})
+                                                    </div>
+                                                </td>
+                                                <td class="px-4 py-2.5">
+                                                    <div class="inline-flex items-center px-2 py-0.5 rounded text-[11px] font-bold bg-indigo-50 text-indigo-700 dark:bg-indigo-950/60 dark:text-indigo-300 border border-indigo-200 dark:border-indigo-800">
+                                                        {{ $it['rombel_nama'] }}
+                                                    </div>
+                                                    @if($it['jurusan_kode'])
+                                                        <span class="text-[10px] text-text-muted ml-1">({{ $it['jurusan_kode'] }})</span>
+                                                    @endif
+                                                </td>
+                                                <td class="px-4 py-2.5">
+                                                    <span class="inline-flex items-center px-1.5 py-0.5 rounded text-[10px] font-medium {{ $it['semester_type'] === 'ganjil' ? 'bg-blue-50 text-blue-700 dark:bg-blue-950/60 dark:text-blue-300' : 'bg-purple-50 text-purple-700 dark:bg-purple-950/60 dark:text-purple-300' }}">
+                                                        {{ ucfirst($it['semester_type']) }}
+                                                    </span>
+                                                </td>
+                                                <td class="px-4 py-2.5 text-center font-bold text-text-main">
+                                                    <span class="px-2 py-1 rounded bg-slate-100 dark:bg-slate-800 border border-border">
+                                                        {{ $it['jp'] }} JP
+                                                    </span>
+                                                </td>
+                                                <td class="px-4 py-2.5">
+                                                    <div class="space-y-1">
+                                                        @if($it['target_jp'])
+                                                            <div class="text-[11px] text-text-secondary">
+                                                                Target Kurikulum: <strong class="text-text-main">{{ $it['target_jp'] }} JP</strong>
+                                                            </div>
+                                                        @endif
+                                                        @if($it['is_team'])
+                                                            <div class="flex items-center gap-1.5">
+                                                                <span class="inline-flex items-center px-1.5 py-0.5 rounded text-[10px] font-semibold bg-purple-50 text-purple-700 dark:bg-purple-950/60 dark:text-purple-300 border border-purple-200 dark:border-purple-800">
+                                                                    Team Teaching (Total {{ $it['team_total_jp'] }} JP)
+                                                                </span>
+                                                            </div>
+                                                            <div class="text-[11px] text-text-muted">
+                                                                Mitra:
+                                                                @foreach($it['partners'] as $pt)
+                                                                    <span class="font-medium text-text-main">{{ $pt['nama'] }} ({{ $pt['jp'] }} JP)</span>{{ !$loop->last ? ', ' : '' }}
+                                                                @endforeach
+                                                            </div>
+                                                        @else
+                                                            <span class="text-[11px] text-text-muted font-medium">✓ Mandiri</span>
+                                                        @endif
+                                                    </div>
+                                                </td>
+                                                <td class="px-4 py-2.5 text-right space-x-2">
+                                                    @can('akademik.penugasan.edit')
+                                                        <button wire:click="edit({{ $it['id'] }})" class="text-xs font-semibold text-primary hover:text-indigo-800 dark:text-indigo-400">Edit</button>
+                                                    @endcan
+                                                    @can('akademik.penugasan.hapus')
+                                                        <button wire:click="promptDelete({{ $it['id'] }})" class="text-xs font-semibold text-rose-600 hover:text-rose-800 dark:text-rose-400">Hapus</button>
+                                                    @endcan
+                                                </td>
+                                            </tr>
+                                        @endforeach
+                                    </tbody>
+                                </table>
+                            </div>
+                        @endif
+                    </div>
+                @empty
+                    <div class="p-8 text-center text-text-muted">
+                        Tidak ada guru pengampu yang cocok dengan filter atau pencarian saat ini.
+                    </div>
+                @endforelse
+            </div>
+
+            <!-- Tab 1 Pagination -->
+            @if($paginatedGuruCards->hasPages())
+                <div class="p-4 border-t border-border">
+                    {{ $paginatedGuruCards->links() }}
+                </div>
+            @endif
+        @endif
     </div>
 
     <!-- Modal Form (Tambah Penugasan Multi-Rombel / Edit) -->
