@@ -88,8 +88,11 @@ class PenugasanMengajarIndex extends Component
     {
         $this->guard('akademik.penugasan.lihat');
         $currentTa = AcademicContext::currentTahunAjaran();
-        $this->filterTahunAjaran = $currentTa?->id;
-        $this->tahun_ajaran_id = $currentTa?->id;
+        $this->filterTahunAjaran = request()->query('filterTahunAjaran') ? (int) request()->query('filterTahunAjaran') : $currentTa?->id;
+        $this->filterSemester = request()->query('filterSemester') ? (string) request()->query('filterSemester') : null;
+        $this->filterRombel = request()->query('filterRombel') ? (int) request()->query('filterRombel') : null;
+        $this->filterPegawai = request()->query('filterPegawai') ? (int) request()->query('filterPegawai') : null;
+        $this->tahun_ajaran_id = $this->filterTahunAjaran;
     }
 
     public function updatedMapelId(): void

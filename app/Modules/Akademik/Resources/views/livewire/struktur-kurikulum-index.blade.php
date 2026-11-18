@@ -46,7 +46,7 @@
     @endif
 
     <!-- Selector Bar -->
-    <div class="p-4 card grid grid-cols-1 sm:grid-cols-3 gap-4">
+    <div class="p-4 card grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-4">
         <div>
             <label class="block text-xs font-semibold text-text-secondary uppercase tracking-wider mb-1">Tahun Ajaran</label>
             <select wire:model.live="filterTahunAjaran" class="w-full text-sm rounded-lg border-border bg-surface text-text-main">
@@ -70,6 +70,21 @@
                 <option value="XI">Kelas XI</option>
                 <option value="XII">Kelas XII</option>
             </select>
+        </div>
+        <div>
+            <label class="block text-xs font-semibold text-text-secondary uppercase tracking-wider mb-1">Semester Penugasan</label>
+            <div class="inline-flex p-1 bg-surface-hover/80 rounded-xl border border-border w-full">
+                <button type="button" 
+                        wire:click="setFilterSemester('ganjil')" 
+                        class="flex-1 py-1.5 text-xs font-bold rounded-lg transition {{ $filterSemester === 'ganjil' ? 'bg-primary text-white shadow-xs' : 'text-text-secondary hover:text-text-main' }}">
+                    Semester Ganjil
+                </button>
+                <button type="button" 
+                        wire:click="setFilterSemester('genap')" 
+                        class="flex-1 py-1.5 text-xs font-bold rounded-lg transition {{ $filterSemester === 'genap' ? 'bg-emerald-600 text-white shadow-xs' : 'text-text-secondary hover:text-text-main' }}">
+                    Semester Genap
+                </button>
+            </div>
         </div>
     </div>
 
@@ -102,12 +117,13 @@
                         <th class="px-4 py-3 text-center">Smt Ganjil</th>
                         <th class="px-4 py-3 text-center">Smt Genap</th>
                         <th class="px-6 py-3 text-center">Status Berlaku</th>
+                        <th class="px-6 py-3">Keterisian Guru & JP ({{ ucfirst($filterSemester) }})</th>
                         <th class="px-6 py-3 text-right">Aksi</th>
                     </tr>
                 </thead>
                 <tbody class="divide-y divide-slate-200 dark:divide-slate-800 text-text-main">
                     @forelse($items as $it)
-                        <tr class="hover:bg-surface-hover/50 dark:hover:bg-slate-800/30 transition">
+                        <tr class="hover:bg-surface-hover/50 dark:hover:bg-slate-800/30 transition {{ in_array($it->id, $expandedMapels, true) ? 'bg-surface-hover/30' : '' }}">
                             <td class="px-6 py-4 text-center font-mono font-bold text-text-secondary">{{ $it->urutan }}</td>
                             <td class="px-6 py-4 font-mono font-semibold text-primary dark:text-indigo-400">{{ $it->mapel?->kode }}</td>
                             <td class="px-6 py-4 font-medium text-text-main">{{ $it->mapel?->nama }}</td>
@@ -161,6 +177,34 @@
                                     {{ $it->semester_status }}
                                 </span>
                             </td>
+                            <td class="px-6 py-4">
+                                @php
+                                    $pInfo = $penugasanMap[$it->id] ?? null;
+                                    $isExpanded = in_array($it->id, $expandedMapels, true);
+                                    $hasRombel = !empty($pInfo['rombels']);
+                                @endphp
+
+                                @if($pInfo)
+                                    <div class="flex items-center gap-2">
+                                        <span class="inline-flex items-center px-2.5 py-1 rounded-lg text-xs font-semibold border {{ $pInfo['agg_color'] }}">
+                                            {{ $pInfo['agg_badge'] }}
+                                        </span>
+                                        @if($hasRombel && $pInfo['target_jp'] > 0)
+                                            <button type="button" 
+                                                    wire:click="toggleExpand({{ $it->id }})"
+                                                    class="inline-flex items-center gap-1 px-2 py-1 text-xs font-medium rounded-lg text-text-secondary hover:text-text-main hover:bg-surface-hover transition border border-border/60"
+                                                    title="{{ $isExpanded ? 'Tutup rincian' : 'Lihat rincian per rombel' }}">
+                                                <span>{{ $isExpanded ? 'Tutup' : 'Rincian' }}</span>
+                                                <svg class="w-3.5 h-3.5 transform transition-transform {{ $isExpanded ? 'rotate-180' : '' }}" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                                                    <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M19 9l-7 7-7-7" />
+                                                </svg>
+                                            </button>
+                                        @endif
+                                    </div>
+                                @else
+                                    <span class="text-xs text-text-muted">-</span>
+                                @endif
+                            </td>
                             <td class="px-6 py-4 text-right space-x-2">
                                 @can('akademik.kurikulum.edit')
                                     <button wire:click="edit({{ $it->id }})" class="text-xs font-medium text-primary hover:text-indigo-800 dark:text-indigo-400">Edit</button>
@@ -170,9 +214,86 @@
                                 @endcan
                             </td>
                         </tr>
+                        @if(in_array($it->id, $expandedMapels, true) && !empty($penugasanMap[$it->id]['rombels']))
+                            <tr class="bg-surface-hover/30 border-b border-border">
+                                <td colspan="9" class="p-4 sm:p-5">
+                                    <div class="space-y-3">
+                                        <div class="flex flex-col sm:flex-row sm:items-center justify-between gap-2">
+                                            <div class="flex items-center gap-2">
+                                                <span class="w-2 h-2 rounded-full bg-primary"></span>
+                                                <h4 class="text-xs font-bold text-text-main uppercase tracking-wider">
+                                                    Keterisian Guru Pengampu per Rombel — Semester {{ ucfirst($filterSemester) }} (Beban Kurikulum: {{ $penugasanMap[$it->id]['target_jp'] }} JP)
+                                                </h4>
+                                            </div>
+                                            @if($activeSemesterModel)
+                                                <span class="text-xs text-text-secondary">
+                                                    Semester Aktif: <strong>{{ $activeSemesterModel->nama }}</strong>
+                                                </span>
+                                            @endif
+                                        </div>
+
+                                        <div class="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-3">
+                                            @foreach($penugasanMap[$it->id]['rombels'] as $rInfo)
+                                                <div class="p-3.5 rounded-xl border border-border bg-surface shadow-xs space-y-2.5">
+                                                    <!-- Rombel Header & Status -->
+                                                    <div class="flex items-start justify-between gap-2">
+                                                        <div>
+                                                            <div class="font-bold text-sm text-text-main">{{ $rInfo['rombel_nama'] }}</div>
+                                                            <div class="text-xs text-text-secondary mt-0.5">
+                                                                Terisi: <strong class="{{ $rInfo['assigned_jp'] === $rInfo['target_jp'] ? 'text-emerald-600 dark:text-emerald-400' : ($rInfo['assigned_jp'] > $rInfo['target_jp'] ? 'text-purple-600' : ($rInfo['assigned_jp'] === 0 ? 'text-rose-600' : 'text-amber-600')) }}">{{ $rInfo['assigned_jp'] }}</strong> / {{ $rInfo['target_jp'] }} JP
+                                                            </div>
+                                                        </div>
+                                                        <span class="inline-flex items-center px-2 py-0.5 rounded text-[11px] font-semibold border {{ $rInfo['badge_class'] }}">
+                                                            {{ $rInfo['label'] }}
+                                                        </span>
+                                                    </div>
+
+                                                    <!-- Daftar Guru Pengampu -->
+                                                    <div class="pt-2 border-t border-border/60 space-y-1.5">
+                                                        <div class="text-[11px] font-medium text-text-secondary">Guru Pengampu:</div>
+                                                        @if(empty($rInfo['gurus']))
+                                                            <p class="text-xs italic text-rose-600 dark:text-rose-400">Belum ada guru yang ditugaskan</p>
+                                                        @else
+                                                            <div class="space-y-1">
+                                                                @foreach($rInfo['gurus'] as $guru)
+                                                                    <div class="flex items-center justify-between text-xs bg-surface-hover/60 px-2 py-1 rounded">
+                                                                        <span class="font-medium text-text-main truncate pr-2" title="{{ $guru['nama'] }}">
+                                                                            {{ $guru['nama'] }}
+                                                                        </span>
+                                                                        <span class="font-bold text-primary dark:text-indigo-400 whitespace-nowrap">
+                                                                            {{ $guru['jp'] }} JP
+                                                                        </span>
+                                                                    </div>
+                                                                @endforeach
+                                                            </div>
+                                                        @endif
+                                                    </div>
+
+                                                    <!-- Shortcut Link to Penugasan Mengajar -->
+                                                    <div class="pt-1 flex justify-end">
+                                                        <a href="{{ route('akademik.penugasan', [
+                                                            'filterTahunAjaran' => $filterTahunAjaran,
+                                                            'filterSemester' => $filterSemester,
+                                                            'filterRombel' => $rInfo['rombel_id'],
+                                                        ]) }}" 
+                                                           target="_blank"
+                                                           class="inline-flex items-center gap-1 text-[11px] font-semibold text-primary hover:text-primary-focus hover:underline">
+                                                            <span>{{ empty($rInfo['gurus']) ? '+ Tugaskan Guru' : 'Kelola Penugasan' }}</span>
+                                                            <svg class="w-3 h-3" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                                                                <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M10 6H6a2 2 0 00-2 2v10a2 2 0 002 2h10a2 2 0 002-2v-4M14 4h6m0 0v6m0-6L10 14" />
+                                                            </svg>
+                                                        </a>
+                                                    </div>
+                                                </div>
+                                            @endforeach
+                                        </div>
+                                    </div>
+                                </td>
+                            </tr>
+                        @endif
                     @empty
                         <tr>
-                            <td colspan="8" class="px-6 py-8 text-center text-text-secondary">Belum ada mata pelajaran yang dimasukkan untuk kurikulum ini.</td>
+                            <td colspan="9" class="px-6 py-8 text-center text-text-secondary">Belum ada mata pelajaran yang dimasukkan untuk kurikulum ini.</td>
                         </tr>
                     @endforelse
                 </tbody>

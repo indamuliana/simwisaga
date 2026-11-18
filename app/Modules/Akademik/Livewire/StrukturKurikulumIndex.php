@@ -5,6 +5,9 @@ namespace App\Modules\Akademik\Livewire;
 use App\Core\Concerns\GuardsPermission;
 use App\Modules\Akademik\Models\Jurusan;
 use App\Modules\Akademik\Models\Mapel;
+use App\Modules\Akademik\Models\PenugasanMengajar;
+use App\Modules\Akademik\Models\Rombel;
+use App\Modules\Akademik\Models\Semester;
 use App\Modules\Akademik\Models\StrukturKurikulum;
 use App\Modules\Akademik\Models\TahunAjaran;
 use App\Modules\Akademik\Support\AcademicContext;
@@ -23,6 +26,10 @@ class StrukturKurikulumIndex extends Component
     public ?int $filterTahunAjaran = null;
     public ?int $filterJurusan = null;
     public string $filterTingkat = 'X';
+    public string $filterSemester = 'ganjil'; // 'ganjil' | 'genap'
+
+    // Accordion state
+    public array $expandedMapels = [];
 
     // Single modal state (Edit / Tambah Satuan)
     public bool $showModal = false;
@@ -61,6 +68,41 @@ class StrukturKurikulumIndex extends Component
         $this->filterTahunAjaran = $currentTa?->id;
         $firstJurusan = Jurusan::where('is_active', true)->first();
         $this->filterJurusan = $firstJurusan?->id;
+
+        $currentSem = AcademicContext::currentSemester();
+        $this->filterSemester = $currentSem?->semester ?? 'ganjil';
+    }
+
+    public function toggleExpand(int $kurikulumId): void
+    {
+        if (in_array($kurikulumId, $this->expandedMapels, true)) {
+            $this->expandedMapels = array_values(array_diff($this->expandedMapels, [$kurikulumId]));
+        } else {
+            $this->expandedMapels[] = $kurikulumId;
+        }
+    }
+
+    public function setFilterSemester(string $semester): void
+    {
+        if (in_array($semester, ['ganjil', 'genap'], true)) {
+            $this->filterSemester = $semester;
+            $this->expandedMapels = [];
+        }
+    }
+
+    public function updatedFilterTahunAjaran(): void
+    {
+        $this->expandedMapels = [];
+    }
+
+    public function updatedFilterJurusan(): void
+    {
+        $this->expandedMapels = [];
+    }
+
+    public function updatedFilterTingkat(): void
+    {
+        $this->expandedMapels = [];
     }
 
     // --- BATCH ALLOCATION (ALOKASI CEPAT MULTI-JURUSAN & MULTI-TINGKAT) ---
@@ -423,6 +465,9 @@ class StrukturKurikulumIndex extends Component
         $items = collect();
         $totalJpGanjil = 0;
         $totalJpGenap = 0;
+        $rombels = collect();
+        $penugasanMap = [];
+        $activeSemesterModel = null;
 
         if ($this->filterTahunAjaran && $this->filterJurusan && $this->filterTingkat) {
             $items = StrukturKurikulum::with('mapel.kelompokMapel')
@@ -434,6 +479,128 @@ class StrukturKurikulumIndex extends Component
 
             $totalJpGanjil = $items->sum('jp_ganjil');
             $totalJpGenap = $items->sum('jp_genap');
+
+            $rombels = Rombel::where('tahun_ajaran_id', $this->filterTahunAjaran)
+                ->where('jurusan_id', $this->filterJurusan)
+                ->where('tingkat', $this->filterTingkat)
+                ->orderBy('nama')
+                ->get();
+
+            $activeSemesterModel = Semester::where('tahun_ajaran_id', $this->filterTahunAjaran)
+                ->where('semester', $this->filterSemester)
+                ->first();
+
+            if ($items->isNotEmpty()) {
+                $rawPenugasans = collect();
+                if ($activeSemesterModel && $rombels->isNotEmpty()) {
+                    $rawPenugasans = PenugasanMengajar::with('pegawai')
+                        ->where('semester_id', $activeSemesterModel->id)
+                        ->whereIn('mapel_id', $items->pluck('mapel_id'))
+                        ->whereIn('rombel_id', $rombels->pluck('id'))
+                        ->get();
+                }
+
+                $grouped = $rawPenugasans->groupBy('mapel_id');
+
+                foreach ($items as $it) {
+                    $targetJp = ($this->filterSemester === 'genap') ? (int) $it->jp_genap : (int) $it->jp_ganjil;
+                    $mapelPenugasans = $grouped->get($it->mapel_id, collect())->groupBy('rombel_id');
+
+                    $rombelList = [];
+                    $fulfilledCount = 0;
+                    $overCount = 0;
+                    $underCount = 0;
+                    $emptyCount = 0;
+
+                    foreach ($rombels as $r) {
+                        $pList = $mapelPenugasans->get($r->id, collect());
+                        $assignedJp = (int) $pList->sum('jp');
+
+                        $gurus = $pList->map(function ($p) {
+                            return [
+                                'pegawai_id' => $p->pegawai_id,
+                                'nama' => $p->pegawai?->nama_gelar ?: ($p->pegawai?->nama_lengkap ?: 'Guru Pengampu'),
+                                'nip' => $p->pegawai?->nip,
+                                'jp' => (int) $p->jp,
+                            ];
+                        })->values()->toArray();
+
+                        if ($targetJp === 0) {
+                            $status = 'no_target';
+                            $label = 'Tidak Ada Jam';
+                            $badgeClass = 'bg-slate-100 text-slate-600 dark:bg-slate-800 dark:text-slate-400 border-slate-200 dark:border-slate-700';
+                        } elseif ($assignedJp === $targetJp) {
+                            $status = 'fulfilled';
+                            $label = 'Terpenuhi';
+                            $badgeClass = 'bg-emerald-50 text-emerald-700 dark:bg-emerald-950/50 dark:text-emerald-300 border-emerald-200 dark:border-emerald-800';
+                            $fulfilledCount++;
+                        } elseif ($assignedJp === 0) {
+                            $status = 'empty';
+                            $label = 'Belum Ada Guru';
+                            $badgeClass = 'bg-rose-50 text-rose-700 dark:bg-rose-950/50 dark:text-rose-300 border-rose-200 dark:border-rose-800';
+                            $emptyCount++;
+                        } elseif ($assignedJp < $targetJp) {
+                            $status = 'under';
+                            $label = 'Kurang ' . ($targetJp - $assignedJp) . ' JP';
+                            $badgeClass = 'bg-amber-50 text-amber-700 dark:bg-amber-950/50 dark:text-amber-300 border-amber-200 dark:border-amber-800';
+                            $underCount++;
+                        } else {
+                            $status = 'over';
+                            $label = 'Kelebihan ' . ($assignedJp - $targetJp) . ' JP';
+                            $badgeClass = 'bg-purple-50 text-purple-700 dark:bg-purple-950/50 dark:text-purple-300 border-purple-200 dark:border-purple-800';
+                            $overCount++;
+                        }
+
+                        $rombelList[$r->id] = [
+                            'rombel_id' => $r->id,
+                            'rombel_nama' => $r->nama,
+                            'assigned_jp' => $assignedJp,
+                            'target_jp' => $targetJp,
+                            'status' => $status,
+                            'label' => $label,
+                            'badge_class' => $badgeClass,
+                            'gurus' => $gurus,
+                        ];
+                    }
+
+                    $totalRombels = $rombels->count();
+                    if ($targetJp === 0) {
+                        $aggStatus = 'no_target';
+                        $aggBadge = '-';
+                        $aggColor = 'bg-slate-100 text-slate-500 border-slate-200 dark:bg-slate-800 dark:text-slate-400 dark:border-slate-700';
+                    } elseif ($totalRombels === 0) {
+                        $aggStatus = 'no_rombel';
+                        $aggBadge = 'Belum Ada Rombel';
+                        $aggColor = 'bg-slate-100 text-slate-500 border-slate-200 dark:bg-slate-800 dark:text-slate-400 dark:border-slate-700';
+                    } elseif ($fulfilledCount === $totalRombels) {
+                        $aggStatus = 'fulfilled';
+                        $aggBadge = "✓ Lengkap ({$fulfilledCount}/{$totalRombels} Rombel)";
+                        $aggColor = 'bg-emerald-50 text-emerald-700 dark:bg-emerald-950/50 dark:text-emerald-300 border-emerald-200 dark:border-emerald-800';
+                    } elseif ($overCount > 0) {
+                        $aggStatus = 'over';
+                        $aggBadge = "! Kelebihan JP ({$overCount} Rombel)";
+                        $aggColor = 'bg-purple-50 text-purple-700 dark:bg-purple-950/50 dark:text-purple-300 border-purple-200 dark:border-purple-800';
+                    } elseif ($emptyCount === $totalRombels) {
+                        $aggStatus = 'empty';
+                        $aggBadge = "0/{$totalRombels} Rombel Terisi";
+                        $aggColor = 'bg-rose-50 text-rose-700 dark:bg-rose-950/50 dark:text-rose-300 border-rose-200 dark:border-rose-800';
+                    } else {
+                        $aggStatus = 'under';
+                        $aggBadge = "! Kurang ({$fulfilledCount}/{$totalRombels} Lengkap)";
+                        $aggColor = 'bg-amber-50 text-amber-700 dark:bg-amber-950/50 dark:text-amber-300 border-amber-200 dark:border-amber-800';
+                    }
+
+                    $penugasanMap[$it->id] = [
+                        'target_jp' => $targetJp,
+                        'total_rombels' => $totalRombels,
+                        'fulfilled_count' => $fulfilledCount,
+                        'agg_status' => $aggStatus,
+                        'agg_badge' => $aggBadge,
+                        'agg_color' => $aggColor,
+                        'rombels' => $rombelList,
+                    ];
+                }
+            }
         }
 
         $tahunAjarans = TahunAjaran::orderByDesc('tgl_mulai')->get();
@@ -453,6 +620,9 @@ class StrukturKurikulumIndex extends Component
             'tahunAjarans' => $tahunAjarans,
             'jurusans' => $jurusans,
             'allMapels' => $allMapels,
+            'rombels' => $rombels,
+            'activeSemesterModel' => $activeSemesterModel,
+            'penugasanMap' => $penugasanMap,
         ]);
     }
 }
