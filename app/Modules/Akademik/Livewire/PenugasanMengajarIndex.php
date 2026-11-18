@@ -54,7 +54,7 @@ class PenugasanMengajarIndex extends Component
     public string $sortRinciBy = 'pegawai'; // 'pegawai', 'rombel', 'mapel', 'jp_desc'
 
     // Pagination
-    public int $perPage = 25; // 25, 50, -1 (semua)
+    public int $perPage = -1; // -1 = semua data, 25, 50
 
     // Accordion state in Tab Guru
     public array $expandedGurus = [];
@@ -111,15 +111,36 @@ class PenugasanMengajarIndex extends Component
         $this->guard('akademik.penugasan.lihat');
         $currentTa = AcademicContext::currentTahunAjaran();
         $this->filterTahunAjaran = request()->query('filterTahunAjaran') ? (int) request()->query('filterTahunAjaran') : $currentTa?->id;
-        $this->filterSemester = request()->query('filterSemester') ? (string) request()->query('filterSemester') : null;
+
+        $currentSem = AcademicContext::currentSemester();
+        $defaultSemester = $currentSem?->semester ?? 'ganjil';
+        $this->filterSemester = request()->has('filterSemester') ? (request()->query('filterSemester') ?: null) : $defaultSemester;
+
         $this->filterRombel = request()->query('filterRombel') ? (int) request()->query('filterRombel') : null;
         $this->filterPegawai = request()->query('filterPegawai') ? (int) request()->query('filterPegawai') : null;
         $this->filterJurusan = request()->query('filterJurusan') ? (int) request()->query('filterJurusan') : null;
         $this->filterTingkat = request()->query('filterTingkat') ? (string) request()->query('filterTingkat') : null;
+        if (request()->query('perPage')) {
+            $this->perPage = (int) request()->query('perPage');
+        }
         if (request()->query('tab') && in_array(request()->query('tab'), ['guru', 'rinci'], true)) {
             $this->activeTab = request()->query('tab');
         }
         $this->tahun_ajaran_id = $this->filterTahunAjaran;
+    }
+
+    public function hasActiveFilters(): bool
+    {
+        $currentSem = AcademicContext::currentSemester();
+        $defaultSemester = $currentSem?->semester ?? 'ganjil';
+
+        return ! empty($this->search)
+            || $this->filterSemester !== $defaultSemester
+            || ! empty($this->filterPegawai)
+            || ! empty($this->filterRombel)
+            || ! empty($this->filterJurusan)
+            || ! empty($this->filterTingkat)
+            || $this->perPage !== -1;
     }
 
     public function setActiveTab(string $tab): void
@@ -151,12 +172,16 @@ class PenugasanMengajarIndex extends Component
 
     public function resetFilters(): void
     {
+        $currentSem = AcademicContext::currentSemester();
         $this->search = '';
-        $this->filterSemester = null;
+        $this->filterSemester = $currentSem?->semester ?? 'ganjil';
         $this->filterPegawai = null;
         $this->filterRombel = null;
         $this->filterJurusan = null;
         $this->filterTingkat = null;
+        $this->perPage = -1;
+        $this->sortGuruBy = 'nama';
+        $this->sortRinciBy = 'pegawai';
         $this->resetPage();
         $this->selectedPenugasanIds = [];
     }
@@ -1157,6 +1182,7 @@ class PenugasanMengajarIndex extends Component
             'editAllowedRombels' => $editAllowedRombels,
             'mapels' => $mapels,
             'isAllSelected' => $isAllSelected,
+            'activeSemesterName' => AcademicContext::currentSemester()?->semester,
         ]);
     }
 }

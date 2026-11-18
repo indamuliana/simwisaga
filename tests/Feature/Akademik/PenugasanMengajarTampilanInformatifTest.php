@@ -117,10 +117,12 @@ class PenugasanMengajarTampilanInformatifTest extends TestCase
 
         $test = Livewire::actingAs($this->admin)
             ->test(PenugasanMengajarIndex::class)
-            ->set('filterTahunAjaran', $this->ta->id)
-            ->set('filterSemester', 'ganjil');
+            ->set('filterTahunAjaran', $this->ta->id);
 
         $this->assertEquals('guru', $test->get('activeTab'));
+        // Verifikasi default filterSemester adalah semester aktif (ganjil) dan perPage adalah -1 (semua data)
+        $this->assertEquals('ganjil', $test->get('filterSemester'));
+        $this->assertEquals(-1, $test->get('perPage'));
 
         // Cek data kartu guru
         $paginatedGuruCards = $test->viewData('paginatedGuruCards');
@@ -255,6 +257,8 @@ class PenugasanMengajarTampilanInformatifTest extends TestCase
         // Reset filter
         $test->call('resetFilters');
         $this->assertEquals('', $test->get('search'));
+        $this->assertEquals('ganjil', $test->get('filterSemester'));
+        $this->assertEquals(-1, $test->get('perPage'));
         $this->assertCount(2, $test->viewData('penugasans'));
     }
 

@@ -449,6 +449,7 @@ class PenugasanMengajarTest extends TestCase
             ->test(PenugasanMengajarIndex::class)
             ->set('filterTahunAjaran', $this->ta->id)
             ->set('filterPegawai', $this->guru->id)
+            ->set('filterSemester', null)
             ->call('toggleSelectAll')
             ->assertSet('selectedPenugasanIds', [$p1->id, $p2->id])
             ->call('toggleSelectAll')

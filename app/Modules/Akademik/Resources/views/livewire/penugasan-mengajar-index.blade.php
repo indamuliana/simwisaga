@@ -81,8 +81,8 @@
                 <label class="block text-xs font-semibold text-text-secondary uppercase tracking-wider mb-1">Semester</label>
                 <select wire:model.live="filterSemester" class="w-full text-xs rounded-lg border-border bg-surface text-text-main focus:border-primary focus:ring-1 focus:ring-primary">
                     <option value="">-- Semua Semester --</option>
-                    <option value="ganjil">Semester Ganjil</option>
-                    <option value="genap">Semester Genap</option>
+                    <option value="ganjil">Semester Ganjil {{ $activeSemesterName === 'ganjil' ? '(Aktif)' : '' }}</option>
+                    <option value="genap">Semester Genap {{ $activeSemesterName === 'genap' ? '(Aktif)' : '' }}</option>
                 </select>
             </div>
             <div>
@@ -146,12 +146,12 @@
                 <div class="flex-1">
                     <label class="block text-xs font-semibold text-text-secondary uppercase tracking-wider mb-1">Per Halaman</label>
                     <select wire:model.live="perPage" class="w-full text-xs rounded-lg border-border bg-surface text-text-main focus:border-primary focus:ring-1 focus:ring-primary">
+                        <option value="-1">Semua Data</option>
                         <option value="25">25 Baris</option>
                         <option value="50">50 Baris</option>
-                        <option value="-1">Semua Data</option>
                     </select>
                 </div>
-                @if($search || $filterSemester || $filterPegawai || $filterRombel || $filterJurusan || $filterTingkat)
+                @if($this->hasActiveFilters())
                     <button type="button" 
                             wire:click="resetFilters" 
                             class="px-2.5 py-2 text-xs rounded-lg border border-border text-text-secondary hover:text-text-main hover:bg-surface-hover transition shrink-0"
