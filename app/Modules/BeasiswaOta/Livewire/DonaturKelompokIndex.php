@@ -567,7 +567,9 @@ class DonaturKelompokIndex extends Component
             ->paginate(10);
 
         $donaturs = Donatur::query()
-            ->when($this->searchDonatur, fn($q) => $q->where('nama', 'like', "%{$this->searchDonatur}%")->orWhere('nomor_telepon', 'like', "%{$this->searchDonatur}%"))
+            ->when($this->searchDonatur, fn($q) => $q->where('nama', 'like', "%{$this->searchDonatur}%")
+                ->orWhere('nomor_telepon', 'like', "%{$this->searchDonatur}%")
+                ->orWhere('keterangan', 'like', "%{$this->searchDonatur}%"))
             ->with(['kelompoks'])
             ->latest('id')
             ->paginate(15);

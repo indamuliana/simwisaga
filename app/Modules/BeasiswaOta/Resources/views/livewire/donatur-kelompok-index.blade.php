@@ -248,6 +248,7 @@
                             <th class="py-3 px-4">Nama Donatur</th>
                             <th class="py-3 px-4">Tipe</th>
                             <th class="py-3 px-4">Kontak (HP / Email)</th>
+                            <th class="py-3 px-4">Keterangan</th>
                             <th class="py-3 px-4">Kelompok Terafiliasi</th>
                             <th class="py-3 px-4 text-right">Total Donasi Masuk</th>
                             <th class="py-3 px-4 text-center">Aksi</th>
@@ -280,6 +281,9 @@
                                     <div>{{ $d->nomor_telepon ?: '-' }}</div>
                                     <div class="text-xs">{{ $d->email ?: '' }}</div>
                                 </td>
+                                <td class="py-3.5 px-4 text-text-secondary text-xs max-w-xs">
+                                    {{ $d->keterangan ?: '-' }}
+                                </td>
                                 <td class="py-3.5 px-4">
                                     @if($d->kelompoks->isNotEmpty())
                                         <div class="flex flex-wrap gap-1">
@@ -309,7 +313,7 @@
                             </tr>
                         @empty
                             <tr>
-                                <td colspan="6" class="py-8 text-center text-text-secondary">Belum ada donatur terdaftar.</td>
+                                <td colspan="8" class="py-8 text-center text-text-secondary">Belum ada donatur terdaftar.</td>
                             </tr>
                         @endforelse
                     </tbody>
@@ -532,6 +536,7 @@
                             <tr>
                                 <th class="py-2.5 px-3">No</th>
                                 <th class="py-2.5 px-3">Nama Donatur</th>
+                                <th class="py-2.5 px-3">Keterangan</th>
                                 <th class="py-2.5 px-3 text-right">Iuran Komitmen</th>
                                 <th class="py-2.5 px-3 text-center">Aksi</th>
                             </tr>
@@ -549,6 +554,9 @@
                                         {{ $ang->donatur->nama }}
                                         <div class="text-[10px] font-normal text-text-secondary">{{ $ang->donatur->nomor_telepon }}</div>
                                     </td>
+                                    <td class="py-2 px-3 text-text-secondary text-xs">
+                                        {{ $ang->donatur->keterangan ?: '-' }}
+                                    </td>
                                     <td class="py-2 px-3 text-right font-bold text-text-main">
                                         Rp {{ number_format($ang->nominal_komitmen, 0, ',', '.') }}
                                     </td>
@@ -560,11 +568,11 @@
                                 </tr>
                             @empty
                                 <tr>
-                                    <td colspan="4" class="py-4 text-center text-text-secondary">Belum ada donatur di kelompok ini. Tambahkan di atas.</td>
+                                    <td colspan="5" class="py-4 text-center text-text-secondary">Belum ada donatur di kelompok ini. Tambahkan di atas.</td>
                                 </tr>
                             @endforelse
                             <tr class="bg-surface-hover/50 font-bold">
-                                <td colspan="2" class="py-2.5 px-3 text-right">Total Komitmen Iuran Kelompok:</td>
+                                <td colspan="3" class="py-2.5 px-3 text-right">Total Komitmen Iuran Kelompok:</td>
                                 <td class="py-2.5 px-3 text-right">
                                     <div class="text-emerald-600 font-bold text-sm">
                                         Rp {{ number_format($totalKmt, 0, ',', '.') }}<span class="text-[10px] text-text-secondary font-normal">/bln</span>

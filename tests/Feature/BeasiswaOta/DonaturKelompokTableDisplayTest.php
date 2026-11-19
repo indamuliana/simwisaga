@@ -65,4 +65,57 @@ class DonaturKelompokTableDisplayTest extends TestCase
             ->assertSee('+Rp 300.000/smt')
             ->assertSee('Terpenuhi');
     }
+
+    public function test_donatur_table_renders_header_keterangan_and_data(): void
+    {
+        $this->actingAs($this->admin);
+
+        $d = Donatur::create([
+            'nama' => 'Bapak Irfan Fauzi',
+            'tipe' => 'rutin',
+            'nomor_telepon' => '081399887766',
+            'keterangan' => 'Donatur Tetap Yayasan Peduli',
+            'is_aktif' => true,
+        ]);
+
+        Livewire::test(DonaturKelompokIndex::class)
+            ->set('activeTab', 'donatur')
+            ->assertSee('Keterangan')
+            ->assertSee('Donatur Tetap Yayasan Peduli')
+            ->set('searchDonatur', 'Yayasan Peduli')
+            ->assertSee('Bapak Irfan Fauzi')
+            ->set('searchDonatur', 'TidakDitemukan123')
+            ->assertDontSee('Bapak Irfan Fauzi');
+    }
+
+    public function test_anggota_modal_table_renders_keterangan(): void
+    {
+        $this->actingAs($this->admin);
+
+        $kelompok = Kelompok::create([
+            'kode_kelompok' => 'KEL-MODAL-TEST',
+            'nama_kelompok' => 'Kelompok Modal Test',
+            'target_nominal' => 1000000,
+            'is_aktif' => true,
+        ]);
+
+        $d = Donatur::create([
+            'nama' => 'Ibu Siti Aminah',
+            'tipe' => 'rutin',
+            'nomor_telepon' => '081233445566',
+            'keterangan' => 'Wali Santri Angkatan 2024',
+            'is_aktif' => true,
+        ]);
+
+        KelompokAnggota::create([
+            'kelompok_id' => $kelompok->id,
+            'donatur_id' => $d->id,
+            'nominal_komitmen' => 150000,
+        ]);
+
+        Livewire::test(DonaturKelompokIndex::class)
+            ->call('manageAnggota', $kelompok->id)
+            ->assertSee('Keterangan')
+            ->assertSee('Wali Santri Angkatan 2024');
+    }
 }
