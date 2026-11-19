@@ -201,15 +201,11 @@ class DonasiMasukIndex extends Component
         $lastDonasiInsidental = DonasiMasuk::whereNull('kelompok_id')->latest('tanggal_donasi')->latest('id')->first();
 
         // Statistik Keseluruhan pada T.A. ini
-        $allActiveKelompoks = Kelompok::where('is_aktif', true)
-            ->with(['donasiMasuks' => function ($q) {
-                if ($this->tahunAjaranId) {
-                    $q->where('tahun_ajaran_id', $this->tahunAjaranId);
-                }
-            }, 'kasMutasis'])
-            ->get();
-
-        $totalMasukKelompokTa = (float) $allActiveKelompoks->sum(fn($k) => $k->donasiMasuks->sum('nominal'));
+        $kelompokMasukQuery = DonasiMasuk::whereNotNull('kelompok_id');
+        if ($this->tahunAjaranId) {
+            $kelompokMasukQuery->where('tahun_ajaran_id', $this->tahunAjaranId);
+        }
+        $totalMasukKelompokTa = (float) $kelompokMasukQuery->sum('nominal');
         $totalDonasiMasukTa = $totalMasukKelompokTa + $totalMasukInsidental;
         $ringkasanKas = OtaKasService::getRingkasanKas();
 
@@ -230,9 +226,24 @@ class DonasiMasukIndex extends Component
                 if ($drawerKelompok) {
                     $drawerMonthsInfo = DonasiMasukCreate::getMonthsForTahunAjaran($this->tahunAjaranId);
 
+                    // Pre-fetch seluruh donasi kelompok ini pada T.A. terkait untuk menghindari N+1 query
+                    $kelompokDonasis = DonasiMasuk::where('kelompok_id', $drawerKelompok->id)
+                        ->when($this->tahunAjaranId, fn($q) => $q->where('tahun_ajaran_id', $this->tahunAjaranId))
+                        ->get(['id', 'donatur_id', 'nominal', 'periode_bulan']);
+
                     // Matrix 12 Bulan per Donatur Anggota
                     foreach ($drawerKelompok->anggotaKelompok as $ang) {
-                        $paidMonths = DonasiMasukCreate::getPaidMonthsForDonatur($ang->donatur_id, $this->tahunAjaranId, $drawerKelompok->id);
+                        $memberDonasis = $kelompokDonasis->where('donatur_id', $ang->donatur_id);
+                        $paidMonths = [];
+                        foreach ($memberDonasis as $md) {
+                            if (is_array($md->periode_bulan)) {
+                                foreach ($md->periode_bulan as $pm) {
+                                    $paidMonths[] = (string) $pm;
+                                }
+                            }
+                        }
+                        $paidMonths = array_values(array_unique($paidMonths));
+
                         $drawerMembers[] = [
                             'donatur_id' => $ang->donatur_id,
                             'nama' => $ang->donatur?->nama ?? 'Tanpa Nama',
@@ -240,10 +251,7 @@ class DonasiMasukIndex extends Component
                             'nominal_komitmen' => (float) $ang->nominal_komitmen,
                             'paid_months' => $paidMonths,
                             'total_paid_months' => count($paidMonths),
-                            'total_nominal_disetor' => (float) DonasiMasuk::where('donatur_id', $ang->donatur_id)
-                                ->where('kelompok_id', $drawerKelompok->id)
-                                ->when($this->tahunAjaranId, fn($q) => $q->where('tahun_ajaran_id', $this->tahunAjaranId))
-                                ->sum('nominal'),
+                            'total_nominal_disetor' => (float) $memberDonasis->sum('nominal'),
                         ];
                     }
 

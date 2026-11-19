@@ -50,6 +50,8 @@ class SiswaPenerima extends Model implements Auditable
 
     public function getTotalKebutuhanSemesterAttribute(): float
     {
-        return (float) $this->komponenBiayas()->sum('total_target_semester');
+        return $this->relationLoaded('komponenBiayas')
+            ? (float) $this->komponenBiayas->sum('total_target_semester')
+            : (float) $this->komponenBiayas()->sum('total_target_semester');
     }
 }

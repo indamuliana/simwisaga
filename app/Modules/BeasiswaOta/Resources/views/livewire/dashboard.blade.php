@@ -97,8 +97,8 @@
                         <th class="py-3 px-4">Kelompok</th>
                         <th class="py-3 px-4">Siswa Binaan</th>
                         <th class="py-3 px-4">Jumlah Donatur</th>
-                        <th class="py-3 px-4 text-right">Target Biaya</th>
-                        <th class="py-3 px-4 text-right">Total Komitmen</th>
+                        <th class="py-3 px-4 text-right">Target Semester</th>
+                        <th class="py-3 px-4 text-right">Komitmen (Bulan / 6 Bln)</th>
                         <th class="py-3 px-4 text-right">Saldo Kas Kelompok</th>
                         <th class="py-3 px-4 text-center">Status</th>
                     </tr>
@@ -107,7 +107,8 @@
                     @forelse($kelompoks as $kelompok)
                         @php
                             $target = (float) $kelompok->target_nominal;
-                            $komitmen = (float) $kelompok->total_komitmen;
+                            $komitmenBulan = (float) $kelompok->total_komitmen;
+                            $komitmenSemester = $komitmenBulan * 6;
                             $saldo = (float) $kelompok->saldo_kas;
                             $siswa = $kelompok->siswaPenerima?->siswa;
                             $persenSaldo = $target > 0 ? min(100, round(($saldo / $target) * 100)) : 0;
@@ -134,13 +135,16 @@
                                 Rp {{ number_format($target, 0, ',', '.') }}
                             </td>
                             <td class="py-3.5 px-4 text-right">
-                                <span class="font-semibold {{ $komitmen >= $target ? 'text-emerald-600 dark:text-emerald-400' : 'text-amber-600 dark:text-amber-400' }}">
-                                    Rp {{ number_format($komitmen, 0, ',', '.') }}
+                                <span class="font-semibold {{ $komitmenSemester >= $target ? 'text-emerald-600 dark:text-emerald-400' : 'text-amber-600 dark:text-amber-400' }}">
+                                    Rp {{ number_format($komitmenBulan, 0, ',', '.') }}<span class="text-[10px] text-text-secondary font-normal">/bln</span>
                                 </span>
-                                @if($komitmen > $target)
-                                    <div class="text-[10px] text-emerald-600 font-semibold">+Rp {{ number_format($komitmen - $target, 0, ',', '.') }} (Surplus)</div>
-                                @elseif($komitmen < $target)
-                                    <div class="text-[10px] text-rose-500 font-medium">-Rp {{ number_format($target - $komitmen, 0, ',', '.') }}</div>
+                                <div class="text-[10px] text-text-secondary">
+                                    6 Bln: Rp {{ number_format($komitmenSemester, 0, ',', '.') }}
+                                </div>
+                                @if($komitmenSemester > $target)
+                                    <div class="text-[10px] text-emerald-600 font-semibold">+Rp {{ number_format($komitmenSemester - $target, 0, ',', '.') }} (Surplus)</div>
+                                @elseif($komitmenSemester < $target)
+                                    <div class="text-[10px] text-rose-500 font-medium">-Rp {{ number_format($target - $komitmenSemester, 0, ',', '.') }}</div>
                                 @endif
                             </td>
                             <td class="py-3.5 px-4 text-right">

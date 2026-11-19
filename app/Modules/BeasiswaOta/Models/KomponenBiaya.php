@@ -36,6 +36,8 @@ class KomponenBiaya extends Model
 
     public function getTotalTeralokasiAttribute(): float
     {
-        return (float) $this->alokasiDetails()->sum('nominal');
+        return $this->relationLoaded('alokasiDetails')
+            ? (float) $this->alokasiDetails->sum('nominal')
+            : (float) $this->alokasiDetails()->sum('nominal');
     }
 }

@@ -43,14 +43,14 @@ class LaporanOtaIndex extends Component
             ->paginate(20);
 
         // Rekap Donatur
-        $rekapDonatur = Donatur::with(['kelompoks', 'donasiMasuks'])
-            ->orderBy('nama')
-            ->get();
+        $rekapDonatur = $this->activeTab === 'rekap-donatur'
+            ? Donatur::with(['kelompoks', 'donasiMasuks'])->orderBy('nama')->get()
+            : collect();
 
         // Rekap Penyaluran Siswa
-        $rekapAlokasi = Alokasi::with(['siswa.rombel', 'kelompok', 'details', 'semester'])
-            ->latest('tanggal_alokasi')
-            ->get();
+        $rekapAlokasi = $this->activeTab === 'rekap-penyaluran'
+            ? Alokasi::with(['siswa.rombel', 'kelompok', 'details', 'semester'])->latest('tanggal_alokasi')->get()
+            : collect();
 
         return view('beasiswaota::livewire.laporan-ota-index', [
             'ringkasanKas' => $ringkasanKas,

@@ -543,6 +543,14 @@ class DonasiMasukCreate extends Component
         $ta = $this->tahunAjaranId ? TahunAjaran::find($this->tahunAjaranId) : null;
 
         $selMonths = !empty($this->selectedBulanPerorangan) ? array_values($this->selectedBulanPerorangan) : null;
+        if ($selMonths) {
+            $alreadyPaid = self::getPaidMonthsForDonatur($this->donaturId, $this->tahunAjaranId, $this->kelompokId);
+            $overlap = array_intersect($selMonths, $alreadyPaid);
+            if (!empty($overlap)) {
+                session()->flash('error', 'Beberapa bulan yang dipilih sudah lunas/terbayar: ' . implode(', ', $overlap));
+                return null;
+            }
+        }
         $jmlBulan = $selMonths ? count($selMonths) : 1;
         $ketPeriode = $selMonths ? self::formatPeriodeKeterangan($selMonths, $ta) : null;
 
@@ -586,6 +594,14 @@ class DonasiMasukCreate extends Component
                 $nom = self::cleanNominal($item['nominal'] ?? 0);
                 if ($nom > 0) {
                     $selMonths = !empty($item['selected_bulan']) ? array_values($item['selected_bulan']) : null;
+                    if ($selMonths) {
+                        $alreadyPaid = self::getPaidMonthsForDonatur($item['donatur_id'], $this->tahunAjaranId, $kelompok->id);
+                        $overlap = array_intersect($selMonths, $alreadyPaid);
+                        if (!empty($overlap)) {
+                            session()->flash('error', "Donatur {$item['nama']} memiliki bulan yang sudah lunas: " . implode(', ', $overlap));
+                            return null;
+                        }
+                    }
                     $jmlBulan = $selMonths ? count($selMonths) : 1;
                     $ketPeriode = $selMonths ? self::formatPeriodeKeterangan($selMonths, $ta) : null;
 

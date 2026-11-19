@@ -113,9 +113,14 @@
                     <tbody class="divide-y divide-border">
                         @forelse($kelompoks as $k)
                             @php
-                                $target = (float) $k->target_nominal;
-                                $komitmen = (float) $k->total_komitmen;
+                                $targetSemester = (float) $k->target_nominal;
+                                $targetBulan = round($targetSemester / 6);
+                                $komitmenBulan = (float) $k->total_komitmen;
+                                $komitmenSemester = $komitmenBulan * 6;
                                 $siswa = $k->siswaPenerima?->siswa;
+                                $selisihBulan = $komitmenBulan - $targetBulan;
+                                $selisihSemester = $komitmenSemester - $targetSemester;
+                                $isTerpenuhi = $komitmenSemester >= $targetSemester;
                             @endphp
                             <tr class="hover:bg-surface-hover/30 transition {{ in_array((string)$k->id, array_map('strval', $selectedKelompokIds)) ? 'bg-primary/5' : '' }}">
                                 <td class="py-3.5 px-3 text-center">
@@ -141,28 +146,45 @@
                                         {{ $k->anggotaKelompok->count() }} Donatur
                                     </button>
                                 </td>
-                                <td class="py-3.5 px-4 text-right font-medium text-text-main">
-                                    Rp {{ number_format($target, 0, ',', '.') }}
+                                <td class="py-3.5 px-4 text-right">
+                                    <div class="font-bold text-text-main">
+                                        Rp {{ number_format($targetBulan, 0, ',', '.') }}<span class="text-[10px] text-text-secondary font-normal">/bln</span>
+                                    </div>
+                                    <div class="text-[11px] text-text-secondary mt-0.5">
+                                        Semester: Rp {{ number_format($targetSemester, 0, ',', '.') }}
+                                    </div>
                                 </td>
                                 <td class="py-3.5 px-4 text-right">
-                                    <div class="font-bold {{ $komitmen >= $target ? 'text-emerald-600 dark:text-emerald-400' : 'text-amber-600' }}">
-                                        Rp {{ number_format($komitmen, 0, ',', '.') }}
+                                    <div class="font-bold {{ $isTerpenuhi ? 'text-emerald-600 dark:text-emerald-400' : 'text-amber-600' }}">
+                                        Rp {{ number_format($komitmenBulan, 0, ',', '.') }}<span class="text-[10px] text-text-secondary font-normal">/bln</span>
                                     </div>
-                                    @if($komitmen > $target)
-                                        <div class="text-[10px] text-emerald-600 font-semibold">+Rp {{ number_format($komitmen - $target, 0, ',', '.') }} (Surplus)</div>
-                                    @elseif($komitmen < $target)
-                                        <div class="text-[10px] text-rose-500 font-semibold">-Rp {{ number_format($target - $komitmen, 0, ',', '.') }}</div>
+                                    <div class="text-[11px] text-text-secondary mt-0.5">
+                                        Semester: Rp {{ number_format($komitmenSemester, 0, ',', '.') }}
+                                    </div>
+                                    @if($selisihSemester > 0)
+                                        <div class="text-[10px] text-emerald-600 font-semibold mt-0.5">
+                                            +Rp {{ number_format($selisihBulan, 0, ',', '.') }}/bln (+Rp {{ number_format($selisihSemester, 0, ',', '.') }}/smt)
+                                        </div>
+                                    @elseif($selisihSemester < 0)
+                                        <div class="text-[10px] text-rose-500 font-semibold mt-0.5">
+                                            -Rp {{ number_format(abs($selisihBulan), 0, ',', '.') }}/bln (-Rp {{ number_format(abs($selisihSemester), 0, ',', '.') }}/smt)
+                                        </div>
                                     @endif
                                 </td>
                                 <td class="py-3.5 px-4 text-center">
-                                    @if($komitmen >= $target)
+                                    @if($isTerpenuhi)
                                         <span class="inline-flex items-center px-2 py-0.5 rounded-full text-xs font-semibold bg-emerald-100 text-emerald-800 dark:bg-emerald-950/50 dark:text-emerald-300">
                                             Terpenuhi
                                         </span>
                                     @else
-                                        <span class="inline-flex items-center px-2 py-0.5 rounded-full text-xs font-semibold bg-amber-100 text-amber-800 dark:bg-amber-950/50 dark:text-amber-300">
-                                            Kurang Donatur
-                                        </span>
+                                        <div class="inline-flex flex-col items-center">
+                                            <span class="inline-flex items-center px-2 py-0.5 rounded-full text-xs font-semibold bg-amber-100 text-amber-800 dark:bg-amber-950/50 dark:text-amber-300">
+                                                Kurang Rp {{ number_format(abs($selisihBulan), 0, ',', '.') }}/bln
+                                            </span>
+                                            <span class="text-[10px] text-text-secondary mt-0.5">
+                                                (-Rp {{ number_format(abs($selisihSemester), 0, ',', '.') }}/smt)
+                                            </span>
+                                        </div>
                                     @endif
                                 </td>
                                 <td class="py-3.5 px-4 text-center">
@@ -543,8 +565,13 @@
                             @endforelse
                             <tr class="bg-surface-hover/50 font-bold">
                                 <td colspan="2" class="py-2.5 px-3 text-right">Total Komitmen Iuran Kelompok:</td>
-                                <td class="py-2.5 px-3 text-right text-emerald-600 text-sm">
-                                    Rp {{ number_format($totalKmt, 0, ',', '.') }}
+                                <td class="py-2.5 px-3 text-right">
+                                    <div class="text-emerald-600 font-bold text-sm">
+                                        Rp {{ number_format($totalKmt, 0, ',', '.') }}<span class="text-[10px] text-text-secondary font-normal">/bln</span>
+                                    </div>
+                                    <div class="text-[10px] text-text-secondary font-normal">
+                                        Semester: Rp {{ number_format($totalKmt * 6, 0, ',', '.') }}
+                                    </div>
                                 </td>
                                 <td></td>
                             </tr>
@@ -553,20 +580,29 @@
                 </div>
 
                 <!-- Kalkulasi Simulasi Target vs Komitmen -->
-                <div class="p-3 bg-surface-hover/30 rounded-xl border border-border flex justify-between items-center text-xs">
+                @php
+                    $modalTargetSemester = (float) $selectedKelompok->target_nominal;
+                    $modalTargetBulan = round($modalTargetSemester / 6);
+                    $modalKomitmenBulan = (float) $totalKmt;
+                    $modalKomitmenSemester = $modalKomitmenBulan * 6;
+                    $modalSelisihBulan = $modalKomitmenBulan - $modalTargetBulan;
+                    $modalSelisihSemester = $modalKomitmenSemester - $modalTargetSemester;
+                    $modalIsTerpenuhi = $modalKomitmenSemester >= $modalTargetSemester;
+                @endphp
+                <div class="p-3 bg-surface-hover/30 rounded-xl border border-border flex flex-col sm:flex-row justify-between items-start sm:items-center gap-2 text-xs">
                     <div>
                         <span class="text-text-secondary">Target Kebutuhan Siswa:</span>
-                        <strong class="text-text-main ml-1">Rp {{ number_format($selectedKelompok->target_nominal, 0, ',', '.') }}</strong>
+                        <strong class="text-text-main ml-1">Rp {{ number_format($modalTargetBulan, 0, ',', '.') }}/bln</strong>
+                        <span class="text-text-secondary text-[11px] ml-1">(Rp {{ number_format($modalTargetSemester, 0, ',', '.') }}/smt)</span>
                     </div>
                     <div>
-                        @if($totalKmt >= $selectedKelompok->target_nominal)
+                        @if($modalIsTerpenuhi)
                             <span class="text-emerald-600 font-bold">
-                                Surplus +Rp {{ number_format($totalKmt - $selectedKelompok->target_nominal, 0, ',', '.') }}
+                                Surplus +Rp {{ number_format($modalSelisihBulan, 0, ',', '.') }}/bln (+Rp {{ number_format($modalSelisihSemester, 0, ',', '.') }}/smt)
                             </span>
-                            <span class="text-text-secondary text-[10px] ml-1">(Otomatis dipindahkan ke kas insidental saat alokasi)</span>
                         @else
                             <span class="text-rose-500 font-bold">
-                                Kurang -Rp {{ number_format($selectedKelompok->target_nominal - $totalKmt, 0, ',', '.') }}
+                                Kurang -Rp {{ number_format(abs($modalSelisihBulan), 0, ',', '.') }}/bln (-Rp {{ number_format(abs($modalSelisihSemester), 0, ',', '.') }}/smt)
                             </span>
                             <span class="text-text-secondary text-[10px] ml-1">(Butuh tambahan donatur / subsidi kas insidental)</span>
                         @endif

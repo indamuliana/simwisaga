@@ -72,6 +72,8 @@ class OtaSettingIndex extends Component
 
     public function removeTemplateBg()
     {
+        $this->guard('beasiswa_ota.setting');
+
         if ($this->currentBgPath && Storage::disk('public')->exists($this->currentBgPath)) {
             Storage::disk('public')->delete($this->currentBgPath);
         }

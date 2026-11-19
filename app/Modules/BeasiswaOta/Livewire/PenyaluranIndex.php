@@ -70,6 +70,17 @@ class PenyaluranIndex extends Component
     }
 
     // --- Rutin Methods ---
+    public function updatedRutinSemesterId()
+    {
+        $sem = Semester::find($this->rutinSemesterId);
+        if ($sem) {
+            $this->rutinTahunAjaranId = $sem->tahun_ajaran_id;
+        }
+        if ($this->rutinKelompokId) {
+            $this->updatedRutinKelompokId();
+        }
+    }
+
     public function updatedRutinKelompokId()
     {
         $this->rutinDetails = [];
@@ -88,7 +99,7 @@ class PenyaluranIndex extends Component
         $penerima = $kelompok->siswaPenerima;
         $saldoKas = OtaKasService::getSaldoKelompok($kelompok->id);
 
-        $activeSemester = Semester::find($this->rutinSemesterId);
+        $activeSemester = Semester::with('tahunAjaran')->find($this->rutinSemesterId);
         $isGanjil = $activeSemester ? ($activeSemester->semester === 'ganjil') : true;
 
         $bulanList = $isGanjil
@@ -96,6 +107,10 @@ class PenyaluranIndex extends Component
             : ['Januari', 'Februari', 'Maret', 'April', 'Mei', 'Juni'];
 
         $tahun = (int) date('Y');
+        if ($activeSemester?->tahunAjaran && str_contains($activeSemester->tahunAjaran->nama, '/')) {
+            $parts = explode('/', $activeSemester->tahunAjaran->nama);
+            $tahun = $isGanjil ? (int) trim($parts[0]) : (int) trim($parts[1]);
+        }
 
         foreach ($penerima->komponenBiayas as $kmp) {
             if (in_array($kmp->jenis_komponen, ['spp', 'asrama'])) {
@@ -171,6 +186,18 @@ class PenyaluranIndex extends Component
         if (!$kelompok->siswaPenerima) {
             session()->flash('error_rutin', 'Kelompok ini belum memiliki siswa penerima asuh.');
             return;
+        }
+
+        if ($this->rutinSemesterId) {
+            $alreadyDisbursed = Alokasi::where('tipe_alokasi', 'rutin_semester')
+                ->where('siswa_id', $kelompok->siswaPenerima->siswa_id)
+                ->where('semester_id', $this->rutinSemesterId)
+                ->exists();
+
+            if ($alreadyDisbursed) {
+                session()->flash('error_rutin', 'Siswa binaan kelompok ini sudah menerima alokasi beasiswa rutin pada semester yang dipilih.');
+                return;
+            }
         }
 
         $saldoKas = OtaKasService::getSaldoKelompok($kelompok->id);
@@ -346,7 +373,7 @@ class PenyaluranIndex extends Component
             ->latest('id')
             ->paginate(15);
 
-        $selectedKelompok = $this->rutinKelompokId ? Kelompok::with('siswaPenerima.siswa')->find($this->rutinKelompokId) : null;
+        $selectedKelompok = $this->rutinKelompokId ? Kelompok::with(['siswaPenerima.siswa.rombel', 'siswaPenerima.komponenBiayas'])->find($this->rutinKelompokId) : null;
         $saldoKelompok = $this->rutinKelompokId ? OtaKasService::getSaldoKelompok($this->rutinKelompokId) : 0;
 
         return view('beasiswaota::livewire.penyaluran-index', [

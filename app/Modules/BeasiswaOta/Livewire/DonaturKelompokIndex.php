@@ -91,8 +91,8 @@ class DonaturKelompokIndex extends Component
     public function openCreateKelompok()
     {
         $this->resetKelompokForm();
-        $count = Kelompok::count() + 1;
-        $this->kodeKelompok = sprintf('KEL-%02d', $count);
+        $nextNum = (int) (Kelompok::max('id') ?? 0) + 1;
+        $this->kodeKelompok = sprintf('KEL-%02d', $nextNum);
         $this->showKelompokModal = true;
     }
 

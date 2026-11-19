@@ -214,7 +214,9 @@ class OtaExcelService
                 $nominalKomitmen = $defaultNominalKomitmen;
             }
 
-            $existing = Donatur::where('nama', $nama)->first();
+            $existing = Donatur::where('nama', $nama)
+                ->when(!empty($telepon), fn($q) => $q->where('nomor_telepon', $telepon))
+                ->first();
 
             if ($existing) {
                 $existing->update([
@@ -582,7 +584,7 @@ class OtaExcelService
             $siswa = $k->siswaPenerima?->siswa;
             $siswaText = $siswa ? "{$siswa->nama} ({$siswa->rombel?->nama})" : 'Belum Dipetakan';
 
-            $lastDonasi = $k->donasiMasuks()->latest('tanggal_donasi')->latest('id')->first();
+            $lastDonasi = $k->donasiMasuks->sortByDesc('tanggal_donasi')->sortByDesc('id')->first();
             $lastDonasiText = $lastDonasi
                 ? $lastDonasi->tanggal_donasi->format('d/m/Y') . ' (Rp ' . number_format($lastDonasi->nominal, 0, ',', '.') . ')'
                 : '-';

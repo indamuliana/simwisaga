@@ -71,6 +71,10 @@ class OtaKasService
             $posKas = $isRutin ? 'kelompok' : 'insidental';
             $targetKelompokId = $isRutin ? $kelompokId : null;
 
+            if ($targetKelompokId) {
+                Kelompok::where('id', $targetKelompokId)->lockForUpdate()->first();
+            }
+
             $donasi = DonasiMasuk::create([
                 'donatur_id' => $donatur->id,
                 'kelompok_id' => $targetKelompokId,
@@ -121,6 +125,8 @@ class OtaKasService
         ?int $tahunAjaranId = null
     ): array {
         return DB::transaction(function () use ($kelompok, $koordinatorNama, $items, $tanggal, $keteranganGlobal, $userId, $tahunAjaranId) {
+            Kelompok::where('id', $kelompok->id)->lockForUpdate()->first();
+
             $datePrefix = date('Ymd', strtotime($tanggal));
             $randomSuffix = strtoupper(bin2hex(random_bytes(2)));
             $batchKode = sprintf('BATCH-%s-%s-%s', $kelompok->kode_kelompok, $datePrefix, $randomSuffix);
@@ -214,6 +220,16 @@ class OtaKasService
         ) {
             // Lock baris kelompok untuk mencegah concurrent check-then-write race conditions
             Kelompok::where('id', $kelompok->id)->lockForUpdate()->first();
+
+            if ($semesterId) {
+                $exists = Alokasi::where('tipe_alokasi', 'rutin_semester')
+                    ->where('siswa_id', $siswa->id)
+                    ->where('semester_id', $semesterId)
+                    ->exists();
+                if ($exists) {
+                    throw new \InvalidArgumentException("Siswa {$siswa->nama} sudah pernah menerima alokasi beasiswa rutin pada semester ini.");
+                }
+            }
 
             $saldoKelompok = static::getSaldoKelompok($kelompok->id);
             $totalKeluar = $totalNominal + $surplusDialihkan;

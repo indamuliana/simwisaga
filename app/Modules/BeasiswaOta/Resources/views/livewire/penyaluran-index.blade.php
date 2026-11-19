@@ -104,6 +104,66 @@
                     </div>
                 </div>
 
+                @php
+                    $targetKelompokSemester = (float) $selectedKelompok->target_nominal;
+                    $totalKomponenSemester = (float) ($selectedKelompok->siswaPenerima->komponenBiayas?->sum('total_target_semester') ?? 0);
+                    $selisihTarget = $totalKomponenSemester - $targetKelompokSemester;
+                @endphp
+
+                <!-- Banner Selisih Target Kelompok vs Komponen Siswa -->
+                @if($selisihTarget < 0)
+                    @php $nominalDefisit = abs($selisihTarget); @endphp
+                    <div class="p-3.5 rounded-xl border border-amber-300 dark:border-amber-700/60 bg-amber-50 dark:bg-amber-950/30 text-amber-900 dark:text-amber-200 flex flex-col sm:flex-row items-start sm:items-center justify-between gap-3 text-xs">
+                        <div class="flex items-start gap-2.5">
+                            <svg class="w-5 h-5 text-amber-600 dark:text-amber-400 shrink-0 mt-0.5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                                <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 9v2m0 4h.01m-6.938 4h13.856c1.54 0 2.502-1.667 1.732-3L13.732 4c-.77-1.333-2.694-1.333-3.464 0L3.34 16c-.77 1.333.192 3 1.732 3z"/>
+                            </svg>
+                            <div>
+                                <strong class="font-bold block text-sm text-amber-950 dark:text-amber-100">
+                                    Perhatian: Rincian Komponen Siswa Belum Mencapai Target Semester Kelompok
+                                </strong>
+                                <p class="mt-0.5 text-amber-800 dark:text-amber-300">
+                                    Total kebutuhan komponen siswa yang terdaftar adalah <strong>Rp {{ number_format($totalKomponenSemester, 0, ',', '.') }}/semester</strong>, sedangkan Target Semester Kelompok ini adalah <strong>Rp {{ number_format($targetKelompokSemester, 0, ',', '.') }}</strong> (terdapat selisih <strong>Rp {{ number_format($nominalDefisit, 0, ',', '.') }}</strong> yang belum dialokasikan ke komponen siswa).
+                                </p>
+                            </div>
+                        </div>
+                        <a href="{{ route('beasiswa-ota.penerima') }}" target="_blank" class="btn btn-xs bg-amber-600 hover:bg-amber-700 text-white border-none shrink-0 shadow-sm flex items-center gap-1.5">
+                            <span>Atur Komponen Siswa</span>
+                            <svg class="w-3.5 h-3.5" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M10 6H6a2 2 0 00-2 2v10a2 2 0 002 2h10a2 2 0 002-2v-4M14 4h6m0 0v6m0-6L10 14"/></svg>
+                        </a>
+                    </div>
+                @elseif($selisihTarget > 0)
+                    @php $nominalSurplus = abs($selisihTarget); @endphp
+                    <div class="p-3.5 rounded-xl border border-rose-300 dark:border-rose-700/60 bg-rose-50 dark:bg-rose-950/30 text-rose-900 dark:text-rose-200 flex flex-col sm:flex-row items-start sm:items-center justify-between gap-3 text-xs">
+                        <div class="flex items-start gap-2.5">
+                            <svg class="w-5 h-5 text-rose-600 dark:text-rose-400 shrink-0 mt-0.5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                                <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 8v4m0 4h.01M21 12a9 9 0 11-18 0 9 9 0 0118 0z"/>
+                            </svg>
+                            <div>
+                                <strong class="font-bold block text-sm text-rose-950 dark:text-rose-100">
+                                    Perhatian: Komponen Biaya Siswa Melebihi Target Semester Kelompok
+                                </strong>
+                                <p class="mt-0.5 text-rose-800 dark:text-rose-300">
+                                    Total kebutuhan komponen siswa adalah <strong>Rp {{ number_format($totalKomponenSemester, 0, ',', '.') }}/semester</strong>, melebihi Target Semester Kelompok (<strong>Rp {{ number_format($targetKelompokSemester, 0, ',', '.') }}</strong>) sebesar <strong>Rp {{ number_format($nominalSurplus, 0, ',', '.') }}</strong>.
+                                </p>
+                            </div>
+                        </div>
+                        <a href="{{ route('beasiswa-ota.penerima') }}" target="_blank" class="btn btn-xs bg-rose-600 hover:bg-rose-700 text-white border-none shrink-0 shadow-sm flex items-center gap-1.5">
+                            <span>Atur Komponen Siswa</span>
+                            <svg class="w-3.5 h-3.5" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M10 6H6a2 2 0 00-2 2v10a2 2 0 002 2h10a2 2 0 002-2v-4M14 4h6m0 0v6m0-6L10 14"/></svg>
+                        </a>
+                    </div>
+                @else
+                    <div class="p-2.5 px-3 rounded-xl border border-emerald-200 dark:border-emerald-800/60 bg-emerald-50 dark:bg-emerald-950/20 text-emerald-900 dark:text-emerald-200 flex items-center gap-2 text-xs">
+                        <svg class="w-4 h-4 text-emerald-600 dark:text-emerald-400 shrink-0" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M5 13l4 4L19 7"/>
+                        </svg>
+                        <span>
+                            <strong>Sinkron:</strong> Total komponen biaya siswa (Rp {{ number_format($totalKomponenSemester, 0, ',', '.') }}) telah sesuai 100% dengan Target Semester Kelompok.
+                        </span>
+                    </div>
+                @endif
+
                 <!-- Tabel Checklist Alokasi Komponen Bulan ke Bulan -->
                 <div class="space-y-3">
                     <div class="flex justify-between items-center">
