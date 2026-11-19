@@ -98,6 +98,7 @@
                                 <th class="py-2 px-3 text-center w-8">No</th>
                                 <th class="py-2 px-3">Nama Donatur</th>
                                 <th class="py-2 px-3">Periode</th>
+                                <th class="py-2 px-3">Keterangan</th>
                                 <th class="py-2 px-3 text-right">Nominal</th>
                             </tr>
                         </thead>
@@ -107,6 +108,7 @@
                                     <td class="py-2 px-3 text-center text-slate-400">{{ $idx + 1 }}</td>
                                     <td class="py-2 px-3 font-semibold text-slate-900">{{ $d->donatur->nama }}</td>
                                     <td class="py-2 px-3 text-slate-600">{{ $d->keterangan_periode ?: '-' }}</td>
+                                    <td class="py-2 px-3 text-slate-500">{{ $d->donatur?->keterangan ?: '-' }}</td>
                                     <td class="py-2 px-3 text-right font-bold text-slate-900">Rp {{ number_format($d->nominal, 0, ',', '.') }}</td>
                                 </tr>
                             @endforeach

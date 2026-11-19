@@ -47,6 +47,7 @@ class TandaTerimaDonasiPdfTest extends TestCase
             'nama' => 'Bapak Muhammad Hidayat',
             'tipe' => 'rutin',
             'nomor_telepon' => '081234567890',
+            'keterangan' => 'Alumni Angkatan 2010',
             'is_aktif' => true,
         ]);
 
@@ -101,7 +102,31 @@ class TandaTerimaDonasiPdfTest extends TestCase
         $response->assertSee($this->batchKode);
         $response->assertSee('Kelompok Peduli 1');
         $response->assertSee('Bapak Muhammad Hidayat');
+        $response->assertSee('Keterangan');
+        $response->assertSee('Alumni Angkatan 2010');
         $response->assertSee('250.000');
+    }
+
+    public function test_tanda_terima_kolektif_pdf_does_not_contain_no_kontak_and_contains_keterangan()
+    {
+        $html = view('beasiswaota::pdf.tanda-terima-kolektif', [
+            'school' => School::current(),
+            'batchKode' => $this->batchKode,
+            'first' => $this->donasi,
+            'donasis' => collect([$this->donasi]),
+            'totalNominal' => (float) $this->donasi->nominal,
+            'terbilang' => OtaDocumentService::terbilang((float) $this->donasi->nominal) . ' Rupiah',
+            'bendaharaNama' => 'Bendahara OTA',
+            'titimangsa' => 'Garut, ' . now()->translatedFormat('d F Y'),
+            'verifyUrl' => 'http://localhost/v/ota-batch/' . $this->batchKode,
+            'qrCodePng' => '',
+            'kopPath' => null,
+        ])->render();
+
+        $this->assertStringNotContainsString('Kontak HP', $html);
+        $this->assertStringNotContainsString('081234567890', $html);
+        $this->assertStringContainsString('Keterangan', $html);
+        $this->assertStringContainsString('Alumni Angkatan 2010', $html);
     }
 
     public function test_tanda_terima_pdf_generation_single_page_and_contains_qr_code()

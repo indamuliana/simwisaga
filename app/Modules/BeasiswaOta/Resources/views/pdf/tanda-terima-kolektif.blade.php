@@ -244,7 +244,7 @@
                 <th style="width: 120px;">No. Transaksi</th>
                 <th>Nama Donatur</th>
                 <th style="width: 140px;">Periode Iuran</th>
-                <th style="width: 95px;">Kontak HP</th>
+                <th style="width: 120px;">Keterangan</th>
                 <th style="width: 115px; text-align: right;">Nominal Iuran</th>
             </tr>
         </thead>
@@ -256,7 +256,7 @@
                     <td style="font-family: 'Courier New', monospace; font-size: 8pt;">{{ $item->nomor_transaksi }}</td>
                     <td><strong>{{ $item->donatur->nama }}</strong></td>
                     <td style="font-size: 8pt;">{{ $item->keterangan_periode ?: ($item->jumlah_bulan > 1 ? $item->jumlah_bulan . ' Bulan' : '-') }}</td>
-                    <td style="font-size: 8pt; color: #64748b;">{{ $item->donatur->nomor_telepon ?: '-' }}</td>
+                    <td style="font-size: 8pt; color: #334155;">{{ $item->donatur?->keterangan ?: '-' }}</td>
                     <td style="text-align: right; font-weight: bold;">Rp {{ number_format($item->nominal, 0, ',', '.') }}</td>
                 </tr>
             @endforeach
