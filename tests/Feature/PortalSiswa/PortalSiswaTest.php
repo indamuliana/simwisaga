@@ -5,14 +5,17 @@ namespace Tests\Feature\PortalSiswa;
 use App\Core\Modules\ModuleRegistry;
 use App\Core\Support\PermissionSync;
 use App\Models\User;
+use App\Modules\Akademik\Models\CustomKelompok;
 use App\Modules\Akademik\Models\Semester;
 use App\Modules\Akademik\Models\TahunAjaran;
+use App\Modules\Kepegawaian\Models\Pegawai;
 use App\Modules\Kesiswaan\Livewire\VerifikasiPerbaikanData;
 use App\Modules\Kesiswaan\Models\Siswa;
 use App\Modules\BeasiswaOta\Livewire\VerifikasiPengajuanBeasiswa;
 use App\Modules\PortalSiswa\Livewire\BeasiswaSiswa;
 use App\Modules\PortalSiswa\Livewire\BerandaSiswa;
 use App\Modules\PortalSiswa\Livewire\KehadiranSiswa;
+use App\Modules\PortalSiswa\Livewire\KontakSiswa;
 use App\Modules\PortalSiswa\Livewire\NilaiRaporSiswa;
 use App\Modules\PortalSiswa\Livewire\ProfilSiswa;
 use App\Modules\PortalSiswa\Livewire\UpdSeniSiswa;
@@ -110,9 +113,11 @@ class PortalSiswaTest extends TestCase
         $this->assertContains('portal-siswa.profil', $routes);
         $this->assertContains('portal-siswa.nilai-rapor', $routes);
         $this->assertContains('portal-siswa.kehadiran', $routes);
-        $this->assertContains('portal-siswa.upd-seni', $routes);
+        $this->assertContains('portal-siswa.upd', $routes);
+        $this->assertContains('portal-siswa.seni-budaya', $routes);
         $this->assertContains('portal-siswa.prestasi', $routes);
         $this->assertContains('portal-siswa.beasiswa', $routes);
+        $this->assertContains('portal-siswa.kontak', $routes);
     }
 
     public function test_siswa_bisa_mengakses_semua_halaman_portal(): void
@@ -123,9 +128,12 @@ class PortalSiswaTest extends TestCase
         $this->get(route('portal-siswa.profil'))->assertOk()->assertSee('Identitas Diri');
         $this->get(route('portal-siswa.nilai-rapor'))->assertOk()->assertSee('Nilai Akademik');
         $this->get(route('portal-siswa.kehadiran'))->assertOk()->assertSee('Rekap Kehadiran Siswa');
+        $this->get(route('portal-siswa.upd'))->assertOk()->assertSee('Unit Pengembangan Diri', false);
+        $this->get(route('portal-siswa.seni-budaya'))->assertOk()->assertSee('Seni Budaya', false);
         $this->get(route('portal-siswa.upd-seni'))->assertOk()->assertSee('UPD & Seni Budaya', false);
         $this->get(route('portal-siswa.prestasi'))->assertOk();
         $this->get(route('portal-siswa.beasiswa'))->assertOk()->assertSee('Beasiswa & Bantuan Pendidikan', false);
+        $this->get(route('portal-siswa.kontak'))->assertOk()->assertSee('Kontak Guru &amp; Pegawai', false);
     }
 
     public function test_siswa_dapat_mengajukan_perbaikan_data(): void
@@ -253,5 +261,69 @@ class PortalSiswaTest extends TestCase
         $pengajuan->refresh();
         $this->assertEquals(PengajuanBeasiswa::STATUS_DISETUJUI, $pengajuan->status);
         $this->assertEquals($this->adminUser->id, $pengajuan->diproses_oleh);
+    }
+
+    public function test_siswa_bisa_melihat_kelompok_custom_terdaftar(): void
+    {
+        $ta = TahunAjaran::first();
+        $kelompok = CustomKelompok::create([
+            'tahun_ajaran_id' => $ta->id,
+            'kode' => 'KUS-01',
+            'nama' => 'Klub Robotik',
+            'kategori' => 'Peminatan',
+            'warna' => '#10b981',
+            'is_active' => true,
+        ]);
+
+        $this->siswa->customKelompoks()->attach($kelompok->id, ['keterangan' => 'Divisi Pemrograman']);
+
+        $this->actingAs($this->studentUser);
+
+        Livewire::test(ProfilSiswa::class)
+            ->set('activeSection', 'riwayat')
+            ->assertSee('Klub Robotik')
+            ->assertSee('Peminatan')
+            ->assertSee('Divisi Pemrograman');
+
+        Livewire::test(BerandaSiswa::class)
+            ->assertSee('Klub Robotik');
+    }
+
+    public function test_siswa_bisa_mengakses_dan_mencari_di_halaman_kontak(): void
+    {
+        $pegawaiGuru = Pegawai::create([
+            'nama_lengkap' => 'Guru Teladan, M.Pd.',
+            'jenis_gtk' => 'Guru',
+            'no_hp' => '081299887766',
+            'email' => 'guru@sekolah.sch.id',
+            'is_active' => true,
+        ]);
+
+        $this->actingAs($this->studentUser);
+
+        Livewire::test(KontakSiswa::class)
+            ->assertSee('Kontak Guru &amp; Pegawai', false)
+            ->assertSee('Guru Teladan, M.Pd.')
+            ->set('search', 'Guru Teladan')
+            ->assertSee('Guru Teladan, M.Pd.')
+            ->set('search', 'NomorTidakAda')
+            ->assertSee('Tidak ada guru atau pegawai');
+    }
+
+    public function test_siswa_bisa_melihat_tab_rapor_dan_modal_detail_nilai(): void
+    {
+        $this->actingAs($this->studentUser);
+
+        Livewire::test(NilaiRaporSiswa::class)
+            ->assertSee('Buku Ledger Nilai')
+            ->set('viewMode', 'rapor_wikrama')
+            ->assertSee('Pratinjau Rapor Wikrama (9M)')
+            ->set('viewMode', 'rapor_pemerintah')
+            ->assertSee('Pratinjau Rapor Pemerintah')
+            ->set('viewMode', 'transkrip')
+            ->assertSee('Rekapitulasi Transkrip Kumulatif')
+            ->set('viewMode', 'ledger')
+            ->call('closeDetailModal')
+            ->assertSet('showDetailModal', false);
     }
 }

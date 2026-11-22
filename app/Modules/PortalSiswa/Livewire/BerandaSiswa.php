@@ -60,7 +60,13 @@ class BerandaSiswa extends Component
         $pendingBeasiswa = 0;
 
         if ($siswa) {
-            $siswa->loadMissing(['rombel.waliKelas', 'rayon.pembimbing', 'program']);
+            $siswa->loadMissing([
+                'rombel.waliKelas',
+                'rayon.pembimbing',
+                'program',
+                'customKelompoks.tahunAjaran',
+                'customKelompoks.pembimbing',
+            ]);
 
             $absensiStats['H'] = AbsensiHarian::where('siswa_id', $siswa->id)->where('status', 'H')->count();
             $absensiStats['S'] = AbsensiHarian::where('siswa_id', $siswa->id)->where('status', 'S')->count();

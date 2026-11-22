@@ -4,6 +4,7 @@ namespace App\Modules\PortalSiswa\Livewire;
 
 use App\Core\Concerns\GuardsPermission;
 use App\Modules\Akademik\Support\AcademicContext;
+use App\Modules\BeasiswaOta\Models\Alokasi;
 use App\Modules\Kesiswaan\Models\Siswa;
 use App\Modules\PortalSiswa\Models\PengajuanBeasiswa;
 use Livewire\Attributes\Layout;
@@ -12,7 +13,7 @@ use Livewire\Component;
 use Livewire\WithFileUploads;
 
 #[Layout('components.layouts.app')]
-#[Title('Beasiswa Siswa')]
+#[Title('Beasiswa Siswa & OTA')]
 class BeasiswaSiswa extends Component
 {
     use GuardsPermission, WithFileUploads;
@@ -138,14 +139,26 @@ class BeasiswaSiswa extends Component
     {
         $siswa = $this->getSiswa();
 
+        $riwayatAlokasi = collect();
+        $totalNominalDiterima = 0;
         $riwayatPengajuan = collect();
 
         if ($siswa) {
             $siswa->loadMissing([
-                'otaPenerimas.kelompok',
+                'otaPenerimas.kelompok.donaturs',
                 'otaPenerimas.komponenBiayas',
-                'otaPenerimas.alokasis',
             ]);
+
+            $riwayatAlokasi = Alokasi::where('siswa_id', $siswa->id)
+                ->with([
+                    'kelompok.donaturs',
+                    'details',
+                    'semester.tahunAjaran',
+                ])
+                ->orderByDesc('tanggal_alokasi')
+                ->get();
+
+            $totalNominalDiterima = (float) $riwayatAlokasi->sum('total_nominal');
 
             $riwayatPengajuan = PengajuanBeasiswa::where('siswa_id', $siswa->id)
                 ->with(['tahunAjaran', 'semester', 'diprosesOleh'])
@@ -155,6 +168,8 @@ class BeasiswaSiswa extends Component
 
         return view('portalsiswa::livewire.beasiswa-siswa', [
             'siswa' => $siswa,
+            'riwayatAlokasi' => $riwayatAlokasi,
+            'totalNominalDiterima' => $totalNominalDiterima,
             'riwayatPengajuan' => $riwayatPengajuan,
         ]);
     }

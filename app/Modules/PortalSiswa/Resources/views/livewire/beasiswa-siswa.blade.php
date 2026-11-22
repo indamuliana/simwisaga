@@ -5,11 +5,11 @@
             <div class="flex items-center gap-2 text-xs font-semibold text-primary uppercase tracking-wider mb-1">
                 <span>🎓 Portal Siswa</span>
                 <span>&bull;</span>
-                <span>Bantuan & Afirmasi</span>
+                <span>Bantuan & Donatur OTA</span>
             </div>
             <h1 class="text-2xl font-black text-text-main tracking-tight">Beasiswa & Bantuan Pendidikan</h1>
             <p class="text-xs text-text-muted mt-1">
-                Cek status bantuan program Orang Tua Asuh (OTA), bantuan sosial pemerintah, serta ajukan beasiswa mandiri.
+                Informasi penerimaan beasiswa, riwayat penyaluran dana pendidikan, donatur pembina Orang Tua Asuh (OTA), dan pengajuan bantuan.
             </p>
         </div>
 
@@ -28,14 +28,54 @@
         </div>
     @endif
 
+    <!-- KPI Summary Cards -->
+    <div class="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-3">
+        <div class="card p-5 bg-gradient-to-br from-primary/10 via-surface to-surface border border-primary/20">
+            <span class="text-[10px] uppercase font-bold text-primary block">Total Beasiswa Diterima</span>
+            <span class="text-2xl font-black text-primary font-mono mt-1 block">
+                Rp {{ number_format($totalNominalDiterima, 0, ',', '.') }}
+            </span>
+            <span class="text-[10px] text-text-muted">Akumulasi seluruh penyaluran</span>
+        </div>
+        <div class="card p-5 border-l-4 {{ $siswa?->otaPenerimas->isNotEmpty() ? 'border-l-emerald-500' : 'border-l-border' }}">
+            <span class="text-[10px] uppercase font-bold {{ $siswa?->otaPenerimas->isNotEmpty() ? 'text-emerald-600' : 'text-text-muted' }} block">Status Beasiswa OTA</span>
+            <span class="text-xl font-black text-text-main mt-1 block">
+                {{ $siswa?->otaPenerimas->isNotEmpty() ? 'Penerima Aktif' : 'Belum Terdaftar' }}
+            </span>
+            <span class="text-[10px] text-text-muted">
+                {{ $siswa?->otaPenerimas->isNotEmpty() ? ($siswa->otaPenerimas->first()->kelompok?->nama_kelompok ?? ($siswa->otaPenerimas->first()->kelompok?->nama ?? 'Program OTA')) : 'Program Orang Tua Asuh' }}
+            </span>
+        </div>
+        <div class="card p-5 border-l-4 border-l-blue-500">
+            <span class="text-[10px] uppercase font-bold text-blue-600 block">Riwayat Penyaluran</span>
+            <span class="text-2xl font-black text-blue-600 font-mono mt-1 block">{{ $riwayatAlokasi->count() }}</span>
+            <span class="text-[10px] text-text-muted">Transaksi Pencairan Dana</span>
+        </div>
+        <div class="card p-5 border-l-4 border-l-amber-500">
+            <span class="text-[10px] uppercase font-bold text-amber-600 block">Afirmasi Pemerintah</span>
+            <div class="flex items-center gap-1.5 mt-1">
+                @if ($siswa?->penerima_kip)
+                    <span class="px-2 py-0.5 rounded text-[10px] font-bold bg-amber-500/10 text-amber-600 border border-amber-500/20">KIP</span>
+                @endif
+                @if ($siswa?->layak_pip)
+                    <span class="px-2 py-0.5 rounded text-[10px] font-bold bg-blue-500/10 text-blue-600 border border-blue-500/20">PIP</span>
+                @endif
+                @if (!$siswa?->penerima_kip && !$siswa?->layak_pip)
+                    <span class="text-xs font-semibold text-text-muted">Mandiri / Reguler</span>
+                @endif
+            </div>
+            <span class="text-[10px] text-text-muted mt-1 block">Bantuan Sosial Nasional</span>
+        </div>
+    </div>
+
     <!-- Navigation Tabs -->
     <div class="border-b border-border bg-surface p-2 rounded-2xl border shadow-xs">
         <nav class="flex flex-wrap items-center gap-1.5">
             <button type="button" wire:click="$set('activeTab', 'saya')" class="px-4 py-2 rounded-xl text-xs font-bold transition-all {{ $activeTab === 'saya' ? 'bg-primary text-white shadow-xs' : 'text-text-secondary hover:text-text-main hover:bg-surface-hover' }}">
-                <span>📋 Beasiswa Saya (OTA & Afirmasi)</span>
+                <span>🤝 Beasiswa & Donatur OTA</span>
             </button>
             <button type="button" wire:click="$set('activeTab', 'pengajuan')" class="px-4 py-2 rounded-xl text-xs font-bold transition-all flex items-center gap-1.5 {{ $activeTab === 'pengajuan' ? 'bg-primary text-white shadow-xs' : 'text-text-secondary hover:text-text-main hover:bg-surface-hover' }}">
-                <span>📬 Riwayat Pengajuan</span>
+                <span>📬 Riwayat Pengajuan Mandiri</span>
                 @if ($riwayatPengajuan->isNotEmpty())
                     <span class="px-1.5 py-0.2 rounded-full text-[10px] {{ $activeTab === 'pengajuan' ? 'bg-white/20 text-white' : 'bg-surface-raised text-text-muted border border-border' }}">
                         {{ $riwayatPengajuan->count() }}
@@ -45,54 +85,102 @@
         </nav>
     </div>
 
-    <!-- Tab 1: Beasiswa Saya -->
+    <!-- Tab 1: Beasiswa Saya, OTA & Riwayat Penyaluran -->
     @if ($activeTab === 'saya')
         <div class="space-y-6">
-            <!-- Program Beasiswa Orang Tua Asuh (OTA) -->
+            <!-- 1. Program Beasiswa Orang Tua Asuh (OTA) & Donatur Pembina -->
             <div class="card p-6 space-y-4">
                 <div class="flex items-center justify-between border-b border-border pb-3">
                     <div class="flex items-center gap-2">
                         <span class="text-xl">🤝</span>
                         <div>
                             <h2 class="text-sm font-bold text-text-main">Program Beasiswa Orang Tua Asuh (OTA)</h2>
-                            <p class="text-xs text-text-muted">Bantuan pendidikan dari donatur/kelompok donatur OTA untuk meringankan biaya sekolah</p>
+                            <p class="text-xs text-text-muted">Informasi kelompok dan para donatur pembina yang mendanai pembiayaan pendidikan Anda</p>
                         </div>
                     </div>
                 </div>
 
                 @if (!$siswa || $siswa->otaPenerimas->isEmpty())
                     <div class="p-8 text-center rounded-xl border border-dashed border-border text-xs text-text-muted space-y-2">
-                        <p>Anda saat ini belum terdaftar sebagai penerima manfaat Program Beasiswa OTA.</p>
+                        <span class="text-3xl block">🤝</span>
+                        <p class="font-medium text-text-main">Anda saat ini belum terdaftar sebagai penerima manfaat Program Beasiswa OTA.</p>
                         <p class="text-[11px] text-text-muted">Jika membutuhkan bantuan biaya pendidikan, Anda dapat mengajukan permohonan melalui tombol di atas.</p>
                     </div>
                 @else
-                    <div class="grid grid-cols-1 md:grid-cols-2 gap-4">
+                    <div class="grid grid-cols-1 md:grid-cols-2 gap-5">
                         @foreach ($siswa->otaPenerimas as $ota)
-                            <div class="rounded-xl border border-primary/20 bg-linear-to-br from-primary/5 via-surface to-surface p-5 space-y-3">
-                                <div class="flex items-start justify-between">
+                            @php
+                                $kelompok = $ota->kelompok;
+                                $donaturs = $kelompok?->donaturs ?? collect();
+                            @endphp
+                            <div class="rounded-2xl border border-primary/30 bg-gradient-to-br from-primary/5 via-surface to-surface p-5 space-y-4 shadow-xs">
+                                <div class="flex items-start justify-between gap-3">
                                     <div>
-                                        <span class="px-2 py-0.5 rounded-full text-[10px] font-bold bg-primary text-white uppercase tracking-wider">
-                                            Penerima Aktif
+                                        <span class="px-2.5 py-0.5 rounded-full text-[10px] font-bold bg-primary text-white uppercase tracking-wider">
+                                            Penerima Aktif OTA
                                         </span>
-                                        <h3 class="text-base font-bold text-text-main mt-1.5">
-                                            Donatur: {{ $ota->kelompok?->nama ?? 'Kelompok Donatur OTA' }}
+                                        <h3 class="text-base font-extrabold text-text-main mt-2">
+                                            {{ $kelompok?->nama_kelompok ?? ($kelompok?->nama ?? 'Kelompok Donatur OTA') }}
                                         </h3>
                                         <p class="text-xs text-text-secondary mt-0.5">
-                                            Kode Batch: <span class="font-mono font-bold text-text-main">{{ $ota->batch_kode ?: '-' }}</span>
+                                            Kode Kelompok: <span class="font-mono font-bold text-text-main">{{ $kelompok?->kode_kelompok ?: ($ota->batch_kode ?: '-') }}</span>
                                         </p>
                                     </div>
+                                    @if ($kelompok?->koordinator_nama)
+                                        <div class="text-right">
+                                            <span class="text-[10px] text-text-muted uppercase font-bold block">Koordinator</span>
+                                            <span class="font-bold text-text-main text-xs block">{{ $kelompok->koordinator_nama }}</span>
+                                        </div>
+                                    @endif
                                 </div>
 
-                                <!-- Komponen Biaya -->
+                                <!-- Daftar Donatur Pembina -->
+                                <div class="pt-3 border-t border-border/80">
+                                    <div class="flex items-center gap-1.5 text-xs font-bold text-text-main mb-2">
+                                        <span>👥</span>
+                                        <span>Pemberi Donatur Pembina:</span>
+                                    </div>
+
+                                    @if ($donaturs->isEmpty())
+                                        <div class="p-3 rounded-xl bg-surface border border-border text-xs text-text-muted">
+                                            Informasi donatur kelompok pembina sedang dalam proses pemutakhiran.
+                                        </div>
+                                    @else
+                                        <div class="space-y-1.5">
+                                            @foreach ($donaturs as $donatur)
+                                                <div class="flex items-center justify-between p-2.5 rounded-xl bg-surface border border-border text-xs">
+                                                    <div class="flex items-center gap-2">
+                                                        <div class="w-7 h-7 rounded-lg bg-primary-soft text-primary flex items-center justify-center font-bold text-xs">
+                                                            {{ strtoupper(substr($donatur->nama, 0, 1)) }}
+                                                        </div>
+                                                        <div>
+                                                            <div class="font-bold text-text-main">{{ $donatur->nama }}</div>
+                                                            @if ($donatur->instansi)
+                                                                <div class="text-[10px] text-text-muted">{{ $donatur->instansi }}</div>
+                                                            @endif
+                                                        </div>
+                                                    </div>
+                                                    <span class="px-2 py-0.5 rounded-full text-[10px] font-bold bg-surface-raised text-text-secondary border border-border">
+                                                        {{ ucfirst($donatur->tipe ?: 'Donatur Rutin') }}
+                                                    </span>
+                                                </div>
+                                            @endforeach
+                                        </div>
+                                    @endif
+                                </div>
+
+                                <!-- Komponen Biaya yang Ditanggung -->
                                 @if ($ota->komponenBiayas && $ota->komponenBiayas->isNotEmpty())
-                                    <div class="pt-3 border-t border-border">
-                                        <span class="text-[11px] font-bold text-text-main block mb-1.5">Komponen Bantuan Biaya:</span>
+                                    <div class="pt-3 border-t border-border/80">
+                                        <span class="text-[11px] font-bold text-text-main block mb-1.5">Komponen Bantuan Biaya Sekolah:</span>
                                         <div class="flex flex-wrap gap-1.5">
                                             @foreach ($ota->komponenBiayas as $kb)
-                                                <span class="inline-flex items-center px-2 py-0.5 rounded-lg text-[10px] font-semibold bg-surface-raised border border-border text-text-secondary">
-                                                    {{ $kb->nama_komponen ?? $kb->komponen }}
-                                                    @if ($kb->nominal)
-                                                        <strong class="ml-1 text-primary">Rp {{ number_format($kb->nominal, 0, ',', '.') }}</strong>
+                                                <span class="inline-flex items-center px-2.5 py-1 rounded-lg text-xs font-semibold bg-surface-raised border border-border text-text-secondary">
+                                                    <span>{{ $kb->nama_komponen ?: ucfirst($kb->jenis_komponen ?? 'SPP') }}</span>
+                                                    @if ($kb->nominal_per_bulan || $kb->total_target_semester)
+                                                        <strong class="ml-1.5 text-primary font-mono">
+                                                            Rp {{ number_format($kb->nominal_per_bulan ?: $kb->total_target_semester, 0, ',', '.') }}
+                                                        </strong>
                                                     @endif
                                                 </span>
                                             @endforeach
@@ -105,12 +193,105 @@
                 @endif
             </div>
 
-            <!-- Bantuan Sosial Pemerintah & Kartu Afirmasi -->
+            <!-- 2. Tabel Riwayat Penyaluran Beasiswa (Alokasi Dana) -->
+            <div class="card p-6 space-y-4">
+                <div class="flex flex-col sm:flex-row sm:items-center justify-between border-b border-border pb-3 gap-2">
+                    <div class="flex items-center gap-2">
+                        <span class="text-xl">📜</span>
+                        <div>
+                            <h3 class="text-sm font-bold text-text-main">Riwayat Penyaluran & Pencairan Beasiswa</h3>
+                            <p class="text-xs text-text-muted">Daftar alokasi dana bantuan pendidikan yang telah dicairkan beserta rincian pembiayaannya</p>
+                        </div>
+                    </div>
+                    @if ($riwayatAlokasi->isNotEmpty())
+                        <span class="text-xs font-bold text-primary font-mono bg-primary-soft px-3 py-1 rounded-lg">
+                            Total Penyaluran: Rp {{ number_format($totalNominalDiterima, 0, ',', '.') }}
+                        </span>
+                    @endif
+                </div>
+
+                @if ($riwayatAlokasi->isEmpty())
+                    <div class="p-8 text-center rounded-xl border border-dashed border-border text-xs text-text-muted">
+                        Belum ada riwayat penyaluran dana beasiswa yang tercatat.
+                    </div>
+                @else
+                    <div class="overflow-x-auto">
+                        <table class="w-full text-left text-xs">
+                            <thead class="bg-surface-raised text-text-muted uppercase text-[10px] tracking-wider border-b border-border">
+                                <tr>
+                                    <th class="p-3 w-10 text-center">No</th>
+                                    <th class="p-3">Tanggal & No. Kwitansi</th>
+                                    <th class="p-3">Sumber / Donatur OTA</th>
+                                    <th class="p-3">Semester & Tahun Ajaran</th>
+                                    <th class="p-3">Rincian Komponen Biaya</th>
+                                    <th class="p-3 text-right font-bold text-primary">Nominal Cair</th>
+                                    <th class="p-3">Catatan</th>
+                                </tr>
+                            </thead>
+                            <tbody class="divide-y divide-border">
+                                @foreach ($riwayatAlokasi as $idx => $alo)
+                                    @php
+                                        $kelompokAlo = $alo->kelompok;
+                                        $donatursAlo = $kelompokAlo?->donaturs ?? collect();
+                                    @endphp
+                                    <tr class="hover:bg-surface-hover/50 transition-colors">
+                                        <td class="p-3 text-center text-text-muted font-mono">{{ $idx + 1 }}</td>
+                                        <td class="p-3">
+                                            <div class="font-bold text-text-main">
+                                                {{ \Carbon\Carbon::parse($alo->tanggal_alokasi)->translatedFormat('d F Y') }}
+                                            </div>
+                                            <div class="font-mono text-[11px] text-primary font-bold mt-0.5">
+                                                {{ $alo->nomor_kwitansi }}
+                                            </div>
+                                        </td>
+                                        <td class="p-3">
+                                            <div class="font-semibold text-text-main">
+                                                {{ $kelompokAlo?->nama_kelompok ?? ($kelompokAlo?->nama ?? 'Donatur OTA') }}
+                                            </div>
+                                            @if ($donatursAlo->isNotEmpty())
+                                                <div class="text-[10px] text-text-muted mt-0.5">
+                                                    Pemberi: {{ $donatursAlo->pluck('nama')->join(', ') }}
+                                                </div>
+                                            @endif
+                                        </td>
+                                        <td class="p-3 text-text-secondary">
+                                            <div>{{ $alo->tahunAjaran?->nama ?? 'T.A. ' . $alo->tahun_ajaran_id }}</div>
+                                            <div class="text-[10px] text-text-muted">{{ $alo->semester?->nama ?? 'Semester ' . $alo->semester_id }}</div>
+                                        </td>
+                                        <td class="p-3">
+                                            @if ($alo->details->isEmpty())
+                                                <span class="text-text-muted">-</span>
+                                            @else
+                                                <div class="space-y-1">
+                                                    @foreach ($alo->details as $det)
+                                                        <div class="flex items-center justify-between gap-3 text-[11px]">
+                                                            <span class="text-text-secondary">{{ $det->nama_komponen }}</span>
+                                                            <span class="font-mono font-bold text-text-main">Rp {{ number_format($det->nominal, 0, ',', '.') }}</span>
+                                                        </div>
+                                                    @endforeach
+                                                </div>
+                                            @endif
+                                        </td>
+                                        <td class="p-3 text-right font-mono font-black text-sm text-primary whitespace-nowrap">
+                                            Rp {{ number_format($alo->total_nominal, 0, ',', '.') }}
+                                        </td>
+                                        <td class="p-3 text-text-muted text-xs leading-relaxed max-w-[180px]">
+                                            {{ $alo->catatan ?: '-' }}
+                                        </td>
+                                    </tr>
+                                @endforeach
+                            </tbody>
+                        </table>
+                    </div>
+                @endif
+            </div>
+
+            <!-- 3. Bantuan Sosial Pemerintah & Kartu Afirmasi -->
             <div class="card p-6 space-y-4">
                 <div class="flex items-center gap-2 border-b border-border pb-3">
                     <span class="text-xl">🇮🇩</span>
                     <div>
-                        <h2 class="text-sm font-bold text-text-main">Bantuan Pendidikan Pemerintah & Rekening</h2>
+                        <h2 class="text-sm font-bold text-text-main">Bantuan Pendidikan Pemerintah & Rekening Siswa</h2>
                         <p class="text-xs text-text-muted">Data kepemilikan program afirmasi nasional (KIP, PIP, KPS/KKS) dan rekening penyaluran siswa</p>
                     </div>
                 </div>
@@ -163,12 +344,12 @@
         </div>
     @endif
 
-    <!-- Tab 2: Riwayat Pengajuan Beasiswa -->
+    <!-- Tab 2: Riwayat Pengajuan Beasiswa Mandiri -->
     @if ($activeTab === 'pengajuan')
         <div class="card p-6 space-y-4">
             <div class="flex items-center justify-between border-b border-border pb-4">
                 <div>
-                    <h3 class="text-sm font-bold text-text-main">Riwayat Permohonan Beasiswa</h3>
+                    <h3 class="text-sm font-bold text-text-main">Riwayat Permohonan Beasiswa Mandiri</h3>
                     <p class="text-xs text-text-muted">Pantau status seleksi dan verifikasi berkas permohonan beasiswa Anda.</p>
                 </div>
                 <button type="button" wire:click="openFormModal" class="px-3 py-1.5 rounded-lg bg-primary hover:bg-primary-hover text-white text-xs font-bold transition-all flex items-center gap-1.5">

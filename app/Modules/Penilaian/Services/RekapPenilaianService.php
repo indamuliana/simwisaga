@@ -205,10 +205,13 @@ class RekapPenilaianService
             ->get()
             ->groupBy('mapel_pilihan_id');
 
-        $mapilHarianRecords = NilaiMapelPilihanHarian::where('semester_id', $semester->id)
-            ->whereIn('siswa_id', $siswaIds)
-            ->get()
-            ->groupBy('mapel_pilihan_id');
+        $mapilIds = $mapilAnggotas->pluck('mapel_pilihan_id')->filter()->unique()->all();
+        $mapilHarianRecords = !empty($mapilIds)
+            ? NilaiMapelPilihanHarian::whereIn('mapel_pilihan_id', $mapilIds)
+                ->whereIn('siswa_id', $siswaIds)
+                ->get()
+                ->groupBy('mapel_pilihan_id')
+            : collect();
 
         // Sertakan Mapel Pilihan aktif di Kelompok C (Mata Pelajaran Pilihan)
         foreach ($mapilAnggotas as $mAnggota) {

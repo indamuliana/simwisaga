@@ -5,10 +5,13 @@ use App\Modules\PortalSiswa\Livewire\BerandaSiswa;
 use App\Modules\PortalSiswa\Livewire\KehadiranSiswa;
 use App\Modules\PortalSiswa\Livewire\KepesantrenanSiswa;
 use App\Modules\PortalSiswa\Livewire\KeuanganOrtu;
+use App\Modules\PortalSiswa\Livewire\KontakSiswa;
 use App\Modules\PortalSiswa\Livewire\NilaiRaporSiswa;
 use App\Modules\PortalSiswa\Livewire\PrestasiSiswa;
 use App\Modules\PortalSiswa\Livewire\ProfilSiswa;
+use App\Modules\PortalSiswa\Livewire\SeniBudayaSiswa;
 use App\Modules\PortalSiswa\Livewire\UpdSeniSiswa;
+use App\Modules\PortalSiswa\Livewire\UpdSiswa;
 use Illuminate\Support\Facades\Route;
 
 Route::prefix('portal-siswa')->group(function () {
@@ -16,9 +19,12 @@ Route::prefix('portal-siswa')->group(function () {
     Route::get('/profil', ProfilSiswa::class)->name('portal-siswa.profil');
     Route::get('/nilai-rapor', NilaiRaporSiswa::class)->name('portal-siswa.nilai-rapor');
     Route::get('/kehadiran', KehadiranSiswa::class)->name('portal-siswa.kehadiran');
+    Route::get('/upd', UpdSiswa::class)->name('portal-siswa.upd');
+    Route::get('/seni-budaya', SeniBudayaSiswa::class)->name('portal-siswa.seni-budaya');
     Route::get('/upd-seni', UpdSeniSiswa::class)->name('portal-siswa.upd-seni');
     Route::get('/prestasi', PrestasiSiswa::class)->name('portal-siswa.prestasi');
     Route::get('/beasiswa', BeasiswaSiswa::class)->name('portal-siswa.beasiswa');
     Route::get('/kepesantrenan', KepesantrenanSiswa::class)->name('portal-siswa.kepesantrenan');
+    Route::get('/kontak', KontakSiswa::class)->name('portal-siswa.kontak');
     Route::get('/keuangan', KeuanganOrtu::class)->name('portal-siswa.keuangan');
 });

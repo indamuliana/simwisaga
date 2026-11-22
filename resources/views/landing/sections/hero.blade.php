@@ -342,28 +342,6 @@
             <!-- ── Layer 2: Main Slider Typography & Call-To-Actions (Bottom-Left Composition) ── -->
             <div class="relative z-10 w-full max-w-4xl px-6 sm:px-12 lg:px-16 pt-36 pb-20 sm:pb-24 text-left">
                 
-                <!-- Slider Category Tabs (Menyatu di Atas Judul di Kluster Kiri-Bawah Sesuai Gambar) -->
-                @if(count($slides) > 1)
-                <div class="flex items-center gap-2 mb-4 overflow-x-auto no-scrollbar py-1" data-animate="fade-up">
-                    @foreach($slides as $i => $s)
-                    @php
-                        $isTabVideo = in_array($s['media_type'] ?? 'image', ['video_upload', 'video_url']) && !empty($s['video_url']);
-                    @endphp
-                    <button type="button" 
-                            @click="goTo({{ $i }})"
-                            class="px-3.5 py-1.5 rounded-full text-xs font-bold transition-all duration-300 flex items-center gap-1.5 cursor-pointer whitespace-nowrap shadow-sm"
-                            :class="currentSlide === {{ $i }} ? 'bg-[#F9D900] text-[#002752] scale-105 shadow-md font-extrabold' : 'bg-black/40 hover:bg-black/60 text-white/90 border border-white/20 backdrop-blur-md'">
-                        @if($isTabVideo)
-                            <svg class="w-3.5 h-3.5" :class="currentSlide === {{ $i }} ? 'text-[#002752]' : 'text-[#F9D900]'" fill="currentColor" viewBox="0 0 24 24">
-                                <path d="M8 5v14l11-7z"/>
-                            </svg>
-                        @endif
-                        <span>{{ $s['tab_name'] ?? ('Slide ' . ($i + 1)) }}</span>
-                    </button>
-                    @endforeach
-                </div>
-                @endif
-
                 <!-- Slide Content Carousel -->
                 @foreach($slides as $index => $slide)
                 <div x-show="currentSlide === {{ $index }}" 
@@ -442,33 +420,40 @@
             @endif
 
             <!-- ── Bottom Slide Progress Indicator & Scroll Down Chevron ── -->
-            <div class="absolute bottom-4 sm:bottom-6 inset-x-0 flex items-center justify-between px-6 sm:px-12 lg:px-16 pointer-events-none z-20">
-                @if(count($slides) > 1)
-                <!-- Slide Dots with Active Progress Timer (Sinkron dengan Waktu Riil Video / Gambar) -->
-                <div class="flex items-center gap-2 pointer-events-auto bg-black/40 px-3 py-1.5 rounded-full border border-white/15 backdrop-blur-md">
-                    @foreach($slides as $idx => $s)
-                    <button type="button" 
-                            @click="goTo({{ $idx }})"
-                            class="relative h-2 rounded-full transition-all duration-300 overflow-hidden cursor-pointer"
-                            :class="currentSlide === {{ $idx }} ? 'w-8 bg-white/40' : 'w-2 bg-white/30 hover:bg-white/60'"
-                            title="Buka Slide {{ $idx + 1 }}">
-                        <div x-show="currentSlide === {{ $idx }}" 
-                             class="h-full bg-[#F9D900] transition-all duration-75"
-                             :style="`width: ${progressWidth}%`"></div>
-                    </button>
-                    @endforeach
-                </div>
-                @else
-                <div></div>
-                @endif
+            <div class="absolute bottom-4 sm:bottom-6 inset-x-0 px-6 sm:px-12 lg:px-16 pointer-events-none z-20">
+                <div class="relative flex items-center justify-between">
+                    @if(count($slides) > 1)
+                    <!-- Slide Dots with Active Progress Timer (Sinkron dengan Waktu Riil Video / Gambar) -->
+                    <div class="flex items-center gap-2 pointer-events-auto bg-black/40 px-3 py-1.5 rounded-full border border-white/15 backdrop-blur-md">
+                        @foreach($slides as $idx => $s)
+                        <button type="button" 
+                                @click="goTo({{ $idx }})"
+                                class="relative h-2 rounded-full transition-all duration-300 overflow-hidden cursor-pointer"
+                                :class="currentSlide === {{ $idx }} ? 'w-8 bg-white/40' : 'w-2 bg-white/30 hover:bg-white/60'"
+                                title="Buka Slide {{ $idx + 1 }}">
+                            <div x-show="currentSlide === {{ $idx }}" 
+                                 class="h-full bg-[#F9D900] transition-all duration-75"
+                                 :style="`width: ${progressWidth}%`"></div>
+                        </button>
+                        @endforeach
+                    </div>
+                    @else
+                    <div></div>
+                    @endif
 
-                <!-- Animated Bouncing Down Chevron pointing to #filosofi -->
-                <a href="#filosofi" class="pointer-events-auto p-2 text-white/70 hover:text-white transition-colors animate-bounce flex items-center gap-1.5 text-xs font-semibold" aria-label="Scroll ke konten berikutnya">
-                    <span class="hidden sm:inline">Jelajahi</span>
-                    <svg class="w-4 h-4" fill="none" viewBox="0 0 24 24" stroke="currentColor">
-                        <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2.5" d="M19 14l-7 7m0 0l-7-7m7 7V3" />
-                    </svg>
-                </a>
+                    <!-- Animated Bouncing Down Chevron pointing to #filosofi (Posisi Tengah) -->
+                    <div class="absolute left-1/2 -translate-x-1/2 flex items-center justify-center pointer-events-none">
+                        <a href="#filosofi" class="pointer-events-auto p-2 text-white/70 hover:text-white transition-colors animate-bounce flex items-center gap-1.5 text-xs font-semibold" aria-label="Scroll ke konten berikutnya">
+                            <span>Jelajahi</span>
+                            <svg class="w-4 h-4" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                                <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2.5" d="M19 14l-7 7m0 0l-7-7m7 7V3" />
+                            </svg>
+                        </a>
+                    </div>
+
+                    <!-- Right placeholder -->
+                    <div></div>
+                </div>
             </div>
 
         </section>

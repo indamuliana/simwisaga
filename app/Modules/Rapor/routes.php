@@ -32,7 +32,8 @@ Route::redirect('/rapor', '/rapor/wikrama')->name('rapor.index');
         ));
         abort_unless($isAuthorizedBulk, 403, 'Anda tidak memiliki hak akses untuk mencetak massal rombel/rayon ini.');
 
-        $semester = Semester::where('is_active', true)->firstOrFail();
+        $semesterId = request('semester_id');
+        $semester = $semesterId ? Semester::findOrFail($semesterId) : Semester::where('is_active', true)->firstOrFail();
         $sekolah = School::current();
         $periode = $periodeId ? PeriodeRapor::find($periodeId) : null;
 
@@ -153,7 +154,8 @@ Route::redirect('/rapor', '/rapor/wikrama')->name('rapor.index');
         $siswa = Siswa::with(['rombel.jurusan', 'rombel.waliKelas', 'rayon.pembimbing'])->findOrFail($siswa_id);
         abort_unless(auth()->user()->canViewStudent($siswa), 403, 'Anda tidak memiliki hak akses untuk melihat rapor siswa ini.');
 
-        $semester = Semester::where('is_active', true)->firstOrFail();
+        $semesterId = request('semester_id');
+        $semester = $semesterId ? Semester::findOrFail($semesterId) : Semester::where('is_active', true)->firstOrFail();
         $sekolah = School::current();
         $tanggal = request('tanggal', date('Y-m-d'));
         $periodeId = request('periode_id');

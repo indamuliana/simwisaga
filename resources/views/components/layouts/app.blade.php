@@ -122,6 +122,24 @@
                         default => '<path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M4 6h16M4 12h16M4 18h7" />',
                     };
                 };
+
+                $getItemSvg = function($icon, $label) {
+                    return match($icon ?? $label) {
+                        'home', 'Beranda & Agenda', 'Dashboard' => '<path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M3 12l2-2m0 0l7-7 7 7M5 10v10a1 1 0 001 1h3m10-11l2 2m-2-2v10a1 1 0 01-1 1h-3m-6 0a1 1 0 001-1v-4a1 1 0 011-1h2a1 1 0 011 1v4a1 1 0 001 1m-6 0h6" />',
+                        'user', 'user-circle', 'Profil Saya' => '<path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M16 7a4 4 0 11-8 0 4 4 0 018 0zM12 14a7 7 0 00-7 7h14a7 7 0 00-7-7z" />',
+                        'document-chart-bar', 'academic-cap', 'Nilai & Rapor', 'Ledger Nilai & Rapor' => '<path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9 19v-6a2 2 0 00-2-2H5a2 2 0 00-2 2v6a2 2 0 002 2h2a2 2 0 002-2zm0 0V9a2 2 0 012-2h2a2 2 0 012 2v10m-6 0a2 2 0 002 2h2a2 2 0 002-2m0 0V5a2 2 0 012-2h2a2 2 0 012 2v14a2 2 0 01-2 2h-2a2 2 0 01-2-2z" />',
+                        'calendar', 'calendar-days', 'Kehadiran' => '<path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M8 7V3m8 4V3m-9 8h10M5 21h14a2 2 0 002-2V7a2 2 0 00-2-2H5a2 2 0 00-2 2v12a2 2 0 002 2z" />',
+                        'sparkles', 'Unit Pengembangan Diri (UPD)', 'UPD' => '<path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M5 3v4M3 5h4M6 17v4m-2-2h4m5-16l2.286 6.857L21 12l-5.714 2.143L13 21l-2.286-6.857L5 12l5.714-2.143L13 3z" />',
+                        'paint-brush', 'color-swatch', 'Seni Budaya' => '<path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M7 21a4 4 0 01-4-4 7 7 0 017-7h4a7 7 0 017 7 4 4 0 01-4 4H7zM15 7a3 3 0 11-6 0 3 3 0 016 0z" />',
+                        'trophy', 'Prestasi' => '<path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9 12l2 2 4-4M7.835 4.697a3.42 3.42 0 001.946-.806 3.42 3.42 0 014.438 0 3.42 3.42 0 001.946.806 3.42 3.42 0 013.138 3.138 3.42 3.42 0 00.806 1.946 3.42 3.42 0 010 4.438 3.42 3.42 0 00-.806 1.946 3.42 3.42 0 01-3.138 3.138 3.42 3.42 0 00-1.946.806 3.42 3.42 0 01-4.438 0 3.42 3.42 0 00-1.946-.806 3.42 3.42 0 01-3.138-3.138 3.42 3.42 0 00-.806-1.946 3.42 3.42 0 010-4.438 3.42 3.42 0 00.806-1.946 3.42 3.42 0 013.138-3.138z" />',
+                        'heart', 'gift', 'Beasiswa & OTA', 'Beasiswa' => '<path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 8c-1.657 0-3 .895-3 2s1.343 2 3 2 3 .895 3 2-1.343 2-3 2m0-8c1.11 0 2.08.402 2.599 1M12 8V7m0 1v8m0 0v1m0-1c-1.11 0-2.08-.402-2.599-1M21 12a9 9 0 11-18 0 9 9 0 0118 0z" />',
+                        'moon', 'Kepesantrenan & Hafalan' => '<path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M20.354 15.354A9 9 0 018.646 3.646 9.003 9.003 0 0012 21a9.003 9.003 0 008.354-5.646z" />',
+                        'banknotes', 'Keuangan & Tagihan (Ortu)' => '<path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M17 9V7a2 2 0 00-2-2H5a2 2 0 00-2 2v6a2 2 0 002 2h2m2 4h10a2 2 0 002-2v-6a2 2 0 00-2-2H9a2 2 0 00-2 2v6a2 2 0 002 2zm7-5a2 2 0 11-4 0 2 2 0 014 0z" />',
+                        'phone', 'Kontak', 'Kontak Guru & Pegawai' => '<path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M3 5a2 2 0 012-2h3.28a1 1 0 01.948.684l1.498 4.493a1 1 0 01-.502 1.21l-2.257 1.13a11.042 11.042 0 005.516 5.516l1.13-2.257a1 1 0 011.21-.502l4.493 1.498a1 1 0 01.684.949V19a2 2 0 01-2 2h-1C9.716 21 3 14.284 3 6V5z" />',
+                        'book-open', 'Buku Panduan SIRAGA', 'Panduan Aplikasi', 'Rapor Wikrama' => '<path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 6.253v13m0-13C10.832 5.477 9.246 5 7.5 5S4.168 5.477 3 6.253v13C4.168 18.477 5.754 18 7.5 18s3.332.477 4.5 1.253m0-13C13.168 5.477 14.754 5 16.5 5c1.747 0 3.332.477 4.5 1.253v13C19.832 18.477 18.247 18 16.5 18c-1.746 0-3.332.477-4.5 1.253" />',
+                        default => '<path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9 5l7 7-7 7" />',
+                    };
+                };
             @endphp
 
             {{-- Kotak Pencarian Menu (Sebelum Dashboard) --}}
@@ -194,85 +212,125 @@
                     <span>Dashboard</span>
                 </span>
             </a>
-            @foreach (($sidebarMenu ?? []) as $group)
+            @if (auth()->check() && auth()->user()->hasRole('Siswa'))
                 @php
-                    $isGroupActive = collect($group['items'] ?? [])->contains(function ($item) {
-                        return \Illuminate\Support\Facades\Route::has($item['route'])
-                            && request()->routeIs($item['route'].'*');
-                    });
+                    $flatSiswaItems = [];
+                    foreach (($sidebarMenu ?? []) as $grp) {
+                        foreach ($grp['modules'] ?? [] as $mod) {
+                            foreach ($mod['items'] ?? [] as $it) {
+                                $flatSiswaItems[] = $it;
+                            }
+                        }
+                    }
                 @endphp
-                {{-- TINGKAT 1: KELOMPOK --}}
-                <div x-data="{ openGroup: {{ $isGroupActive ? 'true' : 'false' }} }" class="pt-2 border-t border-border/40 first:border-t-0 first:pt-0">
-                    <button type="button"
-                            @click="openGroup = !openGroup"
-                            class="flex w-full items-center justify-between rounded-lg px-2.5 py-2 text-xs font-bold uppercase tracking-wider transition-colors {{ $isGroupActive ? 'text-primary bg-primary-soft/40' : 'text-text-muted hover:bg-surface-hover hover:text-text-main' }}">
-                        <span class="flex items-center gap-2 truncate">
-                            <svg class="h-4 w-4 shrink-0 transition-colors {{ $isGroupActive ? 'text-primary' : 'text-text-muted' }}" fill="none" viewBox="0 0 24 24" stroke="currentColor">
-                                {!! $getGroupSvg($group['icon'] ?? null, $group['label']) !!}
-                            </svg>
-                            <span class="truncate">{{ $group['label'] }}</span>
-                        </span>
-                        <svg class="h-3.5 w-3.5 transform transition-transform duration-200 shrink-0"
-                             :class="{ 'rotate-180 text-primary': openGroup, 'text-text-muted': !openGroup }"
-                             fill="none"
-                             viewBox="0 0 24 24"
-                             stroke="currentColor">
-                            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M19 9l-7 7-7-7" />
-                        </svg>
-                    </button>
 
-                    {{-- TINGKAT 2: MODUL-MODUL DI DALAM KELOMPOK (TANPA ICON) --}}
-                    <div x-show="openGroup"
-                         x-collapse
-                         x-cloak
-                         class="mt-1 space-y-1 pl-1.5">
-                        @foreach ($group['modules'] ?? [] as $module)
-                            @php
-                                $isModuleActive = collect($module['items'])->contains(function ($item) {
-                                    return \Illuminate\Support\Facades\Route::has($item['route'])
-                                        && request()->routeIs($item['route'].'*');
-                                });
-                            @endphp
-                            <div x-data="{ openModule: {{ $isModuleActive ? 'true' : 'false' }} }" class="space-y-0.5">
-                                <button type="button"
-                                        @click="openModule = !openModule"
-                                        class="flex w-full items-center justify-between rounded-md px-2.5 py-1.5 text-xs font-medium transition-colors {{ $isModuleActive ? 'text-primary font-semibold bg-primary-soft/60' : 'text-text-secondary hover:bg-surface-hover hover:text-text-main' }}">
-                                    <span class="truncate">{{ $module['label'] }}</span>
-                                    <svg class="h-3 w-3 transform transition-transform duration-200 shrink-0"
-                                         :class="{ 'rotate-180 text-primary': openModule, 'text-text-muted': !openModule }"
-                                         fill="none"
-                                         viewBox="0 0 24 24"
-                                         stroke="currentColor">
-                                         <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M19 9l-7 7-7-7" />
-                                    </svg>
-                                </button>
-
-                                {{-- TINGKAT 3: SUBMODUL LINK HALAMAN (TANPA ICON, FONT SAMA DENGAN KELOMPOK) --}}
-                                <div x-show="openModule"
-                                     x-collapse
-                                     x-cloak
-                                     class="space-y-0.5 pl-3.5 ml-2.5 border-l border-border/70 my-1">
-                                    @foreach ($module['items'] as $item)
-                                        @php
-                                            $hasRoute = \Illuminate\Support\Facades\Route::has($item['route']);
-                                            $url = $hasRoute ? route($item['route']) : '#';
-                                            $isActive = $hasRoute && request()->routeIs($item['route'].'*');
-                                        @endphp
-                                        <a href="{{ $url }}"
-                                           @click="if (window.innerWidth < 1024) mobileOpen = false"
-                                           class="flex items-center justify-between rounded-md px-2.5 py-1.5 text-xs transition-colors {{ $isActive ? 'bg-primary-soft font-semibold text-primary' : 'text-text-secondary hover:bg-surface-hover hover:text-text-main' }}">
-                                            <span class="truncate">{{ $item['label'] }}</span>
-                                            @if (! $hasRoute)
-                                                <span class="text-[10px] text-text-muted">(segera)</span>
-                                            @endif
-                                        </a>
-                                    @endforeach
-                                </div>
-                            </div>
-                        @endforeach
+                <div class="space-y-1 pt-1.5 border-t border-border/40">
+                    <div class="px-2.5 py-1 text-[10px] font-bold uppercase tracking-wider text-text-muted">
+                        Menu Utama Siswa
                     </div>
+                    @foreach ($flatSiswaItems as $item)
+                        @php
+                            $hasRoute = \Illuminate\Support\Facades\Route::has($item['route']);
+                            $url = $hasRoute ? route($item['route']) : '#';
+                            $isActive = $hasRoute && request()->routeIs($item['route'].'*');
+                            $itemIcon = $item['icon'] ?? $item['label'];
+                        @endphp
+                        <a href="{{ $url }}"
+                           @click="if (window.innerWidth < 1024) mobileOpen = false"
+                           class="flex items-center justify-between rounded-lg px-2.5 py-2 text-xs font-medium transition-colors {{ $isActive ? 'bg-primary-soft text-primary font-bold shadow-2xs' : 'text-text-secondary hover:bg-surface-hover hover:text-text-main' }}">
+                            <span class="flex items-center gap-2.5 truncate">
+                                <svg class="h-4 w-4 shrink-0 transition-colors {{ $isActive ? 'text-primary' : 'text-text-muted' }}" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                                    {!! $getItemSvg($itemIcon, $item['label']) !!}
+                                </svg>
+                                <span class="truncate">{{ $item['label'] }}</span>
+                            </span>
+                            @if (! $hasRoute)
+                                <span class="text-[10px] text-text-muted">(segera)</span>
+                            @endif
+                        </a>
+                    @endforeach
                 </div>
-            @endforeach
+            @else
+                @foreach (($sidebarMenu ?? []) as $group)
+                    @php
+                        $isGroupActive = collect($group['items'] ?? [])->contains(function ($item) {
+                            return \Illuminate\Support\Facades\Route::has($item['route'])
+                                && request()->routeIs($item['route'].'*');
+                        });
+                    @endphp
+                    {{-- TINGKAT 1: KELOMPOK --}}
+                    <div x-data="{ openGroup: {{ $isGroupActive ? 'true' : 'false' }} }" class="pt-2 border-t border-border/40 first:border-t-0 first:pt-0">
+                        <button type="button"
+                                @click="openGroup = !openGroup"
+                                class="flex w-full items-center justify-between rounded-lg px-2.5 py-2 text-xs font-bold uppercase tracking-wider transition-colors {{ $isGroupActive ? 'text-primary bg-primary-soft/40' : 'text-text-muted hover:bg-surface-hover hover:text-text-main' }}">
+                            <span class="flex items-center gap-2 truncate">
+                                <svg class="h-4 w-4 shrink-0 transition-colors {{ $isGroupActive ? 'text-primary' : 'text-text-muted' }}" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                                    {!! $getGroupSvg($group['icon'] ?? null, $group['label']) !!}
+                                </svg>
+                                <span class="truncate">{{ $group['label'] }}</span>
+                            </span>
+                            <svg class="h-3.5 w-3.5 transform transition-transform duration-200 shrink-0"
+                                 :class="{ 'rotate-180 text-primary': openGroup, 'text-text-muted': !openGroup }"
+                                 fill="none"
+                                 viewBox="0 0 24 24"
+                                 stroke="currentColor">
+                                <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M19 9l-7 7-7-7" />
+                            </svg>
+                        </button>
+
+                        {{-- TINGKAT 2: MODUL-MODUL DI DALAM KELOMPOK (TANPA ICON) --}}
+                        <div x-show="openGroup"
+                             x-collapse
+                             x-cloak
+                             class="mt-1 space-y-1 pl-1.5">
+                            @foreach ($group['modules'] ?? [] as $module)
+                                @php
+                                    $isModuleActive = collect($module['items'])->contains(function ($item) {
+                                        return \Illuminate\Support\Facades\Route::has($item['route'])
+                                            && request()->routeIs($item['route'].'*');
+                                    });
+                                @endphp
+                                <div x-data="{ openModule: {{ $isModuleActive ? 'true' : 'false' }} }" class="space-y-0.5">
+                                    <button type="button"
+                                            @click="openModule = !openModule"
+                                            class="flex w-full items-center justify-between rounded-md px-2.5 py-1.5 text-xs font-medium transition-colors {{ $isModuleActive ? 'text-primary font-semibold bg-primary-soft/60' : 'text-text-secondary hover:bg-surface-hover hover:text-text-main' }}">
+                                        <span class="truncate">{{ $module['label'] }}</span>
+                                        <svg class="h-3 w-3 transform transition-transform duration-200 shrink-0"
+                                             :class="{ 'rotate-180 text-primary': openModule, 'text-text-muted': !openModule }"
+                                             fill="none"
+                                             viewBox="0 0 24 24"
+                                             stroke="currentColor">
+                                             <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M19 9l-7 7-7-7" />
+                                        </svg>
+                                    </button>
+
+                                    {{-- TINGKAT 3: SUBMODUL LINK HALAMAN (TANPA ICON, FONT SAMA DENGAN KELOMPOK) --}}
+                                    <div x-show="openModule"
+                                         x-collapse
+                                         x-cloak
+                                         class="space-y-0.5 pl-3.5 ml-2.5 border-l border-border/70 my-1">
+                                        @foreach ($module['items'] as $item)
+                                            @php
+                                                $hasRoute = \Illuminate\Support\Facades\Route::has($item['route']);
+                                                $url = $hasRoute ? route($item['route']) : '#';
+                                                $isActive = $hasRoute && request()->routeIs($item['route'].'*');
+                                            @endphp
+                                            <a href="{{ $url }}"
+                                               @click="if (window.innerWidth < 1024) mobileOpen = false"
+                                               class="flex items-center justify-between rounded-md px-2.5 py-1.5 text-xs transition-colors {{ $isActive ? 'bg-primary-soft font-semibold text-primary' : 'text-text-secondary hover:bg-surface-hover hover:text-text-main' }}">
+                                                <span class="truncate">{{ $item['label'] }}</span>
+                                                @if (! $hasRoute)
+                                                    <span class="text-[10px] text-text-muted">(segera)</span>
+                                                @endif
+                                            </a>
+                                        @endforeach
+                                    </div>
+                                </div>
+                            @endforeach
+                        </div>
+                    </div>
+                @endforeach
+            @endif
         </nav>
     </aside>
 

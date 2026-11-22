@@ -46,7 +46,7 @@ class LandingPageAccessTest extends TestCase
     }
 
     /**
-     * Test that the redesigned Agenda section contains event items.
+     * Test that the redesigned Agenda section contains event items and has no download calendar button.
      */
     public function test_agenda_section_renders_events(): void
     {
@@ -54,7 +54,8 @@ class LandingPageAccessTest extends TestCase
 
         $response->assertStatus(200);
         $response->assertSee('id="agenda"', false);
-        $response->assertSee('Unduh Kalender Akademik (PDF)');
+        $response->assertDontSee('Unduh Kalender Akademik (PDF)');
+        $response->assertSee('Kalender Pendidikan & Agenda Terdekat');
     }
 
     /**

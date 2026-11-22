@@ -234,6 +234,8 @@ class ProfilSiswa extends Component
                 'riwayatAkademiks.rombelTujuan',
                 'riwayatAkademiks.tahunAjaran',
                 'riwayatAkademiks.diprosesOleh',
+                'customKelompoks.tahunAjaran',
+                'customKelompoks.pembimbing',
             ]);
 
             $riwayatPengajuan = PengajuanPerbaikanDataSiswa::where('siswa_id', $siswa->id)

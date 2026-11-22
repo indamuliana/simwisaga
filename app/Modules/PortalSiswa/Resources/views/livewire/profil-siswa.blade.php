@@ -103,7 +103,19 @@
                 @if ($siswa?->rayon?->pembimbing)
                     <div class="flex items-center gap-1.5 text-text-secondary">
                         <span class="text-text-muted">Rayon {{ $siswa->rayon->nama }}:</span>
-                        <span class="font-bold text-text-main">{{ $siswa->rayon->pembimbing->nama_lengkap }}</span>
+                        <span class="font-bold text-text-main">{{ $siswa->rayon->pembimbing->nama_lengkap ?? $siswa->rayon->pembimbing->name }}</span>
+                    </div>
+                @endif
+                @if ($siswa?->customKelompoks && $siswa->customKelompoks->isNotEmpty())
+                    <div class="flex items-center gap-1.5 text-text-secondary mt-0.5">
+                        <span class="text-text-muted">Kelompok Custom:</span>
+                        <div class="flex flex-wrap gap-1">
+                            @foreach ($siswa->customKelompoks as $ck)
+                                <span class="px-2 py-0.5 rounded text-[10px] font-bold text-white shadow-2xs" style="background-color: {{ $ck->warna ?: '#3b82f6' }}">
+                                    {{ $ck->nama }} ({{ $ck->kategori ?: 'Khusus' }})
+                                </span>
+                            @endforeach
+                        </div>
                     </div>
                 @endif
             </div>
@@ -458,6 +470,68 @@
                         </div>
                     @endif
                 </div>
+            </div>
+
+            <!-- Kelompok Khusus / Custom Terdaftar -->
+            <div class="card p-6 space-y-4">
+                <div class="flex items-center justify-between border-b border-border pb-3">
+                    <h3 class="text-sm font-bold uppercase tracking-wider text-text-secondary flex items-center gap-2">
+                        <span>🏷️ Kelompok Khusus / Custom Terdaftar</span>
+                    </h3>
+                    <span class="text-xs text-text-muted">
+                        Total: {{ $siswa?->customKelompoks ? $siswa->customKelompoks->count() : 0 }} Kelompok
+                    </span>
+                </div>
+
+                @if (!$siswa?->customKelompoks || $siswa->customKelompoks->isEmpty())
+                    <div class="p-6 text-center rounded-xl border border-dashed border-border text-xs text-text-muted">
+                        Siswa tidak terdaftar pada kelompok khusus/custom manapun saat ini.
+                    </div>
+                @else
+                    <div class="grid grid-cols-1 md:grid-cols-2 gap-4">
+                        @foreach ($siswa->customKelompoks as $ck)
+                            <div class="rounded-xl border border-border p-4 bg-surface-raised/40 hover:bg-surface-raised transition-all flex flex-col justify-between">
+                                <div>
+                                    <div class="flex items-center justify-between gap-2 mb-2">
+                                        <span class="inline-flex items-center gap-1.5 px-2.5 py-0.5 rounded-full text-xs font-bold text-white shadow-2xs" style="background-color: {{ $ck->warna ?: '#3b82f6' }}">
+                                            <span>●</span>
+                                            {{ $ck->nama }}
+                                        </span>
+                                        <span class="px-2 py-0.5 rounded text-[10px] font-semibold bg-surface border border-border text-text-secondary uppercase">
+                                            {{ $ck->kategori ?: 'Khusus' }}
+                                        </span>
+                                    </div>
+
+                                    @if ($ck->keterangan)
+                                        <p class="text-xs text-text-secondary mb-3">{{ $ck->keterangan }}</p>
+                                    @endif
+
+                                    <div class="space-y-1.5 text-xs text-text-muted pt-2 border-t border-border/60">
+                                        <div class="flex items-center justify-between">
+                                            <span>Tahun Ajaran:</span>
+                                            <span class="font-medium text-text-main">{{ $ck->tahunAjaran?->nama ?: '-' }}</span>
+                                        </div>
+                                        <div class="flex items-center justify-between">
+                                            <span>Pembimbing:</span>
+                                            <span class="font-medium text-text-main">{{ $ck->pembimbing?->nama_lengkap ?? $ck->pembimbing?->name ?? 'Belum ditentukan' }}</span>
+                                        </div>
+                                        @if ($ck->pivot && $ck->pivot->keterangan)
+                                            <div class="flex items-start justify-between gap-2 pt-1 text-primary">
+                                                <span class="text-[11px] font-medium">Catatan Anggota:</span>
+                                                <span class="text-xs font-bold text-right">{{ $ck->pivot->keterangan }}</span>
+                                            </div>
+                                        @endif
+                                    </div>
+                                </div>
+
+                                <div class="mt-3 pt-2 text-[10px] text-text-muted flex items-center justify-between border-t border-border/40">
+                                    <span>Kode: <span class="font-mono font-medium text-text-secondary">{{ $ck->kode }}</span></span>
+                                    <span>Terdaftar: {{ $ck->pivot && $ck->pivot->created_at ? $ck->pivot->created_at->format('d M Y') : '-' }}</span>
+                                </div>
+                            </div>
+                        @endforeach
+                    </div>
+                @endif
             </div>
 
             <!-- Riwayat Keputusan Akademik -->

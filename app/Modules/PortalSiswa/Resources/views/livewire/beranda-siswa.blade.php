@@ -47,6 +47,18 @@
                         <span class="font-bold text-text-main">{{ $siswa->rayon->pembimbing->nama_lengkap }}</span>
                     </div>
                 @endif
+                @if ($siswa?->customKelompoks && $siswa->customKelompoks->isNotEmpty())
+                    <div class="flex items-center gap-1.5 text-text-secondary">
+                        <span class="text-text-muted">Kelompok Khusus:</span>
+                        <div class="flex flex-wrap gap-1">
+                            @foreach ($siswa->customKelompoks as $ck)
+                                <span class="px-2 py-0.5 rounded text-[10px] font-bold text-white shadow-2xs" style="background-color: {{ $ck->warna ?: '#3b82f6' }}">
+                                    {{ $ck->nama }} ({{ $ck->kategori ?: 'Khusus' }})
+                                </span>
+                            @endforeach
+                        </div>
+                    </div>
+                @endif
             </div>
         </div>
     </div>
@@ -100,7 +112,7 @@
     @endif
 
     <!-- Menu Akses Cepat (Quick Access Grid) -->
-    <div class="grid grid-cols-2 sm:grid-cols-3 lg:grid-cols-6 gap-3">
+    <div class="grid grid-cols-2 sm:grid-cols-3 lg:grid-cols-7 gap-3">
         <a href="{{ route('portal-siswa.profil') }}" class="card p-4 hover:border-primary/40 hover:shadow-xs transition-all group flex flex-col items-center text-center">
             <div class="w-10 h-10 rounded-xl bg-blue-500/10 text-blue-600 flex items-center justify-center text-lg mb-2 group-hover:scale-110 transition-transform">
                 👤
@@ -125,12 +137,20 @@
             <span class="text-[10px] font-bold text-emerald-600 mt-0.5">{{ $absensiStats['persen'] }}% Hadir</span>
         </a>
 
-        <a href="{{ route('portal-siswa.upd-seni') }}" class="card p-4 hover:border-primary/40 hover:shadow-xs transition-all group flex flex-col items-center text-center">
+        <a href="{{ route('portal-siswa.upd') }}" class="card p-4 hover:border-primary/40 hover:shadow-xs transition-all group flex flex-col items-center text-center">
+            <div class="w-10 h-10 rounded-xl bg-blue-500/10 text-blue-600 flex items-center justify-center text-lg mb-2 group-hover:scale-110 transition-transform">
+                ⚡
+            </div>
+            <span class="text-xs font-bold text-text-main group-hover:text-primary">UPD</span>
+            <span class="text-[10px] text-text-muted mt-0.5">Ekstrakurikuler</span>
+        </a>
+
+        <a href="{{ route('portal-siswa.seni-budaya') }}" class="card p-4 hover:border-primary/40 hover:shadow-xs transition-all group flex flex-col items-center text-center">
             <div class="w-10 h-10 rounded-xl bg-purple-500/10 text-purple-600 flex items-center justify-center text-lg mb-2 group-hover:scale-110 transition-transform">
                 🎨
             </div>
-            <span class="text-xs font-bold text-text-main group-hover:text-primary">UPD & Seni</span>
-            <span class="text-[10px] text-text-muted mt-0.5">Ekskul & Seni Budaya</span>
+            <span class="text-xs font-bold text-text-main group-hover:text-primary">Seni Budaya</span>
+            <span class="text-[10px] text-text-muted mt-0.5">Cabang Kesenian</span>
         </a>
 
         <a href="{{ route('portal-siswa.prestasi') }}" class="card p-4 hover:border-primary/40 hover:shadow-xs transition-all group flex flex-col items-center text-center">

@@ -16,6 +16,12 @@ class WebArticle extends Model
         'published_at' => 'datetime',
     ];
 
+    protected static function booted(): void
+    {
+        static::saved(fn () => \Illuminate\Support\Facades\Cache::forget('landing.latest_articles'));
+        static::deleted(fn () => \Illuminate\Support\Facades\Cache::forget('landing.latest_articles'));
+    }
+
     public function category(): BelongsTo
     {
         return $this->belongsTo(WebCategory::class, 'kategori_id');
