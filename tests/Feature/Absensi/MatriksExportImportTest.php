@@ -166,4 +166,97 @@ class MatriksExportImportTest extends TestCase
             ->call('openImportModal')
             ->assertForbidden();
     }
+
+    public function test_can_open_reset_modal_and_calculate_count(): void
+    {
+        $this->actingAs($this->admin);
+
+        // Buat record absensi sampel
+        AbsensiHarian::create([
+            'tanggal' => '2026-11-02',
+            'siswa_id' => $this->siswa1->id,
+            'rombel_id' => $this->rombel->id,
+            'semester_id' => $this->semester->id,
+            'status' => StatusAbsensi::HADIR->value,
+        ]);
+
+        AbsensiHarian::create([
+            'tanggal' => '2026-11-03',
+            'siswa_id' => $this->siswa2->id,
+            'rombel_id' => $this->rombel->id,
+            'semester_id' => $this->semester->id,
+            'status' => StatusAbsensi::SAKIT->value,
+        ]);
+
+        Livewire::test(RekapAbsensiIndex::class)
+            ->set('tgl_mulai', '2026-11-01')
+            ->set('tgl_selesai', '2026-11-05')
+            ->call('openResetModal')
+            ->assertSet('showResetModal', true)
+            ->assertSee('2 record');
+    }
+
+    public function test_execute_reset_requires_confirmation_text(): void
+    {
+        $this->actingAs($this->admin);
+
+        AbsensiHarian::create([
+            'tanggal' => '2026-11-02',
+            'siswa_id' => $this->siswa1->id,
+            'rombel_id' => $this->rombel->id,
+            'semester_id' => $this->semester->id,
+            'status' => StatusAbsensi::HADIR->value,
+        ]);
+
+        Livewire::test(RekapAbsensiIndex::class)
+            ->call('openResetModal')
+            ->set('resetConfirmationText', 'SALAH')
+            ->call('executeResetAbsensi')
+            ->assertSet('showResetModal', true)
+            ->assertSet('resetErrorMessage', 'Ketik kata "RESET" dengan tepat untuk mengonfirmasi penghapusan data.');
+
+        $this->assertEquals(1, AbsensiHarian::count());
+    }
+
+    public function test_execute_reset_deletes_records_successfully(): void
+    {
+        $this->actingAs($this->admin);
+
+        AbsensiHarian::create([
+            'tanggal' => '2026-11-02',
+            'siswa_id' => $this->siswa1->id,
+            'rombel_id' => $this->rombel->id,
+            'semester_id' => $this->semester->id,
+            'status' => StatusAbsensi::HADIR->value,
+        ]);
+
+        AbsensiHarian::create([
+            'tanggal' => '2026-11-03',
+            'siswa_id' => $this->siswa2->id,
+            'rombel_id' => $this->rombel->id,
+            'semester_id' => $this->semester->id,
+            'status' => StatusAbsensi::SAKIT->value,
+        ]);
+
+        Livewire::test(RekapAbsensiIndex::class)
+            ->set('tgl_mulai', '2026-11-01')
+            ->set('tgl_selesai', '2026-11-05')
+            ->call('openResetModal')
+            ->set('resetConfirmationText', 'RESET')
+            ->call('executeResetAbsensi')
+            ->assertSet('showResetModal', false)
+            ->assertSee('Sukses! Berhasil mereset 2 data absensi.');
+
+        $this->assertEquals(0, AbsensiHarian::count());
+    }
+
+    public function test_user_without_permission_cannot_open_reset_modal(): void
+    {
+        $nonAdmin = User::factory()->create();
+        $this->actingAs($nonAdmin);
+
+        Livewire::test(RekapAbsensiIndex::class)
+            ->call('openResetModal')
+            ->assertForbidden();
+    }
 }

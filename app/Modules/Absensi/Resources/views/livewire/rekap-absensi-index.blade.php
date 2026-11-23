@@ -110,6 +110,16 @@
                 </svg>
                 <span>Reset</span>
             </button>
+
+            {{-- Tombol Reset Absensi Data (Bahaya / Guarded) --}}
+            @can('absensi.harian.hapus')
+                <button type="button" wire:click="openResetModal" class="btn text-xs sm:text-sm inline-flex items-center gap-1.5 border border-rose-200 dark:border-rose-900/60 bg-rose-50/50 hover:bg-rose-100 dark:bg-rose-950/30 dark:hover:bg-rose-950/60 text-rose-700 dark:text-rose-300 transition-colors shadow-sm">
+                    <svg class="w-4 h-4 text-rose-600 dark:text-rose-400" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                        <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M19 7l-.867 12.142A2 2 0 0116.138 21H7.862a2 2 0 01-1.995-1.858L5 7m5 4v6m4-6v6m1-10V4a1 1 0 00-1-1h-4a1 1 0 00-1 1v3M4 7h16" />
+                    </svg>
+                    <span>Reset Absensi</span>
+                </button>
+            @endcan
         </div>
     </div>
 
@@ -490,6 +500,123 @@
                             </span>
                         </button>
                     @endif
+                </div>
+
+            </div>
+        </div>
+    @endif
+
+    {{-- MODAL RESET / HAPUS ABSENSI --}}
+    @if($showResetModal)
+        <div class="fixed inset-0 z-50 overflow-y-auto bg-black/60 backdrop-blur-xs flex items-center justify-center p-4">
+            <div class="bg-surface border border-rose-300 dark:border-rose-900 rounded-2xl w-full max-w-lg p-6 shadow-2xl relative space-y-5 animate-in fade-in zoom-in-95 duration-150">
+                
+                {{-- Header Modal --}}
+                <div class="flex items-center justify-between border-b border-border/70 pb-4">
+                    <div class="flex items-center gap-3">
+                        <div class="w-10 h-10 rounded-xl bg-rose-100 dark:bg-rose-950/60 text-rose-600 flex items-center justify-center shrink-0">
+                            <svg class="w-5 h-5" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                                <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M19 7l-.867 12.142A2 2 0 0116.138 21H7.862a2 2 0 01-1.995-1.858L5 7m5 4v6m4-6v6m1-10V4a1 1 0 00-1-1h-4a1 1 0 00-1 1v3M4 7h16" />
+                            </svg>
+                        </div>
+                        <div>
+                            <h3 class="text-lg font-bold text-text-main">Reset / Hapus Data Absensi</h3>
+                            <p class="text-xs text-text-secondary">Pembersihan data riwayat presensi siswa</p>
+                        </div>
+                    </div>
+                    <button type="button" wire:click="closeResetModal" class="p-1 rounded-lg text-text-muted hover:text-text-main hover:bg-surface-hover transition-colors">
+                        <svg class="w-5 h-5" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M6 18L18 6M6 6l12 12"/>
+                        </svg>
+                    </button>
+                </div>
+
+                {{-- Alert Peringatan Bahaya --}}
+                <div class="p-3.5 rounded-xl bg-rose-50 dark:bg-rose-950/40 border border-rose-200 dark:border-rose-800 text-rose-800 dark:text-rose-200 text-xs space-y-1">
+                    <div class="flex items-center gap-1.5 font-bold">
+                        <svg class="w-4 h-4 text-rose-600 shrink-0" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 9v2m0 4h.01m-6.938 4h13.856c1.54 0 2.502-1.667 1.732-3L13.732 4c-.77-1.333-2.694-1.333-3.464 0L3.34 16c-.77 1.333.192 3 1.732 3z"/>
+                        </svg>
+                        <span>Perhatian: Tindakan Bersifat Permanen!</span>
+                    </div>
+                    <p class="text-[11px] leading-relaxed text-rose-700 dark:text-rose-300">
+                        Record absensi yang dihapus tidak dapat dikembalikan kecuali Anda memiliki berkas cadangan (backup) Excel atau snapshot database.
+                    </p>
+                </div>
+
+                {{-- Pilihan Cakupan Reset --}}
+                <div class="space-y-2.5">
+                    <label class="block text-xs font-bold text-text-secondary uppercase tracking-wider">Pilih Cakupan Data yang Direset:</label>
+
+                    <label class="flex items-start gap-3 p-3 rounded-xl border border-border hover:bg-surface-hover/50 cursor-pointer transition {{ $resetScope === 'filtered' ? 'bg-rose-50/30 dark:bg-rose-950/20 border-rose-300 dark:border-rose-800' : '' }}">
+                        <input type="radio" wire:model.live="resetScope" value="filtered" class="mt-0.5 text-rose-600 focus:ring-rose-500">
+                        <div class="text-xs space-y-0.5">
+                            <span class="font-bold text-text-main block">Sesuai Filter Halaman Saat Ini</span>
+                            <span class="text-text-muted text-[11px] block">
+                                Rentang: <strong>{{ $periode_label }}</strong> | Rombel: <strong>{{ $rombel_nama }}</strong> | Rayon: <strong>{{ $rayon_nama }}</strong>
+                            </span>
+                        </div>
+                    </label>
+
+                    <label class="flex items-start gap-3 p-3 rounded-xl border border-border hover:bg-surface-hover/50 cursor-pointer transition {{ $resetScope === 'semester' ? 'bg-rose-50/30 dark:bg-rose-950/20 border-rose-300 dark:border-rose-800' : '' }}">
+                        <input type="radio" wire:model.live="resetScope" value="semester" class="mt-0.5 text-rose-600 focus:ring-rose-500">
+                        <div class="text-xs space-y-0.5">
+                            <span class="font-bold text-text-main block">Seluruh Data Semester Aktif</span>
+                            <span class="text-text-muted text-[11px] block">
+                                Menghapus seluruh data absensi semua siswa di semua tanggal untuk semester ganjil saat ini.
+                            </span>
+                        </div>
+                    </label>
+                </div>
+
+                {{-- Indikator Jumlah Record Terkena Dampak --}}
+                <div class="p-3 rounded-xl bg-surface-hover/70 border border-border flex items-center justify-between text-xs">
+                    <span class="text-text-secondary font-medium">Record absensi yang akan dihapus:</span>
+                    <span class="text-sm font-bold text-rose-600 dark:text-rose-400">
+                        {{ number_format($this->countRecordsToReset) }} record
+                    </span>
+                </div>
+
+                {{-- Konfirmasi Ketik RESET --}}
+                <div class="space-y-1.5">
+                    <label class="block text-xs font-semibold text-text-secondary">
+                        Ketik <strong class="text-rose-600 font-mono">RESET</strong> untuk mengonfirmasi:
+                    </label>
+                    <input type="text" 
+                           wire:model.live="resetConfirmationText" 
+                           placeholder="Ketik RESET di sini..." 
+                           class="input w-full font-mono text-xs uppercase">
+                    
+                    @if($resetErrorMessage)
+                        <p class="text-xs text-rose-600 font-medium">{{ $resetErrorMessage }}</p>
+                    @endif
+                </div>
+
+                {{-- Footer Tombol Aksi --}}
+                <div class="flex items-center justify-end gap-2.5 pt-4 border-t border-border/70">
+                    <button type="button" 
+                            wire:click="closeResetModal" 
+                            class="px-4 py-2 rounded-xl border border-border text-xs font-semibold text-text-secondary hover:bg-surface-hover transition-colors">
+                        Batal
+                    </button>
+
+                    <button type="button" 
+                            wire:click="executeResetAbsensi" 
+                            wire:loading.attr="disabled"
+                            @if(strtoupper(trim($resetConfirmationText)) !== 'RESET' || $this->countRecordsToReset === 0) disabled @endif
+                            class="btn text-xs font-semibold inline-flex items-center gap-1.5 shadow-sm text-white bg-rose-600 hover:bg-rose-700 disabled:opacity-40 disabled:cursor-not-allowed transition-colors">
+                        <svg wire:loading.remove wire:target="executeResetAbsensi" class="w-4 h-4" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M19 7l-.867 12.142A2 2 0 0116.138 21H7.862a2 2 0 01-1.995-1.858L5 7m5 4v6m4-6v6m1-10V4a1 1 0 00-1-1h-4a1 1 0 00-1 1v3M4 7h16" />
+                        </svg>
+                        <span wire:loading.remove wire:target="executeResetAbsensi">Hapus & Reset Sekarang</span>
+                        <span wire:loading wire:target="executeResetAbsensi" class="inline-flex items-center gap-1.5">
+                            <svg class="animate-spin w-4 h-4" fill="none" viewBox="0 0 24 24">
+                                <circle class="opacity-25" cx="12" cy="12" r="10" stroke="currentColor" stroke-width="4"></circle>
+                                <path class="opacity-75" fill="currentColor" d="M4 12a8 8 0 018-8v8H4z"></path>
+                            </svg>
+                            <span>Sedang Mereset...</span>
+                        </span>
+                    </button>
                 </div>
 
             </div>

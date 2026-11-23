@@ -3,11 +3,14 @@
 namespace App\Modules\Absensi\Livewire;
 
 use App\Core\Concerns\GuardsPermission;
+use App\Modules\Absensi\Models\AbsensiHarian;
 use App\Modules\Absensi\Services\MatriksAbsensiService;
 use App\Modules\Absensi\Services\RekapAbsensiService;
 use App\Modules\Akademik\Models\Rayon;
 use App\Modules\Akademik\Models\Rombel;
+use App\Modules\Akademik\Models\Semester;
 use App\Modules\Kesiswaan\Models\Program;
+use Illuminate\Support\Facades\DB;
 use Livewire\Component;
 use Livewire\WithFileUploads;
 use PhpOffice\PhpSpreadsheet\Writer\Xlsx;
@@ -30,6 +33,12 @@ class RekapAbsensiIndex extends Component
     public ?array $previewData = null;
     public ?string $importErrorMessage = null;
     public bool $isProcessing = false;
+
+    // State untuk Modal Reset Absensi
+    public bool $showResetModal = false;
+    public string $resetScope = 'filtered'; // 'filtered' atau 'semester'
+    public string $resetConfirmationText = '';
+    public ?string $resetErrorMessage = null;
 
     public function mount()
     {
@@ -199,6 +208,105 @@ class RekapAbsensiIndex extends Component
         } catch (\Throwable $e) {
             $this->isProcessing = false;
             $this->importErrorMessage = "Gagal menyimpan data: " . $e->getMessage();
+        }
+    }
+
+    /**
+     * Membuka Modal Reset Absensi
+     */
+    public function openResetModal()
+    {
+        $this->guard('absensi.harian.hapus');
+        $this->resetScope = 'filtered';
+        $this->resetConfirmationText = '';
+        $this->resetErrorMessage = null;
+        $this->showResetModal = true;
+    }
+
+    /**
+     * Menutup Modal Reset Absensi
+     */
+    public function closeResetModal()
+    {
+        $this->showResetModal = false;
+        $this->resetConfirmationText = '';
+        $this->resetErrorMessage = null;
+    }
+
+    /**
+     * Menghitung perkiraan record yang akan terhapus berdasarkan cakupan reset
+     */
+    public function getCountRecordsToResetProperty(): int
+    {
+        if ($this->resetScope === 'semester') {
+            $activeSemester = Semester::where('is_active', true)->first() ?: Semester::first();
+            return $activeSemester ? AbsensiHarian::where('semester_id', $activeSemester->id)->count() : 0;
+        }
+
+        $query = AbsensiHarian::whereBetween('tanggal', [$this->tgl_mulai, $this->tgl_selesai]);
+
+        if (!empty($this->rombelId)) {
+            $query->where('rombel_id', $this->rombelId);
+        }
+        if (!empty($this->rayonId)) {
+            $query->whereHas('siswa', fn($q) => $q->where('rayon_id', $this->rayonId));
+        }
+        if (!empty($this->gender)) {
+            $query->whereHas('siswa', fn($q) => $q->where('jk', $this->gender));
+        }
+        if (!empty($this->programId)) {
+            $query->whereHas('siswa', fn($q) => $q->where('program_id', $this->programId));
+        }
+
+        return $query->count();
+    }
+
+    /**
+     * Menjalankan reset / penghapusan data absensi secara transaksional
+     */
+    public function executeResetAbsensi()
+    {
+        $this->guard('absensi.harian.hapus');
+
+        if (strtoupper(trim($this->resetConfirmationText)) !== 'RESET') {
+            $this->resetErrorMessage = 'Ketik kata "RESET" dengan tepat untuk mengonfirmasi penghapusan data.';
+            return;
+        }
+
+        $this->isProcessing = true;
+
+        try {
+            $deletedCount = 0;
+
+            DB::transaction(function () use (&$deletedCount) {
+                if ($this->resetScope === 'semester') {
+                    $activeSemester = Semester::where('is_active', true)->first() ?: Semester::first();
+                    $deletedCount = $activeSemester ? AbsensiHarian::where('semester_id', $activeSemester->id)->delete() : 0;
+                } else {
+                    $query = AbsensiHarian::whereBetween('tanggal', [$this->tgl_mulai, $this->tgl_selesai]);
+
+                    if (!empty($this->rombelId)) {
+                        $query->where('rombel_id', $this->rombelId);
+                    }
+                    if (!empty($this->rayonId)) {
+                        $query->whereHas('siswa', fn($q) => $q->where('rayon_id', $this->rayonId));
+                    }
+                    if (!empty($this->gender)) {
+                        $query->whereHas('siswa', fn($q) => $q->where('jk', $this->gender));
+                    }
+                    if (!empty($this->programId)) {
+                        $query->whereHas('siswa', fn($q) => $q->where('program_id', $this->programId));
+                    }
+
+                    $deletedCount = $query->delete();
+                }
+            });
+
+            session()->flash('message', "Sukses! Berhasil mereset {$deletedCount} data absensi.");
+            $this->closeResetModal();
+        } catch (\Throwable $e) {
+            $this->isProcessing = false;
+            $this->resetErrorMessage = "Gagal mereset data: " . $e->getMessage();
         }
     }
 
