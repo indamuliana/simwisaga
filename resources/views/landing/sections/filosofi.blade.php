@@ -239,16 +239,7 @@
             </div>
 
             <!-- ── Link & Match Industri • BMW (Bekerja, Melanjutkan, Wirausaha) ── -->
-            <div class="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 mt-12 sm:mt-16 pt-8 border-t border-slate-200/80 w-full relative z-10" data-animate="fade-up">
-                @if(!empty(trim($cfg['mitra']['tag'] ?? '')))
-                <div class="text-center mb-4">
-                    <span class="inline-flex items-center gap-2 px-3 py-1 rounded-full text-xs font-semibold bg-[#FAF9F6] text-slate-700 border border-slate-200">
-                        <span class="w-1.5 h-1.5 rounded-full bg-[#002752]"></span>
-                        <span>{{ $cfg['mitra']['tag'] }}</span>
-                    </span>
-                </div>
-                @endif
-
+            <div class="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 mt-8 sm:mt-12 w-full relative z-10" data-animate="fade-up">
                 @php
                     $rawMitra = $cfg['mitra']['items'] ?? $cfg['mitra'] ?? [];
                     $activeMitra = collect($rawMitra)

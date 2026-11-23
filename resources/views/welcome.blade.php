@@ -1010,6 +1010,8 @@
     });
     </script>
 
+    @include('components.public-animations')
+
     @livewireScripts
 </body>
 </html>

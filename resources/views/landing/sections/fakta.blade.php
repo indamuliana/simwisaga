@@ -7,98 +7,165 @@
                 <div class="absolute inset-0 bg-[radial-gradient(#CBD5E1_1px,transparent_1px)] [background-size:28px_28px] opacity-40"></div>
             </div>
 
+            <style>
+                #fakta .fakta-card {
+                    aspect-ratio: 1 / 1 !important;
+                    width: 100%;
+                    height: auto;
+                    position: relative;
+                    border-radius: 28px;
+                    overflow: hidden;
+                    cursor: pointer;
+                    background-color: #0f172a;
+                    display: flex;
+                    flex-direction: column;
+                    justify-content: flex-end;
+                    box-shadow: 0 10px 25px -5px rgba(0, 0, 0, 0.12);
+                    transition: transform 0.4s cubic-bezier(0.16, 1, 0.3, 1), box-shadow 0.4s cubic-bezier(0.16, 1, 0.3, 1);
+                }
+
+                #fakta .fakta-card:hover {
+                    transform: translateY(-8px) !important;
+                }
+
+                #fakta .fakta-card-navy:hover {
+                    box-shadow: 0 25px 35px -8px rgba(0, 81, 158, 0.45);
+                }
+
+                #fakta .fakta-card-forest:hover {
+                    box-shadow: 0 25px 35px -8px rgba(31, 81, 63, 0.45);
+                }
+
+                #fakta .fakta-card-amber:hover {
+                    box-shadow: 0 25px 35px -8px rgba(217, 119, 6, 0.45);
+                }
+
+                #fakta .fakta-diagonal-overlay {
+                    clip-path: polygon(0 0, 36% 0, 84% 100%, 0 100%);
+                    transition: clip-path 0.55s cubic-bezier(0.25, 1, 0.5, 1);
+                    opacity: 0.98;
+                }
+
+                #fakta .fakta-card:hover .fakta-diagonal-overlay {
+                    clip-path: polygon(0 0, 100% 0, 100% 100%, 0 100%);
+                }
+
+                #fakta .fakta-card-desc {
+                    opacity: 0;
+                    max-height: 0;
+                    overflow: hidden;
+                    transform: translateY(10px);
+                    transition: opacity 0.35s ease 0.08s, max-height 0.4s cubic-bezier(0.16, 1, 0.3, 1), transform 0.35s ease 0.08s;
+                }
+
+                #fakta .fakta-card:hover .fakta-card-desc {
+                    opacity: 1;
+                    max-height: 220px;
+                    transform: translateY(0);
+                }
+
+                @media (max-width: 640px) {
+                    #fakta .fakta-diagonal-overlay {
+                        clip-path: polygon(0 0, 40% 0, 88% 100%, 0 100%);
+                    }
+                }
+            </style>
+
             <div class="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 relative z-10">
                 
+                <!-- Section Header (Tanpa Badge Sesuai Permintaan) -->
                 <div class="text-center max-w-3xl mx-auto mb-12 sm:mb-16" data-animate="fade-up">
-                    <span class="google-tag google-tag-blue shadow-xs">
-                        <span class="w-2 h-2 rounded-full bg-[#00519E]"></span>
-                        <span>Impact &amp; Key Metrics &bull; Data &amp; Fakta</span>
-                    </span>
-                    <h2 class="text-2xl sm:text-4xl md:text-5xl font-extrabold tracking-tight text-slate-900 mt-3 sm:mt-4">
-                        Capaian Nyata yang Membanggakan
+                    <h2 class="text-2xl sm:text-4xl md:text-5xl font-extrabold tracking-tight text-slate-900 mt-2">
+                        Prestasi Bukti Dedikasi
                     </h2>
-                    <p class="mt-3 sm:mt-4 text-sm sm:text-lg text-slate-600 leading-relaxed font-normal">
-                        Standar mutu dan konsistensi pendidikan vokasi kelas dunia yang diakui secara resmi di tingkat nasional dan internasional.
-                    </p>
                 </div>
 
                 @php
-                    $cardColors = [
+                    // Filter: buang kartu 100% sertifikasi, ambil 3 kartu utama
+                    $facts = collect($cfg['fast_facts'] ?? [])
+                        ->filter(fn($f) => !str_contains($f['number'] ?? '', '100%') && !str_contains($f['label'] ?? '', 'Sertifikasi'))
+                        ->take(3)
+                        ->values();
+
+                    // 3 Warna Berbeda Sesuai Palet Trinitas Wikrama (Navy, Forest Green, Amber Gold)
+                    $cardThemes = [
                         0 => [
-                            'color' => '#00519E',
-                            'bg_badge' => '#EBF4FC',
-                            'border_badge' => 'rgba(0, 81, 158, 0.25)',
+                            'name' => 'navy',
+                            'bg_gradient' => 'linear-gradient(135deg, #00519E 0%, #00366B 100%)',
                         ],
                         1 => [
-                            'color' => '#1F513F',
-                            'bg_badge' => '#E8F3EE',
-                            'border_badge' => 'rgba(31, 81, 63, 0.25)',
+                            'name' => 'forest',
+                            'bg_gradient' => 'linear-gradient(135deg, #1F513F 0%, #13382B 100%)',
                         ],
                         2 => [
-                            'color' => '#D97706',
-                            'bg_badge' => '#FEF9E7',
-                            'border_badge' => 'rgba(217, 119, 6, 0.25)',
-                        ],
-                        3 => [
-                            'color' => '#00305F',
-                            'bg_badge' => '#EBF4FC',
-                            'border_badge' => 'rgba(0, 48, 95, 0.25)',
+                            'name' => 'amber',
+                            'bg_gradient' => 'linear-gradient(135deg, #D97706 0%, #B45309 100%)',
                         ],
                     ];
                 @endphp
 
-                <!-- 4 Columns Metric Cards -->
-                <div class="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-6">
-                    @foreach($cfg['fast_facts'] ?? [] as $idx => $f)
+                <!-- 3 Columns Metric Cards (Bujur Sangkar 1:1 Permanen, Hover Full Overlay & Deskripsi) -->
+                <div class="grid grid-cols-1 md:grid-cols-3 gap-6 lg:gap-8 max-w-6xl mx-auto">
+                    @foreach($facts as $idx => $f)
                     @php
-                        $cStyle = $cardColors[$idx % 4];
+                        $theme = $cardThemes[$idx % 3];
                         $rawNum = trim($f['number'] ?? '0');
                         $hasNum = preg_match('/^(\d+)(.*)$/', $rawNum, $numMatches);
                         $countVal = $hasNum ? $numMatches[1] : null;
                         $suffixVal = $hasNum ? $numMatches[2] : '';
                     @endphp
-                    <div class="card-metric rounded-3xl overflow-hidden bg-white group flex flex-col justify-between" 
-                         style="border-top: 4px solid {{ $cStyle['color'] }};"
-                         data-animate="scale" 
-                         data-animate-delay="{{ $idx + 1 }}">
-                        <div>
-                            <!-- Photo Header with Tag Badge -->
-                            <div class="aspect-[16/10] w-full relative overflow-hidden bg-slate-100">
-                                <img src="{{ class_exists(\App\Modules\AdministrasiWeb\Models\WebSetting::class) ? \App\Modules\AdministrasiWeb\Models\WebSetting::resolveImageUrl($f['image'] ?? null, 'images/web/hero-tjkt.jpg') : asset($f['image']) }}" 
-                                     alt="{{ $f['label'] }}" 
-                                     class="w-full h-full object-cover group-hover:scale-105 transition-transform duration-700 ease-out" 
-                                     loading="lazy"
-                                     decoding="async">
-                                <span class="absolute top-3 left-3 text-[10px] font-extrabold px-3 py-1 rounded-full shadow-xs"
-                                      style="background-color: {{ $cStyle['bg_badge'] }}; color: {{ $cStyle['color'] }}; border: 1px solid {{ $cStyle['border_badge'] }};">
-                                    {{ $f['tag'] }}
-                                </span>
-                            </div>
+                    <a href="{{ url('/prestasi') }}" 
+                       class="fakta-card fakta-card-{{ $theme['name'] }} group relative block text-left" 
+                       data-animate="scale" 
+                       data-animate-delay="{{ $idx + 1 }}">
+                        
+                        <!-- Background Photo (Terlihat di Area Kanan-Atas saat Normal, Tertutup Penuh saat Hover) -->
+                        <img src="{{ class_exists(\App\Modules\AdministrasiWeb\Models\WebSetting::class) ? \App\Modules\AdministrasiWeb\Models\WebSetting::resolveImageUrl($f['image'] ?? null, 'images/web/hero-tjkt.jpg') : asset($f['image']) }}" 
+                             alt="{{ $f['label'] }}" 
+                             class="absolute inset-0 w-full h-full object-cover group-hover:scale-105 transition-transform duration-700 ease-out z-0" 
+                             loading="lazy"
+                             decoding="async">
+                        
+                        <!-- Diagonal Color Overlay (Normal: Diagonal Slice, Hover: Menutup 100% Seluruh Kartu) -->
+                        <div class="fakta-diagonal-overlay absolute inset-0 z-1 pointer-events-none" 
+                             style="background: {{ $theme['bg_gradient'] }};"
+                             aria-hidden="true"></div>
 
-                            <!-- Big Bold Hero Number & Content -->
-                            <div class="p-6 pt-5">
+                        <!-- Card Content (Bottom-Left in White) -->
+                        <div class="relative z-10 p-6 sm:p-8 flex flex-col justify-end text-left w-full h-full">
+                            <div class="mt-auto">
                                 @if($countVal !== null)
-                                    <div class="jis-counter-number text-4xl sm:text-5xl font-extrabold mb-2 tracking-tight"
-                                         style="color: {{ $cStyle['color'] }};"
+                                    <div class="jis-counter-number text-3xl sm:text-4xl lg:text-5xl font-black text-white leading-tight tracking-tight drop-shadow-sm mb-2"
                                          data-count="{{ $countVal }}"
                                          data-suffix="{{ $suffixVal }}">
                                         {{ $rawNum }}
                                     </div>
                                 @else
-                                    <div class="text-3xl sm:text-4xl font-extrabold mb-2 tracking-tight"
-                                         style="color: {{ $cStyle['color'] }};">
+                                    <div class="text-3xl sm:text-4xl lg:text-5xl font-black text-white leading-tight tracking-tight drop-shadow-sm mb-2">
                                         {{ $rawNum }}
                                     </div>
                                 @endif
-                                <h3 class="text-base font-bold mb-2 leading-snug text-slate-900 group-hover:text-[#00519E] transition-colors">
+                                
+                                <h3 class="text-base sm:text-lg lg:text-xl font-bold text-white leading-snug drop-shadow-xs">
                                     {{ $f['label'] }}
                                 </h3>
-                                <p class="text-xs sm:text-sm leading-relaxed font-normal text-slate-600">
-                                    {{ $f['desc'] }}
-                                </p>
+
+                                <!-- Deskripsi & CTA Link (Muncul Halus saat Hover Sesuai Desain Referensi Kartu Alumni) -->
+                                <div class="fakta-card-desc">
+                                    <p class="mt-3 text-xs sm:text-sm lg:text-[0.925rem] text-white/90 leading-relaxed font-normal">
+                                        {{ $f['desc'] }}
+                                    </p>
+                                    <div class="mt-4 pt-1 inline-flex items-center gap-2 text-xs font-bold text-white tracking-wider uppercase">
+                                        <span>Pelajari Lebih Lanjut</span>
+                                        <svg class="w-3 h-3 text-[#F59E0B] fill-current" viewBox="0 0 20 20">
+                                            <path d="M6 4l8 6-8 6V4z"/>
+                                        </svg>
+                                    </div>
+                                </div>
                             </div>
                         </div>
-                    </div>
+
+                    </a>
                     @endforeach
                 </div>
 

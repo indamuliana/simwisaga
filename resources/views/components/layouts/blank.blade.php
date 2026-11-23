@@ -138,6 +138,8 @@
 
     @include('landing.sections.footer')
 
+    @include('components.public-animations')
+
     @livewireScripts
 </body>
 </html>
