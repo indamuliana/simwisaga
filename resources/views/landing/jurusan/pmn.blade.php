@@ -1,1180 +1,1219 @@
 {{--
     ================================================================================
     HALAMAN DETAIL JURUSAN: PEMASARAN / BISNIS DIGITAL (PMN)
-    Gaya Desain: Vibrant E-Commerce Orange (#FD9426), Live Studio & High-Contrast Light
-    File ini dapat diedit secara manual via teks editor (VS Code, Notepad, dll).
-    URL Akses: 127.0.0.1:8000/jurusan/pmn (alias: /jurusan/pemasaran)
+    Konsep Desain: Pure-White Borderless Editorial (Setia Referensi Daily Travel)
+    Menubar & Footer: Menggunakan layout global Wikrama (<x-layouts.blank>)
+    URL Akses: /jurusan/pmn (alias: /jurusan/pemasaran)
     ================================================================================
 --}}
-<x-layouts.blank>
+<x-layouts.blank title="Pemasaran & Bisnis Digital (PMN)">
     @php
         $sekolah = $sekolah ?? \App\Modules\Sistem\Models\School::current();
         $schoolName = $sekolah->nama ?? 'SMK Wikrama 1 Garut';
+
+        $stats = [
+            ['icon' => 'award', 'label' => 'Sertifikasi BNSP & Google', 'value' => '100% Lulusan Tersertifikasi'],
+            ['icon' => 'video', 'label' => 'Fasilitas Studio Praktik', 'value' => '3 Studio Live, Ads & Retail'],
+            ['icon' => 'bag', 'label' => 'Unit Produksi TEFA', 'value' => '2 Unit Digital Mart & Agency'],
+            ['icon' => 'trending', 'label' => 'Keterserapan BMW', 'value' => '99% Kerja, Kuliah & Usaha'],
+        ];
+
+        $pillars = [
+            [
+                'icon' => 'video',
+                'title' => 'Live Streaming Studio Berstandar Creator Agency',
+                'desc' => 'Lighting profesional, soundcard multi-mic, dan kamera streaming resolusi tinggi untuk siaran komersial nyata.',
+            ],
+            [
+                'icon' => 'bar-chart',
+                'title' => 'Praktik Beriklan Riil dengan Budget Nyata',
+                'desc' => 'Membaca dashboard analitik ROAS, targeting audiens pixel Meta/TikTok Ads, dan A/B testing konten iklan.',
+            ],
+            [
+                'icon' => 'store',
+                'title' => 'Inkubasi Bisnis Mandiri & Unit TEFA',
+                'desc' => 'Merilis brand sendiri lewat Wikrama Digital Commerce & Social Ads Hub dengan izin NIB hingga penjualan online.',
+            ],
+        ];
+
+        $careers = [
+            ['icon' => 'trending', 'title' => 'Digital Marketing Specialist', 'desc' => 'Strategi Meta Ads & Google Ads, funneling penjualan, lead generation, dan conversion rate.', 'salary' => 'Rp 6–14 jt', 'meta' => 'Performance Ads', 'rating' => '4.9', 'tint' => '#EDF6FC'],
+            ['icon' => 'mic', 'title' => 'Live Streamer Host', 'desc' => 'Memandu siaran TikTok Shop & Shopee Live, presentasi produk persuasif, dan closing flash sale.', 'salary' => 'Rp 5,5–15 jt', 'meta' => 'Live Commerce', 'rating' => '4.9', 'tint' => '#F2F5FA'],
+            ['icon' => 'film', 'title' => 'Social Media Creator', 'desc' => 'Riset tren FYP, produksi video pendek reels/TikTok, storytelling, dan pertumbuhan komunitas.', 'salary' => 'Rp 5–12 jt', 'meta' => 'Creative Studio', 'rating' => '4.8', 'tint' => '#EDF6FC'],
+            ['icon' => 'cart', 'title' => 'Marketplace Manager', 'desc' => 'Kelola official store Shopee, Tokopedia & Lazada, optimasi etalase, stok, dan kepuasan pembeli.', 'salary' => 'Rp 5,5–12,5 jt', 'meta' => 'E-Commerce Ops', 'rating' => '4.8', 'tint' => '#F2F5FA'],
+            ['icon' => 'search', 'title' => 'SEO Growth Specialist', 'desc' => 'Naikkan peringkat bisnis di halaman pertama Google lewat riset keyword, SEO on-page & backlink.', 'salary' => 'Rp 6–13,5 jt', 'meta' => 'Organic Search', 'rating' => '4.8', 'tint' => '#EDF6FC'],
+            ['icon' => 'briefcase', 'title' => 'Online Brand Founder', 'desc' => 'Membangun brand retail, fashion, atau kuliner mandiri dengan tim marketing hingga pasar ekspor.', 'salary' => 'Mandiri', 'meta' => 'Technopreneur', 'rating' => '5.0', 'tint' => '#F2F5FA'],
+        ];
+
+        $curriculum = [
+            [
+                'grade' => 'Kelas X',
+                'phase' => 'Fase E • Tahun 01',
+                'title' => 'Dasar Bisnis & Personal Selling',
+                'desc' => 'Membangun karakter sales profesional, riset perilaku konsumen, dan komunikasi persuasif.',
+                'featured' => false,
+                'items' => [
+                    'Prinsip Dasar Ekonomi Bisnis & Administrasi Transaksi',
+                    'Teknik Negosiasi & Komunikasi Bisnis Efektif',
+                    'Desain Grafis Promosi Produk (Canva & Photoshop)',
+                    'Psikologi Konsumen & Copywriting Dasar',
+                    'Praktek Kasir & Pengelolaan Ritel Modern',
+                ],
+            ],
+            [
+                'grade' => 'Kelas XI',
+                'phase' => 'Fase F • Tahun 02',
+                'title' => 'E-Commerce, Ads & Live Stream',
+                'desc' => 'Penerapan strategi penjualan digital, iklan berbayar media sosial, dan penyiaran live commerce.',
+                'featured' => true,
+                'items' => [
+                    'Operasional Marketplace (Shopee, Tokopedia, TikTok Shop)',
+                    'Teknik Live Streaming Host & Penataan Studio Visual',
+                    'Iklan Berbayar Meta Ads & TikTok Ads Manager',
+                    'Optimasi Search Engine Optimization (SEO) Google',
+                    'Operasional TEFA: Wikrama Digital Commerce',
+                ],
+            ],
+            [
+                'grade' => 'Kelas XII',
+                'phase' => 'Fase F • Tahun 03',
+                'title' => 'Magang 6 Bulan & Sertifikasi BNSP',
+                'desc' => 'Penerjunan langsung di agensi pemasaran digital, sertifikasi profesi nasional, dan inkubasi usaha.',
+                'featured' => false,
+                'items' => [
+                    'PKL Industri 6 Bulan di Agensi Pemasaran / Retail',
+                    'Uji Sertifikasi BNSP Tenaga Pemasar Operasional',
+                    'Sertifikasi Google Digital Garage & Meta Associate',
+                    'Pameran Karya Bisnis & Business Pitching Final',
+                    'Penyaluran BMW (Bekerja, Melanjutkan, Wirausaha)',
+                ],
+            ],
+        ];
+
+        $studios = [
+            [
+                'id' => 0,
+                'cat' => 'live',
+                'short' => 'Live Creator Studio',
+                'name' => 'Studio Live Streaming TikTok & Shopee',
+                'desc' => 'Dilengkapi ring light, softbox 3-titik, standing mic condenser, green screen, dan smartphone flagship khusus siaran langsung e-commerce.',
+                'image' => asset('images/landing/jurusan-pmn.jpg'),
+                'alt' => 'Siswa Pemasaran praktik live streaming TikTok Shop di studio Wikrama',
+            ],
+            [
+                'id' => 1,
+                'cat' => 'ads',
+                'short' => 'Ads & SEO Lab',
+                'name' => 'Laboratorium Ads Analytics & SEO',
+                'desc' => 'Ruang praktik riset keyword Ahrefs/Semrush, setting Meta Business Manager, Google Analytics, dan optimasi toko marketplace.',
+                'image' => asset('images/web/hero-pmn.jpg'),
+                'alt' => 'Ruang kelas studio pemasaran digital SMK Wikrama 1 Garut',
+            ],
+            [
+                'id' => 2,
+                'cat' => 'ads',
+                'short' => 'Retail POS Mart',
+                'name' => 'Wikrama Retail & POS Cashier Mart',
+                'desc' => 'Mesin kasir barcode scanner, software POS terintegrasi, rak display gondola, dan sistem stock opname barang minimarket modern.',
+                'image' => asset('images/landing/ekosistem-belajar.png'),
+                'alt' => 'Suasana praktikum administrasi transaksi dan bisnis digital',
+            ],
+            [
+                'id' => 3,
+                'cat' => 'live',
+                'short' => 'Photo & Video Studio',
+                'name' => 'Studio Fotografi & Videografi Produk',
+                'desc' => 'Lightbox mini, alas putar 360 derajat, lensa makro, dan perlengkapan styling produk kuliner/fashion untuk katalog visual menarik.',
+                'image' => asset('images/landing/kelas-digital.jpg'),
+                'alt' => 'Dokumentasi prestasi dan karya kreatif siswi SMK Wikrama 1 Garut',
+            ],
+            [
+                'id' => 4,
+                'cat' => 'ops',
+                'short' => 'Fulfillment Center',
+                'name' => 'Logistik & Packing Fulfillment Center',
+                'desc' => 'Meja pengemasan pesanan, timbangan digital, printer label resi thermal, bubble wrap dispenser, dan integrasi kurir ekspedisi.',
+                'image' => asset('images/landing/suasana-belajar-aktif.jpg'),
+                'alt' => 'Ruang pengelolaan data pesanan dan operasi e-commerce siswa',
+            ],
+            [
+                'id' => 5,
+                'cat' => 'ops',
+                'short' => 'Pitching Room',
+                'name' => 'Business Presentation & Pitching Room',
+                'desc' => 'Ruang negosiasi bisnis dengan klien UMKM, presentasi proposal sponsorship kegiatan, dan pitching produk di depan dewan penguji.',
+                'image' => asset('images/landing/budaya-moving-class.jpeg'),
+                'alt' => 'Ruang diskusi dan presentasi proyek bisnis SMK Wikrama 1 Garut',
+            ],
+        ];
+
+        $certifications = [
+            [
+                'code' => 'SKKNI',
+                'icon' => 'award',
+                'title' => 'BNSP Tenaga Pemasar Operasional',
+                'issuer' => 'BNSP LSP P-1',
+                'desc' => 'Sertifikasi resmi negara untuk kompetensi penetapan harga, pengelolaan etalase, pelayanan pelanggan, dan teknik negosiasi bisnis.',
+            ],
+            [
+                'code' => 'GOOGLE',
+                'icon' => 'globe',
+                'title' => 'Google Digital Garage Certification',
+                'issuer' => 'Google Digital Skills Academy',
+                'desc' => 'Sertifikasi internasional dari Google mencakup dasar digital marketing, optimasi mesin pencari Google SEO, dan analitik data web.',
+            ],
+            [
+                'code' => 'META',
+                'icon' => 'smartphone',
+                'title' => 'Meta Certified Digital Associate',
+                'issuer' => 'Meta Blueprint Certification',
+                'desc' => 'Pengakuan kompetensi resmi ekosistem Meta dalam mengelola Instagram & Facebook bisnis, strategi konten iklan, dan ads targeting.',
+            ],
+        ];
+
+        $partners = [
+            ['name' => 'Shopee Indonesia', 'role' => 'Marketplace Terbesar'],
+            ['name' => 'TikTok Shop', 'role' => 'Live Creator Partner'],
+            ['name' => 'Alfamart (SAT)', 'role' => 'Jaringan Ritel Modern'],
+            ['name' => 'Indomaret (IDM)', 'role' => 'Ritel & Point of Sale'],
+            ['name' => 'J&T / SiCepat', 'role' => 'Logistik E-Commerce'],
+            ['name' => 'Digital Agency Jkt', 'role' => 'Performance Marketing'],
+        ];
+
+        $faqs = [
+            [
+                'q' => 'Apakah jurusan Pemasaran hanya belajar berjualan keliling?',
+                'a' => 'Sama sekali tidak. Pemasaran di Wikrama berfokus pada Bisnis Digital (Digital Marketing), optimasi iklan berbayar online (Meta & TikTok Ads), optimasi mesin pencari Google (SEO), dan siaran live streaming studio profesional.',
+            ],
+            [
+                'q' => 'Saya orangnya pemalu, apakah bisa mengikuti jurusan ini?',
+                'a' => 'Sangat bisa. Di jurusan ini ada bimbingan public speaking bertahap dari dasar, pelatihan grooming, dan olah vokal. Banyak santri yang awalnya pendiam justru bertransformasi menjadi host live shopping yang luwes dan percaya diri.',
+            ],
+            [
+                'q' => 'Apakah siswa harus mengeluarkan modal uang pribadi untuk berbisnis?',
+                'a' => 'Tidak perlu modal besar. Sekolah menyediakan produk dari unit Teaching Factory (TEFA) dan UMKM mitra sekolah untuk dipasarkan oleh siswa dengan sistem dropship dan affiliate marketing, sehingga siswa bisa menghasilkan komisi tanpa modal stok barang.',
+            ],
+            [
+                'q' => 'Apakah lulusan Pemasaran bisa melanjutkan kuliah ke Perguruan Tinggi?',
+                'a' => 'Tentu bisa. Lulusan dapat melanjutkan ke jurusan Manajemen Bisnis, Ilmu Komunikasi, Administrasi Niaga, Digital Marketing, atau Akuntansi di perguruan tinggi seperti UNPAD, UPI, Telkom University, dan Universitas Indonesia.',
+            ],
+        ];
     @endphp
 
-    <!-- ── 1. HERO SECTION: PMN DIGITAL COMMERCE & CREATOR STUDIO ── -->
-    <header class="relative pt-8 pb-16 sm:pt-12 sm:pb-20 overflow-hidden bg-gradient-to-b from-[#3d1900] via-[#2d1200] to-[#1a0900] text-white" style="background: linear-gradient(180deg, #3d1900 0%, #2d1200 50%, #1a0900 100%);">
-        <!-- Sunset Amber Ambient Orbs & Mesh -->
-        <div class="absolute inset-0 pointer-events-none z-0">
-            <div class="absolute -top-32 -right-32 w-96 h-96 rounded-full bg-[#FD9426]/25 blur-3xl"></div>
-            <div class="absolute -bottom-32 -left-32 w-96 h-96 rounded-full bg-amber-500/15 blur-3xl"></div>
-            <div class="absolute inset-0 bg-[radial-gradient(rgba(253,148,38,0.18)_1px,transparent_1px)] [background-size:24px_24px] opacity-40"></div>
-        </div>
+    <style>
+        .dt-page {
+            --dt-white: #FFFFFF;
+            --dt-navy: #0D213F;
+            --dt-navy-hi: #1A3660;
+            --dt-sky: #2EA3DD;
+            --dt-sky-wash: #E2F1FA;
+            --dt-soft: #F3F5F8;
+            --dt-ink: #111827;
+            --dt-sub: #64748B;
+            --dt-muted: #94A3B8;
+            --dt-line: #E8EDF4;
+            --dt-gold: #F5B727;
+            --dt-ease: cubic-bezier(0.22, 1, 0.36, 1);
 
-        <div class="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 relative z-10">
-            <!-- Breadcrumbs -->
-            <nav class="flex items-center gap-2 text-xs font-semibold text-amber-200/80 mb-6">
-                <a href="{{ url('/') }}" class="hover:text-white transition-colors">Beranda</a>
-                <span>&rsaquo;</span>
-                <a href="{{ url('/jurusan') }}" class="hover:text-white transition-colors">Jurusan</a>
-                <span>&rsaquo;</span>
-                <span class="text-[#FD9426]">Pemasaran &amp; Bisnis Digital (PMN)</span>
-            </nav>
+            background-color: var(--dt-white);
+            color: var(--dt-ink);
+            position: relative;
+            overflow-x: hidden;
+        }
 
-            <div class="grid grid-cols-1 lg:grid-cols-12 gap-10 items-center">
-                <!-- Text Intro -->
-                <div class="lg:col-span-7 space-y-5">
-                    <span class="inline-flex items-center gap-2 px-3.5 py-1.5 rounded-full text-xs font-bold uppercase tracking-wider bg-[#FD9426]/20 text-[#FFB07C] border border-[#FD9426]/35 backdrop-blur-md">
-                        <span class="w-2 h-2 rounded-full bg-[#FD9426] animate-pulse"></span>
-                        <span>Bisnis Digital &bull; Social Commerce &bull; Terakreditasi A</span>
-                    </span>
+        .dt-mono {
+            font-family: 'Roboto Mono', ui-monospace, SFMono-Regular, Menlo, monospace;
+            font-variant-numeric: tabular-nums;
+        }
 
-                    <h1 class="text-3xl sm:text-5xl font-extrabold tracking-tight text-white leading-tight">
-                        Pemasaran &amp; <br class="hidden sm:inline">
-                        <span class="bg-gradient-to-r from-[#FD9426] via-amber-300 to-[#FFB07C] bg-clip-text text-transparent">
-                            Bisnis Digital Kreatif
-                        </span>
-                    </h1>
+        .dt-container {
+            max-width: 1120px;
+            margin-left: auto;
+            margin-right: auto;
+            padding-left: 24px;
+            padding-right: 24px;
+        }
+        @media (min-width: 1024px) {
+            .dt-container {
+                padding-left: 32px;
+                padding-right: 32px;
+            }
+        }
 
-                    <p class="text-sm sm:text-base text-amber-100/90 leading-relaxed font-normal">
-                        Mencetak talenta digital marketing, professional live streamer, content creator, dan technopreneur handal. Santri dilatih langsung menjalankan penjualan live streaming di TikTok Shop &amp; Shopee, iklan berbayar (Meta/Google Ads), SEO, dan manajemen ritel modern.
-                    </p>
+        /* Pure-White Editorial Typography matching Daily Travel */
+        .dt-h1 {
+            font-size: 36px;
+            line-height: 1.16;
+            font-weight: 700;
+            letter-spacing: -0.02em;
+            color: #0F172A;
+        }
+        @media (min-width: 640px) {
+            .dt-h1 { font-size: 46px; }
+        }
+        @media (min-width: 1024px) {
+            .dt-h1 { font-size: 50px; }
+        }
 
-                    <!-- Skill Badges -->
-                    <div class="pt-2 flex flex-wrap gap-2 text-xs font-mono-code">
-                        <span class="px-3 py-1 rounded-lg bg-amber-950/80 text-[#FD9426] border border-amber-800">Live Streamer Host</span>
-                        <span class="px-3 py-1 rounded-lg bg-amber-950/80 text-amber-200 border border-amber-800">Meta &amp; TikTok Ads</span>
-                        <span class="px-3 py-1 rounded-lg bg-amber-950/80 text-orange-300 border border-amber-800">Google SEO Specialist</span>
-                        <span class="px-3 py-1 rounded-lg bg-amber-950/80 text-yellow-300 border border-amber-800">Content Studio Creator</span>
-                        <span class="px-3 py-1 rounded-lg bg-amber-950/80 text-rose-300 border border-amber-800">E-Commerce Management</span>
-                        <span class="px-3 py-1 rounded-lg bg-amber-950/80 text-cyan-300 border border-amber-800">AI Business Copywriting</span>
-                    </div>
+        .dt-h2 {
+            font-size: 26px;
+            line-height: 1.22;
+            font-weight: 700;
+            letter-spacing: -0.015em;
+            color: #0F172A;
+        }
+        @media (min-width: 640px) {
+            .dt-h2 { font-size: 34px; }
+        }
+        .dt-h2-thin {
+            font-weight: 400;
+            color: #334155;
+        }
 
-                    <!-- CTA Buttons -->
-                    <div class="pt-4 flex flex-wrap items-center gap-3">
-                        <a href="https://spmb.smkwikrama1garut.sch.id/" target="_blank" rel="noopener" class="px-6 py-3 rounded-full text-xs sm:text-sm font-bold text-slate-950 bg-gradient-to-r from-[#FD9426] to-amber-400 hover:from-amber-400 hover:to-amber-300 shadow-lg shadow-orange-500/25 transition-all hover:scale-105">
-                            Daftar Pemasaran Sekarang &rarr;
-                        </a>
-                        <a href="#kurikulum" class="px-5 py-3 rounded-full text-xs sm:text-sm font-bold text-amber-100 bg-white/10 hover:bg-white/15 border border-white/20 transition-all">
-                            Lihat Kurikulum &amp; Studio
-                        </a>
-                    </div>
-                </div>
+        /* Signature Compact Daily Travel Buttons */
+        .dt-btn-navy {
+            display: inline-flex;
+            align-items: center;
+            justify-content: center;
+            gap: 8px;
+            height: 42px;
+            padding: 0 22px;
+            border-radius: 6px;
+            background-color: var(--dt-navy);
+            color: #FFFFFF;
+            font-size: 13px;
+            font-weight: 600;
+            text-decoration: none;
+            cursor: pointer;
+            transition: background-color 160ms var(--dt-ease), transform 160ms var(--dt-ease);
+        }
+        .dt-btn-navy:hover {
+            background-color: var(--dt-navy-hi);
+            transform: translateY(-1px);
+        }
 
-                <!-- Live Stream & E-Commerce Studio Interactive Simulator -->
-                <div class="lg:col-span-5">
-                    <div class="rounded-2xl bg-slate-950 border border-amber-900/60 shadow-2xl overflow-hidden text-xs relative flex flex-col"
-                         style="height: 440px; min-height: 440px; max-height: 440px;">
-                        
-                        <!-- Top Bar: Live Broadcast Badge & Realtime Metrics -->
-                        <div class="px-4 py-2.5 bg-[#260e00] border-b border-amber-900/60 flex items-center justify-between shrink-0">
-                            <div class="flex items-center gap-2">
-                                <span class="relative flex h-2.5 w-2.5">
-                                    <span class="animate-ping absolute inline-flex h-full w-full rounded-full bg-red-400 opacity-75"></span>
-                                    <span class="relative inline-flex rounded-full h-2.5 w-2.5 bg-red-500"></span>
-                                </span>
-                                <span class="bg-red-600 text-white font-extrabold text-[10px] px-2 py-0.5 rounded uppercase tracking-wider">LIVE ON AIR</span>
-                                <span class="text-[11px] text-amber-200 font-bold truncate">Wikrama Creator Studio</span>
-                            </div>
-                            <div class="flex items-center gap-3 text-[11px] font-mono">
-                                <span class="text-amber-400 font-bold flex items-center gap-1">
-                                    <span>👁️</span> <span id="pmn-live-viewers">4,820</span>
-                                </span>
-                                <span class="text-rose-400 font-bold flex items-center gap-1">
-                                    <span>❤️</span> <span id="pmn-live-likes">28.4K</span>
-                                </span>
-                            </div>
-                        </div>
+        .dt-btn-ghost {
+            display: inline-flex;
+            align-items: center;
+            justify-content: center;
+            gap: 8px;
+            height: 42px;
+            padding: 0 18px;
+            border-radius: 6px;
+            background-color: var(--dt-soft);
+            color: var(--dt-navy);
+            font-size: 13px;
+            font-weight: 600;
+            text-decoration: none;
+            cursor: pointer;
+            transition: background-color 160ms var(--dt-ease);
+        }
+        .dt-btn-ghost:hover {
+            background-color: #E5EBF3;
+        }
 
-                        <!-- Main Studio Stage Area with Canvas Overlay -->
-                        <div class="relative flex-1 bg-gradient-to-b from-[#1a0800] via-[#120500] to-slate-950 p-4 flex flex-col justify-between overflow-hidden">
-                            <!-- Floating Hearts Canvas -->
-                            <canvas id="pmn-hearts-canvas" class="absolute inset-0 pointer-events-none z-10 w-full h-full"></canvas>
+        /* Hero Dashed Sky-Blue Circle Medallion + Soft Watercolor Cloud Wash */
+        .dt-hero-circle-wrap {
+            position: relative;
+            display: flex;
+            flex-direction: column;
+            align-items: center;
+            justify-content: center;
+            padding: 16px 0;
+        }
+        .dt-hero-wash {
+            position: absolute;
+            width: 390px;
+            height: 390px;
+            border-radius: 9999px;
+            background: radial-gradient(circle at 50% 48%, rgba(125, 204, 242, 0.34) 0%, rgba(196, 232, 249, 0.22) 48%, rgba(255, 255, 255, 0) 74%);
+            pointer-events: none;
+            z-index: 0;
+        }
+        .dt-hero-ring {
+            position: relative;
+            z-index: 2;
+            width: 300px;
+            height: 300px;
+            border-radius: 9999px;
+            border: 2px dashed var(--dt-sky);
+            padding: 14px;
+            background-color: rgba(255, 255, 255, 0.45);
+        }
+        @media (min-width: 640px) {
+            .dt-hero-ring {
+                width: 360px;
+                height: 360px;
+                padding: 16px;
+            }
+        }
+        .dt-hero-photo {
+            width: 100%;
+            height: 100%;
+            border-radius: 9999px;
+            overflow: hidden;
+            box-shadow: 0 20px 44px rgba(13, 33, 63, 0.14);
+        }
 
-                            <!-- Top: In-Stream Toast (Order Alert / Promo) -->
-                            <div class="z-20 h-6">
-                                <div id="pmn-order-toast" class="transform transition-all duration-300 opacity-0 -translate-y-2">
-                                    <div class="inline-flex items-center gap-2 px-3 py-1 rounded-full bg-amber-500/20 border border-amber-500/40 backdrop-blur-md text-[10px] text-amber-200 font-medium shadow-lg">
-                                        <span class="text-emerald-400">⚡</span>
-                                        <span id="pmn-order-toast-text">@dina_99 baru saja checkout Keripik Tempe!</span>
-                                    </div>
-                                </div>
-                            </div>
+        /* Real Organic Painterly Brush-Stroke Photo Mask (Exact Signature from Reference!) */
+        .dt-brush-photo {
+            width: 100%;
+            aspect-ratio: 16 / 11;
+            overflow: hidden;
+            -webkit-mask-image: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 600 420' preserveAspectRatio='none'%3E%3Cpath d='M52,36 C128,12 245,8 370,16 C458,22 528,16 566,42 C586,56 544,82 574,108 C602,132 588,168 564,196 C546,216 594,244 584,280 C574,316 542,326 558,354 C570,376 502,396 426,404 C324,414 196,406 108,394 C52,386 14,368 30,338 C46,308 8,284 18,248 C28,214 58,202 24,172 C-4,148 16,112 42,92 C62,76 18,48 52,36 Z' fill='black'/%3E%3C/svg%3E");
+            mask-image: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 600 420' preserveAspectRatio='none'%3E%3Cpath d='M52,36 C128,12 245,8 370,16 C458,22 528,16 566,42 C586,56 544,82 574,108 C602,132 588,168 564,196 C546,216 594,244 584,280 C574,316 542,326 558,354 C570,376 502,396 426,404 C324,414 196,406 108,394 C52,386 14,368 30,338 C46,308 8,284 18,248 C28,214 58,202 24,172 C-4,148 16,112 42,92 C62,76 18,48 52,36 Z' fill='black'/%3E%3C/svg%3E");
+            -webkit-mask-size: 100% 100%;
+            mask-size: 100% 100%;
+            -webkit-mask-repeat: no-repeat;
+            mask-repeat: no-repeat;
+        }
+        .dt-brush-photo img {
+            width: 100%;
+            height: 100%;
+            object-fit: cover;
+            transition: transform 500ms var(--dt-ease);
+        }
+        .dt-brush-photo:hover img {
+            transform: scale(1.03);
+        }
 
-                            <!-- Middle: Pinned Product Showcase Banner (Cycles Products) -->
-                            <div class="z-20 my-auto">
-                                <div class="p-3 rounded-xl bg-amber-950/70 border border-amber-600/40 backdrop-blur-md flex items-center gap-3 shadow-xl transition-all duration-300" id="pmn-pinned-card">
-                                    <div class="w-12 h-12 rounded-lg bg-gradient-to-br from-[#FD9426] to-amber-600 text-white font-bold flex items-center justify-center text-xl shrink-0 shadow-md" id="pmn-product-icon">
-                                        🛍️
-                                    </div>
-                                    <div class="min-w-0 flex-1">
-                                        <div class="flex items-center gap-1.5">
-                                            <span class="px-1.5 py-0.2 rounded text-[9px] font-bold bg-[#FD9426] text-slate-950 uppercase" id="pmn-product-pin-label">Pin #1</span>
-                                            <span class="text-[10px] text-amber-300 font-medium">TEFA Unggulan</span>
-                                        </div>
-                                        <h4 class="text-xs font-bold text-white truncate mt-0.5" id="pmn-product-title">Keripik Tempe Super Renyah Garut</h4>
-                                        <div class="flex items-center gap-2 mt-0.5">
-                                            <span class="text-xs font-extrabold text-[#FD9426]" id="pmn-product-price">Rp 25.000</span>
-                                            <span class="text-[10px] line-through text-slate-400" id="pmn-product-original">Rp 35.000</span>
-                                            <span class="text-[9px] text-emerald-400 font-bold bg-emerald-950/80 px-1 rounded" id="pmn-product-discount">-28%</span>
-                                        </div>
-                                    </div>
-                                    <button type="button" class="px-3 py-1.5 bg-gradient-to-r from-[#FD9426] to-amber-400 text-slate-950 font-extrabold text-[10px] rounded-lg shrink-0 hover:scale-105 active:scale-95 transition-transform shadow-md">
-                                        Beli Sekarang
-                                    </button>
-                                </div>
-                            </div>
+        /* Borderless Spec Underline Field (matching "Location / Date / Price") */
+        .dt-spec-field {
+            padding-bottom: 14px;
+            border-bottom: 1px solid var(--dt-line);
+        }
 
-                            <!-- Bottom: Live Stream Chat Stream & Interaction Bar -->
-                            <div class="z-20 space-y-2 mt-auto">
-                                <!-- Chat Box with Top Fade Overlay -->
-                                <div class="relative">
-                                    <div class="absolute -top-3 left-0 right-0 h-3 bg-gradient-to-b from-[#120500] to-transparent pointer-events-none z-10"></div>
-                                    <div id="pmn-chat-stream" class="space-y-1.5 text-[11px] font-mono-code max-h-24 overflow-hidden flex flex-col justify-end">
-                                        <!-- Messages injected dynamically via JS -->
-                                    </div>
-                                </div>
+        /* Dark Navy Search / Filter Pill Bar (matching "Search Destination") */
+        .dt-navy-bar {
+            display: inline-flex;
+            flex-wrap: wrap;
+            align-items: center;
+            justify-content: center;
+            gap: 4px;
+            padding: 5px 6px;
+            border-radius: 9999px;
+            background-color: var(--dt-navy);
+            box-shadow: 0 10px 26px rgba(13, 33, 63, 0.16);
+        }
+        .dt-navy-tab {
+            padding: 7px 16px;
+            border-radius: 9999px;
+            font-size: 12px;
+            font-weight: 500;
+            color: rgba(255, 255, 255, 0.78);
+            cursor: pointer;
+            transition: background-color 160ms var(--dt-ease), color 160ms var(--dt-ease);
+        }
+        .dt-navy-tab:hover {
+            color: #FFFFFF;
+        }
+        .dt-navy-tab.is-active {
+            background-color: #FFFFFF;
+            color: var(--dt-navy);
+            font-weight: 600;
+        }
 
-                                <!-- Action Simulation Bar -->
-                                <div class="pt-2 border-t border-amber-900/50 flex items-center justify-between gap-2">
-                                    <div class="flex-1 px-3 py-1.5 rounded-full bg-slate-900/80 border border-amber-900/60 text-slate-400 text-[10px] flex items-center justify-between">
-                                        <span>Ketik komentar penonton...</span>
-                                        <span class="text-amber-500">💬</span>
-                                    </div>
-                                    <button id="pmn-like-btn" type="button" title="Kirim Love (Tap untuk Like)" class="w-8 h-8 rounded-full bg-rose-600/30 border border-rose-500/50 flex items-center justify-center text-sm hover:scale-110 active:scale-90 transition-transform text-rose-400 hover:bg-rose-600 hover:text-white shrink-0">
-                                        ❤️
-                                    </button>
-                                </div>
-                            </div>
-                        </div>
+        /* Signature 4-Card Tilted Full-Bleed Photo Fan (matching "Find Your Best Destination") */
+        .dt-fan-grid {
+            display: grid;
+            grid-template-columns: repeat(2, minmax(0, 1fr));
+            gap: 16px;
+        }
+        @media (min-width: 1024px) {
+            .dt-fan-grid {
+                grid-template-columns: repeat(4, minmax(0, 1fr));
+                gap: 20px;
+                padding: 18px 8px;
+            }
+        }
+        .dt-fan-tile {
+            position: relative;
+            aspect-ratio: 1 / 1;
+            border-radius: 22px;
+            overflow: hidden;
+            box-shadow: 0 18px 36px rgba(13, 33, 63, 0.16);
+            cursor: pointer;
+            text-align: left;
+            border: 3px solid #FFFFFF;
+            transition: transform 280ms var(--dt-ease), box-shadow 280ms var(--dt-ease);
+        }
+        @media (min-width: 1024px) {
+            .dt-fan-tile.fan-0 { transform: rotate(-5.5deg) translateY(8px); }
+            .dt-fan-tile.fan-1 { transform: rotate(-1.8deg) translateY(0px); }
+            .dt-fan-tile.fan-2 { transform: rotate(2deg) translateY(2px); }
+            .dt-fan-tile.fan-3 { transform: rotate(5.5deg) translateY(10px); }
+            .dt-fan-tile:hover,
+            .dt-fan-tile.is-picked {
+                transform: rotate(0deg) translateY(-8px) scale(1.02);
+                box-shadow: 0 26px 48px rgba(13, 33, 63, 0.24);
+                z-index: 10;
+            }
+        }
+        .dt-fan-tile img {
+            width: 100%;
+            height: 100%;
+            object-fit: cover;
+        }
+        .dt-fan-scrim {
+            position: absolute;
+            inset: 0;
+            background: linear-gradient(180deg, rgba(13, 33, 63, 0) 40%, rgba(13, 33, 63, 0.84) 100%);
+            pointer-events: none;
+        }
+        .dt-fan-label {
+            position: absolute;
+            left: 16px;
+            right: 16px;
+            bottom: 16px;
+            z-index: 5;
+            color: #FFFFFF;
+        }
 
-                        <!-- Footer: Verification & Monthly Volume -->
-                        <div class="px-4 py-2 bg-[#200b00] border-t border-amber-900/60 flex items-center justify-between text-[10px] text-amber-300 font-medium shrink-0">
-                            <span class="flex items-center gap-1.5">
-                                <span class="w-1.5 h-1.5 rounded-full bg-emerald-400 animate-pulse"></span>
-                                TikTok Shop &amp; Shopee Certified
-                            </span>
-                            <span class="text-emerald-400 font-bold font-mono">Omzet TEFA: Rp 12.8M+</span>
-                        </div>
-                    </div>
-                </div>
-            </div>
-        </div>
-    </header>
+        /* Borderless Editorial Career Item (matching "Best Vacation Plan") */
+        .dt-plan-thumb {
+            height: 126px;
+            border-radius: 16px;
+            display: flex;
+            flex-direction: column;
+            align-items: center;
+            justify-content: center;
+            gap: 8px;
+            transition: transform 220ms var(--dt-ease);
+        }
+        .dt-plan-item:hover .dt-plan-thumb {
+            transform: translateY(-3px);
+        }
 
-    <!-- ── 2. STATS & KEY PILLARS STRIP ── -->
-    <section class="py-12 bg-amber-50/80 border-y border-amber-200">
-        <div class="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
-            <div class="grid grid-cols-2 md:grid-cols-4 gap-6 text-center">
-                <div class="p-5 rounded-2xl bg-white border border-amber-200 shadow-sm">
-                    <span class="block text-3xl font-extrabold text-[#C2410C]">100%</span>
-                    <span class="text-xs font-semibold text-slate-700 uppercase tracking-wider mt-1 block">Sertifikasi BNSP &amp; Google</span>
-                </div>
-                <div class="p-5 rounded-2xl bg-white border border-amber-200 shadow-sm">
-                    <span class="block text-3xl font-extrabold text-[#C2410C]">3 Studio</span>
-                    <span class="text-xs font-semibold text-slate-700 uppercase tracking-wider mt-1 block">Live Stream, Ads Lab &amp; Retail</span>
-                </div>
-                <div class="p-5 rounded-2xl bg-white border border-amber-200 shadow-sm">
-                    <span class="block text-3xl font-extrabold text-[#C2410C]">2 Unit</span>
-                    <span class="text-xs font-semibold text-slate-700 uppercase tracking-wider mt-1 block">TEFA Digital Mart &amp; Agency</span>
-                </div>
-                <div class="p-5 rounded-2xl bg-white border border-amber-200 shadow-sm">
-                    <span class="block text-3xl font-extrabold text-[#C2410C]">99%</span>
-                    <span class="text-xs font-semibold text-slate-700 uppercase tracking-wider mt-1 block">Keterserapan BMW</span>
-                </div>
-            </div>
-        </div>
-    </section>
+        /* Borderless 3-Column Curriculum Dividers */
+        .dt-curr-grid {
+            display: grid;
+            grid-template-columns: 1fr;
+            gap: 36px;
+        }
+        @media (min-width: 1024px) {
+            .dt-curr-grid {
+                grid-template-columns: repeat(3, minmax(0, 1fr));
+                gap: 0;
+            }
+            .dt-curr-col {
+                padding: 0 28px;
+                border-right: 1px solid var(--dt-line);
+            }
+            .dt-curr-col:first-child { padding-left: 0; }
+            .dt-curr-col:last-child { padding-right: 0; border-right: none; }
+        }
 
-    <!-- ── 3. PENJELASAN & PROFIL JURUSAN (DARK COMMERCE & GROWTH FUNNEL BACKDROP) ── -->
-    <section class="py-24 bg-[#140600] text-white relative overflow-hidden" style="background-color: #140600;">
-        <!-- Glowing Financial Growth & Global Commerce Pulse Canvas -->
-        <canvas id="pmn-growth-canvas" class="absolute inset-0 w-full h-full pointer-events-auto z-0 opacity-80 sm:opacity-90"></canvas>
+        /* Full-Bleed Right Split CTA Banner (matching "We Make World Travel Easy") */
+        .dt-split-cta {
+            display: grid;
+            grid-template-columns: 1fr;
+            border-top: 1px solid var(--dt-line);
+        }
+        @media (min-width: 1024px) {
+            .dt-split-cta {
+                grid-template-columns: 1fr 1.15fr;
+                min-height: 410px;
+            }
+        }
+        .dt-split-cta-right {
+            background: linear-gradient(180deg, #DDF0FA 0%, #CEE7F5 100%);
+            display: flex;
+            align-items: flex-end;
+            justify-content: center;
+            padding: 40px 24px 0 24px;
+            overflow: hidden;
+            position: relative;
+        }
+        .dt-phone-big {
+            width: 100%;
+            max-width: 310px;
+            background-color: #0F172A;
+            border-radius: 34px 34px 0 0;
+            padding: 12px 12px 0 12px;
+            box-shadow: 0 -10px 40px rgba(13, 33, 63, 0.18);
+        }
+        .dt-phone-inner {
+            border-radius: 24px 24px 0 0;
+            overflow: hidden;
+            background-color: #FFFFFF;
+        }
 
-        <!-- Multi-layer Darkening Overlays for Contrast & Text Readability -->
-        <div class="absolute inset-0 pointer-events-none z-1" style="background-color: rgba(20, 6, 0, 0.45);"></div>
-        <div class="absolute inset-0 pointer-events-none z-1" style="background: linear-gradient(to right, rgba(20, 6, 0, 0.90) 0%, rgba(20, 6, 0, 0.70) 45%, rgba(20, 6, 0, 0.25) 100%);"></div>
-        <div class="absolute inset-0 pointer-events-none z-1" style="background: radial-gradient(ellipse at center, transparent 35%, rgba(20, 6, 0, 0.85) 100%);"></div>
+        /* Demo Modal */
+        .dt-modal-backdrop {
+            position: fixed;
+            inset: 0;
+            z-index: 95;
+            background-color: rgba(13, 33, 63, 0.58);
+            backdrop-filter: blur(6px);
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            padding: 20px;
+        }
+        .dt-modal-panel {
+            width: 100%;
+            max-width: 460px;
+            background-color: #FFFFFF;
+            border-radius: 20px;
+            overflow: hidden;
+            box-shadow: 0 28px 70px rgba(13, 33, 63, 0.28);
+        }
 
-        <div class="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 relative z-10">
-            <div class="grid grid-cols-1 lg:grid-cols-12 gap-8 lg:gap-12 items-center">
-                <!-- Left: Modular Glassmorphic Text Column -->
-                <div class="lg:col-span-6 space-y-6">
-                    <!-- Text Card with Warm Frosted Glass Style -->
-                    <div class="p-6 sm:p-8 rounded-2xl bg-amber-950/40 backdrop-blur-sm border border-amber-800/50 hover:border-amber-600/50 transition-colors space-y-5">
-                        <div class="inline-flex items-center gap-2 px-3.5 py-1.5 rounded-full text-xs font-bold text-amber-300 bg-amber-950/80 border border-amber-700/60 shadow-sm backdrop-blur-sm">
-                            <span class="w-2 h-2 rounded-full bg-amber-400 animate-pulse"></span>
-                            <span>Tentang Kompetensi Keahlian</span>
-                        </div>
+        .dt-faq-item {
+            border-bottom: 1px solid var(--dt-line);
+        }
+        .dt-faq-chevron {
+            transition: transform 200ms var(--dt-ease);
+        }
+        .dt-faq-chevron.is-open {
+            transform: rotate(180deg);
+        }
+    </style>
 
-                        <h2 class="text-2xl sm:text-4xl font-extrabold text-white tracking-tight leading-tight" style="text-shadow: 0 2px 14px rgba(0, 0, 0, 0.95), 0 0 20px rgba(0, 0, 0, 0.9);">
-                            Mengapa Memilih Jurusan <br>
-                            <span class="text-[#FD9426] font-extrabold inline-block" style="color: #FD9426; text-shadow: 0 0 22px rgba(253, 148, 38, 0.65), 0 2px 6px rgba(0, 0, 0, 0.9);">Pemasaran Wikrama Garut?</span>
-                        </h2>
+    <div class="dt-page" x-data="{ demoOpen: false }" @keydown.escape.window="demoOpen = false">
+        <!-- ═══════════════════════════════════════════════════════════════════════
+             SECTION 1: HERO — ULTRA-CLEAN PURE WHITE + DASHED SKY CIRCLE MEDALLION
+             (EXACT HOMAGE TO "Travel Memories You'll Never Forget")
+             ═══════════════════════════════════════════════════════════════════════ -->
+        <header class="pt-10 pb-16 lg:pt-16 lg:pb-24 bg-white relative">
+            <!-- Ultra-faint Decorative Editorial Watermark Accent (Top-Left) -->
+            <svg class="absolute top-6 left-0 w-40 h-40 pointer-events-none select-none" style="opacity: 0.045;" viewBox="0 0 200 200" fill="none" aria-hidden="true">
+                <circle cx="40" cy="80" r="72" stroke="#0D213F" stroke-width="1.5" stroke-dasharray="6 6"/>
+                <path d="M12 128 C60 88, 112 108, 174 52" stroke="#0D213F" stroke-width="1.5"/>
+            </svg>
 
-                        <div class="space-y-3.5" style="text-shadow: 0 2px 8px rgba(0, 0, 0, 0.95), 0 0 3px rgba(0, 0, 0, 0.9);">
-                            <p class="text-white/95 leading-relaxed text-sm sm:text-base">
-                                Jurusan Pemasaran (Bisnis Digital) di {{ $schoolName }} mendobrak paradigma lama ilmu dagang konvensional. Siswa diajarkan menjadi <strong class="text-white font-bold">digital growth marketer, live shopping creator, dan technopreneur</strong> yang mampu mendulang omzet sejak bangku sekolah.
-                            </p>
-                            <p class="text-amber-100/90 leading-relaxed text-sm sm:text-base">
-                                Santri mempraktikkan langsung strategi <em class="text-amber-300 font-medium not-italic">social commerce, paid traffic (Meta Ads &amp; TikTok Ads), optimasi mesin pencari Google (SEO), product visual copywriting</em>, serta pengelolaan point-of-sale ritel minimarket modern.
-                            </p>
-                        </div>
-                    </div>
+            <div class="dt-container relative z-10">
+                <nav aria-label="Breadcrumb" class="flex items-center gap-2 text-xs mb-10" style="color: #94A3B8;">
+                    <a href="{{ url('/') }}" class="hover:text-slate-900 transition-colors">Beranda</a>
+                    <span>/</span>
+                    <a href="{{ url('/jurusan') }}" class="hover:text-slate-900 transition-colors">Jurusan</a>
+                    <span>/</span>
+                    <span style="color: #0D213F; font-weight: 600;">Pemasaran (PMN)</span>
+                </nav>
 
-                    <!-- 3 Feature Boxes with matching dark glass -->
-                    <div class="space-y-3">
-                        <div class="flex items-start gap-3.5 p-4 rounded-2xl bg-amber-950/40 backdrop-blur-sm border border-amber-800/50 hover:border-amber-600/60 hover:bg-amber-900/40 transition-colors">
-                            <span class="p-2 rounded-xl bg-amber-500/20 text-[#FD9426] border border-amber-500/30 flex-shrink-0">
-                                <svg class="w-4 h-4" fill="none" stroke="currentColor" stroke-width="2.5" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" d="M5 13l4 4L19 7"/></svg>
-                            </span>
-                            <div>
-                                <h4 class="text-sm font-bold text-white">Live Streaming Studio Berstandar Creator Agency</h4>
-                                <p class="text-xs text-amber-200/80 leading-relaxed mt-0.5">Dilengkapi lighting profesional, soundcard multi-mic, dan kamera streaming beresolusi tinggi untuk praktik siaran komersial nyata.</p>
-                            </div>
-                        </div>
+                <div class="grid grid-cols-1 lg:grid-cols-12 gap-12 items-center">
+                    <!-- Left: Pure Clean Headline, Short Copy & 2 Compact Buttons -->
+                    <div class="lg:col-span-6">
+                        <h1 class="dt-h1">
+                            Pemasaran &amp; Bisnis<br>Digital Kreatif
+                        </h1>
 
-                        <div class="flex items-start gap-3.5 p-4 rounded-2xl bg-amber-950/40 backdrop-blur-sm border border-amber-800/50 hover:border-amber-600/60 hover:bg-amber-900/40 transition-colors">
-                            <span class="p-2 rounded-xl bg-amber-500/20 text-[#FD9426] border border-amber-500/30 flex-shrink-0">
-                                <svg class="w-4 h-4" fill="none" stroke="currentColor" stroke-width="2.5" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" d="M5 13l4 4L19 7"/></svg>
-                            </span>
-                            <div>
-                                <h4 class="text-sm font-bold text-white">Praktik Beriklan Riil dengan Budget Nyata</h4>
-                                <p class="text-xs text-amber-200/80 leading-relaxed mt-0.5">Siswa belajar membaca dashboard analitik ROAS (Return on Ad Spend), targeting audiens pixel, dan A/B testing konten iklan.</p>
-                            </div>
-                        </div>
-
-                        <div class="flex items-start gap-3.5 p-4 rounded-2xl bg-amber-950/40 backdrop-blur-sm border border-amber-800/50 hover:border-amber-600/60 hover:bg-amber-900/40 transition-colors">
-                            <span class="p-2 rounded-xl bg-amber-500/20 text-[#FD9426] border border-amber-500/30 flex-shrink-0">
-                                <svg class="w-4 h-4" fill="none" stroke="currentColor" stroke-width="2.5" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" d="M5 13l4 4L19 7"/></svg>
-                            </span>
-                            <div>
-                                <h4 class="text-sm font-bold text-white">Inkubasi Bisnis Mandiri Penghasil Omzet</h4>
-                                <p class="text-xs text-amber-200/80 leading-relaxed mt-0.5">Santri dibimbing merilis brand produk sendiri, mengurus izin usaha NIB, dan menjual produk ke ribuan pembeli online.</p>
-                            </div>
-                        </div>
-                    </div>
-                </div>
-
-                <!-- Right: Visual Collage Showcase -->
-                <div class="lg:col-span-6 grid grid-cols-2 gap-4">
-                    <div class="space-y-4">
-                        <div class="rounded-2xl overflow-hidden shadow-xl border border-amber-500/30 bg-slate-900/60">
-                            <img src="{{ asset('images/landing/jurusan-pmn.jpg') }}" alt="Studio Live Streaming PMN Wikrama" class="w-full h-48 sm:h-56 object-cover hover:scale-105 transition-all duration-300" loading="lazy" decoding="async">
-                        </div>
-                        <div class="p-5 rounded-2xl bg-slate-950/90 backdrop-blur-md border border-amber-500/30 text-white space-y-2 shadow-lg">
-                            <span class="text-[#FD9426] text-xs font-bold uppercase tracking-wider">Unit Produksi TEFA</span>
-                            <h4 class="text-base font-extrabold text-white">Wikrama Digital Commerce</h4>
-                            <p class="text-xs text-amber-200/80 leading-relaxed">Agensi live commerce yang mengelola etalase produk UMKM lokal Garut dan produk kreasi santri.</p>
-                        </div>
-                    </div>
-                    <div class="space-y-4 pt-6">
-                        <div class="p-5 rounded-2xl bg-gradient-to-br from-[#FD9426] to-amber-700 text-white space-y-2 shadow-xl shadow-orange-500/20">
-                            <span class="text-amber-100 text-xs font-bold uppercase tracking-wider">Spesialisasi Modern</span>
-                            <h4 class="text-base font-extrabold text-white">Social Ads &amp; Creator Hub</h4>
-                            <p class="text-xs text-amber-100 leading-relaxed">Laboratorium riset audiens digital marketing, kampanye influencer, dan optimasi SEO Google.</p>
-                        </div>
-                        <div class="rounded-2xl overflow-hidden shadow-xl border border-amber-500/30 bg-slate-900/60">
-                            <img src="{{ asset('images/landing/kelas-digital.jpg') }}" alt="Suasana Praktik Siswa Pemasaran" class="w-full h-48 sm:h-56 object-cover hover:scale-105 transition-all duration-300" loading="lazy" decoding="async">
-                        </div>
-                    </div>
-                </div>
-            </div>
-        </div>
-    </section>
-
-    <!-- ── 4. PROSPEK KARIR & PELUANG PEKERJAAN ── -->
-    <section class="py-20 bg-slate-900 text-white relative overflow-hidden" id="karir">
-        <div class="absolute -top-32 -left-32 w-80 h-80 rounded-full bg-[#FD9426]/15 blur-3xl"></div>
-        <div class="absolute -bottom-32 -right-32 w-80 h-80 rounded-full bg-amber-500/15 blur-3xl"></div>
-
-        <div class="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 relative z-10">
-            <div class="text-center max-w-3xl mx-auto mb-16">
-                <span class="inline-flex items-center gap-2 px-3 py-1 rounded-full text-xs font-bold text-amber-300 bg-amber-950/80 border border-amber-800">
-                    <span>Peluang Karir Global</span>
-                </span>
-                <h2 class="text-2xl sm:text-4xl font-extrabold text-white mt-3">
-                    Prospek Karir Lulusan <span class="bg-gradient-to-r from-[#FD9426] to-amber-300 bg-clip-text text-transparent">Pemasaran</span>
-                </h2>
-                <p class="text-slate-300 text-sm sm:text-base mt-3">
-                    Era digitalisasi bisnis membuka ribuan lapangan kerja baru untuk spesialis e-commerce, live host, dan media buyer di berbagai brand ternama.
-                </p>
-            </div>
-
-            <div class="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
-                <!-- 1. Digital Marketing Specialist -->
-                <div class="p-6 rounded-2xl bg-slate-800/80 border border-amber-500/20 hover:border-amber-500/60 hover:bg-slate-800 transition-all duration-300 group">
-                    <div class="w-12 h-12 rounded-xl bg-amber-500/20 text-[#FD9426] flex items-center justify-center font-bold text-xl mb-4 group-hover:scale-110 transition-transform">
-                        📈
-                    </div>
-                    <h3 class="text-lg font-bold text-white mb-2">Digital Marketing Specialist</h3>
-                    <p class="text-xs text-slate-300 leading-relaxed mb-4">
-                        Merancang strategi kampanye promosi berbayar Meta Ads &amp; Google Ads, funneling penjualan, lead generation, dan optimasi conversion rate.
-                    </p>
-                    <div class="text-xs font-semibold text-amber-300">
-                        <span>Range Gaji: Rp 6.000.000 - Rp 14.000.000</span>
-                    </div>
-                </div>
-
-                <!-- 2. Professional Live Streamer Host -->
-                <div class="p-6 rounded-2xl bg-slate-800/80 border border-orange-500/20 hover:border-orange-500/60 hover:bg-slate-800 transition-all duration-300 group">
-                    <div class="w-12 h-12 rounded-xl bg-orange-500/20 text-[#FFB07C] flex items-center justify-center font-bold text-xl mb-4 group-hover:scale-110 transition-transform">
-                        🎙️
-                    </div>
-                    <h3 class="text-lg font-bold text-white mb-2">Professional Live Streamer Host</h3>
-                    <p class="text-xs text-slate-300 leading-relaxed mb-4">
-                        Memandu siaran langsung interaktif di TikTok Shop dan Shopee Live, presentasi produk persuasif, handling promo flash sale, dan closing penjualan.
-                    </p>
-                    <div class="text-xs font-semibold text-orange-300">
-                        <span>Range Gaji: Rp 5.500.000 - Rp 15.000.000+</span>
-                    </div>
-                </div>
-
-                <!-- 3. Social Media Content Creator -->
-                <div class="p-6 rounded-2xl bg-slate-800/80 border border-rose-500/20 hover:border-rose-500/60 hover:bg-slate-800 transition-all duration-300 group">
-                    <div class="w-12 h-12 rounded-xl bg-rose-500/20 text-rose-300 flex items-center justify-center font-bold text-xl mb-4 group-hover:scale-110 transition-transform">
-                        🎬
-                    </div>
-                    <h3 class="text-lg font-bold text-white mb-2">Social Media Content Creator</h3>
-                    <p class="text-xs text-slate-300 leading-relaxed mb-4">
-                        Riset tren viral FYP, produksi video pendek reels/TikTok bernilai jual tinggi, penulisan script storytelling, dan interaksi komunitas followers.
-                    </p>
-                    <div class="text-xs font-semibold text-rose-300">
-                        <span>Range Gaji: Rp 5.000.000 - Rp 12.000.000</span>
-                    </div>
-                </div>
-
-                <!-- 4. E-Commerce Marketplace Specialist -->
-                <div class="p-6 rounded-2xl bg-slate-800/80 border border-yellow-500/20 hover:border-yellow-500/60 hover:bg-slate-800 transition-all duration-300 group">
-                    <div class="w-12 h-12 rounded-xl bg-yellow-500/20 text-yellow-300 flex items-center justify-center font-bold text-xl mb-4 group-hover:scale-110 transition-transform">
-                        🛒
-                    </div>
-                    <h3 class="text-lg font-bold text-white mb-2">Marketplace Operations Manager</h3>
-                    <p class="text-xs text-slate-300 leading-relaxed mb-4">
-                        Mengelola official store Shopee, Tokopedia, dan Lazada, optimasi judul produk, dekorasi toko online, pengelolaan stok inventaris, dan kepuasan pelanggan.
-                    </p>
-                    <div class="text-xs font-semibold text-yellow-300">
-                        <span>Range Gaji: Rp 5.500.000 - Rp 12.500.000</span>
-                    </div>
-                </div>
-
-                <!-- 5. Search Engine Optimization (SEO) Specialist -->
-                <div class="p-6 rounded-2xl bg-slate-800/80 border border-cyan-500/20 hover:border-cyan-500/60 hover:bg-slate-800 transition-all duration-300 group">
-                    <div class="w-12 h-12 rounded-xl bg-cyan-500/20 text-cyan-300 flex items-center justify-center font-bold text-xl mb-4 group-hover:scale-110 transition-transform">
-                        🔍
-                    </div>
-                    <h3 class="text-lg font-bold text-white mb-2">SEO &amp; Inbound Growth Specialist</h3>
-                    <p class="text-xs text-slate-300 leading-relaxed mb-4">
-                        Menaikkan peringkat website bisnis di halaman pertama pencarian Google secara organik melalui riset keyword, optimasi on-page/off-page, dan backlink.
-                    </p>
-                    <div class="text-xs font-semibold text-cyan-300">
-                        <span>Range Gaji: Rp 6.000.000 - Rp 13.500.000</span>
-                    </div>
-                </div>
-
-                <!-- 6. Online Brand Technopreneur -->
-                <div class="p-6 rounded-2xl bg-slate-800/80 border border-emerald-500/20 hover:border-emerald-500/60 hover:bg-slate-800 transition-all duration-300 group">
-                    <div class="w-12 h-12 rounded-xl bg-emerald-500/20 text-emerald-300 flex items-center justify-center font-bold text-xl mb-4 group-hover:scale-110 transition-transform">
-                        💼
-                    </div>
-                    <h3 class="text-lg font-bold text-white mb-2">Online Brand Owner &amp; Founder</h3>
-                    <p class="text-xs text-slate-300 leading-relaxed mb-4">
-                        Membangun brand produk retail/fashion/kuliner sendiri, mengelola tim marketing independen, dan menjual ke pasar nasional hingga ekspor internasional.
-                    </p>
-                    <div class="text-xs font-semibold text-emerald-300">
-                        <span>Penghasilan: Mandiri &amp; Tak Terbatas</span>
-                    </div>
-                </div>
-            </div>
-        </div>
-    </section>
-
-    <!-- ── 5. KURIKULUM 3 TAHUN (FASE E & FASE F) ── -->
-    <section id="kurikulum" class="py-20 bg-amber-50/50">
-        <div class="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
-            <div class="text-center max-w-3xl mx-auto mb-16">
-                <span class="inline-flex items-center gap-2 px-3 py-1 rounded-full text-xs font-bold text-amber-900 bg-amber-100 border border-amber-200">
-                    <span>Roadmap Pembelajaran</span>
-                </span>
-                <h2 class="text-2xl sm:text-4xl font-extrabold text-slate-900 mt-3">
-                    Kurikulum 3 Tahun Berstandar <span class="text-[#C2410C]">Industri Digital Marketing</span>
-                </h2>
-                <p class="text-slate-600 text-sm sm:text-base mt-3">
-                    Disusun bersama agensi digital marketing nasional dan marketplace terkemuka untuk melatih kecakapan bisnis nyata.
-                </p>
-            </div>
-
-            <div class="grid grid-cols-1 md:grid-cols-3 gap-8">
-                <!-- KELAS X -->
-                <div class="bg-white rounded-3xl p-7 border-2 border-amber-200 shadow-sm relative hover:border-[#FD9426] transition-all">
-                    <div class="w-10 h-10 rounded-xl bg-orange-100 text-orange-800 font-bold flex items-center justify-center text-sm mb-4">
-                        X
-                    </div>
-                    <span class="text-xs font-bold uppercase text-orange-800 tracking-wider">Fase E &bull; Tahun Pertama</span>
-                    <h3 class="text-xl font-bold text-slate-900 mt-1 mb-4">Dasar Bisnis &amp; Personal Selling</h3>
-                    <p class="text-xs text-slate-600 mb-6">Membangun karakter sales profesional, riset perilaku konsumen, dan komunikasi persuasif.</p>
-
-                    <ul class="space-y-3 text-xs text-slate-700">
-                        <li class="flex items-start gap-2">
-                            <span class="text-orange-800 font-bold">&check;</span>
-                            <span>Prinsip Dasar Ekonomi Bisnis &amp; Administrasi Transaksi</span>
-                        </li>
-                        <li class="flex items-start gap-2">
-                            <span class="text-orange-800 font-bold">&check;</span>
-                            <span>Teknik Negosiasi &amp; Komunikasi Bisnis Efektif</span>
-                        </li>
-                        <li class="flex items-start gap-2">
-                            <span class="text-orange-800 font-bold">&check;</span>
-                            <span>Desain Grafis Promosi Produk (Canva &amp; Photoshop)</span>
-                        </li>
-                        <li class="flex items-start gap-2">
-                            <span class="text-orange-800 font-bold">&check;</span>
-                            <span>Psikologi Konsumen &amp; Copywriting Dasar</span>
-                        </li>
-                        <li class="flex items-start gap-2">
-                            <span class="text-orange-800 font-bold">&check;</span>
-                            <span>Praktek Kasir &amp; Pengelolaan Ritel Modern</span>
-                        </li>
-                    </ul>
-                </div>
-
-                <!-- KELAS XI -->
-                <div class="bg-white rounded-3xl p-7 border-2 border-[#FD9426] shadow-lg relative ring-2 ring-[#FD9426]/20">
-                    <div class="absolute -top-3.5 right-6 px-3 py-1 rounded-full text-[11px] font-extrabold bg-[#C2410C] text-white uppercase tracking-wider shadow">
-                        Spesialisasi Commerce
-                    </div>
-                    <div class="w-10 h-10 rounded-xl bg-gradient-to-r from-[#FD9426] to-amber-600 text-white font-bold flex items-center justify-center text-sm mb-4">
-                        XI
-                    </div>
-                    <span class="text-xs font-bold uppercase text-orange-800 tracking-wider">Fase F &bull; Tahun Kedua</span>
-                    <h3 class="text-xl font-bold text-slate-900 mt-1 mb-4">E-Commerce, Ads &amp; Live Stream</h3>
-                    <p class="text-xs text-slate-600 mb-6">Penerapan strategi penjualan digital, iklan berbayar media sosial, dan penyiaran live commerce.</p>
-
-                    <ul class="space-y-3 text-xs text-slate-700">
-                        <li class="flex items-start gap-2">
-                            <span class="text-orange-800 font-bold">&check;</span>
-                            <span>Operasional Marketplace (Shopee, Tokopedia, TikTok Shop)</span>
-                        </li>
-                        <li class="flex items-start gap-2">
-                            <span class="text-orange-800 font-bold">&check;</span>
-                            <span>Teknik Live Streaming Host &amp; Penataan Studio Visual</span>
-                        </li>
-                        <li class="flex items-start gap-2">
-                            <span class="text-orange-800 font-bold">&check;</span>
-                            <span>Iklan Berbayar Meta Ads &amp; TikTok Ads Manager</span>
-                        </li>
-                        <li class="flex items-start gap-2">
-                            <span class="text-orange-800 font-bold">&check;</span>
-                            <span>Optimasi Search Engine Optimization (SEO) Google</span>
-                        </li>
-                        <li class="flex items-start gap-2">
-                            <span class="text-orange-800 font-bold">&check;</span>
-                            <span>Operasional TEFA: Wikrama Digital Commerce</span>
-                        </li>
-                    </ul>
-                </div>
-
-                <!-- KELAS XII -->
-                <div class="bg-white rounded-3xl p-7 border-2 border-amber-200 shadow-sm relative hover:border-[#FD9426] transition-all">
-                    <div class="w-10 h-10 rounded-xl bg-orange-100 text-orange-800 font-bold flex items-center justify-center text-sm mb-4">
-                        XII
-                    </div>
-                    <span class="text-xs font-bold uppercase text-orange-800 tracking-wider">Fase F &bull; Tahun Ketiga</span>
-                    <h3 class="text-xl font-bold text-slate-900 mt-1 mb-4">Magang 6 Bulan &amp; Sertifikasi BNSP</h3>
-                    <p class="text-xs text-slate-600 mb-6">Penerjunan langsung di agensi pemasaran digital, sertifikasi profesi nasional, dan inkubasi usaha.</p>
-
-                    <ul class="space-y-3 text-xs text-slate-700">
-                        <li class="flex items-start gap-2">
-                            <span class="text-orange-800 font-bold">&check;</span>
-                            <span>PKL Industri 6 Bulan di Agensi Pemasaran / Retail</span>
-                        </li>
-                        <li class="flex items-start gap-2">
-                            <span class="text-orange-800 font-bold">&check;</span>
-                            <span>Uji Sertifikasi BNSP Tenaga Pemasar Operasional</span>
-                        </li>
-                        <li class="flex items-start gap-2">
-                            <span class="text-orange-800 font-bold">&check;</span>
-                            <span>Sertifikasi Google Digital Garage &amp; Meta Associate</span>
-                        </li>
-                        <li class="flex items-start gap-2">
-                            <span class="text-orange-800 font-bold">&check;</span>
-                            <span>Pameran Karya Bisnis &amp; Business Pitching Final</span>
-                        </li>
-                        <li class="flex items-start gap-2">
-                            <span class="text-orange-800 font-bold">&check;</span>
-                            <span>Penyaluran BMW (Bekerja, Melanjutkan, Wirausaha)</span>
-                        </li>
-                    </ul>
-                </div>
-            </div>
-        </div>
-    </section>
-
-    <!-- ── 6. KOLASE RUANGAN PRAKTIK & STUDIO BISNIS ── -->
-    <section class="py-20 bg-white" id="lab">
-        <div class="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
-            <div class="text-center max-w-3xl mx-auto mb-16">
-                <span class="inline-flex items-center gap-2 px-3 py-1 rounded-full text-xs font-bold text-amber-900 bg-amber-100 border border-amber-200">
-                    <span>Fasilitas Standar Creator Agency</span>
-                </span>
-                <h2 class="text-2xl sm:text-4xl font-extrabold text-slate-900 mt-3">
-                    Kolase Studio &amp; <span class="text-[#C2410C]">Ruang Praktik Bisnis Nyata</span>
-                </h2>
-                <p class="text-slate-600 text-sm sm:text-base mt-3">
-                    Seluruh ruang praktik dirancang untuk mensimulasikan operasional agensi periklanan, live shopping hub, dan toko retail sesungguhnya.
-                </p>
-            </div>
-
-            <div class="grid grid-cols-1 md:grid-cols-3 gap-6">
-                <!-- Fasilitas 1 -->
-                <div class="rounded-2xl overflow-hidden border border-amber-200 shadow-sm hover:shadow-md transition-shadow group">
-                    <div class="relative aspect-video overflow-hidden bg-slate-100">
-                        <img src="{{ asset('images/landing/jurusan-pmn.jpg') }}" alt="Studio Live Streaming PMN" class="w-full h-full object-cover group-hover:scale-105 transition-all duration-300" loading="lazy" decoding="async">
-                        <span class="absolute top-3 left-3 px-3 py-1 rounded-full text-[11px] font-bold bg-[#FD9426] text-slate-950">Live Creator Studio</span>
-                    </div>
-                    <div class="p-5">
-                        <h4 class="font-bold text-slate-900 text-base mb-1">Studio Live Streaming TikTok &amp; Shopee</h4>
-                        <p class="text-xs text-slate-600 leading-relaxed">
-                            Dilengkapi ring light, softbox 3-titik, standing mic condenser, green screen, dan smartphone flagship khusus siaran langsung e-commerce.
+                        <p class="mt-5 text-sm sm:text-base leading-relaxed max-w-md" style="color: #64748B;">
+                            Mencetak talenta digital marketing, live streamer profesional, content creator, dan technopreneur yang siap menghasilkan omzet sejak bangku sekolah di {{ $schoolName }}.
                         </p>
-                    </div>
-                </div>
 
-                <!-- Fasilitas 2 -->
-                <div class="rounded-2xl overflow-hidden border border-amber-200 shadow-sm hover:shadow-md transition-shadow group">
-                    <div class="relative aspect-video overflow-hidden bg-slate-100">
-                        <img src="{{ asset('images/landing/kelas-digital.jpg') }}" alt="Lab Ads & SEO Analytics" class="w-full h-full object-cover group-hover:scale-105 transition-all duration-300" loading="lazy" decoding="async">
-                        <span class="absolute top-3 left-3 px-3 py-1 rounded-full text-[11px] font-bold bg-amber-700 text-white">Ads &amp; SEO Lab</span>
-                    </div>
-                    <div class="p-5">
-                        <h4 class="font-bold text-slate-900 text-base mb-1">Laboratorium Ads Analytics &amp; SEO</h4>
-                        <p class="text-xs text-slate-600 leading-relaxed">
-                            Komputer PC untuk riset keyword Ahrefs/Semrush, setting Meta Business Manager, Google Analytics, dan optimasi toko marketplace.
-                        </p>
-                    </div>
-                </div>
-
-                <!-- Fasilitas 3 -->
-                <div class="rounded-2xl overflow-hidden border border-amber-200 shadow-sm hover:shadow-md transition-shadow group">
-                    <div class="relative aspect-video overflow-hidden bg-slate-100">
-                        <img src="{{ asset('images/web/activity-learning.jpg') }}" alt="Wikrama Mini Mart POS" class="w-full h-full object-cover group-hover:scale-105 transition-all duration-300" loading="lazy" decoding="async">
-                        <span class="absolute top-3 left-3 px-3 py-1 rounded-full text-[11px] font-bold bg-orange-700 text-white">Retail POS Center</span>
-                    </div>
-                    <div class="p-5">
-                        <h4 class="font-bold text-slate-900 text-base mb-1">Wikrama Retail &amp; POS Cashier Mart</h4>
-                        <p class="text-xs text-slate-600 leading-relaxed">
-                            Mesin kasir barcode scanner, software POS terintegrasi, rak display gondola, dan sistem stock opname barang minimarket modern.
-                        </p>
-                    </div>
-                </div>
-
-                <!-- Fasilitas 4 -->
-                <div class="rounded-2xl overflow-hidden border border-amber-200 shadow-sm hover:shadow-md transition-shadow group">
-                    <div class="relative aspect-video overflow-hidden bg-slate-100">
-                        <img src="{{ asset('images/landing/prestasi-seminar-siswa.jpg') }}" alt="Product Photo Studio" class="w-full h-full object-cover group-hover:scale-105 transition-all duration-300" loading="lazy" decoding="async">
-                        <span class="absolute top-3 left-3 px-3 py-1 rounded-full text-[11px] font-bold bg-rose-700 text-white">Product Photo Studio</span>
-                    </div>
-                    <div class="p-5">
-                        <h4 class="font-bold text-slate-900 text-base mb-1">Studio Fotografi &amp; Videografi Produk</h4>
-                        <p class="text-xs text-slate-600 leading-relaxed">
-                            Lightbox mini, alas putar 360 derajat, lensa makro, dan perlengkapan styling produk kuliner/fashion untuk katalog jualan visual menarik.
-                        </p>
-                    </div>
-                </div>
-
-                <!-- Fasilitas 5 -->
-                <div class="rounded-2xl overflow-hidden border border-amber-200 shadow-sm hover:shadow-md transition-shadow group">
-                    <div class="relative aspect-video overflow-hidden bg-slate-100">
-                        <img src="{{ asset('images/web/activity-students.jpg') }}" alt="Packaging & Packing Hub" class="w-full h-full object-cover group-hover:scale-105 transition-all duration-300" loading="lazy" decoding="async">
-                        <span class="absolute top-3 left-3 px-3 py-1 rounded-full text-[11px] font-bold bg-yellow-700 text-slate-950">Packaging Center</span>
-                    </div>
-                    <div class="p-5">
-                        <h4 class="font-bold text-slate-900 text-base mb-1">Logistik &amp; Packing Fulfillment Center</h4>
-                        <p class="text-xs text-slate-600 leading-relaxed">
-                            Meja pengemasan pesanan, timbangan digital, printer label resi thermal, bubble wrap dispenser, dan integrasi kurir ekspedisi.
-                        </p>
-                    </div>
-                </div>
-
-                <!-- Fasilitas 6 -->
-                <div class="rounded-2xl overflow-hidden border border-amber-200 shadow-sm hover:shadow-md transition-shadow group">
-                    <div class="relative aspect-video overflow-hidden bg-slate-100">
-                        <img src="{{ asset('images/landing/budaya-moving-class.jpeg') }}" alt="Business Pitching Room" class="w-full h-full object-cover group-hover:scale-105 transition-all duration-300" loading="lazy" decoding="async">
-                        <span class="absolute top-3 left-3 px-3 py-1 rounded-full text-[11px] font-bold bg-emerald-700 text-white">Pitching &amp; Deal Room</span>
-                    </div>
-                    <div class="p-5">
-                        <h4 class="font-bold text-slate-900 text-base mb-1">Business Presentation &amp; Pitching Room</h4>
-                        <p class="text-xs text-slate-600 leading-relaxed">
-                            Ruang negosiasi bisnis dengan klien UMKM, presentasi proposal sponsorship kegiatan, dan pitching produk di depan dewan penguji.
-                        </p>
-                    </div>
-                </div>
-            </div>
-        </div>
-    </section>
-
-    <!-- ── 7. SERTIFIKASI KOMPETENSI RESMI (BNSP & GOOGLE) ── -->
-    <section class="py-20 bg-gradient-to-br from-[#3d1900] via-[#2d1200] to-[#1a0900] text-white" style="background: linear-gradient(135deg, #3d1900 0%, #2d1200 50%, #1a0900 100%);">
-        <div class="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
-            <div class="text-center max-w-3xl mx-auto mb-16">
-                <span class="inline-flex items-center gap-2 px-3 py-1 rounded-full text-xs font-bold text-amber-300 bg-amber-950/80 border border-amber-800">
-                    <span>Pengakuan Industri Berstandar Nasional &amp; Global</span>
-                </span>
-                <h2 class="text-2xl sm:text-4xl font-extrabold text-white mt-3">
-                    Sertifikasi Kompetensi Resmi <span class="bg-gradient-to-r from-[#FD9426] to-amber-300 bg-clip-text text-transparent">Pemasaran</span>
-                </h2>
-                <p class="text-amber-100/90 text-sm sm:text-base mt-3">
-                    Setiap lulusan dibekali sertifikat kompetensi berlogo Garuda BNSP dan sertifikasi digital marketing dari Google serta Meta.
-                </p>
-            </div>
-
-            <div class="grid grid-cols-1 md:grid-cols-3 gap-6">
-                <!-- Sertifikasi 1 -->
-                <div class="p-6 rounded-2xl bg-white/5 border border-amber-500/20 backdrop-blur-md space-y-4">
-                    <div class="w-12 h-12 rounded-xl bg-amber-500/20 text-[#FD9426] flex items-center justify-center font-bold text-xl">
-                        🎖️
-                    </div>
-                    <h3 class="text-lg font-bold text-white">BNSP Tenaga Pemasar Operasional</h3>
-                    <p class="text-xs text-amber-100/80 leading-relaxed">
-                        Sertifikasi resmi negara dari BNSP untuk kompetensi penetapan harga, pengelolaan etalase, pelayanan pelanggan, dan teknik negosiasi bisnis.
-                    </p>
-                    <div class="pt-2 text-xs font-semibold text-amber-300">
-                        Diterbitkan oleh: BNSP LSP P-1
-                    </div>
-                </div>
-
-                <!-- Sertifikasi 2 -->
-                <div class="p-6 rounded-2xl bg-white/5 border border-orange-500/20 backdrop-blur-md space-y-4">
-                    <div class="w-12 h-12 rounded-xl bg-orange-500/20 text-[#FFB07C] flex items-center justify-center font-bold text-xl">
-                        🌐
-                    </div>
-                    <h3 class="text-lg font-bold text-white">Google Digital Garage Certification</h3>
-                    <p class="text-xs text-amber-100/80 leading-relaxed">
-                        Sertifikasi internasional dari Google yang mencakup dasar-dasar digital marketing, optimasi mesin pencari Google SEO, dan analitik data web.
-                    </p>
-                    <div class="pt-2 text-xs font-semibold text-orange-300">
-                        Standar: Google Digital Skills Academy
-                    </div>
-                </div>
-
-                <!-- Sertifikasi 3 -->
-                <div class="p-6 rounded-2xl bg-white/5 border border-rose-500/20 backdrop-blur-md space-y-4">
-                    <div class="w-12 h-12 rounded-xl bg-rose-500/20 text-rose-300 flex items-center justify-center font-bold text-xl">
-                        📱
-                    </div>
-                    <h3 class="text-lg font-bold text-white">Meta Certified Digital Associate</h3>
-                    <p class="text-xs text-amber-100/80 leading-relaxed">
-                        Pengakuan kompetensi resmi ekosistem Meta dalam mengelola halaman Instagram &amp; Facebook bisnis, strategi konten iklan, dan ads targeting.
-                    </p>
-                    <div class="pt-2 text-xs font-semibold text-rose-300">
-                        Mitra: Meta Blueprint Certification
-                    </div>
-                </div>
-            </div>
-        </div>
-    </section>
-
-    <!-- ── 8. MITRA DUDI & TEMPAT MAGANG ── -->
-    <section class="py-16 bg-slate-50 border-t border-slate-200">
-        <div class="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
-            <div class="text-center max-w-2xl mx-auto mb-10">
-                <span class="text-xs font-bold text-orange-800 uppercase tracking-wider block">Jaringan Industri E-Commerce &amp; Ritel</span>
-                <h3 class="text-xl sm:text-2xl font-bold text-slate-900 mt-1">Mitra PKL &amp; Rekrutmen Lulusan</h3>
-                <p class="text-xs text-slate-600 mt-2">Siswa menjalani magang nyata selama 6 bulan di marketplace, agensi periklanan, dan jaringan retail modern nasional.</p>
-            </div>
-
-            <div class="grid grid-cols-2 sm:grid-cols-3 md:grid-cols-6 gap-4 items-center">
-                <div class="p-4 rounded-xl bg-white border border-slate-200 text-center shadow-sm">
-                    <span class="font-bold text-slate-800 text-sm block">Shopee Indonesia</span>
-                    <span class="text-[10px] text-slate-500">Marketplace Terbesar</span>
-                </div>
-                <div class="p-4 rounded-xl bg-white border border-slate-200 text-center shadow-sm">
-                    <span class="font-bold text-slate-800 text-sm block">TikTok Shop</span>
-                    <span class="text-[10px] text-slate-500">Live Creator Partner</span>
-                </div>
-                <div class="p-4 rounded-xl bg-white border border-slate-200 text-center shadow-sm">
-                    <span class="font-bold text-slate-800 text-sm block">Alfamart (SAT)</span>
-                    <span class="text-[10px] text-slate-500">Jaringan Ritel Modern</span>
-                </div>
-                <div class="p-4 rounded-xl bg-white border border-slate-200 text-center shadow-sm">
-                    <span class="font-bold text-slate-800 text-sm block">Indomaret (IDM)</span>
-                    <span class="text-[10px] text-slate-500">Ritel &amp; Point of Sale</span>
-                </div>
-                <div class="p-4 rounded-xl bg-white border border-slate-200 text-center shadow-sm">
-                    <span class="font-bold text-slate-800 text-sm block">J&amp;T / SiCepat</span>
-                    <span class="text-[10px] text-slate-500">Logistik E-Commerce</span>
-                </div>
-                <div class="p-4 rounded-xl bg-white border border-slate-200 text-center shadow-sm">
-                    <span class="font-bold text-slate-800 text-sm block">Digital Agency Jkt</span>
-                    <span class="text-[10px] text-slate-500">Performance Marketing</span>
-                </div>
-            </div>
-        </div>
-    </section>
-
-    <!-- ── 9. TESTIMONI ALUMNI PEMASARAN ── -->
-    <section class="py-20 bg-white">
-        <div class="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
-            <div class="max-w-4xl mx-auto bg-gradient-to-r from-[#3d1900] to-[#1a0900] rounded-3xl p-8 sm:p-12 text-white border border-amber-500/30 shadow-xl relative overflow-hidden" style="background: linear-gradient(90deg, #3d1900 0%, #1a0900 100%);">
-                <div class="absolute -right-20 -bottom-20 w-64 h-64 bg-[#FD9426]/20 rounded-full blur-2xl pointer-events-none"></div>
-
-                <div class="flex flex-col sm:flex-row items-center gap-6 sm:gap-8 relative z-10">
-                    <img src="{{ asset('images/web/alumni-auriel.png') }}" alt="Alumni Pemasaran Wikrama" class="w-24 h-24 sm:w-28 sm:h-28 rounded-full object-cover border-4 border-[#FD9426] shadow-lg shrink-0" loading="lazy" decoding="async">
-                    <div class="space-y-3 text-center sm:text-left">
-                        <div class="flex items-center justify-center sm:justify-start gap-1 text-amber-400">
-                            @for($i = 0; $i < 5; $i++)
-                                <svg class="w-4 h-4 fill-current" viewBox="0 0 20 20">
-                                    <path d="M9.049 2.927c.3-.921 1.603-.921 1.902 0l1.07 3.292a1 1 0 00.95.69h3.462c.969 0 1.371 1.24.588 1.81l-2.8 2.034a1 1 0 00-.364 1.118l1.07 3.292c.3.921-.755 1.688-1.54 1.118l-2.8-2.034a1 1 0 00-1.175 0l-2.8 2.034c-.784.57-1.838-.197-1.539-1.118l1.07-3.292a1 1 0 00-.364-1.118L2.98 8.72c-.783-.57-.38-1.81.588-1.81h3.461a1 1 0 00.951-.69l1.07-3.292z"/>
+                        <div class="mt-8 flex flex-wrap items-center gap-3">
+                            <a href="https://spmb.smkwikrama1garut.sch.id/" target="_blank" rel="noopener" class="dt-btn-navy">
+                                <span>Daftar Sekarang</span>
+                            </a>
+                            <button type="button" @click="demoOpen = true" class="dt-btn-ghost">
+                                <svg class="w-4 h-4" fill="currentColor" viewBox="0 0 20 20" aria-hidden="true">
+                                    <path fill-rule="evenodd" d="M10 18a8 8 0 100-16 8 8 0 000 16zM9.555 7.168A1 1 0 008 8v4a1 1 0 001.555.832l3-2a1 1 0 000-1.664l-3-2z" clip-rule="evenodd"/>
                                 </svg>
-                            @endfor
+                                <span>Play Demo</span>
+                            </button>
                         </div>
-                        <p class="text-sm sm:text-base text-amber-100 italic leading-relaxed">
-                            "Di Pemasaran SMK Wikrama 1 Garut, kami diajari ilmu yang relevan banget dengan zaman sekarang: live streaming TikTok, setting iklan Meta Ads, dan branding produk. Saya terlatih berbicara percaya diri di depan kamera, sehingga saat magang langsung ditunjuk jadi Head Live Streamer brand fashion dengan penghasilan belasan juta per bulan!"
-                        </p>
-                        <div>
-                            <h4 class="font-bold text-white text-base">Auriel Salsabila</h4>
-                            <span class="text-xs text-[#FFB07C]">Alumni Pemasaran &bull; Live Stream Host &amp; Social Commerce Lead</span>
+                    </div>
+
+                    <!-- Right: Clean Sky-Blue Dashed Medallion Photo + Watercolor Wash -->
+                    <div class="lg:col-span-6 dt-hero-circle-wrap">
+                        <div class="dt-hero-wash" aria-hidden="true"></div>
+                        <div class="dt-hero-ring">
+                            <div class="dt-hero-photo">
+                                <img src="{{ asset('images/landing/jurusan-pmn.jpg') }}"
+                                     alt="Siswa Pemasaran SMK Wikrama 1 Garut praktik live commerce TikTok Shop"
+                                     class="w-full h-full object-cover"
+                                     fetchpriority="high"
+                                     decoding="async">
+                            </div>
+                        </div>
+                        <div class="mt-4 flex items-center gap-2 text-xs relative z-10" style="color: #64748B;">
+                            <span class="w-2 h-2 rounded-full" style="background-color: #2EA3DD;"></span>
+                            <span>Wikrama Live Creator Studio &bull; Terakreditasi A</span>
                         </div>
                     </div>
                 </div>
             </div>
-        </div>
-    </section>
+        </header>
 
-    <!-- ── 10. FAQ SEPUTAR JURUSAN PEMASARAN ── -->
-    <section class="py-20 bg-amber-50/50" id="faq">
-        <div class="max-w-4xl mx-auto px-4 sm:px-6 lg:px-8">
-            <div class="text-center mb-12">
-                <span class="text-xs font-bold text-orange-800 uppercase tracking-wider block">Pertanyaan Umum</span>
-                <h2 class="text-2xl sm:text-3xl font-extrabold text-slate-900 mt-2">FAQ Jurusan Pemasaran</h2>
+        <main>
+            <!-- ═══════════════════════════════════════════════════════════════════
+                 SECTION 2: STATS STRIP — BORDERLESS UNDERLINE SPEC ROW
+                 (ECHOING "Location / Date / Price" CLEAN FIELDS)
+                 ═══════════════════════════════════════════════════════════════════ -->
+            <section class="py-10 bg-white" aria-label="Ringkasan capaian PMN">
+                <div class="dt-container">
+                    <div class="grid grid-cols-2 lg:grid-cols-4 gap-8">
+                        @foreach($stats as $stat)
+                            <div class="dt-spec-field">
+                                <div class="flex items-center gap-2 text-xs font-semibold mb-1.5" style="color: #0D213F;">
+                                    @if($stat['icon'] === 'award')
+                                        <svg class="w-3.5 h-3.5" fill="none" stroke="currentColor" stroke-width="1.8" viewBox="0 0 24 24" aria-hidden="true"><circle cx="12" cy="8" r="6"/><path stroke-linecap="round" stroke-linejoin="round" d="M15.477 12.89 17 22l-5-3-5 3 1.523-9.11"/></svg>
+                                    @elseif($stat['icon'] === 'video')
+                                        <svg class="w-3.5 h-3.5" fill="none" stroke="currentColor" stroke-width="1.8" viewBox="0 0 24 24" aria-hidden="true"><rect width="15" height="12" x="2" y="6" rx="2"/><path stroke-linecap="round" stroke-linejoin="round" d="m17 10 5-3v10l-5-3"/></svg>
+                                    @elseif($stat['icon'] === 'bag')
+                                        <svg class="w-3.5 h-3.5" fill="none" stroke="currentColor" stroke-width="1.8" viewBox="0 0 24 24" aria-hidden="true"><path stroke-linecap="round" stroke-linejoin="round" d="M6 2 3 6v14a2 2 0 0 0 2 2h14a2 2 0 0 0 2-2V6l-3-4Z"/></svg>
+                                    @else
+                                        <svg class="w-3.5 h-3.5" fill="none" stroke="currentColor" stroke-width="1.8" viewBox="0 0 24 24" aria-hidden="true"><path stroke-linecap="round" stroke-linejoin="round" d="M3 17 9 11l4 4 8-8"/></svg>
+                                    @endif
+                                    <span>{{ $stat['label'] }}</span>
+                                </div>
+                                <div class="text-sm font-medium" style="color: #64748B;">{{ $stat['value'] }}</div>
+                            </div>
+                        @endforeach
+                    </div>
+
+                    <!-- Clean Unboxed Core Skills Line -->
+                    <div class="mt-6 flex flex-wrap items-center justify-center gap-x-5 gap-y-2 text-xs" style="color: #94A3B8;">
+                        <span>Live Streamer Host</span>
+                        <span>&bull;</span>
+                        <span>Meta &amp; TikTok Ads</span>
+                        <span>&bull;</span>
+                        <span>Google SEO Specialist</span>
+                        <span>&bull;</span>
+                        <span>Content Studio Creator</span>
+                        <span>&bull;</span>
+                        <span>E-Commerce Management</span>
+                        <span>&bull;</span>
+                        <span>AI Business Copywriting</span>
+                    </div>
+                </div>
+            </section>
+
+            <!-- ═══════════════════════════════════════════════════════════════════
+                 SECTION 3: PROFIL PROGRAM — BRUSH-STROKE PHOTO LEFT + BORDERLESS SPEC RIGHT
+                 (EXACT HOMAGE TO BAND 2 OF DAILY TRAVEL)
+                 ═══════════════════════════════════════════════════════════════════ -->
+            <section class="py-16 lg:py-24 bg-white" id="profil">
+                <div class="dt-container">
+                    <div class="grid grid-cols-1 lg:grid-cols-12 gap-12 items-center">
+                        <!-- Left: Organic Painterly Brush-Stroke Masked Photo -->
+                        <div class="lg:col-span-6">
+                            <div class="dt-brush-photo">
+                                <img src="{{ asset('images/web/hero-pmn.jpg') }}"
+                                     alt="Suasana praktikum bisnis digital siswa Pemasaran SMK Wikrama 1 Garut"
+                                     loading="lazy"
+                                     decoding="async">
+                            </div>
+                        </div>
+
+                        <!-- Right: Borderless Editorial Story, Underline Pillars & Compact Button Pair -->
+                        <div class="lg:col-span-6">
+                            <h2 class="dt-h2">
+                                Mengapa Memilih <span class="dt-h2-thin">Pemasaran Wikrama</span>
+                            </h2>
+
+                            <p class="mt-4 text-sm leading-relaxed" style="color: #64748B;">
+                                Jurusan Pemasaran (Bisnis Digital) di {{ $schoolName }} mendobrak paradigma lama ilmu dagang konvensional. Siswa mempraktikkan langsung social commerce, iklan berbayar Meta &amp; TikTok Ads, optimasi Google SEO, product copywriting, serta operasional POS ritel modern.
+                            </p>
+
+                            <!-- 3 Borderless Underline Pillars -->
+                            <div class="mt-6 space-y-4">
+                                @foreach($pillars as $pillar)
+                                    <div class="dt-spec-field">
+                                        <div class="flex items-center gap-2.5 text-sm font-semibold" style="color: #0D213F;">
+                                            @if($pillar['icon'] === 'video')
+                                                <svg class="w-4 h-4 shrink-0" style="color: #2EA3DD;" fill="none" stroke="currentColor" stroke-width="1.8" viewBox="0 0 24 24" aria-hidden="true"><rect width="15" height="12" x="2" y="6" rx="2"/><path stroke-linecap="round" stroke-linejoin="round" d="m17 10 5-3v10l-5-3"/></svg>
+                                            @elseif($pillar['icon'] === 'bar-chart')
+                                                <svg class="w-4 h-4 shrink-0" style="color: #2EA3DD;" fill="none" stroke="currentColor" stroke-width="1.8" viewBox="0 0 24 24" aria-hidden="true"><path stroke-linecap="round" stroke-linejoin="round" d="M12 20V10m6 10V4M6 20v-4"/></svg>
+                                            @else
+                                                <svg class="w-4 h-4 shrink-0" style="color: #2EA3DD;" fill="none" stroke="currentColor" stroke-width="1.8" viewBox="0 0 24 24" aria-hidden="true"><path stroke-linecap="round" stroke-linejoin="round" d="M3 9 5 4h14l2 5M4 9h16v11H4V9Z"/></svg>
+                                            @endif
+                                            <span>{{ $pillar['title'] }}</span>
+                                        </div>
+                                        <p class="mt-1 text-xs leading-relaxed pl-6" style="color: #64748B;">{{ $pillar['desc'] }}</p>
+                                    </div>
+                                @endforeach
+                            </div>
+
+                            <!-- Compact 2-Button Pair (echoing "Preview Hotel" + "Book Now") -->
+                            <div class="mt-6 flex flex-wrap items-center gap-3">
+                                <a href="#lab" class="dt-btn-ghost">Lihat Studio</a>
+                                <a href="https://spmb.smkwikrama1garut.sch.id/" target="_blank" rel="noopener" class="dt-btn-navy">Daftar PMN</a>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+            </section>
+
+            <!-- ═══════════════════════════════════════════════════════════════════
+                 SECTION 4: KOLASE STUDIO — TILTED FULL-BLEED PHOTO FAN + DARK NAVY BAR
+                 (EXACT HOMAGE TO "Find Your Best Destination")
+                 ═══════════════════════════════════════════════════════════════════ -->
+            <section class="py-16 lg:py-24 bg-white" id="lab" x-data="{ cat: 'all', picked: 0, showAll: false }">
+                <div class="dt-container">
+                    <div class="text-center max-w-xl mx-auto">
+                        <h2 class="dt-h2">
+                            Temukan Studio <span class="dt-h2-thin">Praktik Terbaikmu</span>
+                        </h2>
+                        <p class="mt-2.5 text-sm leading-relaxed" style="color: #64748B;">
+                            Seluruh ruang praktik dirancang menyerupai agensi periklanan, live shopping hub, dan toko retail sesungguhnya.
+                        </p>
+
+                        <!-- Signature Dark Navy Rounded Filter Bar -->
+                        <div class="mt-6">
+                            <div class="dt-navy-bar">
+                                <button type="button" @click="cat = 'all'; showAll = false" class="dt-navy-tab" :class="{ 'is-active': cat === 'all' }">Semua Studio</button>
+                                <button type="button" @click="cat = 'live'; showAll = true" class="dt-navy-tab" :class="{ 'is-active': cat === 'live' }">Live &amp; Konten</button>
+                                <button type="button" @click="cat = 'ads'; showAll = true" class="dt-navy-tab" :class="{ 'is-active': cat === 'ads' }">Ads &amp; Retail</button>
+                                <button type="button" @click="cat = 'ops'; showAll = true" class="dt-navy-tab" :class="{ 'is-active': cat === 'ops' }">Logistik &amp; Pitching</button>
+                            </div>
+                        </div>
+                    </div>
+
+                    <!-- Playful Tilted 4-Card Full-Bleed Photo Row (expandable to all 6 via "Lihat semua") -->
+                    <div class="mt-10 dt-fan-grid">
+                        @foreach($studios as $idx => $studio)
+                            <button type="button"
+                                    x-show="(cat === 'all' && (showAll || {{ $idx }} < 4)) || cat === '{{ $studio['cat'] }}'"
+                                    @click="picked = {{ $studio['id'] }}"
+                                    class="dt-fan-tile fan-{{ $idx % 4 }}"
+                                    :class="{ 'is-picked': picked === {{ $studio['id'] }} }">
+                                <img src="{{ $studio['image'] }}" alt="{{ $studio['alt'] }}" loading="lazy" decoding="async">
+                                <div class="dt-fan-scrim"></div>
+                                <div class="dt-fan-label">
+                                    <div class="text-sm font-bold leading-snug">{{ $studio['short'] }}</div>
+                                </div>
+                            </button>
+                        @endforeach
+                    </div>
+
+                    <!-- Quiet Active Studio Caption Below Fan (no heavy box!) -->
+                    <div class="mt-8 max-w-2xl mx-auto text-center">
+                        @foreach($studios as $studio)
+                            <div x-show="picked === {{ $studio['id'] }}" @if($studio['id'] !== 0) x-cloak @endif>
+                                <div class="text-sm font-bold" style="color: #0D213F;">{{ $studio['name'] }}</div>
+                                <p class="mt-1 text-xs sm:text-sm leading-relaxed" style="color: #64748B;">{{ $studio['desc'] }}</p>
+                            </div>
+                        @endforeach
+
+                        <div class="mt-5" x-show="cat === 'all'">
+                            <button type="button"
+                                    @click="showAll = !showAll"
+                                    class="text-xs font-semibold underline cursor-pointer"
+                                    style="color: #0D213F;"
+                                    x-text="showAll ? 'Tampilkan ringkas (4 studio)' : 'Lihat semua 6 studio'">
+                                Lihat semua 6 studio
+                            </button>
+                        </div>
+                    </div>
+                </div>
+            </section>
+
+            <!-- ═══════════════════════════════════════════════════════════════════
+                 SECTION 5: PROSPEK KARIER — BORDERLESS 2-LINE CARDS
+                 (EXACT HOMAGE TO "Best Vacation Plan")
+                 ═══════════════════════════════════════════════════════════════════ -->
+            <section class="py-16 lg:py-24 bg-white" id="karir">
+                <div class="dt-container">
+                    <div class="text-center max-w-xl mx-auto mb-12">
+                        <h2 class="dt-h2">
+                            Prospek <span class="dt-h2-thin">Karier Lulusan</span>
+                        </h2>
+                        <p class="mt-2.5 text-sm leading-relaxed" style="color: #64748B;">
+                            Era digitalisasi bisnis membuka ribuan lapangan kerja baru untuk spesialis e-commerce, live host, dan media buyer di berbagai brand ternama.
+                        </p>
+                    </div>
+
+                    <!-- Borderless 3-Column Editorial Grid directly on #FFFFFF -->
+                    <div class="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-8">
+                        @foreach($careers as $career)
+                            <article class="dt-plan-item">
+                                <!-- Clean Soft Visual Top (No Border, Rounded 16px) -->
+                                <div class="dt-plan-thumb" style="background-color: {{ $career['tint'] }}; color: #0D213F;">
+                                    @if($career['icon'] === 'trending')
+                                        <svg class="w-8 h-8" fill="none" stroke="currentColor" stroke-width="1.5" viewBox="0 0 24 24" aria-hidden="true"><path stroke-linecap="round" stroke-linejoin="round" d="M3 17 9 11l4 4 8-8m0 0h-5m5 0v5"/></svg>
+                                    @elseif($career['icon'] === 'mic')
+                                        <svg class="w-8 h-8" fill="none" stroke="currentColor" stroke-width="1.5" viewBox="0 0 24 24" aria-hidden="true"><rect width="6" height="12" x="9" y="2" rx="3"/><path stroke-linecap="round" stroke-linejoin="round" d="M5 10v2a7 7 0 0 0 14 0v-2M12 19v3"/></svg>
+                                    @elseif($career['icon'] === 'film')
+                                        <svg class="w-8 h-8" fill="none" stroke="currentColor" stroke-width="1.5" viewBox="0 0 24 24" aria-hidden="true"><rect width="20" height="16" x="2" y="4" rx="2"/><path stroke-linecap="round" stroke-linejoin="round" d="m10 9 5 3-5 3V9Z"/></svg>
+                                    @elseif($career['icon'] === 'cart')
+                                        <svg class="w-8 h-8" fill="none" stroke="currentColor" stroke-width="1.5" viewBox="0 0 24 24" aria-hidden="true"><circle cx="9" cy="20" r="1"/><circle cx="18" cy="20" r="1"/><path stroke-linecap="round" stroke-linejoin="round" d="M2 3h3l2.4 12.2a2 2 0 0 0 2 1.6h8.8a2 2 0 0 0 2-1.6L22 7H6"/></svg>
+                                    @elseif($career['icon'] === 'search')
+                                        <svg class="w-8 h-8" fill="none" stroke="currentColor" stroke-width="1.5" viewBox="0 0 24 24" aria-hidden="true"><circle cx="11" cy="11" r="7"/><path stroke-linecap="round" stroke-linejoin="round" d="m20 20-3.5-3.5"/></svg>
+                                    @else
+                                        <svg class="w-8 h-8" fill="none" stroke="currentColor" stroke-width="1.5" viewBox="0 0 24 24" aria-hidden="true"><rect width="20" height="14" x="2" y="7" rx="2"/><path stroke-linecap="round" stroke-linejoin="round" d="M16 21V5a2 2 0 0 0-2-2h-4a2 2 0 0 0-2 2v16"/></svg>
+                                    @endif
+                                    <span class="dt-mono text-xs" style="color: #52627A;">{{ $career['meta'] }}</span>
+                                </div>
+
+                                <!-- Exact Daily Travel 2-Row Clean Caption Below -->
+                                <div class="mt-3.5 flex items-baseline justify-between gap-2">
+                                    <h3 class="text-sm sm:text-base font-bold" style="color: #0D213F;">{{ $career['title'] }}</h3>
+                                    <span class="dt-mono text-xs font-bold shrink-0" style="color: #0D213F;">{{ $career['salary'] }}</span>
+                                </div>
+
+                                <div class="mt-1 flex items-center justify-between gap-2 text-xs" style="color: #94A3B8;">
+                                    <span>{{ $career['meta'] }}</span>
+                                    <span class="inline-flex items-center gap-1 font-semibold" style="color: #64748B;">
+                                        <svg class="w-3.5 h-3.5" style="color: #F5B727;" fill="currentColor" viewBox="0 0 20 20" aria-hidden="true"><path d="M9.049 2.927c.3-.921 1.603-.921 1.902 0l1.07 3.292a1 1 0 00.95.69h3.462c.969 0 1.371 1.24.588 1.81l-2.8 2.034a1 1 0 00-.364 1.118l1.07 3.292c.3.921-.755 1.688-1.54 1.118l-2.8-2.034a1 1 0 00-1.175 0l-2.8 2.034c-.784.57-1.838-.197-1.539-1.118l1.07-3.292a1 1 0 00-.364-1.118L2.98 8.72c-.783-.57-.38-1.81.588-1.81h3.461a1 1 0 00.951-.69l1.07-3.292z"/></svg>
+                                        <span>{{ $career['rating'] }}</span>
+                                    </span>
+                                </div>
+
+                                <p class="mt-2 text-xs leading-relaxed" style="color: #64748B;">{{ $career['desc'] }}</p>
+                            </article>
+                        @endforeach
+                    </div>
+                </div>
+            </section>
+
+            <!-- ═══════════════════════════════════════════════════════════════════
+                 SECTION 6: KURIKULUM 3 TAHUN — BORDERLESS 3-COLUMN EDITORIAL
+                 ═══════════════════════════════════════════════════════════════════ -->
+            <section class="py-16 lg:py-24 bg-white" id="kurikulum" style="border-top: 1px solid #F1F5F9;">
+                <div class="dt-container">
+                    <div class="text-center max-w-xl mx-auto mb-14">
+                        <h2 class="dt-h2">
+                            Kurikulum <span class="dt-h2-thin">3 Tahun Industri</span>
+                        </h2>
+                        <p class="mt-2.5 text-sm leading-relaxed" style="color: #64748B;">
+                            Disusun bersama agensi digital marketing nasional dan marketplace terkemuka untuk melatih kecakapan bisnis nyata.
+                        </p>
+                    </div>
+
+                    <div class="dt-curr-grid">
+                        @foreach($curriculum as $step)
+                            <div class="dt-curr-col">
+                                <div class="flex items-center justify-between gap-2 mb-3">
+                                    <span class="dt-mono text-xs" style="color: #2EA3DD;">{{ $step['phase'] }}</span>
+                                    <span class="text-xs font-bold" style="color: #0D213F;">{{ $step['grade'] }}</span>
+                                </div>
+                                <h3 class="text-lg font-bold" style="color: #0D213F;">{{ $step['title'] }}</h3>
+                                <p class="mt-2 text-xs sm:text-sm leading-relaxed" style="color: #64748B;">{{ $step['desc'] }}</p>
+
+                                <ul class="mt-5 pt-5 space-y-2.5 text-xs sm:text-sm" style="border-top: 1px solid #E8EDF4; color: #334155;">
+                                    @foreach($step['items'] as $item)
+                                        <li class="flex items-start gap-2.5">
+                                            <svg class="w-4 h-4 shrink-0 mt-0.5" style="color: #2EA3DD;" fill="none" stroke="currentColor" stroke-width="2" viewBox="0 0 24 24" aria-hidden="true">
+                                                <path stroke-linecap="round" stroke-linejoin="round" d="m5 13 4 4L19 7"/>
+                                            </svg>
+                                            <span>{{ $item }}</span>
+                                        </li>
+                                    @endforeach
+                                </ul>
+                            </div>
+                        @endforeach
+                    </div>
+                </div>
+            </section>
+
+            <!-- ═══════════════════════════════════════════════════════════════════
+                 SECTION 7: SERTIFIKASI KOMPETENSI RESMI — BORDERLESS EDITORIAL STRIP
+                 ═══════════════════════════════════════════════════════════════════ -->
+            <section class="py-16 lg:py-20 bg-white" id="sertifikasi" style="border-top: 1px solid #F1F5F9;">
+                <div class="dt-container">
+                    <div class="text-center max-w-xl mx-auto mb-12">
+                        <h2 class="dt-h2">
+                            Sertifikasi <span class="dt-h2-thin">Kompetensi Resmi</span>
+                        </h2>
+                        <p class="mt-2.5 text-sm leading-relaxed" style="color: #64748B;">
+                            Setiap lulusan dibekali sertifikat kompetensi berlogo Garuda BNSP dan sertifikasi digital marketing dari Google serta Meta.
+                        </p>
+                    </div>
+
+                    <div class="grid grid-cols-1 md:grid-cols-3 gap-10">
+                        @foreach($certifications as $cert)
+                            <div>
+                                <div class="flex items-center justify-between gap-2 pb-3 mb-4" style="border-bottom: 1px solid #E8EDF4;">
+                                    <span class="dt-mono text-xs font-bold" style="color: #0D213F;">{{ $cert['code'] }}</span>
+                                    <span class="text-xs" style="color: #2EA3DD;">{{ $cert['issuer'] }}</span>
+                                </div>
+                                <h3 class="text-base font-bold" style="color: #0D213F;">{{ $cert['title'] }}</h3>
+                                <p class="mt-2 text-xs sm:text-sm leading-relaxed" style="color: #64748B;">{{ $cert['desc'] }}</p>
+                            </div>
+                        @endforeach
+                    </div>
+                </div>
+            </section>
+
+            <!-- ═══════════════════════════════════════════════════════════════════
+                 SECTION 8: MITRA DUDI & TEMPAT MAGANG — CLEAN TYPOGRAPHIC STRIP
+                 ═══════════════════════════════════════════════════════════════════ -->
+            <section class="py-14 bg-white" id="mitra" style="border-top: 1px solid #F1F5F9;">
+                <div class="dt-container">
+                    <div class="text-center max-w-xl mx-auto mb-10">
+                        <h2 class="dt-h2">
+                            Mitra PKL <span class="dt-h2-thin">&amp; Rekrutmen</span>
+                        </h2>
+                        <p class="mt-2 text-xs sm:text-sm" style="color: #64748B;">
+                            Siswa menjalani magang nyata selama 6 bulan di marketplace, agensi periklanan, dan jaringan retail modern nasional.
+                        </p>
+                    </div>
+
+                    <div class="grid grid-cols-2 sm:grid-cols-3 lg:grid-cols-6 gap-6 text-center">
+                        @foreach($partners as $partner)
+                            <div class="py-3" style="border-bottom: 1px solid #E8EDF4;">
+                                <div class="text-sm font-bold" style="color: #0D213F;">{{ $partner['name'] }}</div>
+                                <div class="text-xs mt-1" style="color: #94A3B8;">{{ $partner['role'] }}</div>
+                            </div>
+                        @endforeach
+                    </div>
+                </div>
+            </section>
+
+            <!-- ═══════════════════════════════════════════════════════════════════
+                 SECTION 9: TESTIMONI ALUMNI — BRUSH-STROKE PHOTO LEFT + STORY RIGHT
+                 (EXACT HOMAGE TO "Our Blog / Beautiful Kashmir")
+                 ═══════════════════════════════════════════════════════════════════ -->
+            <section class="py-16 lg:py-24 bg-white" id="alumni">
+                <div class="dt-container">
+                    <div class="text-center max-w-xl mx-auto mb-14">
+                        <h2 class="dt-h2">
+                            Cerita <span class="dt-h2-thin">Alumni Pemasaran</span>
+                        </h2>
+                        <p class="mt-2 text-sm" style="color: #64748B;">
+                            Wawasan nyata dari perjalanan lulusan Pemasaran {{ $schoolName }} di industri digital.
+                        </p>
+                    </div>
+
+                    <div class="grid grid-cols-1 lg:grid-cols-12 gap-12 items-center">
+                        <!-- Left: Painterly Brush-Stroke Masked Alumni Photo -->
+                        <div class="lg:col-span-5">
+                            <div class="dt-brush-photo" style="aspect-ratio: 4 / 3;">
+                                <img src="{{ asset('images/web/alumni-auriel.png') }}"
+                                     alt="Auriel Salsabila, Alumni Pemasaran SMK Wikrama 1 Garut"
+                                     class="w-full h-full object-cover object-top"
+                                     loading="lazy"
+                                     decoding="async">
+                            </div>
+                        </div>
+
+                        <!-- Right: Pure Borderless Editorial Story -->
+                        <div class="lg:col-span-7">
+                            <div class="flex items-center gap-1 mb-3" style="color: #F5B727;" aria-label="Penilaian 5 dari 5">
+                                @for($i = 0; $i < 5; $i++)
+                                    <svg class="w-4 h-4 fill-current" viewBox="0 0 20 20" aria-hidden="true">
+                                        <path d="M9.049 2.927c.3-.921 1.603-.921 1.902 0l1.07 3.292a1 1 0 00.95.69h3.462c.969 0 1.371 1.24.588 1.81l-2.8 2.034a1 1 0 00-.364 1.118l1.07 3.292c.3.921-.755 1.688-1.54 1.118l-2.8-2.034a1 1 0 00-1.175 0l-2.8 2.034c-.784.57-1.838-.197-1.539-1.118l1.07-3.292a1 1 0 00-.364-1.118L2.98 8.72c-.783-.57-.38-1.81.588-1.81h3.461a1 1 0 00.951-.69l1.07-3.292z"/>
+                                    </svg>
+                                @endfor
+                            </div>
+
+                            <h3 class="text-xl sm:text-2xl font-bold" style="color: #0D213F;">
+                                Auriel Salsabila &mdash; Head Live Streamer &amp; Social Commerce Lead
+                            </h3>
+
+                            <blockquote class="mt-4 text-sm sm:text-base leading-relaxed" style="color: #64748B;">
+                                &ldquo;Di Pemasaran SMK Wikrama 1 Garut, kami diajari ilmu yang relevan dengan zaman sekarang: live streaming TikTok, setting iklan Meta Ads, dan branding produk. Saya terlatih berbicara percaya diri di depan kamera, sehingga saat magang langsung ditunjuk jadi Head Live Streamer brand fashion dengan penghasilan belasan juta per bulan.&rdquo;
+                            </blockquote>
+
+                            <div class="mt-5">
+                                <a href="https://spmb.smkwikrama1garut.sch.id/" target="_blank" rel="noopener" class="inline-flex items-center gap-2 text-xs font-semibold" style="color: #0D213F;">
+                                    <span>Mulai ceritamu di Pemasaran</span>
+                                    <span aria-hidden="true">&rarr;</span>
+                                </a>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+            </section>
+
+            <!-- ═══════════════════════════════════════════════════════════════════
+                 SECTION 10: FAQ — PURE WHITE BORDERLESS HAIRLINE ACCORDION
+                 ═══════════════════════════════════════════════════════════════════ -->
+            <section class="py-16 lg:py-20 bg-white" id="faq" style="border-top: 1px solid #F1F5F9;">
+                <div class="dt-container">
+                    <div class="max-w-3xl mx-auto">
+                        <div class="text-center mb-10">
+                            <h2 class="dt-h2">
+                                Pertanyaan <span class="dt-h2-thin">Umum</span>
+                            </h2>
+                            <p class="mt-2 text-sm" style="color: #64748B;">
+                                Hal yang paling sering ditanyakan seputar jurusan Pemasaran &amp; Bisnis Digital.
+                            </p>
+                        </div>
+
+                        <div x-data="{ openFaq: 0 }" style="border-top: 1px solid #E8EDF4;">
+                            @foreach($faqs as $idx => $faq)
+                                <div class="dt-faq-item">
+                                    <button type="button"
+                                            @click="openFaq = openFaq === {{ $idx }} ? null : {{ $idx }}"
+                                            :aria-expanded="openFaq === {{ $idx }}"
+                                            class="w-full py-5 flex items-center justify-between gap-4 text-left cursor-pointer">
+                                        <span class="text-sm sm:text-base font-semibold" style="color: #0D213F;">{{ $faq['q'] }}</span>
+                                        <svg class="w-4 h-4 shrink-0 dt-faq-chevron"
+                                             style="color: #2EA3DD;"
+                                             :class="{ 'is-open': openFaq === {{ $idx }} }"
+                                             fill="none" stroke="currentColor" stroke-width="1.8" viewBox="0 0 24 24" aria-hidden="true">
+                                            <path stroke-linecap="round" stroke-linejoin="round" d="m6 9 6 6 6-6"/>
+                                        </svg>
+                                    </button>
+                                    <div x-show="openFaq === {{ $idx }}" x-cloak class="pb-5 pr-6">
+                                        <p class="text-xs sm:text-sm leading-relaxed" style="color: #64748B;">{{ $faq['a'] }}</p>
+                                    </div>
+                                </div>
+                            @endforeach
+                        </div>
+                    </div>
+                </div>
+            </section>
+
+            <!-- ═══════════════════════════════════════════════════════════════════
+                 SECTION 11: FULL-BLEED 50/50 SPLIT CTA BANNER
+                 (EXACT HOMAGE TO "We Make World Travel Easy" + FULL-BLEED SKY PHONE PANEL)
+                 ═══════════════════════════════════════════════════════════════════ -->
+            <section class="dt-split-cta bg-white">
+                <!-- Left 50%: Pure White Centered Editorial CTA -->
+                <div class="flex items-center justify-center px-6 py-16 lg:px-12 lg:py-20 bg-white">
+                    <div class="max-w-md text-center lg:text-left">
+                        <h2 class="dt-h2">
+                            Kami Mempermudah<br>Langkah Bisnis Digitalmu
+                        </h2>
+                        <p class="mt-4 text-sm leading-relaxed" style="color: #64748B;">
+                            Kuota kelas Pemasaran terbatas demi menjaga intensitas bimbingan praktik studio live streaming dan proyek inkubasi usaha bersama praktisi.
+                        </p>
+                        <div class="mt-6 flex flex-wrap items-center justify-center lg:justify-start gap-4">
+                            <a href="https://spmb.smkwikrama1garut.sch.id/" target="_blank" rel="noopener" class="dt-btn-navy">
+                                <span>Daftar SPMB Online</span>
+                                <span aria-hidden="true">&rarr;</span>
+                            </a>
+                            <a href="{{ url('/jurusan') }}" class="text-xs font-semibold inline-flex items-center gap-1.5" style="color: #0D213F;">
+                                <span>Lihat Jurusan Lain</span>
+                                <span aria-hidden="true">&rarr;</span>
+                            </a>
+                        </div>
+                    </div>
+                </div>
+
+                <!-- Right 50%: Full-Bleed Soft Sky-Blue Panel + Rising Smartphone Live Studio -->
+                <div class="dt-split-cta-right">
+                    <div class="dt-phone-big">
+                        <div class="dt-phone-inner">
+                            <img src="{{ asset('images/landing/jurusan-pmn.jpg') }}"
+                                 alt="Wikrama Live Creator Studio Pemasaran"
+                                 class="w-full object-cover"
+                                 style="aspect-ratio: 4 / 3;"
+                                 loading="lazy"
+                                 decoding="async">
+                            <div class="p-4 flex items-center justify-between text-xs bg-white">
+                                <div>
+                                    <div class="font-bold" style="color: #0D213F;">Wikrama Live Studio</div>
+                                    <div style="color: #64748B;">TikTok Shop &amp; Shopee Partner</div>
+                                </div>
+                                <span class="dt-mono font-bold px-2 py-1 rounded" style="background-color: #E2F1FA; color: #0D213F;">ROAS 5.2x</span>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+            </section>
+        </main>
+
+        <!-- ═══════════════════════════════════════════════════════════════════════
+             INTERACTIVE "PLAY DEMO" LIVE CREATOR STUDIO MODAL (LAUNCHED FROM HERO)
+             ═══════════════════════════════════════════════════════════════════════ -->
+        <div x-show="demoOpen"
+             x-cloak
+             role="dialog"
+             aria-modal="true"
+             class="dt-modal-backdrop"
+             @click.self="demoOpen = false">
+            <div class="dt-modal-panel">
+                <div class="px-5 py-4 flex items-center justify-between" style="background-color: #0D213F; color: #FFFFFF;">
+                    <div class="flex items-center gap-2">
+                        <span class="text-xs font-bold px-2 py-0.5 rounded" style="background-color: #EF4444; color: #FFFFFF;">LIVE</span>
+                        <span class="text-sm font-semibold">Wikrama Creator Studio Demo</span>
+                    </div>
+                    <button type="button" @click="demoOpen = false" aria-label="Tutup demo" class="text-white/80 hover:text-white cursor-pointer">
+                        <svg class="w-5 h-5" fill="none" stroke="currentColor" stroke-width="2" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" d="M6 18 18 6M6 6l12 12"/></svg>
+                    </button>
+                </div>
+
+                <div class="relative bg-slate-900" style="aspect-ratio: 16 / 10;">
+                    <img src="{{ asset('images/landing/jurusan-pmn.jpg') }}" alt="Live Demo Studio PMN" class="w-full h-full object-cover">
+                    <div class="absolute top-3 right-3 flex items-center gap-2 dt-mono text-xs">
+                        <span class="px-2.5 py-1 rounded-full text-white" style="background: rgba(13,33,63,0.78);"><span id="pmn-live-viewers">4.820</span> penonton</span>
+                        <button type="button" id="pmn-like-btn" class="px-2.5 py-1 rounded-full text-white cursor-pointer" style="background: rgba(225,29,72,0.88);">&hearts; <span id="pmn-live-likes">28.4K</span></button>
+                    </div>
+                </div>
+
+                <div class="p-5 space-y-4 bg-white">
+                    <div class="flex items-center justify-between gap-3 pb-4" style="border-bottom: 1px solid #E8EDF4;">
+                        <div class="min-w-0">
+                            <span class="dt-mono text-xs font-semibold" style="color: #2EA3DD;" id="pmn-product-pin-label">Pin #1 • TEFA Unggulan</span>
+                            <div class="text-sm font-bold truncate mt-0.5" style="color: #0D213F;" id="pmn-product-title">Keripik Tempe Super Renyah Garut</div>
+                            <div class="flex items-center gap-2 mt-0.5 dt-mono text-xs">
+                                <span class="font-bold" style="color: #0D213F;" id="pmn-product-price">Rp 25.000</span>
+                                <span class="line-through text-slate-400" id="pmn-product-original">Rp 35.000</span>
+                                <span class="font-semibold" style="color: #16A34A;" id="pmn-product-discount">-28%</span>
+                            </div>
+                        </div>
+                        <div class="text-right shrink-0">
+                            <div class="text-xs" style="color: #94A3B8;">Omzet TEFA</div>
+                            <div class="dt-mono text-xs font-bold" style="color: #0D213F;">Rp 12.8M+</div>
+                        </div>
+                    </div>
+
+                    <div id="pmn-chat-stream" class="space-y-1.5 text-xs" style="color: #475569; min-height: 54px;"></div>
+                </div>
             </div>
-
-            <div class="space-y-4">
-                <div class="p-5 rounded-2xl bg-white border border-amber-200">
-                    <h3 class="text-sm font-bold text-slate-900 mb-1">Apakah jurusan Pemasaran hanya belajar berjualan keliling?</h3>
-                    <p class="text-xs text-slate-600 leading-relaxed">
-                        Sama sekali tidak! Pemasaran di Wikrama berfokus pada <strong>Bisnis Digital (Digital Marketing)</strong>, optimasi iklan berbayar online (Meta/TikTok Ads), optimasi mesin pencari Google (SEO), dan siaran live streaming studio profesional.
-                    </p>
-                </div>
-
-                <div class="p-5 rounded-2xl bg-white border border-amber-200">
-                    <h3 class="text-sm font-bold text-slate-900 mb-1">Saya orangnya pemalu, apakah bisa mengikuti jurusan ini?</h3>
-                    <p class="text-xs text-slate-600 leading-relaxed">
-                        Sangat bisa! Di jurusan ini ada bimbingan public speaking bertahap dari dasar, pelatihan grooming, dan olah vokal. Banyak santri yang awalnya pendiam justru bertransformasi menjadi host live shopping yang luwes dan penuh percaya diri.
-                    </p>
-                </div>
-
-                <div class="p-5 rounded-2xl bg-white border border-amber-200">
-                    <h3 class="text-sm font-bold text-slate-900 mb-1">Apakah siswa harus mengeluarkan modal uang pribadi untuk berbisnis?</h3>
-                    <p class="text-xs text-slate-600 leading-relaxed">
-                        Tidak perlu modal besar. Sekolah menyediakan produk dari unit Teaching Factory (TEFA) dan UMKM mitra sekolah untuk dipasarkan oleh siswa dengan sistem dropship dan affiliate marketing, sehingga siswa bisa menghasilkan komisi tanpa modal stok barang.
-                    </p>
-                </div>
-
-                <div class="p-5 rounded-2xl bg-white border border-amber-200">
-                    <h3 class="text-sm font-bold text-slate-900 mb-1">Apakah lulusan Pemasaran bisa melanjutkan kuliah ke Perguruan Tinggi?</h3>
-                    <p class="text-xs text-slate-600 leading-relaxed">
-                        Tentu bisa! Lulusan dapat melanjutkan ke jurusan Manajemen Bisnis, Ilmu Komunikasi, Administrasi Niaga, Digital Marketing, atau Akuntansi di PTN/PTS ternama seperti UNPAD, UPI, Telkom University, dan Universitas Indonesia.
-                    </p>
-                </div>
-            </div>
         </div>
-    </section>
+    </div>
 
-    <!-- ── 11. CTA DAFTAR PEMASARAN ── -->
-    <section class="py-20 bg-gradient-to-r from-[#3d1900] via-[#5c2400] to-[#FD9426] text-white relative overflow-hidden" style="background: linear-gradient(90deg, #3d1900 0%, #5c2400 50%, #FD9426 100%);">
-        <div class="max-w-5xl mx-auto px-4 sm:px-6 lg:px-8 text-center relative z-10 space-y-6">
-            <span class="inline-flex items-center gap-2 px-3.5 py-1.5 rounded-full text-xs font-bold uppercase tracking-wider bg-white/20 text-[#FFB07C] border border-white/30">
-                Penerimaan Peserta Didik Baru (SPMB)
-            </span>
-            <h2 class="text-3xl sm:text-5xl font-extrabold tracking-tight">
-                Siap Menjadi Digital Marketer &amp; <br class="hidden sm:inline">
-                <span class="bg-gradient-to-r from-[#FFB07C] via-amber-200 to-white bg-clip-text text-transparent">Creator E-Commerce Masa Depan?</span>
-            </h2>
-            <p class="text-amber-100/90 text-sm sm:text-base max-w-2xl mx-auto">
-                Kuota kelas Pemasaran terbatas demi menjaga intensitas bimbingan praktik studio live streaming dan proyek inkubasi usaha. Daftarkan dirimu hari ini!
-            </p>
-            <div class="pt-4 flex flex-wrap items-center justify-center gap-4">
-                <a href="https://spmb.smkwikrama1garut.sch.id/" target="_blank" rel="noopener" class="px-8 py-3.5 rounded-full text-sm font-bold text-slate-950 bg-gradient-to-r from-[#FFB07C] to-amber-300 hover:from-amber-300 hover:to-white shadow-xl shadow-orange-500/25 transition-all hover:scale-105">
-                    Daftar SPMB Online Sekarang &rarr;
-                </a>
-                <a href="{{ url('/jurusan') }}" class="px-6 py-3.5 rounded-full text-sm font-bold text-white bg-white/10 hover:bg-white/15 border border-white/20 transition-all">
-                    &larr; Lihat Jurusan Lainnya
-                </a>
-            </div>
-        </div>
-    </section>
-
-    <!-- ── INTERACTIVE LIVE SHOPPING CREATOR STUDIO SCRIPT ── -->
+    <!-- ── LIGHTWEIGHT DEMO STUDIO SCRIPT ── -->
     <script>
         document.addEventListener('DOMContentLoaded', () => {
-            // 1. Dynamic Live Viewers & Likes Simulation
             const viewersEl = document.getElementById('pmn-live-viewers');
             const likesEl = document.getElementById('pmn-live-likes');
             const likeBtn = document.getElementById('pmn-like-btn');
-            
-            let viewers = 4820;
-            let likes = 28410;
-
-            setInterval(() => {
-                viewers += Math.floor(Math.random() * 9) - 4;
-                if (viewersEl) viewersEl.textContent = viewers.toLocaleString();
-                likes += Math.floor(Math.random() * 6) + 1;
-                if (likesEl) likesEl.textContent = (likes / 1000).toFixed(1) + 'K';
-            }, 2500);
-
-            // 2. Floating Hearts Canvas Animation (TikTok/Shopee Live Style)
-            const canvas = document.getElementById('pmn-hearts-canvas');
-            if (canvas) {
-                const ctx = canvas.getContext('2d');
-                let width = canvas.width = canvas.offsetWidth;
-                let height = canvas.height = canvas.offsetHeight;
-
-                window.addEventListener('resize', () => {
-                    if (!canvas) return;
-                    width = canvas.width = canvas.offsetWidth;
-                    height = canvas.height = canvas.offsetHeight;
-                });
-
-                const hearts = [];
-                const heartColors = ['#ef4444', '#f97316', '#fdba74', '#ec4899', '#f59e0b', '#06b6d4'];
-
-                const spawnHeart = (burst = false) => {
-                    const originX = width - 35 + (Math.random() * 20 - 10);
-                    const originY = height - 25;
-                    hearts.push({
-                        x: originX,
-                        y: originY,
-                        size: 11 + Math.random() * 7,
-                        color: heartColors[Math.floor(Math.random() * heartColors.length)],
-                        alpha: 1.0,
-                        speedY: burst ? 2.5 + Math.random() * 2 : 1.6 + Math.random() * 1.4,
-                        wobbleSpeed: 0.04 + Math.random() * 0.04,
-                        wobbleAmp: 1.2 + Math.random() * 1.6,
-                        phase: Math.random() * Math.PI * 2
-                    });
-                };
-
-                // Ambient hearts every 450ms
-                setInterval(() => {
-                    if (hearts.length < 24) spawnHeart();
-                }, 450);
-
-                // User click on Love Button
-                if (likeBtn) {
-                    likeBtn.addEventListener('click', () => {
-                        likes += 12;
-                        if (likesEl) likesEl.textContent = (likes / 1000).toFixed(1) + 'K';
-                        for (let i = 0; i < 5; i++) {
-                            setTimeout(() => spawnHeart(true), i * 70);
-                        }
-                    });
-                }
-
-                const drawHeartShape = (context, x, y, size, color, alpha) => {
-                    context.save();
-                    context.globalAlpha = Math.max(0, alpha);
-                    context.fillStyle = color;
-                    context.beginPath();
-                    const topCurveHeight = size * 0.3;
-                    context.moveTo(x, y + topCurveHeight);
-                    context.bezierCurveTo(x, y, x - size / 2, y, x - size / 2, y + topCurveHeight);
-                    context.bezierCurveTo(x - size / 2, y + (size + topCurveHeight) / 2, x, y + size, x, y + size);
-                    context.bezierCurveTo(x, y + size, x + size / 2, y + (size + topCurveHeight) / 2, x + size / 2, y + topCurveHeight);
-                    context.bezierCurveTo(x + size / 2, y, x, y, x, y + topCurveHeight);
-                    context.closePath();
-                    context.fill();
-                    context.restore();
-                };
-
-                let step = 0;
-                const animateHearts = () => {
-                    ctx.clearRect(0, 0, width, height);
-                    step += 0.05;
-
-                    for (let i = hearts.length - 1; i >= 0; i--) {
-                        const h = hearts[i];
-                        h.y -= h.speedY;
-                        h.x += Math.sin(step * h.wobbleSpeed + h.phase) * h.wobbleAmp;
-                        h.alpha -= 0.009;
-
-                        if (h.alpha <= 0 || h.y < -20) {
-                            hearts.splice(i, 1);
-                        } else {
-                            drawHeartShape(ctx, h.x, h.y, h.size, h.color, h.alpha);
-                        }
-                    }
-                    requestAnimationFrame(animateHearts);
-                };
-                requestAnimationFrame(animateHearts);
-            }
-
-            // 3. Realtime Auto-Scrolling Live Comments
-            const chatBox = document.getElementById('pmn-chat-stream');
-            const commentsData = [
-                { user: '@sarah_shop', color: 'text-amber-300', text: 'Kak, bahannya renyah dan halal MUI kan?' },
-                { user: '@host_wikrama', color: 'text-[#FD9426]', text: 'Halal 100% kak, sudah izin P-IRT & BPOM ya!' },
-                { user: '@budi_tech', color: 'text-emerald-300', text: 'Langsung checkout 3 pack kak, mantap!' },
-                { user: '@maya_kuliner', color: 'text-rose-300', text: 'Spill dodol dark chocolatenya dong kak host!' },
-                { user: '@andi_garut', color: 'text-cyan-300', text: 'Kopinya wangi banget pas diseduh pagi2 🔥' },
-                { user: 'System', color: 'text-[#FD9426]', isAlert: true, text: 'Pesanan #WK-8902 baru saja dibayar via QRIS!' },
-                { user: '@host_wikrama', color: 'text-[#FD9426]', text: 'Siap kak Maya, etalase dodol ada promo bundling!' },
-                { user: '@rere_fashion', color: 'text-amber-200', text: 'Klaim voucher diskon 20% di pojok atas ya gaes' },
-                { user: '@dimas_pratama', color: 'text-sky-300', text: 'Pengiriman ke Jakarta berapa hari kak?' },
-                { user: '@host_wikrama', color: 'text-[#FD9426]', text: 'Reguler 1-2 hari sampai kak, kita kirim sore ini!' },
-                { user: 'System', color: 'text-emerald-400', isAlert: true, text: 'User @fitri_99 baru saja checkout Keripik Tempe!' },
-                { user: '@lina_agency', color: 'text-pink-300', text: 'Santri Wikrama live-nya udah setara pro creator 👍' }
-            ];
-
-            let chatIndex = 0;
-            const appendComment = () => {
-                if (!chatBox) return;
-                const c = commentsData[chatIndex % commentsData.length];
-                chatIndex++;
-
-                const p = document.createElement('p');
-                p.className = 'leading-tight transform translate-y-1 opacity-0 transition-all duration-300';
-                if (c.isAlert) {
-                    p.innerHTML = `<span class="${c.color} font-bold">${c.user}:</span> <span class="text-white">${c.text}</span>`;
-                } else {
-                    p.innerHTML = `<span class="${c.color} font-bold">${c.user}:</span> <span class="text-slate-300">${c.text}</span>`;
-                }
-
-                chatBox.appendChild(p);
-
-                // Force reflow for smooth animation
-                requestAnimationFrame(() => {
-                    p.classList.remove('translate-y-1', 'opacity-0');
-                });
-
-                // Maintain max 4 messages in view
-                if (chatBox.children.length > 4) {
-                    chatBox.removeChild(chatBox.firstElementChild);
-                }
-            };
-
-            // Seed initial comments
-            for (let i = 0; i < 3; i++) appendComment();
-            setInterval(appendComment, 2200);
-
-            // 4. Pinned Product Carousel Rotation (Every 6 seconds)
-            const products = [
-                { icon: '🛍️', label: 'Pin #1', title: 'Keripik Tempe Super Renyah Garut', price: 'Rp 25.000', original: 'Rp 35.000', discount: '-28%' },
-                { icon: '☕', label: 'Pin #2', title: 'Kopi Robusta Garut Signature Roast', price: 'Rp 45.000', original: 'Rp 60.000', discount: '-25%' },
-                { icon: '🍫', label: 'Pin #3', title: 'Dodol Premium Dark Chocolate Wikrama', price: 'Rp 32.000', original: 'Rp 42.000', discount: '-24%' }
-            ];
-
-            let productIndex = 0;
-            const pinnedCard = document.getElementById('pmn-pinned-card');
-            const iconEl = document.getElementById('pmn-product-icon');
             const labelEl = document.getElementById('pmn-product-pin-label');
             const titleEl = document.getElementById('pmn-product-title');
             const priceEl = document.getElementById('pmn-product-price');
             const origEl = document.getElementById('pmn-product-original');
             const discEl = document.getElementById('pmn-product-discount');
+            const chatBox = document.getElementById('pmn-chat-stream');
+
+            let viewers = 4820;
+            let likes = 28410;
 
             setInterval(() => {
-                if (!pinnedCard) return;
-                productIndex = (productIndex + 1) % products.length;
-                const prod = products[productIndex];
+                viewers += Math.floor(Math.random() * 9) - 4;
+                if (viewersEl) viewersEl.textContent = viewers.toLocaleString('id-ID');
+                likes += Math.floor(Math.random() * 6) + 1;
+                if (likesEl) likesEl.textContent = (likes / 1000).toFixed(1) + 'K';
+            }, 3000);
 
-                pinnedCard.classList.add('opacity-40', 'scale-98');
-                setTimeout(() => {
-                    if (iconEl) iconEl.textContent = prod.icon;
-                    if (labelEl) labelEl.textContent = prod.label;
-                    if (titleEl) titleEl.textContent = prod.title;
-                    if (priceEl) priceEl.textContent = prod.price;
-                    if (origEl) origEl.textContent = prod.original;
-                    if (discEl) discEl.textContent = prod.discount;
-                    pinnedCard.classList.remove('opacity-40', 'scale-98');
-                }, 200);
-            }, 6000);
-
-            // 5. In-Stream Order Toast Notifications
-            const toastEl = document.getElementById('pmn-order-toast');
-            const toastTextEl = document.getElementById('pmn-order-toast-text');
-            const toastMessages = [
-                '@dina_99 baru saja checkout Keripik Tempe!',
-                '⚡ Flash Sale: Sisa stok etalase #1 tinggal 8 pcs!',
-                'User @ahmad_rizky berhasil bayar via QRIS (Rp 50.000)',
-                '🎉 Voucher Gratis Ongkir Se-Indonesia aktif!'
-            ];
-
-            let toastIndex = 0;
-            setInterval(() => {
-                if (!toastEl || !toastTextEl) return;
-                toastTextEl.textContent = toastMessages[toastIndex % toastMessages.length];
-                toastIndex++;
-
-                toastEl.classList.remove('opacity-0', '-translate-y-2');
-                setTimeout(() => {
-                    toastEl.classList.add('opacity-0', '-translate-y-2');
-                }, 2800);
-            }, 5500);
-
-            // 6. Section 3: Financial Growth & Global Commerce Pulse Canvas
-            const growthCanvas = document.getElementById('pmn-growth-canvas');
-            if (growthCanvas) {
-                const gCtx = growthCanvas.getContext('2d');
-                let gWidth = growthCanvas.width = growthCanvas.offsetWidth;
-                let gHeight = growthCanvas.height = growthCanvas.offsetHeight;
-
-                window.addEventListener('resize', () => {
-                    if (!growthCanvas) return;
-                    gWidth = growthCanvas.width = growthCanvas.offsetWidth;
-                    gHeight = growthCanvas.height = growthCanvas.offsetHeight;
+            if (likeBtn) {
+                likeBtn.addEventListener('click', () => {
+                    likes += 15;
+                    if (likesEl) likesEl.textContent = (likes / 1000).toFixed(1) + 'K';
                 });
-
-                // Traveling Transaction Sparks
-                const sparks = [];
-                for (let i = 0; i < 16; i++) {
-                    sparks.push({
-                        t: Math.random(),
-                        speed: 0.003 + Math.random() * 0.004,
-                        size: 3 + Math.random() * 2,
-                        color: Math.random() > 0.35 ? '#FD9426' : '#10b981'
-                    });
-                }
-
-                // Growth Curve Function: Cubic Bézier Curve Evaluation
-                const getCurvePoint = (p, time) => {
-                    const startY = gHeight * 0.82;
-                    const cp1Y = gHeight * (0.75 + Math.sin(time + 1) * 0.04);
-                    const cp2Y = gHeight * (0.35 + Math.cos(time) * 0.05);
-                    const endY = gHeight * (0.18 + Math.sin(time * 0.8) * 0.04);
-
-                    const x = p * gWidth;
-                    // Cubic interpolation
-                    const inv = 1 - p;
-                    const y = (inv * inv * inv * startY) +
-                              (3 * inv * inv * p * cp1Y) +
-                              (3 * inv * p * p * cp2Y) +
-                              (p * p * p * endY);
-                    return { x, y };
-                };
-
-                let gTime = 0;
-                const animateGrowth = () => {
-                    gCtx.clearRect(0, 0, gWidth, gHeight);
-                    gTime += 0.015;
-
-                    // 1. Draw Subtle Metric Grid Lines
-                    gCtx.strokeStyle = 'rgba(253, 148, 38, 0.04)';
-                    gCtx.lineWidth = 1;
-                    for (let gy = 0.2; gy <= 0.85; gy += 0.15) {
-                        gCtx.beginPath();
-                        gCtx.moveTo(0, gHeight * gy);
-                        gCtx.lineTo(gWidth, gHeight * gy);
-                        gCtx.stroke();
-                    }
-
-                    // 2. Build Gradient Area Under Curve
-                    gCtx.beginPath();
-                    const start = getCurvePoint(0, gTime);
-                    gCtx.moveTo(start.x, start.y);
-                    for (let p = 0.02; p <= 1; p += 0.02) {
-                        const pt = getCurvePoint(p, gTime);
-                        gCtx.lineTo(pt.x, pt.y);
-                    }
-                    gCtx.lineTo(gWidth, gHeight);
-                    gCtx.lineTo(0, gHeight);
-                    gCtx.closePath();
-
-                    const fillGrad = gCtx.createLinearGradient(0, gHeight * 0.2, 0, gHeight);
-                    fillGrad.addColorStop(0, 'rgba(253, 148, 38, 0.18)');
-                    fillGrad.addColorStop(0.5, 'rgba(253, 148, 38, 0.05)');
-                    fillGrad.addColorStop(1, 'rgba(253, 148, 38, 0.0)');
-                    gCtx.fillStyle = fillGrad;
-                    gCtx.fill();
-
-                    // 3. Draw Glowing Main Growth Line
-                    gCtx.beginPath();
-                    gCtx.moveTo(start.x, start.y);
-                    for (let p = 0.02; p <= 1; p += 0.02) {
-                        const pt = getCurvePoint(p, gTime);
-                        gCtx.lineTo(pt.x, pt.y);
-                    }
-                    const lineGrad = gCtx.createLinearGradient(0, 0, gWidth, 0);
-                    lineGrad.addColorStop(0, '#f97316');
-                    lineGrad.addColorStop(0.6, '#FD9426');
-                    lineGrad.addColorStop(1, '#10b981');
-                    gCtx.strokeStyle = lineGrad;
-                    gCtx.lineWidth = 2.5;
-                    gCtx.shadowBlur = 14;
-                    gCtx.shadowColor = '#FD9426';
-                    gCtx.stroke();
-                    gCtx.shadowBlur = 0; // reset
-
-                    // 4. Animate Traveling Sparks along Curve
-                    for (let i = 0; i < sparks.length; i++) {
-                        const sp = sparks[i];
-                        sp.t += sp.speed;
-                        if (sp.t > 1) sp.t = 0;
-
-                        const pt = getCurvePoint(sp.t, gTime);
-                        const prevPt = getCurvePoint(Math.max(0, sp.t - 0.04), gTime);
-
-                        // Spark tail
-                        gCtx.beginPath();
-                        gCtx.moveTo(prevPt.x, prevPt.y);
-                        gCtx.lineTo(pt.x, pt.y);
-                        gCtx.strokeStyle = sp.color;
-                        gCtx.lineWidth = sp.size;
-                        gCtx.shadowBlur = 10;
-                        gCtx.shadowColor = sp.color;
-                        gCtx.stroke();
-
-                        // Spark head
-                        gCtx.beginPath();
-                        gCtx.arc(pt.x, pt.y, sp.size * 0.9, 0, Math.PI * 2);
-                        gCtx.fillStyle = '#ffffff';
-                        gCtx.fill();
-                        gCtx.shadowBlur = 0;
-                    }
-
-                    // 5. Draw Milestone Target Nodes on Apex (e.g. at 50%, 75%, 95%)
-                    const milestones = [
-                        { p: 0.45, label: 'ROAS 5.2x', color: '#FD9426' },
-                        { p: 0.72, label: 'CTR +8.4%', color: '#f59e0b' },
-                        { p: 0.94, label: 'GMV Rp 12.8M+', color: '#10b981' }
-                    ];
-
-                    milestones.forEach((m) => {
-                        const pt = getCurvePoint(m.p, gTime);
-
-                        // Ripple ring
-                        gCtx.beginPath();
-                        gCtx.arc(pt.x, pt.y, 8 + Math.sin(gTime * 3) * 2, 0, Math.PI * 2);
-                        gCtx.strokeStyle = m.color;
-                        gCtx.lineWidth = 1;
-                        gCtx.stroke();
-
-                        // Core Node
-                        gCtx.beginPath();
-                        gCtx.arc(pt.x, pt.y, 4, 0, Math.PI * 2);
-                        gCtx.fillStyle = '#ffffff';
-                        gCtx.fill();
-
-                        // Floating Badge Tag
-                        gCtx.font = 'bold 10px monospace';
-                        gCtx.fillStyle = m.color;
-                        gCtx.fillText(m.label, pt.x - 24, pt.y - 14);
-                    });
-
-                    requestAnimationFrame(animateGrowth);
-                };
-                requestAnimationFrame(animateGrowth);
             }
+
+            const products = [
+                { label: 'Pin #1 • TEFA Unggulan', title: 'Keripik Tempe Super Renyah Garut', price: 'Rp 25.000', original: 'Rp 35.000', discount: '-28%' },
+                { label: 'Pin #2 • TEFA Unggulan', title: 'Kopi Robusta Garut Signature Roast', price: 'Rp 45.000', original: 'Rp 60.000', discount: '-25%' },
+                { label: 'Pin #3 • TEFA Unggulan', title: 'Dodol Premium Dark Chocolate Wikrama', price: 'Rp 32.000', original: 'Rp 42.000', discount: '-24%' }
+            ];
+            let pIdx = 0;
+            setInterval(() => {
+                pIdx = (pIdx + 1) % products.length;
+                const p = products[pIdx];
+                if (labelEl) labelEl.textContent = p.label;
+                if (titleEl) titleEl.textContent = p.title;
+                if (priceEl) priceEl.textContent = p.price;
+                if (origEl) origEl.textContent = p.original;
+                if (discEl) discEl.textContent = p.discount;
+            }, 5000);
+
+            const comments = [
+                { user: '@sarah_shop', text: 'Kak, bahannya renyah dan halal MUI kan?' },
+                { user: '@host_wikrama', text: 'Halal 100% kak, sudah izin P-IRT dan siap kirim sore ini.' },
+                { user: '@budi_tech', text: 'Langsung checkout 3 pack kak, mantap.' },
+                { user: '@maya_kuliner', text: 'Spill dodol dark chocolatenya dong kak host.' }
+            ];
+            let cIdx = 0;
+            const addComment = () => {
+                if (!chatBox) return;
+                const c = comments[cIdx % comments.length];
+                cIdx++;
+                const row = document.createElement('div');
+                row.innerHTML = `<strong style="color:#0D213F">${c.user}:</strong> <span>${c.text}</span>`;
+                chatBox.appendChild(row);
+                if (chatBox.children.length > 3) chatBox.removeChild(chatBox.firstElementChild);
+            };
+            addComment();
+            addComment();
+            setInterval(addComment, 2800);
         });
     </script>
 </x-layouts.blank>
