@@ -5,7 +5,7 @@ return [
     'label' => 'Manajemen Prestasi',
     'group' => 'KESISWAAN',
     'icon' => 'trophy',
-    'order' => 65,
+    'order' => 50,
     'menu' => [
         [
             'label' => 'Dashboard Prestasi',

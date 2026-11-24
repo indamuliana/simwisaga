@@ -18,9 +18,11 @@ class AbsensiMapelIndex extends Component
     use GuardsPermission;
 
     public $tanggal;
-    public $penugasan_id;
+    public $rombel_id = '';
+    public $penugasan_id = '';
     public $gender = '';
     public $rayon_id = '';
+    public $search = '';
 
     public $penugasans = [];
     public $rayons = [];
@@ -31,10 +33,27 @@ class AbsensiMapelIndex extends Component
     {
         $this->tanggal = date('Y-m-d');
         $this->rayons = Rayon::orderBy('nama')->get();
+        $this->loadPenugasans();
 
+        // Auto-select rombel jika guru hanya mengampu 1 rombel
+        $rombels = $this->availableRombels;
+        if ($rombels->count() === 1) {
+            $this->rombel_id = (string) $rombels->first()->id;
+
+            // Auto-select penugasan jika rombel tersebut hanya punya 1 mapel
+            $penugasans = $this->availablePenugasans;
+            if ($penugasans->count() === 1) {
+                $this->penugasan_id = (string) $penugasans->first()->id;
+                $this->loadData();
+            }
+        }
+    }
+
+    public function loadPenugasans()
+    {
         $user = auth()->user();
         $currentSem = AcademicContext::currentSemester();
-        $query = PenugasanMengajar::with(['rombel', 'mapel']);
+        $query = PenugasanMengajar::with(['rombel', 'mapel', 'pegawai']);
         if ($currentSem) {
             $query->where('semester_id', $currentSem->id);
         }
@@ -51,8 +70,71 @@ class AbsensiMapelIndex extends Component
         $this->penugasans = $query->get();
     }
 
+    public function getAvailableRombelsProperty()
+    {
+        $user = auth()->user();
+        if ($user && !$user->isSuperAdmin()) {
+            $pegawai = \App\Modules\Kepegawaian\Models\Pegawai::where('user_id', $user->id)->first();
+            if ($pegawai) {
+                return collect($this->penugasans)
+                    ->pluck('rombel')
+                    ->filter()
+                    ->unique('id')
+                    ->sortBy(fn($r) => sprintf('%s-%s', $r->tingkat ?? '', $r->nama ?? ''))
+                    ->values();
+            }
+        }
+
+        // Bagi Super Admin / Pengguna Umum: Tampilkan seluruh rombel sekolah (X, XI, XII)
+        $activeTa = AcademicContext::currentTahunAjaran();
+        $query = \App\Modules\Akademik\Models\Rombel::query();
+        if ($activeTa) {
+            $query->where('tahun_ajaran_id', $activeTa->id);
+        }
+
+        $rombels = $query->orderBy('tingkat')->orderBy('nama')->get();
+        if ($rombels->isEmpty()) {
+            $rombels = \App\Modules\Akademik\Models\Rombel::orderBy('tingkat')->orderBy('nama')->get();
+        }
+
+        return $rombels;
+    }
+
+    public function getAvailablePenugasansProperty()
+    {
+        if (!$this->rombel_id) {
+            return collect();
+        }
+
+        return collect($this->penugasans)
+            ->where('rombel_id', (int) $this->rombel_id)
+            ->sortBy(fn($p) => $p->mapel?->nama ?? '')
+            ->values();
+    }
+
+    public function updatedRombelId($value)
+    {
+        $this->penugasan_id = '';
+        $this->absensiMapelData = [];
+        $this->absensiHarianStatus = [];
+
+        // Auto-select mapel jika rombel yang dipilih hanya memiliki 1 penugasan
+        $available = $this->availablePenugasans;
+        if ($available->count() === 1) {
+            $this->penugasan_id = (string) $available->first()->id;
+            $this->loadData();
+        }
+    }
+
     public function updatedPenugasanId()
     {
+        // Sinkronisasi rombel_id jika penugasan_id diset secara langsung
+        if ($this->penugasan_id) {
+            $penugasan = collect($this->penugasans)->firstWhere('id', (int) $this->penugasan_id);
+            if ($penugasan && (string) $this->rombel_id !== (string) $penugasan->rombel_id) {
+                $this->rombel_id = (string) $penugasan->rombel_id;
+            }
+        }
         $this->loadData();
     }
 
@@ -112,9 +194,11 @@ class AbsensiMapelIndex extends Component
             return collect();
         }
 
-        return Siswa::with('rayon')
+        $castType = DB::getDriverName() === 'sqlite' ? 'INTEGER' : 'UNSIGNED';
+
+        return Siswa::with(['rayon', 'rombel'])
             ->inRombel($penugasan->rombel_id)
-            ->orderBy('nama')
+            ->orderByRaw("CAST(nipd AS {$castType}) ASC, nipd ASC")
             ->get();
     }
 
@@ -128,6 +212,16 @@ class AbsensiMapelIndex extends Component
             }
             if ($this->rayon_id !== '' && (int) $s->rayon_id !== (int) $this->rayon_id) {
                 return false;
+            }
+            if ($this->search !== '') {
+                $term = strtolower(trim($this->search));
+                $matchNama = str_contains(strtolower($s->nama), $term);
+                $matchNipd = str_contains(strtolower((string) ($s->nipd ?? '')), $term);
+                $matchNisn = str_contains(strtolower((string) ($s->nisn ?? '')), $term);
+
+                if (!$matchNama && !$matchNipd && !$matchNisn) {
+                    return false;
+                }
             }
             return true;
         });
@@ -171,7 +265,10 @@ class AbsensiMapelIndex extends Component
     {
         $filtered = $this->getFilteredSiswas();
         foreach ($filtered as $siswa) {
-            $this->absensiMapelData[$siswa->id]['status'] = StatusAbsensi::HADIR->value;
+            // Tandai hadir bagi yang belum terisi status absensinya
+            if (empty($this->absensiMapelData[$siswa->id]['status'])) {
+                $this->absensiMapelData[$siswa->id]['status'] = StatusAbsensi::HADIR->value;
+            }
         }
     }
 
@@ -181,6 +278,7 @@ class AbsensiMapelIndex extends Component
 
         $this->validate([
             'tanggal' => 'required|date',
+            'rombel_id' => 'required|exists:rombels,id',
             'penugasan_id' => 'required|exists:penugasan_mengajars,id',
             'absensiMapelData.*.status' => 'nullable|string',
             'absensiMapelData.*.keterangan' => 'nullable|string|max:255',
@@ -214,7 +312,7 @@ class AbsensiMapelIndex extends Component
     {
         $statuses = StatusAbsensi::cases();
         $siswas = $this->getFilteredSiswas();
-        $penugasan = $this->penugasan_id ? PenugasanMengajar::with(['rombel', 'mapel'])->find($this->penugasan_id) : null;
+        $penugasan = $this->penugasan_id ? PenugasanMengajar::with(['rombel', 'mapel', 'pegawai'])->find($this->penugasan_id) : null;
         $statistik = $this->statistik;
 
         return view('absensi::livewire.absensi-mapel-index', compact('statuses', 'siswas', 'penugasan', 'statistik'));

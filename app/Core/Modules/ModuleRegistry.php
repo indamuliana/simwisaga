@@ -149,7 +149,6 @@ class ModuleRegistry
     public const MODULE_GROUP_MAP = [
         'AnalitikSpmb'       => 'ANALISIS',
         'DashboardData'      => 'ANALISIS',
-        'AiAssistant'        => 'ANALISIS',
 
         'KalenderPendidikan' => 'KURIKULUM',
         'Akademik'           => 'KURIKULUM',
@@ -159,14 +158,14 @@ class ModuleRegistry
         'Rapor'              => 'KURIKULUM',
 
         'Kesiswaan'          => 'KESISWAAN',
-        'Alumni'             => 'KESISWAAN',
         'Absensi'            => 'KESISWAAN',
         'Prestasi'           => 'KESISWAAN',
+        'Alumni'             => 'KESISWAAN',
 
         'Kepesantrenan'      => 'KEPESANTRENAN',
-        'BeasiswaOta'        => 'KEPESANTRENAN',
 
         'Keuangan'           => 'KEUANGAN',
+        'BeasiswaOta'        => 'KEUANGAN',
 
         'Kepegawaian'        => 'KEPEGAWAIAN & SDM',
 
@@ -174,6 +173,7 @@ class ModuleRegistry
 
         'AdministrasiWeb'    => 'PENGATURAN',
         'Sistem'             => 'PENGATURAN',
+        'AiAssistant'        => 'PENGATURAN',
         'Panduan'            => 'PENGATURAN',
 
         'PortalSiswa'        => 'Portal Siswa',

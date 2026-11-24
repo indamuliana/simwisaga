@@ -6,9 +6,7 @@ return [
     'group' => 'ANALISIS',
     'order' => 15,
     'topbar' => [],
-    'menu' => [
-        ['label' => 'Dashboard Data', 'route' => 'dashboard-data.index', 'permission' => 'dashboard_data.dashboard.lihat'],
-    ],
+    'menu' => [],
     'permissions' => [
         'dashboard_data.dashboard' => ['label' => 'Dashboard Utama', 'actions' => ['lihat']],
         'dashboard_data.rayon' => ['label' => 'Data Rayon', 'actions' => ['lihat']],

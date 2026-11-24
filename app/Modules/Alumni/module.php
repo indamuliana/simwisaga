@@ -5,7 +5,7 @@ return [
     'label' => 'Pengelolaan Alumni',
     'group' => 'KESISWAAN',
     'icon' => 'academic-cap',
-    'order' => 45,
+    'order' => 55,
     'menu' => [
         ['label' => 'Data Alumni', 'route' => 'alumni.index', 'permission' => 'alumni.alumni.lihat'],
     ],

@@ -5,11 +5,11 @@ return [
     'label' => 'Analitik SPMB',
     'group' => 'ANALISIS',
     'icon' => 'chart-bar',
-    'order' => 14,
+    'order' => 10,
     'menu' => [
-        ['label' => 'Asal SMP / MTs', 'route' => 'analitik-spmb.asal-smp', 'permission' => 'analitik_spmb.asal_smp.lihat'],
-        ['label' => 'Perbaikan Data Asal SMP', 'route' => 'analitik-spmb.perbaikan-smp', 'permission' => 'analitik_spmb.perbaikan_smp.lihat'],
-        ['label' => 'Master Data SMP', 'route' => 'analitik-spmb.master-smp', 'permission' => 'analitik_spmb.master_smp.lihat'],
+        ['label' => 'Dashboard Data', 'route' => 'dashboard-data.index', 'permission' => 'dashboard_data.dashboard.lihat'],
+        ['label' => 'AI Asistent', 'route' => 'ai-assistant.chat.view', 'permission' => 'ai-assistant.chat'],
+        ['label' => 'Asal SMP / MTS', 'route' => 'analitik-spmb.asal-smp', 'permission' => 'analitik_spmb.asal_smp.lihat'],
         ['label' => 'Sebaran Wilayah', 'route' => 'analitik-spmb.wilayah', 'permission' => 'analitik_spmb.wilayah.lihat'],
     ],
     'permissions' => [

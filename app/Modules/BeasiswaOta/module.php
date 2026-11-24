@@ -3,9 +3,9 @@
 return [
     'name' => 'BeasiswaOta',
     'label' => 'Beasiswa OTA',
-    'group' => 'KEPESANTRENAN',
+    'group' => 'KEUANGAN',
     'icon' => 'heart',
-    'order' => 85,
+    'order' => 50,
     'menu' => [
         [
             'label' => 'Dashboard & Kas',

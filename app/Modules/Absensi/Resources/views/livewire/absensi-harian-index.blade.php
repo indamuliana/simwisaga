@@ -3,15 +3,15 @@
     <div class="flex flex-col sm:flex-row sm:items-center sm:justify-between gap-4">
         <div>
             <h1 class="text-2xl font-bold tracking-tight text-text-main">Absensi Harian Siswa</h1>
-            <p class="text-sm text-text-secondary">Pencatatan presensi kehadiran siswa harian dengan filter gender dan rayon.</p>
+            <p class="text-sm text-text-secondary">Pencatatan presensi kehadiran siswa harian dengan filter rombel, gender, rayon, dan pencarian cepat.</p>
         </div>
-        @if($rombel_id && count($siswas) > 0)
+        @if(count($siswas) > 0)
             <div class="flex items-center gap-2.5">
-                <button type="button" wire:click="tandaiSemuaHadir" class="btn btn-secondary text-xs sm:text-sm inline-flex items-center gap-1.5">
+                <button type="button" wire:click="tandaiSemuaHadir" class="btn btn-secondary text-xs sm:text-sm inline-flex items-center gap-1.5" title="Hanya menandai siswa yang belum terisi status absensinya">
                     <svg class="w-4 h-4 text-emerald-500" fill="none" viewBox="0 0 24 24" stroke="currentColor">
                         <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M5 13l4 4L19 7"/>
                     </svg>
-                    <span>Tandai Semua Hadir ({{ count($siswas) }} Siswa)</span>
+                    <span>Tandai Semua Hadir</span>
                 </button>
                 <button type="button" wire:click="save" class="btn btn-primary text-xs sm:text-sm inline-flex items-center gap-1.5">
                     <svg class="w-4 h-4" fill="none" viewBox="0 0 24 24" stroke="currentColor">
@@ -91,20 +91,18 @@
 
     {{-- Filter Bar --}}
     <div class="card p-5 bg-surface border border-border space-y-4">
-        <div class="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-4">
+        <div class="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-5 gap-4">
             {{-- Tanggal --}}
             <div>
                 <label class="block text-xs font-semibold text-text-secondary mb-1.5 uppercase tracking-wider">Tanggal</label>
                 <input type="date" wire:model.live="tanggal" class="input w-full">
             </div>
 
-            {{-- Rombel (Wajib) --}}
+            {{-- Rombel (Default: Semua Rombel) --}}
             <div>
-                <label class="block text-xs font-semibold text-text-secondary mb-1.5 uppercase tracking-wider">
-                    Rombel <span class="text-rose-500">*</span>
-                </label>
+                <label class="block text-xs font-semibold text-text-secondary mb-1.5 uppercase tracking-wider">Rombel</label>
                 <select wire:model.live="rombel_id" class="input w-full">
-                    <option value="">-- Pilih Rombel --</option>
+                    <option value="">Semua Rombel (Seluruh Siswa)</option>
                     @foreach($rombels as $rombel)
                         <option value="{{ $rombel->id }}">{{ $rombel->nama }}</option>
                     @endforeach
@@ -114,7 +112,7 @@
             {{-- Rayon --}}
             <div>
                 <label class="block text-xs font-semibold text-text-secondary mb-1.5 uppercase tracking-wider">Rayon</label>
-                <select wire:model.live="rayon_id" class="input w-full" @disabled(!$rombel_id)>
+                <select wire:model.live="rayon_id" class="input w-full">
                     <option value="">Semua Rayon</option>
                     @foreach($rayons as $rayon)
                         <option value="{{ $rayon->id }}">{{ $rayon->nama }}</option>
@@ -125,11 +123,25 @@
             {{-- Gender --}}
             <div>
                 <label class="block text-xs font-semibold text-text-secondary mb-1.5 uppercase tracking-wider">Gender</label>
-                <select wire:model.live="gender" class="input w-full" @disabled(!$rombel_id)>
+                <select wire:model.live="gender" class="input w-full">
                     <option value="">Semua Gender (L & P)</option>
                     <option value="L">Laki-laki (L)</option>
                     <option value="P">Perempuan (P)</option>
                 </select>
+            </div>
+
+            {{-- Pencarian Cepat --}}
+            <div>
+                <label class="block text-xs font-semibold text-text-secondary mb-1.5 uppercase tracking-wider">Cari Siswa</label>
+                <div class="relative">
+                    <input type="text" 
+                           wire:model.live.debounce.300ms="search" 
+                           placeholder="Nama, NIS, atau kelas..." 
+                           class="input w-full pl-8">
+                    <svg class="w-4 h-4 text-text-secondary absolute left-2.5 top-1/2 -translate-y-1/2 pointer-events-none" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                        <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M21 21l-6-6m2-5a7 7 0 11-14 0 7 7 0 0114 0z"/>
+                    </svg>
+                </div>
             </div>
         </div>
     </div>
@@ -151,21 +163,26 @@
             <div class="flex flex-col sm:flex-row sm:items-center sm:justify-between gap-2 px-1 text-xs text-text-secondary">
                 <div>
                     Menampilkan <span class="font-bold text-text-main">{{ count($siswas) }} siswa</span>
-                    @if($gender || $rayon_id)
-                        (Disaring berdasarkan
-                        @if($gender)
-                            Gender: <span class="font-semibold text-text-main">{{ $gender === 'L' ? 'Laki-laki' : 'Perempuan' }}</span>
+                    <span class="text-text-secondary/70">(Daftar lurus urut NIS/NIPD)</span>
+                    @if($rombel_id || $gender || $rayon_id || $search)
+                        &bull; Filter aktif:
+                        @if($rombel_id)
+                            <span class="font-semibold text-text-main">Rombel: {{ $rombels->firstWhere('id', $rombel_id)?->nama }}</span>
                         @endif
-                        @if($gender && $rayon_id) &bull; @endif
                         @if($rayon_id)
-                            Rayon: <span class="font-semibold text-text-main">{{ $rayons->firstWhere('id', $rayon_id)?->nama ?? '-' }}</span>
+                            &bull; Rayon: <span class="font-semibold text-text-main">{{ $rayons->firstWhere('id', $rayon_id)?->nama ?? '-' }}</span>
                         @endif
-                        )
+                        @if($gender)
+                            &bull; Gender: <span class="font-semibold text-text-main">{{ $gender === 'L' ? 'Laki-laki' : 'Perempuan' }}</span>
+                        @endif
+                        @if($search)
+                            &bull; Kata kunci: <span class="font-semibold text-text-main">"{{ $search }}"</span>
+                        @endif
                     @endif
                 </div>
                 <div class="flex items-center gap-3">
                     <button type="button" wire:click="tandaiSemuaHadir" class="text-primary hover:underline font-semibold cursor-pointer">
-                        &check; Tandai Hadir {{ count($siswas) }} Siswa Ini
+                        &check; Tandai Hadir Siswa yang Belum Diisi
                     </button>
                 </div>
             </div>
@@ -175,7 +192,7 @@
                     <thead class="text-[11px] uppercase tracking-wider text-text-secondary bg-surface-hover/80 border-b border-border">
                         <tr>
                             <th class="px-4 py-3 w-12 text-center">No</th>
-                            <th class="px-4 py-3 min-w-[200px]">Identitas Siswa</th>
+                            <th class="px-4 py-3 min-w-[220px]">Identitas Siswa</th>
                             <th class="px-4 py-3 min-w-[480px]">Status Kehadiran</th>
                             <th class="px-4 py-3 min-w-[220px]">Keterangan</th>
                         </tr>
@@ -188,11 +205,16 @@
                                 </td>
                                 <td class="px-4 py-3">
                                     <div class="font-semibold text-text-main">{{ $siswa->nama }}</div>
-                                    <div class="flex items-center gap-1.5 mt-1">
-                                        <span class="text-xs font-mono text-text-secondary">{{ $siswa->nipd ?: $siswa->nisn }}</span>
+                                    <div class="flex flex-wrap items-center gap-1.5 mt-1">
+                                        <span class="text-xs font-mono text-text-secondary font-medium">{{ $siswa->nipd ?: ($siswa->nisn ?: '-') }}</span>
                                         <span class="inline-flex items-center px-1.5 py-0.2 rounded text-[10px] font-bold {{ strtoupper($siswa->jk) === 'L' ? 'bg-blue-100 text-blue-700 dark:bg-blue-950/50 dark:text-blue-300' : 'bg-pink-100 text-pink-700 dark:bg-pink-950/50 dark:text-pink-300' }}">
                                             {{ strtoupper($siswa->jk) === 'L' ? 'L' : 'P' }}
                                         </span>
+                                        @if($siswa->rombel)
+                                            <span class="inline-flex items-center px-1.5 py-0.2 rounded text-[10px] font-semibold bg-emerald-100 text-emerald-800 dark:bg-emerald-950/50 dark:text-emerald-300 border border-emerald-300/80 dark:border-emerald-800/80">
+                                                {{ $siswa->rombel->nama }}
+                                            </span>
+                                        @endif
                                         @if($siswa->rayon)
                                             <span class="inline-flex items-center px-1.5 py-0.2 rounded text-[10px] bg-slate-100 dark:bg-slate-800 text-slate-700 dark:text-slate-300">
                                                 {{ $siswa->rayon->nama }}
@@ -235,20 +257,12 @@
                 </button>
             </div>
         </div>
-    @elseif($rombel_id && $tanggal)
+    @else
         <div class="card p-12 text-center border border-border">
             <div class="text-4xl mb-3">&#128269;</div>
             <h3 class="text-base font-bold text-text-main">Tidak Ada Siswa Ditemukan</h3>
             <p class="text-xs text-text-secondary mt-1">
-                Tidak ada data siswa yang cocok dengan kombinasi filter Rombel, Rayon, atau Gender yang dipilih.
-            </p>
-        </div>
-    @else
-        <div class="card p-12 text-center border border-border">
-            <div class="text-4xl mb-3">&#128197;</div>
-            <h3 class="text-base font-bold text-text-main">Pilih Rombel Terlebih Dahulu</h3>
-            <p class="text-xs text-text-secondary mt-1">
-                Silakan pilih rombel pada formulir di atas untuk memuat daftar siswa dan mencatat absensi harian.
+                Tidak ada data siswa yang cocok dengan kombinasi filter Rombel, Rayon, Gender, atau kata kunci pencarian yang dipilih.
             </p>
         </div>
     @endif

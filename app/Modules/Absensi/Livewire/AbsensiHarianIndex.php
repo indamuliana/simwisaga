@@ -18,9 +18,10 @@ class AbsensiHarianIndex extends Component
     use GuardsPermission;
 
     public $tanggal;
-    public $rombel_id;
+    public $rombel_id = '';
     public $gender = '';
     public $rayon_id = '';
+    public $search = '';
 
     public $rombels = [];
     public $rayons = [];
@@ -31,7 +32,11 @@ class AbsensiHarianIndex extends Component
         $this->tanggal = date('Y-m-d');
         $activeTa = AcademicContext::currentTahunAjaran();
         $this->rombels = Rombel::where('tahun_ajaran_id', $activeTa?->id)->orderBy('tingkat')->orderBy('nama')->get();
+        if ($this->rombels->isEmpty()) {
+            $this->rombels = Rombel::orderBy('tingkat')->orderBy('nama')->get();
+        }
         $this->rayons = Rayon::orderBy('nama')->get();
+        $this->loadData();
     }
 
     public function updatedRombelId()
@@ -46,16 +51,17 @@ class AbsensiHarianIndex extends Component
 
     public function loadData()
     {
-        if (!$this->rombel_id || !$this->tanggal) {
+        if (!$this->tanggal) {
             $this->absensiData = [];
             return;
         }
 
-        $allSiswas = $this->getAllRombelSiswas();
-        $absensis = AbsensiHarian::where('tanggal', $this->tanggal)
-            ->where('rombel_id', $this->rombel_id)
-            ->get()
-            ->keyBy('siswa_id');
+        $allSiswas = $this->getAllSiswas();
+        $query = AbsensiHarian::where('tanggal', $this->tanggal);
+        if ($this->rombel_id) {
+            $query->where('rombel_id', $this->rombel_id);
+        }
+        $absensis = $query->get()->keyBy('siswa_id');
 
         $this->absensiData = [];
         foreach ($allSiswas as $siswa) {
@@ -66,21 +72,26 @@ class AbsensiHarianIndex extends Component
         }
     }
 
-    public function getAllRombelSiswas()
+    public function getAllSiswas()
     {
-        if (!$this->rombel_id) {
-            return collect();
+        $castType = DB::getDriverName() === 'sqlite' ? 'INTEGER' : 'UNSIGNED';
+
+        $query = Siswa::with(['rayon', 'rombel']);
+
+        if (Siswa::where('status', 'aktif')->exists()) {
+            $query->where('status', 'aktif');
         }
 
-        return Siswa::with('rayon')
-            ->inRombel($this->rombel_id)
-            ->orderBy('nama')
-            ->get();
+        if ($this->rombel_id) {
+            $query->inRombel($this->rombel_id);
+        }
+
+        return $query->orderByRaw("CAST(nipd AS {$castType}) ASC, nipd ASC")->get();
     }
 
     public function getFilteredSiswas()
     {
-        $all = $this->getAllRombelSiswas();
+        $all = $this->getAllSiswas();
 
         return $all->filter(function ($s) {
             if ($this->gender !== '' && strtoupper($s->jk) !== strtoupper($this->gender)) {
@@ -88,6 +99,17 @@ class AbsensiHarianIndex extends Component
             }
             if ($this->rayon_id !== '' && (int) $s->rayon_id !== (int) $this->rayon_id) {
                 return false;
+            }
+            if ($this->search !== '') {
+                $term = strtolower(trim($this->search));
+                $matchNama = str_contains(strtolower($s->nama), $term);
+                $matchNipd = str_contains(strtolower((string) ($s->nipd ?? '')), $term);
+                $matchNisn = str_contains(strtolower((string) ($s->nisn ?? '')), $term);
+                $matchRombel = str_contains(strtolower($s->rombel?->nama ?? ''), $term);
+
+                if (!$matchNama && !$matchNipd && !$matchNisn && !$matchRombel) {
+                    return false;
+                }
             }
             return true;
         });
@@ -121,7 +143,7 @@ class AbsensiHarianIndex extends Component
             })
             ->toArray();
 
-        // Gabungkan secara real-time dengan data absensi yang sedang diedit di layar (jika rombel aktif)
+        // Gabungkan secara real-time dengan data absensi yang sedang diedit di layar
         if (!empty($this->absensiData)) {
             foreach ($this->absensiData as $siswaId => $data) {
                 if (!empty($data['status'])) {
@@ -155,7 +177,10 @@ class AbsensiHarianIndex extends Component
     {
         $filtered = $this->getFilteredSiswas();
         foreach ($filtered as $siswa) {
-            $this->absensiData[$siswa->id]['status'] = StatusAbsensi::HADIR->value;
+            // Hanya menandai jika status masih kosong/belum diisi (tidak menimpa yang sudah diisi)
+            if (empty($this->absensiData[$siswa->id]['status'])) {
+                $this->absensiData[$siswa->id]['status'] = StatusAbsensi::HADIR->value;
+            }
         }
     }
 
@@ -165,34 +190,38 @@ class AbsensiHarianIndex extends Component
 
         $this->validate([
             'tanggal' => 'required|date',
-            'rombel_id' => 'required|exists:rombels,id',
+            'rombel_id' => 'nullable|exists:rombels,id',
             'absensiData.*.status' => 'nullable|string',
             'absensiData.*.keterangan' => 'nullable|string|max:255',
         ]);
 
-        $rombel = Rombel::find($this->rombel_id);
-        $semesterId = null;
+        $allSiswas = Siswa::with('rombel')->whereIn('id', array_keys($this->absensiData))->get()->keyBy('id');
 
-        if ($rombel && $rombel->tahun_ajaran_id) {
-            $sem = \App\Modules\Akademik\Models\Semester::where('tahun_ajaran_id', $rombel->tahun_ajaran_id)
-                ->where('is_active', true)
-                ->first();
-            if (!$sem) {
-                $sem = \App\Modules\Akademik\Models\Semester::where('tahun_ajaran_id', $rombel->tahun_ajaran_id)
-                    ->orderByDesc('id')
-                    ->first();
-            }
-            $semesterId = $sem?->id;
+        $defaultSemesterId = AcademicContext::currentSemester()?->id;
+        if (!$defaultSemesterId) {
+            $defaultSemesterId = \App\Modules\Akademik\Models\Semester::where('is_active', true)->first()?->id;
+        }
+        if (!$defaultSemesterId) {
+            $defaultSemesterId = \App\Modules\Akademik\Models\Semester::orderByDesc('id')->first()?->id;
         }
 
-        if (!$semesterId) {
-            $semesterId = AcademicContext::currentSemester()?->id;
-        }
-
-        DB::transaction(function () use ($semesterId) {
+        DB::transaction(function () use ($allSiswas, $defaultSemesterId) {
             foreach ($this->absensiData as $siswaId => $data) {
                 if (empty($data['status'])) {
                     continue;
+                }
+
+                $siswa = $allSiswas->get($siswaId);
+                $targetRombelId = $this->rombel_id ?: $siswa?->rombel_id;
+
+                $semesterId = $defaultSemesterId;
+                if ($targetRombelId && $siswa?->rombel?->tahun_ajaran_id) {
+                    $sem = \App\Modules\Akademik\Models\Semester::where('tahun_ajaran_id', $siswa->rombel->tahun_ajaran_id)
+                        ->where('is_active', true)
+                        ->first();
+                    if ($sem) {
+                        $semesterId = $sem->id;
+                    }
                 }
 
                 AbsensiHarian::updateOrCreate(
@@ -201,7 +230,7 @@ class AbsensiHarianIndex extends Component
                         'siswa_id' => $siswaId,
                     ],
                     [
-                        'rombel_id' => $this->rombel_id,
+                        'rombel_id' => $targetRombelId,
                         'status' => $data['status'],
                         'keterangan' => $data['keterangan'] ?? null,
                         'semester_id' => $semesterId,

@@ -4,7 +4,7 @@ return [
     'name' => 'Absensi',
     'label' => 'Pengelolaan Absensi',
     'group' => 'KESISWAAN',
-    'order' => 50,
+    'order' => 45,
     'menu' => [
         ['label' => 'Absensi Harian', 'route' => 'absensi.harian', 'permission' => 'absensi.harian.lihat'],
         ['label' => 'Absensi Mapel', 'route' => 'absensi.mapel', 'permission' => 'absensi.mapel.lihat'],

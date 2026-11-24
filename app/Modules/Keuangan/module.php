@@ -5,7 +5,7 @@ return [
     'label' => 'Pembayaran Siswa',
     'group' => 'KEUANGAN',
     'icon' => 'banknotes',
-    'order' => 45,
+    'order' => 40,
     'menu' => [
         [
             'label' => 'Dashboard & Piutang',
