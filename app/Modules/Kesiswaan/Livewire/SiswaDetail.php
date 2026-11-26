@@ -4,9 +4,11 @@ namespace App\Modules\Kesiswaan\Livewire;
 
 use App\Core\Concerns\GuardsPermission;
 use App\Core\Support\DataMasker;
+use App\Enums\StatusAbsensi;
 use App\Modules\Absensi\Models\AbsensiHarian;
 use App\Modules\Kesiswaan\Models\Siswa;
 use App\Modules\Kesiswaan\Services\SingleSiswaDocumentExporter;
+use Illuminate\Support\Facades\DB;
 use Livewire\Attributes\Layout;
 use Livewire\Attributes\Title;
 use Livewire\Attributes\Url;
@@ -87,12 +89,27 @@ class SiswaDetail extends Component
         ])->findOrFail($this->siswaId);
 
         // Rekap Presensi Harian
-        $absensiStats = [
-            'H' => AbsensiHarian::where('siswa_id', $this->siswaId)->where('status', 'H')->count(),
-            'S' => AbsensiHarian::where('siswa_id', $this->siswaId)->where('status', 'S')->count(),
-            'I' => AbsensiHarian::where('siswa_id', $this->siswaId)->where('status', 'I')->count(),
-            'A' => AbsensiHarian::where('siswa_id', $this->siswaId)->where('status', 'A')->count(),
-        ];
+        $absensiStats = ['H' => 0, 'S' => 0, 'I' => 0, 'A' => 0];
+        $groupedAbsensi = AbsensiHarian::where('siswa_id', $this->siswaId)
+            ->select('status', DB::raw('COUNT(*) as total'))
+            ->groupBy('status')
+            ->get();
+
+        foreach ($groupedAbsensi as $row) {
+            $statusVal = $row->status instanceof StatusAbsensi ? $row->status->value : (string) $row->status;
+            $enum = StatusAbsensi::tryFrom($statusVal);
+            $count = (int) $row->total;
+
+            if (($enum && $enum->isHadirStatistik()) || $statusVal === 'H') {
+                $absensiStats['H'] += $count;
+            } elseif ($enum === StatusAbsensi::SAKIT || $statusVal === 'S') {
+                $absensiStats['S'] += $count;
+            } elseif ($enum === StatusAbsensi::IZIN || $statusVal === 'I') {
+                $absensiStats['I'] += $count;
+            } elseif ($enum === StatusAbsensi::ALPA || $statusVal === 'A') {
+                $absensiStats['A'] += $count;
+            }
+        }
         $totalAbsen = array_sum($absensiStats);
         $persenHadir = $totalAbsen > 0 ? round(($absensiStats['H'] / $totalAbsen) * 100, 1) : 100;
         $riwayatAbsensi = AbsensiHarian::where('siswa_id', $this->siswaId)

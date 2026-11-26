@@ -7,10 +7,16 @@ use App\Enums\StatusAbsensi;
 use App\Modules\Absensi\Models\AbsensiHarian;
 use App\Modules\Akademik\Models\Rayon;
 use App\Modules\Akademik\Models\Rombel;
+use App\Modules\Akademik\Models\Semester;
 use App\Modules\Akademik\Support\AcademicContext;
+use App\Modules\Kepegawaian\Models\PenugasanPembimbingRayon;
+use App\Modules\Kepegawaian\Models\PenugasanWaliKelas;
 use App\Modules\Kesiswaan\Models\Siswa;
+use Carbon\Carbon;
+use Illuminate\Database\Eloquent\Builder;
+use Illuminate\Support\Collection;
 use Illuminate\Support\Facades\DB;
-use Livewire\Attributes\Layout;
+use Illuminate\Validation\Rule;
 use Livewire\Component;
 
 class AbsensiHarianIndex extends Component
@@ -23,104 +29,166 @@ class AbsensiHarianIndex extends Component
     public $rayon_id = '';
     public $search = '';
 
-    public $rombels = [];
-    public $rayons = [];
-    public $absensiData = [];
+    public array $absensiData = [];
+    public array $dirtySiswaIds = [];
+    public bool $isEditingPastDate = false;
 
-    public function mount()
+    protected ?array $resolvedScope = null;
+
+    public function mount(): void
     {
-        $this->tanggal = date('Y-m-d');
-        $activeTa = AcademicContext::currentTahunAjaran();
-        $this->rombels = Rombel::where('tahun_ajaran_id', $activeTa?->id)->orderBy('tingkat')->orderBy('nama')->get();
-        if ($this->rombels->isEmpty()) {
-            $this->rombels = Rombel::orderBy('tingkat')->orderBy('nama')->get();
+        $reqTanggal = request()->query('tanggal');
+        $this->tanggal = $this->isValidDate($reqTanggal)
+            ? Carbon::parse($reqTanggal)->toDateString()
+            : now()->toDateString();
+
+        $reqRombel = request()->query('rombel_id');
+        if ($reqRombel !== null && $reqRombel !== '' && ctype_digit((string) $reqRombel)) {
+            $this->rombel_id = (string) $reqRombel;
         }
-        $this->rayons = Rayon::orderBy('nama')->get();
+
+        $reqRayon = request()->query('rayon_id');
+        if ($reqRayon !== null && $reqRayon !== '' && ctype_digit((string) $reqRayon)) {
+            $this->rayon_id = (string) $reqRayon;
+        }
+
         $this->loadData();
     }
 
-    public function updatedRombelId()
+    public function updatedRombelId(): void
     {
+        $this->dirtySiswaIds = [];
         $this->loadData();
     }
 
-    public function updatedTanggal()
+    public function updatedTanggal(): void
     {
+        if (! $this->isValidDate($this->tanggal)) {
+            $this->tanggal = now()->toDateString();
+        }
+
+        $this->isEditingPastDate = false;
+        $this->dirtySiswaIds = [];
         $this->loadData();
     }
 
-    public function loadData()
+    public function updatedAbsensiData($value, $key): void
     {
-        if (!$this->tanggal) {
+        $siswaId = (int) explode('.', (string) $key)[0];
+        if ($siswaId > 0) {
+            $this->dirtySiswaIds[$siswaId] = true;
+        }
+    }
+
+    public function getCanInputProperty(): bool
+    {
+        $user = auth()->user();
+
+        return $user !== null && ($user->isSuperAdmin() || $user->can('absensi.harian.input'));
+    }
+
+    public function getIsPastDateProperty(): bool
+    {
+        if (! $this->isValidDate($this->tanggal)) {
+            return false;
+        }
+
+        return Carbon::parse($this->tanggal)->startOfDay()->lt(Carbon::today());
+    }
+
+    public function getIsEditableProperty(): bool
+    {
+        if (! $this->canInput) {
+            return false;
+        }
+
+        return ! $this->isPastDate || $this->isEditingPastDate;
+    }
+
+    public function getHasFullAccessProperty(): bool
+    {
+        return $this->resolveAccessScope()['all'];
+    }
+
+    public function mulaiEditAbsen(): void
+    {
+        $this->guard('absensi.harian.input');
+
+        $this->isEditingPastDate = true;
+        $this->dirtySiswaIds = [];
+        $this->loadData();
+    }
+
+    public function batalEditAbsen(): void
+    {
+        $this->isEditingPastDate = false;
+        $this->dirtySiswaIds = [];
+        $this->loadData();
+    }
+
+    public function loadData(): void
+    {
+        if (! $this->isValidDate($this->tanggal)) {
             $this->absensiData = [];
+
             return;
         }
 
-        $allSiswas = $this->getAllSiswas();
-        $query = AbsensiHarian::where('tanggal', $this->tanggal);
-        if ($this->rombel_id) {
-            $query->where('rombel_id', $this->rombel_id);
+        $siswaIds = $this->baseSiswaQuery()
+            ->when($this->rombel_id !== '', fn (Builder $q) => $q->inRombel((int) $this->rombel_id))
+            ->pluck('id');
+
+        if ($siswaIds->isEmpty()) {
+            $this->absensiData = [];
+
+            return;
         }
-        $absensis = $query->get()->keyBy('siswa_id');
+
+        $absensis = AbsensiHarian::where('tanggal', $this->tanggal)
+            ->whereIn('siswa_id', $siswaIds)
+            ->get(['siswa_id', 'status', 'keterangan'])
+            ->keyBy('siswa_id');
 
         $this->absensiData = [];
-        foreach ($allSiswas as $siswa) {
-            $this->absensiData[$siswa->id] = [
-                'status' => $absensis[$siswa->id]->status->value ?? null,
-                'keterangan' => $absensis[$siswa->id]->keterangan ?? '',
+        foreach ($siswaIds as $siswaId) {
+            $rec = $absensis->get($siswaId);
+            $statusVal = $rec?->status instanceof StatusAbsensi ? $rec->status->value : ($rec?->status ?: null);
+
+            $this->absensiData[$siswaId] = [
+                'status' => $statusVal,
+                'keterangan' => $rec?->keterangan ?? '',
             ];
         }
     }
 
-    public function getAllSiswas()
+    public function getFilteredSiswas(): Collection
     {
         $castType = DB::getDriverName() === 'sqlite' ? 'INTEGER' : 'UNSIGNED';
+        $term = trim((string) $this->search);
 
-        $query = Siswa::with(['rayon', 'rombel']);
-
-        if (Siswa::where('status', 'aktif')->exists()) {
-            $query->where('status', 'aktif');
-        }
-
-        if ($this->rombel_id) {
-            $query->inRombel($this->rombel_id);
-        }
-
-        return $query->orderByRaw("CAST(nipd AS {$castType}) ASC, nipd ASC")->get();
-    }
-
-    public function getFilteredSiswas()
-    {
-        $all = $this->getAllSiswas();
-
-        return $all->filter(function ($s) {
-            if ($this->gender !== '' && strtoupper($s->jk) !== strtoupper($this->gender)) {
-                return false;
-            }
-            if ($this->rayon_id !== '' && (int) $s->rayon_id !== (int) $this->rayon_id) {
-                return false;
-            }
-            if ($this->search !== '') {
-                $term = strtolower(trim($this->search));
-                $matchNama = str_contains(strtolower($s->nama), $term);
-                $matchNipd = str_contains(strtolower((string) ($s->nipd ?? '')), $term);
-                $matchNisn = str_contains(strtolower((string) ($s->nisn ?? '')), $term);
-                $matchRombel = str_contains(strtolower($s->rombel?->nama ?? ''), $term);
-
-                if (!$matchNama && !$matchNipd && !$matchNisn && !$matchRombel) {
-                    return false;
-                }
-            }
-            return true;
-        });
+        return $this->baseSiswaQuery()
+            ->select(['id', 'nama', 'nipd', 'nisn', 'jk', 'rombel_id', 'rayon_id'])
+            ->with(['rayon:id,nama', 'rombel:id,nama'])
+            ->when($this->rombel_id !== '', fn (Builder $q) => $q->inRombel((int) $this->rombel_id))
+            ->when($this->rayon_id !== '', fn (Builder $q) => $q->where('rayon_id', (int) $this->rayon_id))
+            ->when($this->gender !== '', fn (Builder $q) => $q->whereRaw('UPPER(jk) = ?', [strtoupper((string) $this->gender)]))
+            ->when($term !== '', function (Builder $q) use ($term) {
+                $like = '%'.strtolower($term).'%';
+                $q->where(function (Builder $sq) use ($like) {
+                    $sq->whereRaw('LOWER(nama) LIKE ?', [$like])
+                        ->orWhereRaw('LOWER(COALESCE(nipd, "")) LIKE ?', [$like])
+                        ->orWhereRaw('LOWER(COALESCE(nisn, "")) LIKE ?', [$like])
+                        ->orWhereHas('rombel', fn (Builder $rq) => $rq->whereRaw('LOWER(nama) LIKE ?', [$like]));
+                });
+            })
+            ->orderByRaw("CAST(nipd AS {$castType}) ASC, nipd ASC")
+            ->get();
     }
 
     public function getStatistikProperty(): array
     {
-        $totalSiswa = Siswa::where('status', 'aktif')->count();
-        if ($totalSiswa === 0) {
-            $totalSiswa = Siswa::count();
-        }
+        $scopedIds = $this->baseSiswaQuery()->pluck('id');
+        $totalSiswa = $scopedIds->count();
 
         $counts = [
             'total' => $totalSiswa,
@@ -131,116 +199,400 @@ class AbsensiHarianIndex extends Component
             'dispen_cbt_plh' => 0,
             'dispen_cbt_kwh' => 0,
             'dispen_lainnya' => 0,
-            'belum_absen' => 0,
+            'belum_absen' => $totalSiswa,
         ];
 
-        // Ambil seluruh data absensi pada tanggal ini dari database (sekolah-wide / seluruh siswa)
-        $dbAbsensi = AbsensiHarian::where('tanggal', $this->tanggal)
-            ->get()
-            ->mapWithKeys(function ($item) {
-                $val = $item->status instanceof StatusAbsensi ? $item->status->value : $item->status;
-                return [$item->siswa_id => $val];
-            })
-            ->toArray();
+        if ($totalSiswa === 0 || ! $this->isValidDate($this->tanggal)) {
+            return $counts;
+        }
 
-        // Gabungkan secara real-time dengan data absensi yang sedang diedit di layar
-        if (!empty($this->absensiData)) {
-            foreach ($this->absensiData as $siswaId => $data) {
-                if (!empty($data['status'])) {
-                    $dbAbsensi[$siswaId] = $data['status'];
-                } else {
-                    unset($dbAbsensi[$siswaId]);
+        $statusKeyMap = [
+            StatusAbsensi::HADIR->value => 'hadir',
+            StatusAbsensi::SAKIT->value => 'sakit',
+            StatusAbsensi::IZIN->value => 'izin',
+            StatusAbsensi::ALPA->value => 'alpa',
+            StatusAbsensi::DISPEN_CBT_PLH->value => 'dispen_cbt_plh',
+            StatusAbsensi::DISPEN_CBT_KWH->value => 'dispen_cbt_kwh',
+            StatusAbsensi::DISPEN_LAINNYA->value => 'dispen_lainnya',
+        ];
+
+        $dbGrouped = AbsensiHarian::where('tanggal', $this->tanggal)
+            ->whereIn('siswa_id', $scopedIds)
+            ->select('status', DB::raw('COUNT(*) as total'))
+            ->groupBy('status')
+            ->get();
+
+        foreach ($dbGrouped as $row) {
+            $statusVal = $row->status instanceof StatusAbsensi ? $row->status->value : (string) $row->status;
+            if (isset($statusKeyMap[$statusVal])) {
+                $counts[$statusKeyMap[$statusVal]] += (int) $row->total;
+            }
+        }
+
+        // Terapkan delta hanya untuk baris yang sedang diubah di sesi ini (belum disimpan)
+        $dirtyIds = array_values(array_intersect(
+            array_map('intval', array_keys($this->dirtySiswaIds)),
+            $scopedIds->all()
+        ));
+
+        if (! empty($dirtyIds)) {
+            $existingDirty = AbsensiHarian::where('tanggal', $this->tanggal)
+                ->whereIn('siswa_id', $dirtyIds)
+                ->get(['siswa_id', 'status'])
+                ->keyBy('siswa_id');
+
+            foreach ($dirtyIds as $siswaId) {
+                $oldRec = $existingDirty->get($siswaId);
+                $oldStatus = $oldRec?->status instanceof StatusAbsensi ? $oldRec->status->value : ($oldRec?->status ?: null);
+                $newStatus = $this->absensiData[$siswaId]['status'] ?? null;
+
+                if ($oldStatus === $newStatus) {
+                    continue;
+                }
+
+                if ($oldStatus && isset($statusKeyMap[$oldStatus])) {
+                    $counts[$statusKeyMap[$oldStatus]] = max(0, $counts[$statusKeyMap[$oldStatus]] - 1);
+                }
+                if ($newStatus && isset($statusKeyMap[$newStatus])) {
+                    $counts[$statusKeyMap[$newStatus]]++;
                 }
             }
         }
 
-        foreach ($dbAbsensi as $statusVal) {
-            match ($statusVal) {
-                StatusAbsensi::HADIR->value => $counts['hadir']++,
-                StatusAbsensi::SAKIT->value => $counts['sakit']++,
-                StatusAbsensi::IZIN->value => $counts['izin']++,
-                StatusAbsensi::ALPA->value => $counts['alpa']++,
-                StatusAbsensi::DISPEN_CBT_PLH->value => $counts['dispen_cbt_plh']++,
-                StatusAbsensi::DISPEN_CBT_KWH->value => $counts['dispen_cbt_kwh']++,
-                StatusAbsensi::DISPEN_LAINNYA->value => $counts['dispen_lainnya']++,
-                default => null,
-            };
-        }
+        $totalSudahAbsen = $counts['hadir']
+            + $counts['sakit']
+            + $counts['izin']
+            + $counts['alpa']
+            + $counts['dispen_cbt_plh']
+            + $counts['dispen_cbt_kwh']
+            + $counts['dispen_lainnya'];
 
-        $totalSudahAbsen = count($dbAbsensi);
         $counts['belum_absen'] = max(0, $totalSiswa - $totalSudahAbsen);
 
         return $counts;
     }
 
-    public function tandaiSemuaHadir()
+    public function tandaiSemuaHadir(): void
     {
+        $this->guard('absensi.harian.input');
+
+        if (! $this->isEditable) {
+            abort(403, 'Klik tombol Edit Absen terlebih dahulu untuk mengubah absensi tanggal lampau.');
+        }
+
         $filtered = $this->getFilteredSiswas();
         foreach ($filtered as $siswa) {
-            // Hanya menandai jika status masih kosong/belum diisi (tidak menimpa yang sudah diisi)
             if (empty($this->absensiData[$siswa->id]['status'])) {
-                $this->absensiData[$siswa->id]['status'] = StatusAbsensi::HADIR->value;
+                $this->absensiData[$siswa->id] = [
+                    'status' => StatusAbsensi::HADIR->value,
+                    'keterangan' => $this->absensiData[$siswa->id]['keterangan'] ?? '',
+                ];
+                $this->dirtySiswaIds[$siswa->id] = true;
             }
         }
     }
 
-    public function save()
+    public function resetStatus(int $siswaId): void
     {
         $this->guard('absensi.harian.input');
 
+        if (! $this->isEditable) {
+            abort(403, 'Klik tombol Edit Absen terlebih dahulu untuk mengubah absensi tanggal lampau.');
+        }
+
+        if (! $this->baseSiswaQuery()->where('id', $siswaId)->exists()) {
+            abort(403, 'Anda tidak memiliki hak akses untuk mengubah absensi siswa di luar binaan Anda.');
+        }
+
+        $this->absensiData[$siswaId] = [
+            'status' => null,
+            'keterangan' => '',
+        ];
+        $this->dirtySiswaIds[$siswaId] = true;
+    }
+
+    public function save(): void
+    {
+        $this->guard('absensi.harian.input');
+
+        if (! $this->isEditable) {
+            abort(403, 'Klik tombol Edit Absen terlebih dahulu untuk mengubah absensi tanggal lampau.');
+        }
+
         $this->validate([
-            'tanggal' => 'required|date',
-            'rombel_id' => 'nullable|exists:rombels,id',
-            'absensiData.*.status' => 'nullable|string',
-            'absensiData.*.keterangan' => 'nullable|string|max:255',
+            'tanggal' => ['required', 'date'],
+            'rombel_id' => ['nullable', 'exists:rombels,id'],
+            'absensiData.*.status' => ['nullable', Rule::enum(StatusAbsensi::class)],
+            'absensiData.*.keterangan' => ['nullable', 'string', 'max:255'],
         ]);
 
-        $allSiswas = Siswa::with('rombel')->whereIn('id', array_keys($this->absensiData))->get()->keyBy('id');
+        $semesterId = AcademicContext::currentSemester()?->id
+            ?? Semester::orderByDesc('id')->first()?->id;
 
-        $defaultSemesterId = AcademicContext::currentSemester()?->id;
-        if (!$defaultSemesterId) {
-            $defaultSemesterId = \App\Modules\Akademik\Models\Semester::where('is_active', true)->first()?->id;
+        if (! $semesterId) {
+            $this->addError('tanggal', 'Semester aktif belum tersedia. Silakan atur semester terlebih dahulu.');
+
+            return;
         }
-        if (!$defaultSemesterId) {
-            $defaultSemesterId = \App\Modules\Akademik\Models\Semester::orderByDesc('id')->first()?->id;
+
+        $dirtyIds = array_values(array_unique(array_filter(
+            array_map('intval', array_keys($this->dirtySiswaIds)),
+            fn (int $id) => $id > 0 && array_key_exists($id, $this->absensiData)
+        )));
+
+        if (empty($dirtyIds)) {
+            if ($this->isPastDate) {
+                $this->isEditingPastDate = false;
+            }
+            session()->flash('message', 'Tidak ada perubahan absensi untuk disimpan.');
+
+            return;
         }
 
-        DB::transaction(function () use ($allSiswas, $defaultSemesterId) {
-            foreach ($this->absensiData as $siswaId => $data) {
-                if (empty($data['status'])) {
-                    continue;
-                }
+        $allowedSiswas = $this->baseSiswaQuery()
+            ->whereIn('id', $dirtyIds)
+            ->get(['id', 'nama', 'rombel_id'])
+            ->keyBy('id');
 
-                $siswa = $allSiswas->get($siswaId);
-                $targetRombelId = $this->rombel_id ?: $siswa?->rombel_id;
+        if ($allowedSiswas->count() !== count($dirtyIds)) {
+            abort(403, 'Anda tidak memiliki hak akses untuk mengubah absensi siswa di luar binaan Anda.');
+        }
 
-                $semesterId = $defaultSemesterId;
-                if ($targetRombelId && $siswa?->rombel?->tahun_ajaran_id) {
-                    $sem = \App\Modules\Akademik\Models\Semester::where('tahun_ajaran_id', $siswa->rombel->tahun_ajaran_id)
-                        ->where('is_active', true)
-                        ->first();
-                    if ($sem) {
-                        $semesterId = $sem->id;
-                    }
-                }
+        $toUpsert = [];
+        $toDeleteIds = [];
+        $skippedNoRombel = [];
+        $now = now();
+        $userId = auth()->id();
 
-                AbsensiHarian::updateOrCreate(
-                    [
-                        'tanggal' => $this->tanggal,
-                        'siswa_id' => $siswaId,
-                    ],
-                    [
-                        'rombel_id' => $targetRombelId,
-                        'status' => $data['status'],
-                        'keterangan' => $data['keterangan'] ?? null,
-                        'semester_id' => $semesterId,
-                        'diinput_oleh' => auth()->id(),
-                    ]
+        foreach ($dirtyIds as $siswaId) {
+            $data = $this->absensiData[$siswaId] ?? [];
+            $status = $data['status'] ?? null;
+
+            if (empty($status)) {
+                $toDeleteIds[] = $siswaId;
+
+                continue;
+            }
+
+            $siswa = $allowedSiswas->get($siswaId);
+            if (! $siswa || ! $siswa->rombel_id) {
+                $skippedNoRombel[] = $siswa?->nama ?? "ID #{$siswaId}";
+
+                continue;
+            }
+
+            $ket = isset($data['keterangan']) ? trim((string) $data['keterangan']) : '';
+
+            $toUpsert[] = [
+                'tanggal' => $this->tanggal,
+                'siswa_id' => $siswaId,
+                'rombel_id' => $siswa->rombel_id,
+                'semester_id' => $semesterId,
+                'status' => $status,
+                'keterangan' => $ket !== '' ? $ket : null,
+                'diinput_oleh' => $userId,
+                'created_at' => $now,
+                'updated_at' => $now,
+            ];
+        }
+
+        DB::transaction(function () use ($toUpsert, $toDeleteIds) {
+            if (! empty($toDeleteIds)) {
+                AbsensiHarian::where('tanggal', $this->tanggal)
+                    ->whereIn('siswa_id', $toDeleteIds)
+                    ->delete();
+            }
+
+            if (! empty($toUpsert)) {
+                DB::table('absensi_harians')->upsert(
+                    $toUpsert,
+                    ['tanggal', 'siswa_id'],
+                    ['rombel_id', 'semester_id', 'status', 'keterangan', 'diinput_oleh', 'updated_at']
                 );
             }
         });
 
-        session()->flash('message', 'Absensi harian berhasil disimpan.');
+        $this->dirtySiswaIds = [];
+        if ($this->isPastDate) {
+            $this->isEditingPastDate = false;
+        }
+        $this->loadData();
+
+        if (! empty($skippedNoRombel)) {
+            session()->flash(
+                'warning',
+                'Sebagian siswa dilewati karena belum memiliki rombel: '.implode(', ', array_slice($skippedNoRombel, 0, 5))
+                .(count($skippedNoRombel) > 5 ? ' dan lainnya.' : '.')
+            );
+        }
+
+        if (! empty($toUpsert) || ! empty($toDeleteIds)) {
+            session()->flash('message', 'Absensi harian berhasil disimpan.');
+        }
+    }
+
+    protected function resolveAccessScope(): array
+    {
+        if ($this->resolvedScope !== null) {
+            return $this->resolvedScope;
+        }
+
+        $user = auth()->user();
+        if (! $user) {
+            return $this->resolvedScope = ['all' => false, 'rombel_ids' => [], 'rayon_ids' => []];
+        }
+
+        if ($user->isSuperAdmin() || $user->hasRole(['Kesiswaan', 'Operator'])) {
+            return $this->resolvedScope = ['all' => true, 'rombel_ids' => [], 'rayon_ids' => []];
+        }
+
+        $tahunAjaranId = AcademicContext::currentTahunAjaran()?->id;
+        $pegawai = $user->pegawai;
+
+        $rombelIds = [];
+        $rayonIds = [];
+
+        if ($pegawai) {
+            $rombelIds = array_merge(
+                $rombelIds,
+                PenugasanWaliKelas::where('pegawai_id', $pegawai->id)
+                    ->when($tahunAjaranId, fn (Builder $q) => $q->where('tahun_ajaran_id', $tahunAjaranId))
+                    ->pluck('rombel_id')
+                    ->all()
+            );
+
+            $rayonIds = array_merge(
+                $rayonIds,
+                PenugasanPembimbingRayon::where('pegawai_id', $pegawai->id)
+                    ->when($tahunAjaranId, fn (Builder $q) => $q->where('tahun_ajaran_id', $tahunAjaranId))
+                    ->pluck('rayon_id')
+                    ->all()
+            );
+        }
+
+        $ownerIds = array_values(array_unique(array_filter([$user->id, $pegawai?->id])));
+
+        if (! empty($ownerIds)) {
+            $rombelIds = array_merge(
+                $rombelIds,
+                Rombel::whereIn('wali_kelas_id', $ownerIds)
+                    ->when($tahunAjaranId, fn (Builder $q) => $q->where('tahun_ajaran_id', $tahunAjaranId))
+                    ->pluck('id')
+                    ->all()
+            );
+
+            $rayonIds = array_merge(
+                $rayonIds,
+                Rayon::whereIn('pembimbing_id', $ownerIds)
+                    ->pluck('id')
+                    ->all()
+            );
+        }
+
+        return $this->resolvedScope = [
+            'all' => false,
+            'rombel_ids' => array_values(array_unique(array_map('intval', $rombelIds))),
+            'rayon_ids' => array_values(array_unique(array_map('intval', $rayonIds))),
+        ];
+    }
+
+    protected function baseSiswaQuery(): Builder
+    {
+        $scope = $this->resolveAccessScope();
+        $query = Siswa::where('status', 'aktif');
+
+        if (! $scope['all']) {
+            if (empty($scope['rombel_ids']) && empty($scope['rayon_ids'])) {
+                return $query->whereRaw('1 = 0');
+            }
+
+            $query->where(function (Builder $q) use ($scope) {
+                if (! empty($scope['rombel_ids'])) {
+                    $q->orWhereIn('rombel_id', $scope['rombel_ids']);
+                }
+                if (! empty($scope['rayon_ids'])) {
+                    $q->orWhereIn('rayon_id', $scope['rayon_ids']);
+                }
+            });
+        }
+
+        return $query;
+    }
+
+    protected function getAvailableRombels(): Collection
+    {
+        $scope = $this->resolveAccessScope();
+        $activeTa = AcademicContext::currentTahunAjaran();
+
+        if ($scope['all']) {
+            $rombels = Rombel::when($activeTa, fn (Builder $q) => $q->where('tahun_ajaran_id', $activeTa->id))
+                ->orderBy('tingkat')
+                ->orderBy('nama')
+                ->get(['id', 'nama', 'tingkat']);
+
+            if ($rombels->isEmpty()) {
+                $rombels = Rombel::orderBy('tingkat')->orderBy('nama')->get(['id', 'nama', 'tingkat']);
+            }
+
+            return $rombels;
+        }
+
+        $scopedRombelIds = $this->baseSiswaQuery()
+            ->whereNotNull('rombel_id')
+            ->distinct()
+            ->pluck('rombel_id')
+            ->merge($scope['rombel_ids'])
+            ->unique()
+            ->values();
+
+        if ($scopedRombelIds->isEmpty()) {
+            return collect();
+        }
+
+        return Rombel::whereIn('id', $scopedRombelIds)
+            ->orderBy('tingkat')
+            ->orderBy('nama')
+            ->get(['id', 'nama', 'tingkat']);
+    }
+
+    protected function getAvailableRayons(): Collection
+    {
+        $scope = $this->resolveAccessScope();
+
+        if ($scope['all']) {
+            return Rayon::orderBy('nama')->get(['id', 'nama']);
+        }
+
+        $scopedRayonIds = $this->baseSiswaQuery()
+            ->whereNotNull('rayon_id')
+            ->distinct()
+            ->pluck('rayon_id')
+            ->merge($scope['rayon_ids'])
+            ->unique()
+            ->values();
+
+        if ($scopedRayonIds->isEmpty()) {
+            return collect();
+        }
+
+        return Rayon::whereIn('id', $scopedRayonIds)
+            ->orderBy('nama')
+            ->get(['id', 'nama']);
+    }
+
+    protected function isValidDate(mixed $value): bool
+    {
+        if (! is_string($value) || trim($value) === '') {
+            return false;
+        }
+
+        try {
+            Carbon::parse($value);
+
+            return true;
+        } catch (\Throwable) {
+            return false;
+        }
     }
 
     public function render()
@@ -248,7 +600,19 @@ class AbsensiHarianIndex extends Component
         $statuses = StatusAbsensi::cases();
         $siswas = $this->getFilteredSiswas();
         $statistik = $this->statistik;
+        $rombels = $this->getAvailableRombels();
+        $rayons = $this->getAvailableRayons();
 
-        return view('absensi::livewire.absensi-harian-index', compact('statuses', 'siswas', 'statistik'));
+        return view('absensi::livewire.absensi-harian-index', [
+            'statuses' => $statuses,
+            'siswas' => $siswas,
+            'statistik' => $statistik,
+            'rombels' => $rombels,
+            'rayons' => $rayons,
+            'canInput' => $this->canInput,
+            'isPastDate' => $this->isPastDate,
+            'isEditable' => $this->isEditable,
+            'hasFullAccess' => $this->hasFullAccess,
+        ]);
     }
 }

@@ -3,12 +3,14 @@
 namespace App\Modules\PortalSiswa\Livewire;
 
 use App\Core\Concerns\GuardsPermission;
+use App\Enums\StatusAbsensi;
 use App\Modules\Absensi\Models\AbsensiHarian;
 use App\Modules\KalenderPendidikan\Models\KalenderAgenda;
 use App\Modules\Kepesantrenan\Services\HafalanRankService;
 use App\Modules\Kesiswaan\Models\Siswa;
 use App\Modules\PortalSiswa\Models\PengajuanBeasiswa;
 use App\Modules\PortalSiswa\Models\PengajuanPerbaikanDataSiswa;
+use Illuminate\Support\Facades\DB;
 use Livewire\Attributes\Layout;
 use Livewire\Attributes\Title;
 use Livewire\Component;
@@ -68,10 +70,26 @@ class BerandaSiswa extends Component
                 'customKelompoks.pembimbing',
             ]);
 
-            $absensiStats['H'] = AbsensiHarian::where('siswa_id', $siswa->id)->where('status', 'H')->count();
-            $absensiStats['S'] = AbsensiHarian::where('siswa_id', $siswa->id)->where('status', 'S')->count();
-            $absensiStats['I'] = AbsensiHarian::where('siswa_id', $siswa->id)->where('status', 'I')->count();
-            $absensiStats['A'] = AbsensiHarian::where('siswa_id', $siswa->id)->where('status', 'A')->count();
+            $groupedAbsensi = AbsensiHarian::where('siswa_id', $siswa->id)
+                ->select('status', DB::raw('COUNT(*) as total'))
+                ->groupBy('status')
+                ->get();
+
+            foreach ($groupedAbsensi as $row) {
+                $statusVal = $row->status instanceof StatusAbsensi ? $row->status->value : (string) $row->status;
+                $enum = StatusAbsensi::tryFrom($statusVal);
+                $count = (int) $row->total;
+
+                if (($enum && $enum->isHadirStatistik()) || $statusVal === 'H') {
+                    $absensiStats['H'] += $count;
+                } elseif ($enum === StatusAbsensi::SAKIT || $statusVal === 'S') {
+                    $absensiStats['S'] += $count;
+                } elseif ($enum === StatusAbsensi::IZIN || $statusVal === 'I') {
+                    $absensiStats['I'] += $count;
+                } elseif ($enum === StatusAbsensi::ALPA || $statusVal === 'A') {
+                    $absensiStats['A'] += $count;
+                }
+            }
             $total = $absensiStats['H'] + $absensiStats['S'] + $absensiStats['I'] + $absensiStats['A'];
             $absensiStats['persen'] = $total > 0 ? round(($absensiStats['H'] / $total) * 100, 1) : 100;
 

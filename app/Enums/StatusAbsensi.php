@@ -15,6 +15,19 @@ enum StatusAbsensi: string
     public function label(): string
     {
         return match($this) {
+            self::HADIR => 'H',
+            self::SAKIT => 'S',
+            self::IZIN => 'I',
+            self::ALPA => 'A',
+            self::DISPEN_CBT_PLH => 'CBT PLH',
+            self::DISPEN_CBT_KWH => 'CBT KWH',
+            self::DISPEN_LAINNYA => 'Dispen',
+        };
+    }
+
+    public function fullLabel(): string
+    {
+        return match($this) {
             self::HADIR => 'Hadir',
             self::SAKIT => 'Sakit',
             self::IZIN => 'Izin',

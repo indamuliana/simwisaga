@@ -6,6 +6,7 @@ return [
     'group' => 'KESISWAAN',
     'order' => 45,
     'menu' => [
+        ['label' => 'Dashboard Absensi', 'route' => 'absensi.dashboard', 'permission' => 'absensi.harian.lihat'],
         ['label' => 'Absensi Harian', 'route' => 'absensi.harian', 'permission' => 'absensi.harian.lihat'],
         ['label' => 'Absensi Mapel', 'route' => 'absensi.mapel', 'permission' => 'absensi.mapel.lihat'],
         ['label' => 'Rekap Absensi', 'route' => 'absensi.rekap', 'permission' => 'absensi.rekap.lihat'],

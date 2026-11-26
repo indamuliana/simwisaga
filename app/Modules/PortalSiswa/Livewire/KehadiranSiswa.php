@@ -99,10 +99,15 @@ class KehadiranSiswa extends Component
             // Ambil seluruh data hasil filter untuk statistik dan rekap bulanan
             $allFiltered = (clone $baseQuery)->get();
 
-            $isHadir = fn ($item) => in_array($item->status instanceof StatusAbsensi ? $item->status->value : $item->status, ['Hadir', 'H']);
-            $isSakit = fn ($item) => in_array($item->status instanceof StatusAbsensi ? $item->status->value : $item->status, ['Sakit', 'S']);
-            $isIzin  = fn ($item) => in_array($item->status instanceof StatusAbsensi ? $item->status->value : $item->status, ['Izin', 'I']);
-            $isAlpa  = fn ($item) => in_array($item->status instanceof StatusAbsensi ? $item->status->value : $item->status, ['Alpa', 'A']);
+            $isHadir = function ($item) {
+                $val = $item->status instanceof StatusAbsensi ? $item->status->value : (string) $item->status;
+                $enum = StatusAbsensi::tryFrom($val);
+
+                return ($enum && $enum->isHadirStatistik()) || $val === 'H';
+            };
+            $isSakit = fn ($item) => in_array($item->status instanceof StatusAbsensi ? $item->status->value : $item->status, [StatusAbsensi::SAKIT->value, 'S']);
+            $isIzin  = fn ($item) => in_array($item->status instanceof StatusAbsensi ? $item->status->value : $item->status, [StatusAbsensi::IZIN->value, 'I']);
+            $isAlpa  = fn ($item) => in_array($item->status instanceof StatusAbsensi ? $item->status->value : $item->status, [StatusAbsensi::ALPA->value, 'A']);
 
             $stats['H'] = $allFiltered->filter($isHadir)->count();
             $stats['S'] = $allFiltered->filter($isSakit)->count();

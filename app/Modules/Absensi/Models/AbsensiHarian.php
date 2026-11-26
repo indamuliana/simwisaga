@@ -21,6 +21,11 @@ class AbsensiHarian extends Model
         'status' => StatusAbsensi::class,
     ];
 
+    public function setTanggalAttribute($value): void
+    {
+        $this->attributes['tanggal'] = $value ? \Carbon\Carbon::parse($value)->toDateString() : null;
+    }
+
     public function siswa()
     {
         return $this->belongsTo(Siswa::class);
